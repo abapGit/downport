@@ -1,0 +1,31 @@
+name: Upport
+
+on:
+  schedule: 
+    - cron: '0 */3 * * *'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Use Node.js
+      uses: actions/setup-node@v1
+      with:
+        node-version: '12.x'
+    - name: Run Commands
+      run: |      
+        git config user.email "ci@abapgit.org"
+        git config user.name "CI"
+        git clone https://github.com/abapGit/upport /tmp/new
+        rm -rf src
+        cp -rf /tmp/new/src src
+        git add -A
+        git commit -m "update base"
+        git push        
+        npm install @abaplint/cli
+        npx abaplint --fix || true
+        git status
+        git add -A
+        git commit -m "downport"
+        git push
