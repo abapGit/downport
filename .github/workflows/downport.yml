@@ -24,7 +24,7 @@ jobs:
         git commit -m "update base"
         git push        
         npm install @abaplint/cli
-        npx abaplint --fix || true
+        npx abaplint --fix
         git status
         git add -A
         git commit -m "downport"
