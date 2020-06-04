@@ -70,6 +70,7 @@
   "rules": {
     "whitespace_end": true,
     "parser_error": true,
+    "downport": true,
     "line_break_multiple_parameters": true
   }
 }
