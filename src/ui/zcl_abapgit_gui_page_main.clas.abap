@@ -53,9 +53,9 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_MAIN IMPLEMENTATION.
     DATA: lo_advsub  TYPE REF TO zcl_abapgit_html_toolbar,
           lo_helpsub TYPE REF TO zcl_abapgit_html_toolbar.
 
-    ro_menu = NEW #( iv_id = 'toolbar-main' ).
-    lo_advsub = NEW #( ).
-    lo_helpsub = NEW #( ).
+    CREATE OBJECT ro_menu EXPORTING iv_id = 'toolbar-main'.
+    CREATE OBJECT lo_advsub.
+    CREATE OBJECT lo_helpsub.
 
     lo_advsub->add( iv_txt = 'Repository overview'
                     iv_act = zif_abapgit_definitions=>c_action-go_repo_overview ) ##NO_TEXT.
@@ -112,7 +112,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_MAIN IMPLEMENTATION.
 
     retrieve_active_repo( ). " Get and validate key of user default repo
 
-    ro_html = NEW #( ).
+    CREATE OBJECT ro_html.
     gui_services( )->get_hotkeys_ctl( )->register_hotkeys( me ).
 
     TRY.
@@ -125,7 +125,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_MAIN IMPLEMENTATION.
     ro_html->add( render_toc( lt_repos ) ).
 
     IF mv_show IS INITIAL OR lines( lt_repos ) = 0.
-      li_tutorial = NEW zcl_abapgit_gui_view_tutorial( ).
+      CREATE OBJECT li_tutorial TYPE zcl_abapgit_gui_view_tutorial.
       ro_html->add( li_tutorial->render( ) ).
     ELSE.
       lo_repo = zcl_abapgit_repo_srv=>get_instance( )->get( mv_show ).
@@ -139,7 +139,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_MAIN IMPLEMENTATION.
 
     DATA lo_news TYPE REF TO zcl_abapgit_news.
 
-    ro_html = NEW #( ).
+    CREATE OBJECT ro_html.
 
     lo_news = zcl_abapgit_news=>create( io_repo ).
 
@@ -172,10 +172,10 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_MAIN IMPLEMENTATION.
           lv_repo_title TYPE string.
 
 
-    ro_html = NEW #( ).
-    lo_favbar = NEW #( ).
-    lo_allbar = NEW #( iv_id = 'toc-all-repos' ).
-    lo_pback = NEW #( ).
+    CREATE OBJECT ro_html.
+    CREATE OBJECT lo_favbar.
+    CREATE OBJECT lo_allbar EXPORTING iv_id = 'toc-all-repos'.
+    CREATE OBJECT lo_pback.
 
     lt_favorites = zcl_abapgit_persistence_user=>get_instance( )->get_favorites( ).
 
@@ -283,7 +283,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_MAIN IMPLEMENTATION.
     ENDIF.
 
     IF lv_show_old <> mv_show AND NOT mv_show IS INITIAL.
-      mo_repo_content = NEW #( iv_key = mv_show ). " Reinit content state
+      CREATE OBJECT mo_repo_content EXPORTING iv_key = mv_show. " Reinit content state
     ENDIF.
 
   ENDMETHOD.
@@ -355,7 +355,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_MAIN IMPLEMENTATION.
         zcl_abapgit_services_abapgit=>open_abapgit_changelog( ).
         ev_state = zcl_abapgit_gui=>c_event_state-no_more_act.
       WHEN c_actions-overview.
-        li_repo_overview = NEW zcl_abapgit_gui_page_repo_over( ).
+        CREATE OBJECT li_repo_overview TYPE zcl_abapgit_gui_page_repo_over.
         ei_page = li_repo_overview.
         ev_state = zcl_abapgit_gui=>c_event_state-new_page.
       WHEN OTHERS.
