@@ -38,7 +38,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_BKG_RUN IMPLEMENTATION.
 
     run( ).
 
-    CREATE OBJECT ro_html.
+    ro_html = NEW #( ).
 
     ro_html->add( '<div id="toc">' ).
     LOOP AT mt_text INTO lv_text.
