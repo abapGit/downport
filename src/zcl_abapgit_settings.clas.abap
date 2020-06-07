@@ -260,7 +260,7 @@ CLASS ZCL_ABAPGIT_SETTINGS IMPLEMENTATION.
     DATA: lo_output TYPE REF TO zcl_abapgit_xml_output.
 
 
-    lo_output = NEW #( ).
+    CREATE OBJECT lo_output.
 
     lo_output->add( iv_name = zcl_abapgit_persistence_db=>c_type_settings
                     ig_data = ms_settings ).
@@ -422,7 +422,7 @@ CLASS ZCL_ABAPGIT_SETTINGS IMPLEMENTATION.
     DATA: lo_input TYPE REF TO zcl_abapgit_xml_input.
 
 
-    lo_input = NEW #( iv_xml = iv_settings_xml ).
+    CREATE OBJECT lo_input EXPORTING iv_xml = iv_settings_xml.
 
     CLEAR ms_settings.
 
