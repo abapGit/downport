@@ -285,7 +285,9 @@ CLASS zcl_abapgit_object_chdo IMPLEMENTATION.
 
   METHOD get_generic.
 
-    CREATE OBJECT ro_generic EXPORTING is_item = ms_item.
+    CREATE OBJECT ro_generic
+      EXPORTING
+        is_item = ms_item.
 
   ENDMETHOD.
 

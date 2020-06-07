@@ -116,7 +116,9 @@ CLASS ZCL_ABAPGIT_PERSISTENCE_USER IMPLEMENTATION.
       ENDIF.
       ri_user = gi_current_user.
     ELSE.
-      CREATE OBJECT ri_user TYPE zcl_abapgit_persistence_user EXPORTING iv_user = iv_user.
+      CREATE OBJECT ri_user TYPE zcl_abapgit_persistence_user
+        EXPORTING
+          iv_user = iv_user.
     ENDIF.
 
   ENDMETHOD.

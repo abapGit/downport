@@ -199,7 +199,9 @@ CLASS ZCL_ABAPGIT_ZIP IMPLEMENTATION.
 
     ls_data-local_settings-serialize_master_lang_only = lv_serialize_master_lang_only.
 
-    CREATE OBJECT lo_repo EXPORTING is_data = ls_data.
+    CREATE OBJECT lo_repo
+      EXPORTING
+        is_data = ls_data.
 
     ev_xstr = export( lo_repo ).
     ev_package = ls_data-package.

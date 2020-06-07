@@ -71,8 +71,10 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_MERGE IMPLEMENTATION.
 
     io_repo->set_branch_name( |refs/heads/{ iv_target }| ).
 
-    CREATE OBJECT mo_merge EXPORTING io_repo = io_repo
-                                     iv_source_branch = iv_source.
+    CREATE OBJECT mo_merge
+      EXPORTING
+        io_repo          = io_repo
+        iv_source_branch = iv_source.
     mo_merge->run( ).
 
     ms_control-page_title = 'MERGE'.
@@ -209,13 +211,17 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_MERGE IMPLEMENTATION.
 
         IF mo_repo->get_local_settings( )-code_inspector_check_variant IS NOT INITIAL.
 
-          CREATE OBJECT ei_page TYPE zcl_abapgit_gui_page_code_insp EXPORTING io_repo = mo_repo
-                                                                              io_stage = mo_merge->get_result( )-stage.
+          CREATE OBJECT ei_page TYPE zcl_abapgit_gui_page_code_insp
+            EXPORTING
+              io_repo  = mo_repo
+              io_stage = mo_merge->get_result( )-stage.
 
         ELSE.
 
-          CREATE OBJECT ei_page TYPE zcl_abapgit_gui_page_commit EXPORTING io_repo = mo_repo
-                                                                           io_stage = mo_merge->get_result( )-stage.
+          CREATE OBJECT ei_page TYPE zcl_abapgit_gui_page_commit
+            EXPORTING
+              io_repo  = mo_repo
+              io_stage = mo_merge->get_result( )-stage.
 
         ENDIF.
 
@@ -223,9 +229,11 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_MERGE IMPLEMENTATION.
 
       WHEN c_actions-res_conflicts.
 
-        CREATE OBJECT ei_page TYPE zcl_abapgit_gui_page_merge_res EXPORTING io_repo = mo_repo
-                                                                            io_merge_page = me
-                                                                            io_merge = mo_merge.
+        CREATE OBJECT ei_page TYPE zcl_abapgit_gui_page_merge_res
+          EXPORTING
+            io_repo       = mo_repo
+            io_merge_page = me
+            io_merge      = mo_merge.
         ev_state = zcl_abapgit_gui=>c_event_state-new_page.
 
       WHEN OTHERS.

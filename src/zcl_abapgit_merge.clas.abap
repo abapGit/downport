@@ -111,7 +111,9 @@ CLASS ZCL_ABAPGIT_MERGE IMPLEMENTATION.
 
     lt_files = all_files( ).
 
-    CREATE OBJECT ms_merge-stage EXPORTING iv_merge_source = ms_merge-source-sha1.
+    CREATE OBJECT ms_merge-stage
+      EXPORTING
+        iv_merge_source = ms_merge-source-sha1.
 
     LOOP AT lt_files ASSIGNING <ls_file>.
 

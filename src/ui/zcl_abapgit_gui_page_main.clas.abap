@@ -283,7 +283,9 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_MAIN IMPLEMENTATION.
     ENDIF.
 
     IF lv_show_old <> mv_show AND NOT mv_show IS INITIAL.
-      CREATE OBJECT mo_repo_content EXPORTING iv_key = mv_show. " Reinit content state
+      CREATE OBJECT mo_repo_content
+        EXPORTING
+          iv_key = mv_show. " Reinit content state
     ENDIF.
 
   ENDMETHOD.

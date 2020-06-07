@@ -378,8 +378,10 @@ CLASS ZCL_ABAPGIT_GUI IMPLEMENTATION.
 
     FIELD-SYMBOLS <ls_asset> LIKE LINE OF lt_assets.
 
-    CREATE OBJECT mo_html_viewer EXPORTING query_table_disabled = abap_true
-                                           parent = cl_gui_container=>screen0.
+    CREATE OBJECT mo_html_viewer
+      EXPORTING
+        query_table_disabled = abap_true
+        parent               = cl_gui_container=>screen0.
 
     IF mi_asset_man IS BOUND.
       lt_assets = mi_asset_man->get_all_assets( ).

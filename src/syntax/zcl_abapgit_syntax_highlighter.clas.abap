@@ -85,8 +85,10 @@ CLASS ZCL_ABAPGIT_SYNTAX_HIGHLIGHTER IMPLEMENTATION.
     DATA ls_rule LIKE LINE OF mt_rules.
 
     IF NOT iv_regex IS INITIAL.
-      CREATE OBJECT ls_rule-regex EXPORTING pattern = iv_regex
-                                            ignore_case = abap_true.
+      CREATE OBJECT ls_rule-regex
+        EXPORTING
+          pattern     = iv_regex
+          ignore_case = abap_true.
     ENDIF.
 
     ls_rule-token         = iv_token.
