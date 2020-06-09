@@ -2,7 +2,7 @@ name: Downport
 
 on:
   schedule: 
-    - cron: '30 */3 * * *'
+    - cron: '30 */6 * * *'
 
 jobs:
   build:
