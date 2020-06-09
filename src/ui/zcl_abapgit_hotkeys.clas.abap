@@ -282,7 +282,7 @@ CLASS ZCL_ABAPGIT_HOTKEYS IMPLEMENTATION.
 
     lv_json = lv_json && `}`.
 
-    CREATE OBJECT ro_html.
+    ro_html = NEW #( ).
     ro_html->zif_abapgit_html~set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
     ro_html->add( |setKeyBindings({ lv_json });| ).
 
@@ -357,7 +357,7 @@ CLASS ZCL_ABAPGIT_HOTKEYS IMPLEMENTATION.
 
     zif_abapgit_gui_hotkey_ctl~register_hotkeys( me ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     lt_registered_hotkeys = zif_abapgit_gui_hotkey_ctl~get_registered_hotkeys( ).
     SORT lt_registered_hotkeys BY ui_component description.
