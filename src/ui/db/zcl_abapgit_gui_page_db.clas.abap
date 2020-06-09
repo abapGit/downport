@@ -140,7 +140,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DB IMPLEMENTATION.
 
     lt_data = zcl_abapgit_persistence_db=>get_instance( )->list( ).
 
-    ro_html = NEW #( ).
+    CREATE OBJECT ro_html.
 
     ro_html->add( '<div class="db_list">' ).
     ro_html->add( '<table class="db_tab">' ).
@@ -165,7 +165,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DB IMPLEMENTATION.
 
       lv_action  = zcl_abapgit_html_action_utils=>dbkey_encode( <ls_data> ).
 
-      lo_toolbar = NEW #( ).
+      CREATE OBJECT lo_toolbar.
       lo_toolbar->add( iv_txt = 'Display'
                        iv_act = |{ zif_abapgit_definitions=>c_action-db_display }?{ lv_action }| ).
       lo_toolbar->add( iv_txt = 'Edit'
