@@ -47,7 +47,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SYNTAX IMPLEMENTATION.
 
   METHOD build_menu.
 
-    CREATE OBJECT ro_menu.
+    ro_menu = NEW #( ).
 
     ro_menu->add( iv_txt = 'Re-Run'
                   iv_act = c_actions-rerun
@@ -66,7 +66,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SYNTAX IMPLEMENTATION.
 
   METHOD render_content.
 
-    CREATE OBJECT ro_html.
+    ro_html = NEW #( ).
     ro_html->add( '<div class="toc">' ).
 
     IF lines( mt_result ) = 0.
