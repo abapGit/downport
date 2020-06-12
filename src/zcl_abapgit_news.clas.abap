@@ -179,9 +179,9 @@ CLASS ZCL_ABAPGIT_NEWS IMPLEMENTATION.
     READ TABLE lt_remote ASSIGNING <ls_file>
       WITH KEY path = lc_log_path filename = lc_log_filename.
     IF sy-subrc = 0.
-      CREATE OBJECT ro_instance EXPORTING iv_rawdata = <ls_file>-data
-                                          iv_current_version = zif_abapgit_version=>gc_abap_version
-                                          iv_lastseen_version = normalize_version( lv_last_seen ).
+      ro_instance = NEW #( iv_rawdata = <ls_file>-data
+                           iv_current_version = zif_abapgit_version=>gc_abap_version
+                           iv_lastseen_version = normalize_version( lv_last_seen ) ).
     ENDIF.
 
     IF ro_instance IS BOUND AND lv_last_seen <> ro_instance->latest_version( ).
