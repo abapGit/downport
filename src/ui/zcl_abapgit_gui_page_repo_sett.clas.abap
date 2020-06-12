@@ -92,7 +92,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_REPO_SETT IMPLEMENTATION.
 
   METHOD render_content.
 
-    ro_html = NEW #( ).
+    CREATE OBJECT ro_html.
     ro_html->add( '<div class="settings_container">' ).
     ro_html->add( |<form id="settings_form" method="post" action="sapevent:{ c_action-save_settings }">| ).
 
