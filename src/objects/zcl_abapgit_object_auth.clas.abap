@@ -47,7 +47,7 @@ CLASS ZCL_ABAPGIT_OBJECT_AUTH IMPLEMENTATION.
       lv_dummy  TYPE string.
 
     " authority check
-    lo_auth = NEW #( ).
+    CREATE OBJECT lo_auth.
     IF lo_auth->authority_check_suso( actvt     = '06'
                                       fieldname = mv_fieldname ) <> 0.
       MESSAGE e463(01) WITH mv_fieldname INTO lv_dummy.
@@ -89,7 +89,7 @@ CLASS ZCL_ABAPGIT_OBJECT_AUTH IMPLEMENTATION.
 
     tadir_insert( iv_package ).
 
-    lo_auth = NEW #( ).
+    CREATE OBJECT lo_auth.
 
     IF lo_auth->add_afield_to_trkorr( ls_authx-fieldname ) <> 0.
       zcx_abapgit_exception=>raise( 'Error deserializing AUTH' ).
