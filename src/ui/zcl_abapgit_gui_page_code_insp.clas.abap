@@ -109,7 +109,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_CODE_INSP IMPLEMENTATION.
 
     DATA: lv_opt TYPE c LENGTH 1.
 
-    CREATE OBJECT ro_menu.
+    ro_menu = NEW #( ).
 
     ro_menu->add( iv_txt = 'Re-Run'
                   iv_act = c_actions-rerun
@@ -185,30 +185,30 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_CODE_INSP IMPLEMENTATION.
 
   METHOD render_content.
 
-    CREATE OBJECT ro_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     IF mv_check_variant IS INITIAL.
-      ro_html->add( zcl_abapgit_gui_chunk_lib=>render_error( iv_error = 'No check variant supplied.' ) ).
+      ri_html->add( zcl_abapgit_gui_chunk_lib=>render_error( iv_error = 'No check variant supplied.' ) ).
       RETURN.
     ENDIF.
 
     gui_services( )->get_hotkeys_ctl( )->register_hotkeys( me ).
 
-    ro_html->add( '<div class="ci-head">' ).
-    ro_html->add( |Code inspector check variant: <span class="ci-variant">{ mv_check_variant }</span>| ).
-    ro_html->add( |<div class="float-right package-name">{
+    ri_html->add( '<div class="ci-head">' ).
+    ri_html->add( |Code inspector check variant: <span class="ci-variant">{ mv_check_variant }</span>| ).
+    ri_html->add( |<div class="float-right package-name">{
       zcl_abapgit_html=>icon( 'box/grey70' ) }<span>{
       mo_repo->get_package( ) }</span></div>| ).
-    ro_html->add( '</div>' ).
+    ri_html->add( '</div>' ).
 
     IF lines( mt_result ) = 0.
-      ro_html->add( '<div class="dummydiv success">' ).
-      ro_html->add( zcl_abapgit_html=>icon( 'check' ) ).
-      ro_html->add( 'No code inspector findings' ).
-      ro_html->add( '</div>' ).
+      ri_html->add( '<div class="dummydiv success">' ).
+      ri_html->add( zcl_abapgit_html=>icon( 'check' ) ).
+      ri_html->add( 'No code inspector findings' ).
+      ri_html->add( '</div>' ).
     ELSE.
       render_result(
-        io_html   = ro_html
+        ii_html   = ri_html
         it_result = mt_result ).
     ENDIF.
 
@@ -243,7 +243,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_CODE_INSP IMPLEMENTATION.
           " we need to refresh as the source might have changed
           lo_repo_online->refresh( ).
 
-          CREATE OBJECT ei_page TYPE zcl_abapgit_gui_page_stage EXPORTING io_repo = lo_repo_online.
+          ei_page = NEW zcl_abapgit_gui_page_stage( io_repo = lo_repo_online ).
           ev_state = zcl_abapgit_gui=>c_event_state-new_page.
 
         ELSE.
@@ -259,8 +259,8 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_CODE_INSP IMPLEMENTATION.
 
         IF is_stage_allowed( ) = abap_true.
 
-          CREATE OBJECT ei_page TYPE zcl_abapgit_gui_page_commit EXPORTING io_repo = lo_repo_online
-                                                                           io_stage = mo_stage.
+          ei_page = NEW zcl_abapgit_gui_page_commit( io_repo = lo_repo_online
+                                                     io_stage = mo_stage ).
           ev_state = zcl_abapgit_gui=>c_event_state-new_page.
 
         ELSE.
