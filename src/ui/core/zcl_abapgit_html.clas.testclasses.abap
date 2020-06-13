@@ -20,7 +20,7 @@ ENDCLASS.
 CLASS ltcl_html IMPLEMENTATION.
 
   METHOD setup.
-    CREATE OBJECT mo_html.
+    mo_html = NEW #( ).
   ENDMETHOD.
 
   METHOD indent1.
