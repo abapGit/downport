@@ -914,7 +914,7 @@ CLASS ZCL_ABAPGIT_POPUPS IMPLEMENTATION.
         ENDIF.
 
         IF iv_header_text CN ' _0'.
-          CREATE OBJECT lo_table_header EXPORTING text = iv_header_text.
+          lo_table_header = NEW #( text = iv_header_text ).
           mo_select_list_popup->set_top_of_list( lo_table_header ).
         ENDIF.
 
@@ -1126,7 +1126,6 @@ CLASS ZCL_ABAPGIT_POPUPS IMPLEMENTATION.
       lv_finished = abap_true.
 
       TRY.
-          zcl_abapgit_url=>validate( rs_popup-url ).
           zcl_abapgit_repo_srv=>get_instance( )->validate_package( rs_popup-package ).
           validate_folder_logic( rs_popup-folder_logic ).
 
