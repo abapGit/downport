@@ -2,7 +2,6 @@ CLASS zcl_abapgit_settings DEFINITION PUBLIC CREATE PUBLIC.
 
   PUBLIC SECTION.
     CONSTANTS: c_commitmsg_comment_length_dft TYPE i VALUE 50.
-    CONSTANTS: c_commitmsg_comment_default    TYPE string VALUE 'Update $OBJECT'.
     CONSTANTS: c_commitmsg_body_size_dft      TYPE i VALUE 72.
 
     CONSTANTS:
@@ -260,7 +259,7 @@ CLASS ZCL_ABAPGIT_SETTINGS IMPLEMENTATION.
     DATA: lo_output TYPE REF TO zcl_abapgit_xml_output.
 
 
-    CREATE OBJECT lo_output.
+    lo_output = NEW #( ).
 
     lo_output->add( iv_name = zcl_abapgit_persistence_db=>c_type_settings
                     ig_data = ms_settings ).
@@ -316,7 +315,6 @@ CLASS ZCL_ABAPGIT_SETTINGS IMPLEMENTATION.
     set_adt_jump_enanbled( abap_true ).
     set_show_default_repo( abap_false ).
     set_commitmsg_comment_length( c_commitmsg_comment_length_dft ).
-    set_commitmsg_comment_default( c_commitmsg_comment_default ).
     set_commitmsg_body_size( c_commitmsg_body_size_dft ).
     set_default_link_hint_key( ).
     set_icon_scaling( '' ).
@@ -422,7 +420,7 @@ CLASS ZCL_ABAPGIT_SETTINGS IMPLEMENTATION.
     DATA: lo_input TYPE REF TO zcl_abapgit_xml_input.
 
 
-    CREATE OBJECT lo_input EXPORTING iv_xml = iv_settings_xml.
+    lo_input = NEW #( iv_xml = iv_settings_xml ).
 
     CLEAR ms_settings.
 
