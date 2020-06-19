@@ -23,7 +23,7 @@ CLASS ZCL_ABAPGIT_GUI_VIEW_TUTORIAL IMPLEMENTATION.
 
     DATA: lv_devclass TYPE tadir-devclass.
 
-    ro_html = NEW #( ).
+    CREATE OBJECT ro_html.
 
     ro_html->add( '<h1>Tutorial</h1>' ).
     ro_html->add( '<hr>' ).
@@ -81,7 +81,7 @@ CLASS ZCL_ABAPGIT_GUI_VIEW_TUTORIAL IMPLEMENTATION.
 
   METHOD zif_abapgit_gui_renderable~render.
 
-    ri_html = NEW zcl_abapgit_html( ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
 
     ri_html->add( '<div class="tutorial">' ).
     ri_html->add( render_content( ) ).
