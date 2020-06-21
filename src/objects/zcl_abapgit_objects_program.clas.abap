@@ -932,7 +932,7 @@ CLASS ZCL_ABAPGIT_OBJECTS_PROGRAM IMPLEMENTATION.
     IF io_xml IS BOUND.
       lo_xml = io_xml.
     ELSE.
-      lo_xml = NEW #( ).
+      CREATE OBJECT lo_xml.
     ENDIF.
 
     lo_xml->add( iv_name = 'PROGDIR'
