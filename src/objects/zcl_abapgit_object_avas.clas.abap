@@ -90,7 +90,7 @@ CLASS ZCL_ABAPGIT_OBJECT_AVAS IMPLEMENTATION.
     lv_id = ms_item-obj_name.
 
     TRY.
-        ro_avas = NEW #( im_assignment_id = lv_id ).
+        CREATE OBJECT ro_avas EXPORTING im_assignment_id = lv_id.
       CATCH cx_pak_wb_object_locked INTO lx_err.
         zcx_abapgit_exception=>raise( |AVAS { lv_id }: locked: { lx_err->get_longtext( ) }| ).
       CATCH cx_pak_not_authorized INTO lx_err.
