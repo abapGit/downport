@@ -440,7 +440,7 @@ CLASS zcl_abapgit_object_ueno IMPLEMENTATION.
       FROM dokvl
       INTO CORRESPONDING FIELDS OF TABLE lt_dokvl
       WHERE id = c_text_object_type
-      AND   object LIKE ls_dokvl-object.
+      AND   object LIKE ls_dokvl-object ##TOO_MANY_ITAB_FIELDS.
 
     LOOP AT lt_dokvl INTO ls_dokvl.
 
@@ -495,7 +495,7 @@ CLASS zcl_abapgit_object_ueno IMPLEMENTATION.
 
     DATA lo_generic TYPE REF TO zcl_abapgit_objects_generic.
 
-    CREATE OBJECT lo_generic EXPORTING is_item = ms_item.
+    lo_generic = NEW #( is_item = ms_item ).
 
     " The deletion of the documentation occurs before the deletion of
     " the associated tables - otherwise we don't know what
@@ -514,7 +514,7 @@ CLASS zcl_abapgit_object_ueno IMPLEMENTATION.
 
     DATA lo_generic TYPE REF TO zcl_abapgit_objects_generic.
 
-    CREATE OBJECT lo_generic EXPORTING is_item = ms_item.
+    lo_generic = NEW #( is_item = ms_item ).
 
     " Is the entity type name compliant with naming conventions?
     " Entity Type have their own conventions.
@@ -537,7 +537,7 @@ CLASS zcl_abapgit_object_ueno IMPLEMENTATION.
 
     DATA: lo_generic TYPE REF TO zcl_abapgit_objects_generic.
 
-    CREATE OBJECT lo_generic EXPORTING is_item = ms_item.
+    lo_generic = NEW #( is_item = ms_item ).
 
     rv_bool = lo_generic->exists( ).
 
@@ -621,7 +621,7 @@ CLASS zcl_abapgit_object_ueno IMPLEMENTATION.
 
     DATA: lo_generic TYPE REF TO zcl_abapgit_objects_generic.
 
-    CREATE OBJECT lo_generic EXPORTING is_item = ms_item.
+    lo_generic = NEW #( is_item = ms_item ).
 
     lo_generic->serialize( io_xml ).
 
