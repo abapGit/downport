@@ -83,10 +83,8 @@ CLASS ZCL_ABAPGIT_OBJECT_SXCI IMPLEMENTATION.
 
     lv_package = iv_package.
 
-    CREATE OBJECT lo_filter_values_object
-      EXPORTING
-        filter_object = lo_filter_object
-        filter_values = ls_classic_badi_implementation-filters.
+    lo_filter_values_object = NEW #( filter_object = lo_filter_object
+                                     filter_values = ls_classic_badi_implementation-filters ).
 
     CALL FUNCTION 'SXO_IMPL_SAVE'
       EXPORTING

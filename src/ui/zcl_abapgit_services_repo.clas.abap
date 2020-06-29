@@ -55,11 +55,6 @@ CLASS zcl_abapgit_services_repo DEFINITION
         !iv_key TYPE zif_abapgit_persistence=>ty_repo-key
       RAISING
         zcx_abapgit_exception .
-    CLASS-METHODS open_se80
-      IMPORTING
-        !iv_package TYPE devclass
-      RAISING
-        zcx_abapgit_exception .
     CLASS-METHODS transport_to_branch
       IMPORTING
         !iv_repository_key TYPE zif_abapgit_persistence=>ty_value
@@ -87,7 +82,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_SERVICES_REPO IMPLEMENTATION.
+CLASS zcl_abapgit_services_repo IMPLEMENTATION.
 
 
   METHOD gui_deserialize.
@@ -223,19 +218,6 @@ CLASS ZCL_ABAPGIT_SERVICES_REPO IMPLEMENTATION.
     zcl_abapgit_persistence_user=>get_instance( )->set_repo_show( lo_repo->get_key( ) ).
 
     COMMIT WORK.
-
-  ENDMETHOD.
-
-
-  METHOD open_se80.
-
-    CALL FUNCTION 'RS_TOOL_ACCESS'
-      EXPORTING
-        operation       = 'SHOW'
-        in_new_window   = abap_true
-        object_name     = iv_package
-        object_type     = 'DEVC'
-        with_objectlist = abap_true.
 
   ENDMETHOD.
 
@@ -589,7 +571,7 @@ CLASS ZCL_ABAPGIT_SERVICES_REPO IMPLEMENTATION.
     ls_transport_to_branch = zcl_abapgit_ui_factory=>get_popups( )->popup_to_create_transp_branch(
       lt_transport_headers ).
 
-    CREATE OBJECT lo_transport_to_branch.
+    lo_transport_to_branch = NEW #( ).
     lo_transport_to_branch->create(
       io_repository          = lo_repository
       is_transport_to_branch = ls_transport_to_branch
