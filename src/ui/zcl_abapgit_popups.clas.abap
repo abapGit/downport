@@ -914,7 +914,9 @@ CLASS ZCL_ABAPGIT_POPUPS IMPLEMENTATION.
         ENDIF.
 
         IF iv_header_text CN ' _0'.
-          CREATE OBJECT lo_table_header EXPORTING text = iv_header_text.
+          CREATE OBJECT lo_table_header
+            EXPORTING
+              text = iv_header_text.
           mo_select_list_popup->set_top_of_list( lo_table_header ).
         ENDIF.
 

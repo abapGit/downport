@@ -243,7 +243,9 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_STAGE IMPLEMENTATION.
       IMPORTING
         ev_key    = lv_key ).
 
-    CREATE OBJECT lo_page EXPORTING iv_key = lv_key.
+    CREATE OBJECT lo_page
+      EXPORTING
+        iv_key = lv_key.
 
     ri_page = lo_page.
 
@@ -651,8 +653,10 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_STAGE IMPLEMENTATION.
 
         lo_stage = stage_all( ).
 
-        CREATE OBJECT ei_page TYPE zcl_abapgit_gui_page_commit EXPORTING io_repo = mo_repo
-                                                                         io_stage = lo_stage.
+        CREATE OBJECT ei_page TYPE zcl_abapgit_gui_page_commit
+          EXPORTING
+            io_repo  = mo_repo
+            io_stage = lo_stage.
 
         ev_state = zcl_abapgit_gui=>c_event_state-new_page.
 
@@ -660,8 +664,10 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_STAGE IMPLEMENTATION.
 
         lo_stage = stage_selected( it_postdata ).
 
-        CREATE OBJECT ei_page TYPE zcl_abapgit_gui_page_commit EXPORTING io_repo = mo_repo
-                                                                         io_stage = lo_stage.
+        CREATE OBJECT ei_page TYPE zcl_abapgit_gui_page_commit
+          EXPORTING
+            io_repo  = mo_repo
+            io_stage = lo_stage.
 
         ev_state = zcl_abapgit_gui=>c_event_state-new_page.
 

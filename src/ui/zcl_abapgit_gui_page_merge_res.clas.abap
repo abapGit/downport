@@ -514,8 +514,10 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_MERGE_RES IMPLEMENTATION.
     ENDIF.
 
     IF ms_diff_file-type <> 'binary'.
-      CREATE OBJECT ms_diff_file-o_diff EXPORTING iv_new = <ls_conflict>-source_data
-                                                  iv_old = <ls_conflict>-target_data.
+      CREATE OBJECT ms_diff_file-o_diff
+        EXPORTING
+          iv_new = <ls_conflict>-source_data
+          iv_old = <ls_conflict>-target_data.
     ENDIF.
 
   ENDMETHOD.

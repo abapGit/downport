@@ -408,9 +408,11 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_BOVERVIEW IMPLEMENTATION.
         ev_state = zcl_abapgit_gui=>c_event_state-re_render.
       WHEN c_actions-merge.
         ls_merge = decode_merge( it_postdata ).
-        CREATE OBJECT lo_merge EXPORTING io_repo = mo_repo
-                                         iv_source = ls_merge-source
-                                         iv_target = ls_merge-target.
+        CREATE OBJECT lo_merge
+          EXPORTING
+            io_repo   = mo_repo
+            iv_source = ls_merge-source
+            iv_target = ls_merge-target.
         ei_page = lo_merge.
         ev_state = zcl_abapgit_gui=>c_event_state-new_page.
       WHEN OTHERS.

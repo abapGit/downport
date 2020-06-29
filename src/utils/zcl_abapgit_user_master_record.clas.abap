@@ -129,7 +129,9 @@ CLASS ZCL_ABAPGIT_USER_MASTER_RECORD IMPLEMENTATION.
     IF sy-subrc <> 0.
 
       ls_user-user = iv_user.
-      CREATE OBJECT ls_user-o_user EXPORTING iv_user = iv_user.
+      CREATE OBJECT ls_user-o_user
+        EXPORTING
+          iv_user = iv_user.
 
       INSERT ls_user
              INTO TABLE gt_user
