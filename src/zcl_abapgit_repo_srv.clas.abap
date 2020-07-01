@@ -93,7 +93,7 @@ CLASS ZCL_ABAPGIT_REPO_SRV IMPLEMENTATION.
 
   METHOD get_instance.
     IF gi_ref IS INITIAL.
-      CREATE OBJECT gi_ref TYPE zcl_abapgit_repo_srv.
+      gi_ref = NEW zcl_abapgit_repo_srv( ).
     ENDIF.
     ri_srv = gi_ref.
   ENDMETHOD.
@@ -102,9 +102,9 @@ CLASS ZCL_ABAPGIT_REPO_SRV IMPLEMENTATION.
   METHOD instantiate_and_add.
 
     IF is_repo_meta-offline = abap_false.
-      CREATE OBJECT ro_repo TYPE zcl_abapgit_repo_online EXPORTING is_data = is_repo_meta.
+      ro_repo = NEW zcl_abapgit_repo_online( is_data = is_repo_meta ).
     ELSE.
-      CREATE OBJECT ro_repo TYPE zcl_abapgit_repo_offline EXPORTING is_data = is_repo_meta.
+      ro_repo = NEW zcl_abapgit_repo_offline( is_data = is_repo_meta ).
     ENDIF.
     add( ro_repo ).
 
@@ -383,13 +383,23 @@ CLASS ZCL_ABAPGIT_REPO_SRV IMPLEMENTATION.
   METHOD zif_abapgit_repo_srv~new_online.
 
     DATA: ls_repo        TYPE zif_abapgit_persistence=>ty_repo,
+          lv_branch_name LIKE iv_branch_name,
           lv_key         TYPE zif_abapgit_persistence=>ty_repo-key,
           ls_dot_abapgit TYPE zif_abapgit_dot_abapgit=>ty_dot_abapgit.
 
 
     ASSERT NOT iv_url IS INITIAL
-      AND NOT iv_branch_name IS INITIAL
       AND NOT iv_package IS INITIAL.
+
+    lv_branch_name = iv_branch_name.
+    IF lv_branch_name IS INITIAL.
+      lv_branch_name = 'refs/heads/master'.
+    ENDIF.
+    IF -1 = find(
+        val = lv_branch_name
+        sub = 'refs/heads/' ).
+      lv_branch_name = 'refs/heads/' && lv_branch_name. " Assume short branch name was received
+    ENDIF.
 
     IF zcl_abapgit_auth=>is_allowed( zif_abapgit_auth=>gc_authorization-create_repo ) = abap_false.
       zcx_abapgit_exception=>raise( 'Not authorized' ).
@@ -405,7 +415,7 @@ CLASS ZCL_ABAPGIT_REPO_SRV IMPLEMENTATION.
 
     lv_key = zcl_abapgit_persist_factory=>get_repo( )->add(
       iv_url          = iv_url
-      iv_branch_name  = iv_branch_name
+      iv_branch_name  = lv_branch_name " local !
       iv_display_name = iv_display_name
       iv_package      = iv_package
       iv_offline      = abap_false

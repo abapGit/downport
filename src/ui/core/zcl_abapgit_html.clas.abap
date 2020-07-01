@@ -30,6 +30,11 @@ CLASS zcl_abapgit_html DEFINITION
         !iv_hint    TYPE string OPTIONAL
         !iv_class   TYPE string OPTIONAL
         !iv_onclick TYPE string OPTIONAL .
+
+    CLASS-METHODS create
+      RETURNING
+        VALUE(ro_html) TYPE REF TO zcl_abapgit_html.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 
@@ -207,8 +212,13 @@ CLASS ZCL_ABAPGIT_HTML IMPLEMENTATION.
 
 
   METHOD class_constructor.
-    CREATE OBJECT go_single_tags_re EXPORTING pattern = '<(AREA|BASE|BR|COL|COMMAND|EMBED|HR|IMG|INPUT|LINK|META|PARAM|SOURCE|!)'
-                                              ignore_case = abap_false.
+    go_single_tags_re = NEW #( pattern = '<(AREA|BASE|BR|COL|COMMAND|EMBED|HR|IMG|INPUT|LINK|META|PARAM|SOURCE|!)'
+                               ignore_case = abap_false ).
+  ENDMETHOD.
+
+
+  METHOD create.
+    ro_html = NEW #( ).
   ENDMETHOD.
 
 

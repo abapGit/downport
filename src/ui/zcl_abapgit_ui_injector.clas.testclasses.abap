@@ -96,6 +96,10 @@ CLASS ltcl_abapgit_popups_mock IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD zif_abapgit_popups~popup_search_help.
+
+  ENDMETHOD.
+
 ENDCLASS.
 
 CLASS ltcl_no_dependency_injection IMPLEMENTATION.
@@ -123,7 +127,7 @@ CLASS ltcl_simple_dependency_inject IMPLEMENTATION.
 
     DATA: lo_popups_mock TYPE REF TO ltcl_abapgit_popups_mock.
 
-    CREATE OBJECT lo_popups_mock.
+    lo_popups_mock = NEW #( ).
 
     zcl_abapgit_ui_injector=>set_popups( lo_popups_mock ).
 
