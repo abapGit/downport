@@ -126,7 +126,7 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
 
   METHOD footer.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div id="footer">' ).                    "#EC NOTEXT
 
@@ -147,7 +147,7 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
 
   METHOD html_head.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<head>' ).                               "#EC NOTEXT
 
@@ -214,7 +214,7 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
     " You should remember that the we have to instantiate ro_html even
     " it's overwritten further down. Because ADD checks whether it's
     " bound.
-    CREATE OBJECT ro_html.
+    ro_html = NEW #( ).
 
     " You should remember that we render the message panel only
     " if we have an error.
@@ -226,7 +226,7 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
 
     " You should remember that the exception viewer dispatches the events of
     " error message panel
-    CREATE OBJECT mo_exception_viewer EXPORTING ix_error = mx_error.
+    mo_exception_viewer = NEW #( ix_error = mx_error ).
 
     " You should remember that we render the message panel just once
     " for each exception/error text.
@@ -265,7 +265,7 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
 
   METHOD scripts.
 
-    CREATE OBJECT ro_html.
+    ro_html = NEW #( ).
 
     render_deferred_parts(
       ii_html          = ro_html
@@ -279,7 +279,7 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
 
   METHOD title.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div id="header">' ).                    "#EC NOTEXT
     ri_html->add( '<table class="w100"><tr>' ).             "#EC NOTEXT
@@ -349,7 +349,7 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
     gui_services( )->register_event_handler( me ).
 
     " Real page
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<!DOCTYPE html>' ).                      "#EC NOTEXT
     ri_html->add( '<html>' ).                               "#EC NOTEXT
