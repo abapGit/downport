@@ -134,7 +134,7 @@ CLASS ZCL_ABAPGIT_GUI_ROUTER IMPLEMENTATION.
     CASE is_event_data-action.
         " ABAPGIT services actions
       WHEN zif_abapgit_definitions=>c_action-abapgit_home.
-        li_main_page = NEW #( ).
+        CREATE OBJECT li_main_page.
         ei_page = li_main_page.
         ev_state = zcl_abapgit_gui=>c_event_state-new_page.
       WHEN zif_abapgit_definitions=>c_action-abapgit_install.                 " Install abapGit
@@ -150,13 +150,13 @@ CLASS ZCL_ABAPGIT_GUI_ROUTER IMPLEMENTATION.
     CASE is_event_data-action.
         " DB actions
       WHEN zif_abapgit_definitions=>c_action-db_edit.
-        ei_page = NEW zcl_abapgit_gui_page_db_edit( is_key = zcl_abapgit_html_action_utils=>dbkey_decode( is_event_data-getdata ) ).
+        CREATE OBJECT ei_page TYPE zcl_abapgit_gui_page_db_edit EXPORTING is_key = zcl_abapgit_html_action_utils=>dbkey_decode( is_event_data-getdata ).
         ev_state = zcl_abapgit_gui=>c_event_state-new_page.
         IF is_event_data-prev_page = 'PAGE_DB_DIS'.
           ev_state = zcl_abapgit_gui=>c_event_state-new_page_replacing.
         ENDIF.
       WHEN zif_abapgit_definitions=>c_action-db_display.
-        ei_page = NEW zcl_abapgit_gui_page_db_dis( is_key = zcl_abapgit_html_action_utils=>dbkey_decode( is_event_data-getdata ) ).
+        CREATE OBJECT ei_page TYPE zcl_abapgit_gui_page_db_dis EXPORTING is_key = zcl_abapgit_html_action_utils=>dbkey_decode( is_event_data-getdata ).
         ev_state = zcl_abapgit_gui=>c_event_state-new_page.
     ENDCASE.
 
@@ -206,26 +206,26 @@ CLASS ZCL_ABAPGIT_GUI_ROUTER IMPLEMENTATION.
         ENDIF.
 
         IF lv_last_repo_key IS INITIAL.
-          ei_page = NEW zcl_abapgit_gui_page_main( ).
+          CREATE OBJECT ei_page TYPE zcl_abapgit_gui_page_main.
         ELSE.
-          ei_page = NEW zcl_abapgit_gui_page_view_repo( iv_key = lv_last_repo_key ).
+          CREATE OBJECT ei_page TYPE zcl_abapgit_gui_page_view_repo EXPORTING iv_key = lv_last_repo_key.
         ENDIF.
         ev_state = zcl_abapgit_gui=>c_event_state-new_page.
 
       WHEN zif_abapgit_definitions=>c_action-go_repo_overview.               " Go Repository overview
-        ei_page = NEW zcl_abapgit_gui_repo_over( ).
+        CREATE OBJECT ei_page TYPE zcl_abapgit_gui_repo_over.
         ev_state = zcl_abapgit_gui=>c_event_state-new_page.
       WHEN zif_abapgit_definitions=>c_action-go_db.                          " Go DB util page
-        ei_page = NEW zcl_abapgit_gui_page_db( ).
+        CREATE OBJECT ei_page TYPE zcl_abapgit_gui_page_db.
         ev_state = zcl_abapgit_gui=>c_event_state-new_page.
       WHEN zif_abapgit_definitions=>c_action-go_debuginfo.
-        ei_page = NEW zcl_abapgit_gui_page_debuginfo( ).
+        CREATE OBJECT ei_page TYPE zcl_abapgit_gui_page_debuginfo.
         ev_state = zcl_abapgit_gui=>c_event_state-new_page.
       WHEN zif_abapgit_definitions=>c_action-go_settings.
-        ei_page = NEW zcl_abapgit_gui_page_settings( ).
+        CREATE OBJECT ei_page TYPE zcl_abapgit_gui_page_settings.
         ev_state = zcl_abapgit_gui=>c_event_state-new_page.
       WHEN zif_abapgit_definitions=>c_action-go_background_run.              " Go background run page
-        ei_page = NEW zcl_abapgit_gui_page_bkg_run( ).
+        CREATE OBJECT ei_page TYPE zcl_abapgit_gui_page_bkg_run.
         ev_state = zcl_abapgit_gui=>c_event_state-new_page.
       WHEN zif_abapgit_definitions=>c_action-go_background.                   " Go Background page
         ei_page  = get_page_background( lv_key ).
@@ -244,7 +244,7 @@ CLASS ZCL_ABAPGIT_GUI_ROUTER IMPLEMENTATION.
         ei_page  = get_page_branch_overview( is_event_data-getdata ).
         ev_state = zcl_abapgit_gui=>c_event_state-new_page.
       WHEN zif_abapgit_definitions=>c_action-go_tutorial.                     " Go to tutorial
-        ei_page = NEW zcl_abapgit_gui_page_tutorial( ).
+        CREATE OBJECT ei_page TYPE zcl_abapgit_gui_page_tutorial.
         ev_state = zcl_abapgit_gui=>c_event_state-new_page.
     ENDCASE.
 
@@ -253,7 +253,7 @@ CLASS ZCL_ABAPGIT_GUI_ROUTER IMPLEMENTATION.
 
   METHOD get_page_background.
 
-    ri_page = NEW zcl_abapgit_gui_page_bkg( iv_key = iv_key ).
+    CREATE OBJECT ri_page TYPE zcl_abapgit_gui_page_bkg EXPORTING iv_key = iv_key.
 
   ENDMETHOD.
 
@@ -269,7 +269,7 @@ CLASS ZCL_ABAPGIT_GUI_ROUTER IMPLEMENTATION.
 
     lo_repo ?= zcl_abapgit_repo_srv=>get_instance( )->get( lv_key ).
 
-    lo_page = NEW #( io_repo = lo_repo ).
+    CREATE OBJECT lo_page EXPORTING io_repo = lo_repo.
 
     ri_page = lo_page.
 
@@ -292,9 +292,9 @@ CLASS ZCL_ABAPGIT_GUI_ROUTER IMPLEMENTATION.
         eg_file   = ls_file
         eg_object = ls_object ).
 
-    lo_page = NEW #( iv_key = lv_key
-                     is_file = ls_file
-                     is_object = ls_object ).
+    CREATE OBJECT lo_page EXPORTING iv_key = lv_key
+                                    is_file = ls_file
+                                    is_object = ls_object.
 
     ri_page = lo_page.
 
@@ -323,7 +323,7 @@ CLASS ZCL_ABAPGIT_GUI_ROUTER IMPLEMENTATION.
 
     IF lo_repo->get_local_settings( )-code_inspector_check_variant IS NOT INITIAL.
 
-      lo_code_inspector_page = NEW #( io_repo = lo_repo ).
+      CREATE OBJECT lo_code_inspector_page EXPORTING io_repo = lo_repo.
 
       ri_page = lo_code_inspector_page.
 
@@ -332,8 +332,8 @@ CLASS ZCL_ABAPGIT_GUI_ROUTER IMPLEMENTATION.
       " force refresh on stage, to make sure the latest local and remote files are used
       lo_repo->refresh( ).
 
-      lo_stage_page = NEW #( io_repo = lo_repo
-                             iv_seed = lv_seed ).
+      CREATE OBJECT lo_stage_page EXPORTING io_repo = lo_repo
+                                            iv_seed = lv_seed.
 
       ri_page = lo_stage_page.
 
@@ -370,7 +370,7 @@ CLASS ZCL_ABAPGIT_GUI_ROUTER IMPLEMENTATION.
         zcl_abapgit_services_git=>tag_overview( lv_key ).
         ev_state = zcl_abapgit_gui=>c_event_state-re_render.
       WHEN zif_abapgit_definitions=>c_action-git_tag_create.                " GIT Tag create
-        ei_page = NEW zcl_abapgit_gui_page_tag( io_repo = zcl_abapgit_repo_srv=>get_instance( )->get( lv_key ) ).
+        CREATE OBJECT ei_page TYPE zcl_abapgit_gui_page_tag EXPORTING io_repo = zcl_abapgit_repo_srv=>get_instance( )->get( lv_key ).
         ev_state = zcl_abapgit_gui=>c_event_state-new_page.
       WHEN zif_abapgit_definitions=>c_action-git_tag_delete.                " GIT Tag create
         zcl_abapgit_services_git=>delete_tag( lv_key ).
@@ -466,18 +466,18 @@ CLASS ZCL_ABAPGIT_GUI_ROUTER IMPLEMENTATION.
         zcl_abapgit_services_repo=>refresh( lv_key ).
         ev_state = zcl_abapgit_gui=>c_event_state-re_render.
       WHEN zif_abapgit_definitions=>c_action-repo_syntax_check.
-        ei_page = NEW zcl_abapgit_gui_page_syntax( io_repo = zcl_abapgit_repo_srv=>get_instance( )->get( lv_key ) ).
+        CREATE OBJECT ei_page TYPE zcl_abapgit_gui_page_syntax EXPORTING io_repo = zcl_abapgit_repo_srv=>get_instance( )->get( lv_key ).
         ev_state = zcl_abapgit_gui=>c_event_state-new_page.
       WHEN zif_abapgit_definitions=>c_action-repo_code_inspector.
-        ei_page = NEW zcl_abapgit_gui_page_code_insp( io_repo = zcl_abapgit_repo_srv=>get_instance( )->get( lv_key ) ).
+        CREATE OBJECT ei_page TYPE zcl_abapgit_gui_page_code_insp EXPORTING io_repo = zcl_abapgit_repo_srv=>get_instance( )->get( lv_key ).
         ev_state = zcl_abapgit_gui=>c_event_state-new_page.
       WHEN zif_abapgit_definitions=>c_action-repo_purge.                      " Repo remove & purge all objects
         zcl_abapgit_services_repo=>purge( lv_key ).
-        ei_page = NEW zcl_abapgit_gui_page_main( ).
+        CREATE OBJECT ei_page TYPE zcl_abapgit_gui_page_main.
         ev_state = zcl_abapgit_gui=>c_event_state-new_page_replacing.
       WHEN zif_abapgit_definitions=>c_action-repo_remove.                     " Repo remove
         zcl_abapgit_services_repo=>remove( lv_key ).
-        ei_page = NEW zcl_abapgit_gui_page_main( ).
+        CREATE OBJECT ei_page TYPE zcl_abapgit_gui_page_main.
         ev_state = zcl_abapgit_gui=>c_event_state-new_page_replacing.
       WHEN zif_abapgit_definitions=>c_action-repo_newonline.
         ei_page  = zcl_abapgit_gui_page_addonline=>create( ).
@@ -492,7 +492,7 @@ CLASS ZCL_ABAPGIT_GUI_ROUTER IMPLEMENTATION.
         zcl_abapgit_services_repo=>transport_to_branch( lv_key ).
         ev_state = zcl_abapgit_gui=>c_event_state-re_render.
       WHEN zif_abapgit_definitions=>c_action-repo_settings.
-        ei_page = NEW zcl_abapgit_gui_page_repo_sett( io_repo = zcl_abapgit_repo_srv=>get_instance( )->get( lv_key ) ).
+        CREATE OBJECT ei_page TYPE zcl_abapgit_gui_page_repo_sett EXPORTING io_repo = zcl_abapgit_repo_srv=>get_instance( )->get( lv_key ).
         ev_state = zcl_abapgit_gui=>c_event_state-new_page.
       WHEN zif_abapgit_definitions=>c_action-repo_log.
         li_log = zcl_abapgit_repo_srv=>get_instance( )->get( lv_key )->get_log( ).
