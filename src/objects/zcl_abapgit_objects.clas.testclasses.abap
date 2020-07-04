@@ -51,7 +51,7 @@ CLASS ltcl_dangerous IMPLEMENTATION.
                    <ls_tadir>  LIKE LINE OF lt_tadir,
                    <lv_type>   LIKE LINE OF lt_types.
 
-    CREATE OBJECT li_log TYPE zcl_abapgit_log.
+    li_log = NEW zcl_abapgit_log( ).
 
     zcl_abapgit_factory=>get_sap_package( c_package )->create_local( ).
 
@@ -553,6 +553,8 @@ CLASS ltcl_filter_files_to_deser DEFINITION FINAL FOR TESTING
       filter_duplicates_lstate FOR TESTING RAISING cx_static_check,
       filter_duplicates_match FOR TESTING RAISING cx_static_check,
       filter_duplicates_init_objtype FOR TESTING RAISING cx_static_check,
+      filter_duplicates_changes_01 FOR TESTING RAISING cx_static_check,
+      filter_duplicates_changes_02 FOR TESTING RAISING cx_static_check,
 
       given_result
         IMPORTING
@@ -568,7 +570,7 @@ CLASS ltcl_filter_files_to_deser IMPLEMENTATION.
 
   METHOD setup.
 
-    CREATE OBJECT mo_objects.
+    mo_objects = NEW #( ).
 
   ENDMETHOD.
 
@@ -652,6 +654,57 @@ CLASS ltcl_filter_files_to_deser IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD filter_duplicates_changes_01.
+
+    DATA: ls_exp LIKE LINE OF mt_result,
+          ls_act LIKE LINE OF mt_result.
+
+    " test different order since SORT object,obj_name is non-deterministic
+    given_result( |CLAS;ZAG_UNIT_TEST;;/src/;zag_unit_test.clas.abap;;;M;M| ).
+    given_result( |CLAS;ZAG_UNIT_TEST;;/src/;zag_unit_test.clas.testclasses.abap;;;;M| ).
+
+    READ TABLE mt_result INDEX 1 INTO ls_exp.
+
+    when_filter_is_applied( ).
+
+    cl_abap_unit_assert=>assert_equals(
+      exp = 1
+      act = lines( mt_result ) ).
+
+    READ TABLE mt_result INDEX 1 INTO ls_act.
+
+    " expect M,M
+    cl_abap_unit_assert=>assert_equals(
+      exp = ls_exp
+      act = ls_act ).
+
+  ENDMETHOD.
+
+  METHOD filter_duplicates_changes_02.
+
+    DATA: ls_exp LIKE LINE OF mt_result,
+          ls_act LIKE LINE OF mt_result.
+
+    " test different order since SORT object,obj_name is non-deterministic
+    given_result( |CLAS;ZAG_UNIT_TEST;;/src/;zag_unit_test.clas.abap;;;;M| ).
+    given_result( |CLAS;ZAG_UNIT_TEST;;/src/;zag_unit_test.clas.testclasses.abap;;;M;M| ).
+
+    READ TABLE mt_result INDEX 2 INTO ls_exp.
+
+    when_filter_is_applied( ).
+
+    cl_abap_unit_assert=>assert_equals(
+      exp = 1
+      act = lines( mt_result ) ).
+
+    READ TABLE mt_result INDEX 1 INTO ls_act.
+
+    " expect M,M
+    cl_abap_unit_assert=>assert_equals(
+      exp = ls_exp
+      act = ls_act ).
+
+  ENDMETHOD.
 
   METHOD given_result.
 
@@ -702,7 +755,7 @@ CLASS ltcl_adjust_namespaces IMPLEMENTATION.
 
   METHOD setup.
 
-    CREATE OBJECT mo_objects.
+    mo_objects = NEW #( ).
 
   ENDMETHOD.
 
@@ -766,7 +819,7 @@ CLASS ltcl_prio_deserialization IMPLEMENTATION.
 
   METHOD setup.
 
-    CREATE OBJECT mo_objects.
+    mo_objects = NEW #( ).
     mv_exp_output_tabix = 0.
 
   ENDMETHOD.
