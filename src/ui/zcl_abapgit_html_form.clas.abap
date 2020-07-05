@@ -154,7 +154,7 @@ CLASS ZCL_ABAPGIT_HTML_FORM IMPLEMENTATION.
 
 
   METHOD create.
-    CREATE OBJECT ro_form.
+    ro_form = NEW #( ).
     ro_form->mv_form_id = iv_form_id.
   ENDMETHOD.
 
