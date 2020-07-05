@@ -249,7 +249,7 @@ CLASS zcl_abapgit_gui_repo_over IMPLEMENTATION.
     apply_order_by( CHANGING ct_overview = mt_overview ).
     apply_filter( CHANGING ct_overview = mt_overview ).
 
-    ri_html = NEW zcl_abapgit_html( ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
 
     render_header_bar( ri_html ).
     render_table( ii_html     = ri_html
@@ -292,7 +292,7 @@ CLASS zcl_abapgit_gui_repo_over IMPLEMENTATION.
 
   METHOD render_scripts.
 
-    ro_html = NEW #( ).
+    CREATE OBJECT ro_html.
 
     ro_html->zif_abapgit_html~set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
     ro_html->add( 'setInitialFocus("filter");' ).
@@ -426,7 +426,7 @@ CLASS zcl_abapgit_gui_repo_over IMPLEMENTATION.
 
     DATA lv_attrs TYPE string.
 
-    ro_html = NEW #( ).
+    CREATE OBJECT ro_html.
 
     IF iv_value IS NOT INITIAL.
       lv_attrs = | value="{ iv_value }"|.
