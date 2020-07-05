@@ -204,7 +204,7 @@ CLASS zcl_abapgit_gui_page_view_repo IMPLEMENTATION.
     DATA:
       lv_crossout LIKE zif_abapgit_html=>c_html_opt-crossout.
 
-    CREATE OBJECT ro_advanced_dropdown.
+    ro_advanced_dropdown = NEW #( ).
 
     IF iv_rstate IS NOT INITIAL OR iv_lstate IS NOT INITIAL. " In case of asyncronicities
       ro_advanced_dropdown->add( iv_txt = 'Reset local'
@@ -278,7 +278,7 @@ CLASS zcl_abapgit_gui_page_view_repo IMPLEMENTATION.
 
   METHOD build_branch_dropdown.
 
-    CREATE OBJECT ro_branch_dropdown.
+    ro_branch_dropdown = NEW #( ).
 
     IF mo_repo->is_offline( ) = abap_true.
       RETURN.
@@ -314,7 +314,7 @@ CLASS zcl_abapgit_gui_page_view_repo IMPLEMENTATION.
 
   METHOD build_grid_menu.
 
-    CREATE OBJECT ro_toolbar.
+    ro_toolbar = NEW #( ).
 
     IF mo_repo->has_remote_source( ) = abap_true.
       ro_toolbar->add(  " Show/Hide files
@@ -393,7 +393,7 @@ CLASS zcl_abapgit_gui_page_view_repo IMPLEMENTATION.
     DATA:
       li_log TYPE REF TO zif_abapgit_log.
 
-    CREATE OBJECT ro_toolbar EXPORTING iv_id = 'toolbar-repo'.
+    ro_toolbar = NEW #( iv_id = 'toolbar-repo' ).
 
     IF mo_repo->is_offline( ) = abap_false.
       IF iv_rstate IS NOT INITIAL. " Something new at remote
@@ -467,7 +467,7 @@ CLASS zcl_abapgit_gui_page_view_repo IMPLEMENTATION.
 
   METHOD build_tag_dropdown.
 
-    CREATE OBJECT ro_tag_dropdown.
+    ro_tag_dropdown = NEW #( ).
 
     IF mo_repo->is_offline( ) = abap_true.
       RETURN.
@@ -643,7 +643,7 @@ CLASS zcl_abapgit_gui_page_view_repo IMPLEMENTATION.
 
     DATA lo_toolbar TYPE REF TO zcl_abapgit_html_toolbar.
 
-    CREATE OBJECT ro_html.
+    ro_html = NEW #( ).
     lo_toolbar = build_head_menu( iv_lstate = iv_lstate
                                   iv_rstate = iv_rstate ).
 
@@ -668,7 +668,7 @@ CLASS zcl_abapgit_gui_page_view_repo IMPLEMENTATION.
     DATA: lv_link    TYPE string,
           lv_colspan TYPE i.
 
-    CREATE OBJECT ro_html.
+    ro_html = NEW #( ).
 
     IF iv_render_transports = abap_false.
       lv_colspan = 2.
@@ -721,7 +721,7 @@ CLASS zcl_abapgit_gui_page_view_repo IMPLEMENTATION.
     DATA: lv_difflink TYPE string,
           ls_file     LIKE LINE OF is_item-files.
 
-    CREATE OBJECT ro_html.
+    ro_html = NEW #( ).
 
     IF is_item-is_dir = abap_true. " Directory
 
@@ -776,7 +776,7 @@ CLASS zcl_abapgit_gui_page_view_repo IMPLEMENTATION.
 
     DATA: ls_file     LIKE LINE OF is_item-files.
 
-    CREATE OBJECT ro_html.
+    ro_html = NEW #( ).
 
     IF mv_hide_files = abap_true AND is_item-obj_type IS NOT INITIAL.
       RETURN.
@@ -828,7 +828,7 @@ CLASS zcl_abapgit_gui_page_view_repo IMPLEMENTATION.
       lv_icon TYPE string,
       lv_html TYPE string.
 
-    CREATE OBJECT ro_html.
+    ro_html = NEW #( ).
 
     CLEAR mt_col_spec.
     _add_col(  ''  ). " all empty
@@ -869,7 +869,7 @@ CLASS zcl_abapgit_gui_page_view_repo IMPLEMENTATION.
 
   METHOD render_parent_dir.
 
-    CREATE OBJECT ro_html.
+    ro_html = NEW #( ).
 
     ro_html->add( '<tr class="folder">' ).
     ro_html->add( |<td class="icon">{ zcl_abapgit_html=>icon( 'folder' ) }</td>| ).
@@ -957,7 +957,9 @@ CLASS zcl_abapgit_gui_page_view_repo IMPLEMENTATION.
     " Reinit, for the case of type change
     mo_repo = zcl_abapgit_repo_srv=>get_instance( )->get( mo_repo->get_key( ) ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    lo_news = zcl_abapgit_news=>create( mo_repo ).
+
+    ri_html = NEW zcl_abapgit_html( ).
     ri_html->add( |<div class="repo" id="repo{ mv_key }">| ).
     ri_html->add( zcl_abapgit_gui_chunk_lib=>render_repo_top(
       io_repo               = mo_repo
@@ -970,7 +972,7 @@ CLASS zcl_abapgit_gui_page_view_repo IMPLEMENTATION.
         lv_render_transports = zcl_abapgit_factory=>get_cts_api(
           )->is_chrec_possible_for_package( mo_repo->get_package( ) ).
 
-        CREATE OBJECT lo_browser EXPORTING io_repo = mo_repo.
+        lo_browser = NEW #( io_repo = mo_repo ).
 
         lt_repo_items = lo_browser->list( iv_path         = mv_cur_dir
                                           iv_by_folders   = mv_show_folders
@@ -1085,7 +1087,7 @@ CLASS zcl_abapgit_gui_page_view_repo IMPLEMENTATION.
     DATA: lo_advsub  TYPE REF TO zcl_abapgit_html_toolbar,
           lo_helpsub TYPE REF TO zcl_abapgit_html_toolbar.
 
-    CREATE OBJECT ro_menu EXPORTING iv_id = 'toolbar-main'.
+    ro_menu = NEW #( iv_id = 'toolbar-main' ).
 
     ro_menu->add( iv_txt = 'Repository list'
                   iv_act = zif_abapgit_definitions=>c_action-abapgit_home ).
