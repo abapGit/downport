@@ -29,7 +29,7 @@ CLASS zcl_abapgit_gui_page_tutorial IMPLEMENTATION.
 
     DATA: lv_devclass TYPE tadir-devclass.
 
-    ri_html = NEW zcl_abapgit_html( ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
 
     ri_html->add( '<div class="tutorial">' ).
 
