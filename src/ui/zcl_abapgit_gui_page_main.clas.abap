@@ -34,30 +34,24 @@ CLASS zcl_abapgit_gui_page_main DEFINITION
     METHODS test_changed_by
       RAISING zcx_abapgit_exception.
 
-    METHODS render_scripts
-      RETURNING
-        VALUE(ro_html) TYPE REF TO zcl_abapgit_html
-      RAISING
-        zcx_abapgit_exception.
-
     METHODS build_main_menu
       RETURNING VALUE(ro_menu) TYPE REF TO zcl_abapgit_html_toolbar.
-
 
 ENDCLASS.
 
 
 
-CLASS zcl_abapgit_gui_page_main IMPLEMENTATION.
+CLASS ZCL_ABAPGIT_GUI_PAGE_MAIN IMPLEMENTATION.
+
 
   METHOD build_main_menu.
 
     DATA: lo_advsub  TYPE REF TO zcl_abapgit_html_toolbar,
           lo_helpsub TYPE REF TO zcl_abapgit_html_toolbar.
 
-    CREATE OBJECT ro_menu EXPORTING iv_id = 'toolbar-main'.
-    CREATE OBJECT lo_advsub.
-    CREATE OBJECT lo_helpsub.
+    ro_menu = NEW #( iv_id = 'toolbar-main' ).
+    lo_advsub = NEW #( ).
+    lo_helpsub = NEW #( ).
 
     lo_advsub->add( iv_txt = 'Database util'
                     iv_act = zif_abapgit_definitions=>c_action-go_db ) ##NO_TEXT.
@@ -102,16 +96,6 @@ CLASS zcl_abapgit_gui_page_main IMPLEMENTATION.
     ms_control-page_title = 'REPOSITORY LIST'.
   ENDMETHOD.
 
-  METHOD render_scripts.
-
-    CREATE OBJECT ro_html.
-
-    ro_html->zif_abapgit_html~set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
-    ro_html->add( 'setInitialFocus("filter");' ).
-    ro_html->add( 'var gHelper = new RepoOverViewHelper();' ).
-
-  ENDMETHOD.
-
 
   METHOD render_content.
 
@@ -120,14 +104,16 @@ CLASS zcl_abapgit_gui_page_main IMPLEMENTATION.
           li_tutorial TYPE REF TO zif_abapgit_gui_renderable,
           lo_repo     LIKE LINE OF lt_repos.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
     gui_services( )->get_hotkeys_ctl( )->register_hotkeys( me ).
 
     IF mo_repo_overview IS INITIAL.
-      CREATE OBJECT mo_repo_overview TYPE zcl_abapgit_gui_repo_over.
+      mo_repo_overview = NEW zcl_abapgit_gui_repo_over( ).
     ENDIF.
 
     ri_html->add( mo_repo_overview->zif_abapgit_gui_renderable~render( ) ).
+
+    register_deferred_script( zcl_abapgit_gui_chunk_lib=>render_repo_palette( c_actions-select ) ).
 
   ENDMETHOD.
 
@@ -176,7 +162,7 @@ CLASS zcl_abapgit_gui_page_main IMPLEMENTATION.
         ENDTRY.
 
         mv_repo_key = lv_key.
-        CREATE OBJECT ei_page TYPE zcl_abapgit_gui_page_view_repo EXPORTING iv_key = lv_key.
+        ei_page = NEW zcl_abapgit_gui_page_view_repo( iv_key = lv_key ).
         ev_state = zcl_abapgit_gui=>c_event_state-new_page.
 
       WHEN zif_abapgit_definitions=>c_action-change_order_by.
@@ -243,5 +229,4 @@ CLASS zcl_abapgit_gui_page_main IMPLEMENTATION.
     INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
 
   ENDMETHOD.
-
 ENDCLASS.
