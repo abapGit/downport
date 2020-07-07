@@ -51,7 +51,7 @@ CLASS ltcl_dangerous IMPLEMENTATION.
                    <ls_tadir>  LIKE LINE OF lt_tadir,
                    <lv_type>   LIKE LINE OF lt_types.
 
-    li_log = NEW zcl_abapgit_log( ).
+    CREATE OBJECT li_log TYPE zcl_abapgit_log.
 
     zcl_abapgit_factory=>get_sap_package( c_package )->create_local( ).
 
@@ -570,7 +570,7 @@ CLASS ltcl_filter_files_to_deser IMPLEMENTATION.
 
   METHOD setup.
 
-    mo_objects = NEW #( ).
+    CREATE OBJECT mo_objects.
 
   ENDMETHOD.
 
@@ -755,7 +755,7 @@ CLASS ltcl_adjust_namespaces IMPLEMENTATION.
 
   METHOD setup.
 
-    mo_objects = NEW #( ).
+    CREATE OBJECT mo_objects.
 
   ENDMETHOD.
 
@@ -819,7 +819,7 @@ CLASS ltcl_prio_deserialization IMPLEMENTATION.
 
   METHOD setup.
 
-    mo_objects = NEW #( ).
+    CREATE OBJECT mo_objects.
     mv_exp_output_tabix = 0.
 
   ENDMETHOD.

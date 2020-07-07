@@ -55,9 +55,9 @@ CLASS zcl_abapgit_gui_page_main IMPLEMENTATION.
     DATA: lo_advsub  TYPE REF TO zcl_abapgit_html_toolbar,
           lo_helpsub TYPE REF TO zcl_abapgit_html_toolbar.
 
-    ro_menu = NEW #( iv_id = 'toolbar-main' ).
-    lo_advsub = NEW #( ).
-    lo_helpsub = NEW #( ).
+    CREATE OBJECT ro_menu EXPORTING iv_id = 'toolbar-main'.
+    CREATE OBJECT lo_advsub.
+    CREATE OBJECT lo_helpsub.
 
     lo_advsub->add( iv_txt = 'Database util'
                     iv_act = zif_abapgit_definitions=>c_action-go_db ) ##NO_TEXT.
@@ -104,7 +104,7 @@ CLASS zcl_abapgit_gui_page_main IMPLEMENTATION.
 
   METHOD render_scripts.
 
-    ro_html = NEW #( ).
+    CREATE OBJECT ro_html.
 
     ro_html->zif_abapgit_html~set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
     ro_html->add( 'setInitialFocus("filter");' ).
@@ -120,11 +120,11 @@ CLASS zcl_abapgit_gui_page_main IMPLEMENTATION.
           li_tutorial TYPE REF TO zif_abapgit_gui_renderable,
           lo_repo     LIKE LINE OF lt_repos.
 
-    ri_html = NEW zcl_abapgit_html( ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
     gui_services( )->get_hotkeys_ctl( )->register_hotkeys( me ).
 
     IF mo_repo_overview IS INITIAL.
-      mo_repo_overview = NEW zcl_abapgit_gui_repo_over( ).
+      CREATE OBJECT mo_repo_overview TYPE zcl_abapgit_gui_repo_over.
     ENDIF.
 
     ri_html->add( mo_repo_overview->zif_abapgit_gui_renderable~render( ) ).
@@ -176,7 +176,7 @@ CLASS zcl_abapgit_gui_page_main IMPLEMENTATION.
         ENDTRY.
 
         mv_repo_key = lv_key.
-        ei_page = NEW zcl_abapgit_gui_page_view_repo( iv_key = lv_key ).
+        CREATE OBJECT ei_page TYPE zcl_abapgit_gui_page_view_repo EXPORTING iv_key = lv_key.
         ev_state = zcl_abapgit_gui=>c_event_state-new_page.
 
       WHEN zif_abapgit_definitions=>c_action-change_order_by.
