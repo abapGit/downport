@@ -95,7 +95,7 @@ CLASS ZCL_ABAPGIT_BACKGROUND IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    CREATE OBJECT lo_per.
+    lo_per = NEW #( ).
     lt_list = lo_per->list( ).
 
     WRITE: / 'Background mode' ##NO_TEXT.
@@ -110,7 +110,7 @@ CLASS ZCL_ABAPGIT_BACKGROUND IMPLEMENTATION.
         iv_username = <ls_list>-username
         iv_password = <ls_list>-password ).
 
-      CREATE OBJECT li_log TYPE zcl_abapgit_log.
+      li_log = NEW zcl_abapgit_log( ).
       CREATE OBJECT li_background TYPE (<ls_list>-method).
 
       li_background->run(
