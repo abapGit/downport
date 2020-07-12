@@ -74,13 +74,13 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_ADDONLINE IMPLEMENTATION.
   METHOD constructor.
     super->constructor( ).
     ms_control-page_title = 'Clone online repository'. " TODO refactor
-    CREATE OBJECT mo_validation_log.
-    CREATE OBJECT mo_form_data.
+    mo_validation_log = NEW #( ).
+    mo_form_data = NEW #( ).
   ENDMETHOD.
 
 
   METHOD create.
-    CREATE OBJECT ro_page.
+    ro_page = NEW #( ).
   ENDMETHOD.
 
 
@@ -90,7 +90,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_ADDONLINE IMPLEMENTATION.
     DATA ls_field LIKE LINE OF lt_form.
 
     lt_form = zcl_abapgit_html_action_utils=>parse_post_data( it_post_data ).
-    CREATE OBJECT ro_form_data.
+    ro_form_data = NEW #( ).
 
     LOOP AT lt_form INTO ls_field.
       CASE ls_field-name.
@@ -182,7 +182,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_ADDONLINE IMPLEMENTATION.
 
     DATA lx_err TYPE REF TO zcx_abapgit_exception.
 
-    CREATE OBJECT ro_validation_log.
+    ro_validation_log = NEW #( ).
 
     IF io_form_data->get( c_id-url ) IS INITIAL.
       ro_validation_log->set(
