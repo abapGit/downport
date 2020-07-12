@@ -4,21 +4,19 @@ CLASS zcl_abapgit_log_viewer DEFINITION
   CREATE PRIVATE .
 
   PUBLIC SECTION.
+
     CLASS-METHODS show_log
       IMPORTING
-        iv_header_text TYPE csequence DEFAULT 'Log'
-        ii_log         TYPE REF TO zif_abapgit_log.
-
+        !iv_header_text TYPE csequence DEFAULT 'Log'
+        !ii_log         TYPE REF TO zif_abapgit_log .
     CLASS-METHODS to_html
       IMPORTING
-        ii_log         TYPE REF TO zif_abapgit_log
+        !ii_log        TYPE REF TO zif_abapgit_log
       RETURNING
-        VALUE(ro_html) TYPE REF TO zcl_abapgit_html.
-
+        VALUE(ri_html) TYPE REF TO zif_abapgit_html .
     CLASS-METHODS write_log
       IMPORTING
-        ii_log TYPE REF TO zif_abapgit_log.
-
+        !ii_log TYPE REF TO zif_abapgit_log .
   PROTECTED SECTION.
   PRIVATE SECTION.
     TYPES:
@@ -41,7 +39,7 @@ CLASS zcl_abapgit_log_viewer DEFINITION
     CLASS-METHODS:
       prepare_log_for_display
         IMPORTING
-          ii_log     TYPE REF TO zif_abapgit_log
+          ii_log            TYPE REF TO zif_abapgit_log
         RETURNING
           VALUE(rt_log_out) TYPE tty_log_out,
 
@@ -165,7 +163,7 @@ CLASS ZCL_ABAPGIT_LOG_VIEWER IMPLEMENTATION.
     ASSERT is_log-exception IS BOUND.
     lx_abapgit ?= is_log-exception.
 
-    CREATE OBJECT ro_exception_viewer EXPORTING ix_error = lx_abapgit.
+    ro_exception_viewer = NEW #( ix_error = lx_abapgit ).
 
   ENDMETHOD.
 
@@ -357,7 +355,7 @@ CLASS ZCL_ABAPGIT_LOG_VIEWER IMPLEMENTATION.
                                   start_line   = 4
                                   end_line     = 25 ).
 
-        CREATE OBJECT lo_form_header EXPORTING text = iv_header_text.
+        lo_form_header = NEW #( text = iv_header_text ).
 
         lo_alv->set_top_of_list( lo_form_header ).
 
@@ -432,7 +430,7 @@ CLASS ZCL_ABAPGIT_LOG_VIEWER IMPLEMENTATION.
           lv_class   TYPE string,
           lv_icon    TYPE string.
 
-    CREATE OBJECT ro_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     IF ii_log->count( ) = 0.
       RETURN.
@@ -453,10 +451,10 @@ CLASS ZCL_ABAPGIT_LOG_VIEWER IMPLEMENTATION.
           lv_class = 'error'.
       ENDCASE.
 
-      ro_html->add( |<span class="{ lv_class }">| ).
-      ro_html->add_icon( lv_icon ).
-      ro_html->add( lr_message->text ).
-      ro_html->add( '</span>' ).
+      ri_html->add( |<span class="{ lv_class }">| ).
+      ri_html->add_icon( lv_icon ).
+      ri_html->add( lr_message->text ).
+      ri_html->add( '</span>' ).
     ENDLOOP.
 
   ENDMETHOD.
