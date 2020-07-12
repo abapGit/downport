@@ -30,7 +30,7 @@ CLASS ZCL_ABAPGIT_PERSIST_SETTINGS IMPLEMENTATION.
   METHOD get_instance.
 
     IF go_persist IS NOT BOUND.
-      go_persist = NEW #( ).
+      CREATE OBJECT go_persist.
     ENDIF.
     ro_settings = go_persist.
 
@@ -72,7 +72,7 @@ CLASS ZCL_ABAPGIT_PERSIST_SETTINGS IMPLEMENTATION.
     ENDIF.
 
     " Settings have changed or have not yet been loaded
-    ro_settings = NEW #( ).
+    CREATE OBJECT ro_settings.
 
     TRY.
 

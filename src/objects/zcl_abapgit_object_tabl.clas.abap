@@ -603,12 +603,12 @@ CLASS ZCL_ABAPGIT_OBJECT_TABL IMPLEMENTATION.
           lo_local_version_input  TYPE REF TO zcl_abapgit_xml_input.
 
 
-    lo_local_version_output = NEW #( ).
+    CREATE OBJECT lo_local_version_output.
     me->zif_abapgit_object~serialize( lo_local_version_output ).
 
-    lo_local_version_input = NEW #( iv_xml = lo_local_version_output->render( ) ).
+    CREATE OBJECT lo_local_version_input EXPORTING iv_xml = lo_local_version_output->render( ).
 
-    ri_comparator = NEW zcl_abapgit_object_tabl_compar( io_local = lo_local_version_input ).
+    CREATE OBJECT ri_comparator TYPE zcl_abapgit_object_tabl_compar EXPORTING io_local = lo_local_version_input.
 
   ENDMETHOD.
 
