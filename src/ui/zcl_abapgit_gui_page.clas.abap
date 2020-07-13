@@ -79,14 +79,11 @@ CLASS zcl_abapgit_gui_page DEFINITION PUBLIC ABSTRACT
       RAISING
         zcx_abapgit_exception.
 
-    METHODS test_changed_by
-      RAISING zcx_abapgit_exception.
-
 ENDCLASS.
 
 
 
-CLASS zcl_abapgit_gui_page IMPLEMENTATION.
+CLASS ZCL_ABAPGIT_GUI_PAGE IMPLEMENTATION.
 
 
   METHOD constructor.
@@ -99,7 +96,7 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
 
   METHOD footer.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div id="footer">' ).
     ri_html->add( '<table class="w100"><tr>' ).
@@ -124,7 +121,7 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
 
   METHOD html_head.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<head>' ).                               "#EC NOTEXT
 
@@ -186,7 +183,7 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
     " You should remember that the we have to instantiate ro_html even
     " it's overwritten further down. Because ADD checks whether it's
     " bound.
-    CREATE OBJECT ro_html.
+    ro_html = NEW #( ).
 
     " You should remember that we render the message panel only
     " if we have an error.
@@ -198,7 +195,7 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
 
     " You should remember that the exception viewer dispatches the events of
     " error message panel
-    CREATE OBJECT mo_exception_viewer EXPORTING ix_error = mx_error.
+    mo_exception_viewer = NEW #( ix_error = mx_error ).
 
     " You should remember that we render the message panel just once
     " for each exception/error text.
@@ -237,7 +234,7 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
 
   METHOD scripts.
 
-    CREATE OBJECT ro_html.
+    ro_html = NEW #( ).
 
     render_deferred_parts(
       ii_html          = ro_html
@@ -251,7 +248,7 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
 
   METHOD title.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div id="header">' ).
 
@@ -305,22 +302,6 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
         ENDIF.
         ev_state = zcl_abapgit_gui=>c_event_state-no_more_act.
 
-      WHEN zif_abapgit_definitions=>c_action-changed_by.
-        test_changed_by( ).
-        ev_state = zcl_abapgit_gui=>c_event_state-no_more_act.
-
-      WHEN zif_abapgit_definitions=>c_action-documentation.
-        zcl_abapgit_services_abapgit=>open_abapgit_wikipage( ).
-        ev_state = zcl_abapgit_gui=>c_event_state-no_more_act.
-
-      WHEN zif_abapgit_definitions=>c_action-go_explore.
-        zcl_abapgit_services_abapgit=>open_dotabap_homepage( ).
-        ev_state = zcl_abapgit_gui=>c_event_state-no_more_act.
-
-      WHEN zif_abapgit_definitions=>c_action-changelog.
-        zcl_abapgit_services_abapgit=>open_abapgit_changelog( ).
-        ev_state = zcl_abapgit_gui=>c_event_state-no_more_act.
-
     ENDCASE.
 
   ENDMETHOD.
@@ -333,7 +314,7 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
     gui_services( )->register_event_handler( me ).
 
     " Real page
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<!DOCTYPE html>' ).                      "#EC NOTEXT
     ri_html->add( '<html>' ).                               "#EC NOTEXT
@@ -363,27 +344,6 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
     ENDIF.
 
     ri_html->add( '</html>' ).                              "#EC NOTEXT
-
-  ENDMETHOD.
-
-  METHOD test_changed_by.
-
-    DATA: ls_tadir TYPE zif_abapgit_definitions=>ty_tadir,
-          lv_user  TYPE xubname,
-          ls_item  TYPE zif_abapgit_definitions=>ty_item.
-
-
-    ls_tadir = zcl_abapgit_ui_factory=>get_popups( )->popup_object( ).
-    IF ls_tadir IS INITIAL.
-      RETURN.
-    ENDIF.
-
-    ls_item-obj_type = ls_tadir-object.
-    ls_item-obj_name = ls_tadir-obj_name.
-
-    lv_user = zcl_abapgit_objects=>changed_by( ls_item ).
-
-    MESSAGE lv_user TYPE 'S'.
 
   ENDMETHOD.
 ENDCLASS.
