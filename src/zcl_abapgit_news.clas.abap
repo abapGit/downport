@@ -196,9 +196,9 @@ CLASS zcl_abapgit_news IMPLEMENTATION.
     LOOP AT lt_remote ASSIGNING <ls_file> WHERE path = lc_log_path
                                             AND ( filename CP lc_log_filename OR filename CP lc_log_filename_up ).
 
-      ro_instance = NEW #( iv_rawdata = <ls_file>-data
-                           iv_current_version = lv_version
-                           iv_lastseen_version = normalize_version( lv_last_seen ) ).
+      CREATE OBJECT ro_instance EXPORTING iv_rawdata = <ls_file>-data
+                                          iv_current_version = lv_version
+                                          iv_lastseen_version = normalize_version( lv_last_seen ).
 
       EXIT.
 
