@@ -84,7 +84,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_REPO_SETT IMPLEMENTATION.
 
     DATA lv_serialized_post_data TYPE string.
 
-    CONCATENATE LINES OF it_postdata INTO lv_serialized_post_data.
+    lv_serialized_post_data = zcl_abapgit_utils=>translate_postdata( it_postdata ).
     rt_post_fields = zcl_abapgit_html_action_utils=>parse_fields( lv_serialized_post_data ).
 
   ENDMETHOD.
@@ -92,7 +92,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_REPO_SETT IMPLEMENTATION.
 
   METHOD render_content.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
     ri_html->add( '<div class="settings_container">' ).
     ri_html->add( |<form id="settings_form" method="post" action="sapevent:{ c_action-save_settings }">| ).
 
