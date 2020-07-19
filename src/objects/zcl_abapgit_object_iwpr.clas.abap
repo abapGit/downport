@@ -23,7 +23,7 @@ CLASS ZCL_ABAPGIT_OBJECT_IWPR IMPLEMENTATION.
 
   METHOD get_generic.
 
-    ro_generic = NEW #( is_item = ms_item ).
+    CREATE OBJECT ro_generic EXPORTING is_item = ms_item.
 
   ENDMETHOD.
 
