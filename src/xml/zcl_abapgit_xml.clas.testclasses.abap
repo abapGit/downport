@@ -41,7 +41,7 @@ CLASS ltcl_xml IMPLEMENTATION.
     DATA: lv_xml TYPE string.
 
 
-    mo_xml = NEW #( ).
+    CREATE OBJECT mo_xml.
 
     lv_xml = |<?xml version="1.0"?>|
           && |<{ mo_xml->c_abapgit_tag } { mo_xml->c_attr_version }="{ zif_abapgit_version=>gc_xml_version }">|
