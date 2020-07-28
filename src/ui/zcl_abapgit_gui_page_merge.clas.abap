@@ -49,7 +49,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_MERGE IMPLEMENTATION.
 
   METHOD build_menu.
 
-    ro_menu = NEW #( ).
+    CREATE OBJECT ro_menu.
 
     ro_menu->add( iv_txt = 'Merge'
                   iv_act = c_actions-merge
@@ -71,8 +71,8 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_MERGE IMPLEMENTATION.
 
     io_repo->set_branch_name( |refs/heads/{ iv_target }| ).
 
-    mo_merge = NEW #( io_repo = io_repo
-                      iv_source_branch = iv_source ).
+    CREATE OBJECT mo_merge EXPORTING io_repo = io_repo
+                                     iv_source_branch = iv_source.
     mo_merge->run( ).
 
     ms_control-page_title = 'MERGE'.
@@ -94,7 +94,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_MERGE IMPLEMENTATION.
     "If now exists no conflicts anymore, conflicts button should disappear
     ms_control-page_menu = build_menu( mo_merge->has_conflicts( ) ).
 
-    ri_html = NEW zcl_abapgit_html( ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
 
     ri_html->add( '<div id="toc">' ).
     ri_html->add( zcl_abapgit_gui_chunk_lib=>render_repo_top(
@@ -209,13 +209,13 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_MERGE IMPLEMENTATION.
 
         IF mo_repo->get_local_settings( )-code_inspector_check_variant IS NOT INITIAL.
 
-          ei_page = NEW zcl_abapgit_gui_page_code_insp( io_repo = mo_repo
-                                                        io_stage = mo_merge->get_result( )-stage ).
+          CREATE OBJECT ei_page TYPE zcl_abapgit_gui_page_code_insp EXPORTING io_repo = mo_repo
+                                                                              io_stage = mo_merge->get_result( )-stage.
 
         ELSE.
 
-          ei_page = NEW zcl_abapgit_gui_page_commit( io_repo = mo_repo
-                                                     io_stage = mo_merge->get_result( )-stage ).
+          CREATE OBJECT ei_page TYPE zcl_abapgit_gui_page_commit EXPORTING io_repo = mo_repo
+                                                                           io_stage = mo_merge->get_result( )-stage.
 
         ENDIF.
 
@@ -223,9 +223,9 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_MERGE IMPLEMENTATION.
 
       WHEN c_actions-res_conflicts.
 
-        ei_page = NEW zcl_abapgit_gui_page_merge_res( io_repo = mo_repo
-                                                      io_merge_page = me
-                                                      io_merge = mo_merge ).
+        CREATE OBJECT ei_page TYPE zcl_abapgit_gui_page_merge_res EXPORTING io_repo = mo_repo
+                                                                            io_merge_page = me
+                                                                            io_merge = mo_merge.
         ev_state = zcl_abapgit_gui=>c_event_state-new_page.
 
       WHEN OTHERS.
