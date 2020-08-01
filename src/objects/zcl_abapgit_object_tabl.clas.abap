@@ -17,7 +17,6 @@ CLASS zcl_abapgit_object_tabl DEFINITION PUBLIC INHERITING FROM zcl_abapgit_obje
 
     "! get additional data like table authorization group
     "! @parameter iv_tabname | name of the table
-    "! @parameter is_tabl_extras | additional table data
     METHODS read_extras IMPORTING iv_tabname            TYPE ddobjname
                         RETURNING VALUE(rs_tabl_extras) TYPE ty_tabl_extras.
 
@@ -633,12 +632,12 @@ CLASS zcl_abapgit_object_tabl IMPLEMENTATION.
           lo_local_version_input  TYPE REF TO zcl_abapgit_xml_input.
 
 
-    CREATE OBJECT lo_local_version_output.
+    lo_local_version_output = NEW #( ).
     me->zif_abapgit_object~serialize( lo_local_version_output ).
 
-    CREATE OBJECT lo_local_version_input EXPORTING iv_xml = lo_local_version_output->render( ).
+    lo_local_version_input = NEW #( iv_xml = lo_local_version_output->render( ) ).
 
-    CREATE OBJECT ri_comparator TYPE zcl_abapgit_object_tabl_compar EXPORTING io_local = lo_local_version_input.
+    ri_comparator = NEW zcl_abapgit_object_tabl_compar( io_local = lo_local_version_input ).
 
   ENDMETHOD.
 
