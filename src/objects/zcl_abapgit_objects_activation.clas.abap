@@ -280,7 +280,7 @@ CLASS ZCL_ABAPGIT_OBJECTS_ACTIVATION IMPLEMENTATION.
 
     DELETE lt_lines WHERE severity <> 'E'.
 
-    li_log = NEW zcl_abapgit_log( ).
+    CREATE OBJECT li_log TYPE zcl_abapgit_log.
 
     LOOP AT lt_lines ASSIGNING <ls_line>.
       li_log->add( <ls_line>-line ).
@@ -313,8 +313,8 @@ CLASS ZCL_ABAPGIT_OBJECTS_ACTIVATION IMPLEMENTATION.
 
       lv_include = cl_oo_classname_service=>get_classpool_name( lv_class ).
 
-      lo_cross = NEW #( p_name = lv_include
-                        p_include = lv_include ).
+      CREATE OBJECT lo_cross EXPORTING p_name = lv_include
+                                       p_include = lv_include.
 
       lo_cross->index_actualize( ).
     ENDLOOP.
