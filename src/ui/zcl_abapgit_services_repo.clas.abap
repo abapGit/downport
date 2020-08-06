@@ -188,6 +188,7 @@ CLASS ZCL_ABAPGIT_SERVICES_REPO IMPLEMENTATION.
     li_repo_srv->get_repo_from_package(
       EXPORTING
         iv_package = is_repo_params-package
+        iv_ign_subpkg = is_repo_params-ignore_subpackages
       IMPORTING
         eo_repo    = lo_repo
         ev_reason  = lv_reason ).
@@ -564,7 +565,7 @@ CLASS ZCL_ABAPGIT_SERVICES_REPO IMPLEMENTATION.
     ls_transport_to_branch = zcl_abapgit_ui_factory=>get_popups( )->popup_to_create_transp_branch(
       lt_transport_headers ).
 
-    CREATE OBJECT lo_transport_to_branch.
+    lo_transport_to_branch = NEW #( ).
     lo_transport_to_branch->create(
       io_repository          = lo_repository
       is_transport_to_branch = ls_transport_to_branch
