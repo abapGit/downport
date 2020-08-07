@@ -24,13 +24,6 @@ CLASS zcl_abapgit_gui_page_code_insp DEFINITION PUBLIC FINAL CREATE PUBLIC
       render_content   REDEFINITION.
 
   PRIVATE SECTION.
-    CONSTANTS:
-      BEGIN OF c_actions,
-        stage  TYPE string VALUE 'stage' ##NO_TEXT,
-        commit TYPE string VALUE 'commit' ##NO_TEXT,
-        rerun  TYPE string VALUE 'rerun' ##NO_TEXT,
-      END OF c_actions.
-
     DATA:
       mo_stage         TYPE REF TO zcl_abapgit_stage,
       mv_check_variant TYPE sci_chkv.
@@ -63,7 +56,6 @@ CLASS zcl_abapgit_gui_page_code_insp DEFINITION PUBLIC FINAL CREATE PUBLIC
       determine_check_variant
         RAISING
           zcx_abapgit_exception.
-
 ENDCLASS.
 
 
@@ -109,11 +101,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_CODE_INSP IMPLEMENTATION.
 
     DATA: lv_opt TYPE c LENGTH 1.
 
-    CREATE OBJECT ro_menu.
-
-    ro_menu->add( iv_txt = 'Re-Run'
-                  iv_act = c_actions-rerun
-                  iv_cur = abap_false ) ##NO_TEXT.
+    ro_menu = build_base_menu( ).
 
     IF is_stage_allowed( ) = abap_false.
       lv_opt = zif_abapgit_html=>c_html_opt-crossout.
@@ -185,7 +173,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_CODE_INSP IMPLEMENTATION.
 
   METHOD render_content.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     IF mv_check_variant IS INITIAL.
       ri_html->add( zcl_abapgit_gui_chunk_lib=>render_error( iv_error = 'No check variant supplied.' ) ).
@@ -243,7 +231,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_CODE_INSP IMPLEMENTATION.
           " we need to refresh as the source might have changed
           lo_repo_online->refresh( ).
 
-          CREATE OBJECT ei_page TYPE zcl_abapgit_gui_page_stage EXPORTING io_repo = lo_repo_online.
+          ei_page = NEW zcl_abapgit_gui_page_stage( io_repo = lo_repo_online ).
           ev_state = zcl_abapgit_gui=>c_event_state-new_page.
 
         ELSE.
@@ -259,8 +247,8 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_CODE_INSP IMPLEMENTATION.
 
         IF is_stage_allowed( ) = abap_true.
 
-          CREATE OBJECT ei_page TYPE zcl_abapgit_gui_page_commit EXPORTING io_repo = lo_repo_online
-                                                                           io_stage = mo_stage.
+          ei_page = NEW zcl_abapgit_gui_page_commit( io_repo = lo_repo_online
+                                                     io_stage = mo_stage ).
           ev_state = zcl_abapgit_gui=>c_event_state-new_page.
 
         ELSE.
