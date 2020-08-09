@@ -72,9 +72,11 @@ CLASS ZCL_ABAPGIT_OBJECT_WDYA IMPLEMENTATION.
 
 
     TRY.
-        CREATE OBJECT lo_app EXPORTING name = is_app-application_name
-                                       definition = is_app
-                                       devclass = iv_package.
+        CREATE OBJECT lo_app
+          EXPORTING
+            name       = is_app-application_name
+            definition = is_app
+            devclass   = iv_package.
 
         LOOP AT it_properties ASSIGNING <ls_property>.
           li_prop = lo_app->if_wdy_md_application~create_property( <ls_property>-name ).
@@ -160,7 +162,6 @@ CLASS ZCL_ABAPGIT_OBJECT_WDYA IMPLEMENTATION.
     DATA: ls_app        TYPE wdy_application,
           lt_properties TYPE wdy_app_property_table.
 
-
     io_xml->read( EXPORTING iv_name = 'APP'
                   CHANGING cg_data = ls_app ).
     io_xml->read( EXPORTING iv_name = 'PROPERTIES'
@@ -169,6 +170,13 @@ CLASS ZCL_ABAPGIT_OBJECT_WDYA IMPLEMENTATION.
     save( is_app        = ls_app
           it_properties = lt_properties
           iv_package    = iv_package ).
+
+    zcl_abapgit_sotr_handler=>create_sotr(
+      iv_pgmid    = 'R3TR'
+      iv_object   = ms_item-obj_type
+      iv_obj_name = ms_item-obj_name
+      iv_package  = iv_package
+      io_xml      = io_xml ).
 
   ENDMETHOD.
 
@@ -236,7 +244,6 @@ CLASS ZCL_ABAPGIT_OBJECT_WDYA IMPLEMENTATION.
     DATA: ls_app        TYPE wdy_application,
           lt_properties TYPE wdy_app_property_table.
 
-
     read( IMPORTING es_app        = ls_app
                     et_properties = lt_properties ).
 
@@ -244,6 +251,12 @@ CLASS ZCL_ABAPGIT_OBJECT_WDYA IMPLEMENTATION.
                  ig_data = ls_app ).
     io_xml->add( iv_name = 'PROPERTIES'
                  ig_data = lt_properties ).
+
+    zcl_abapgit_sotr_handler=>read_sotr(
+      iv_pgmid    = 'R3TR'
+      iv_object   = ms_item-obj_type
+      iv_obj_name = ms_item-obj_name
+      io_xml      = io_xml ).
 
   ENDMETHOD.
 ENDCLASS.

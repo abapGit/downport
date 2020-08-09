@@ -919,7 +919,6 @@ CLASS zcl_abapgit_popups IMPLEMENTATION.
 
     DATA: lv_pfstatus     TYPE sypfkey,
           lo_events       TYPE REF TO cl_salv_events_table,
-          lo_functions    TYPE REF TO cl_salv_functions_list,
           lo_columns      TYPE REF TO cl_salv_columns_table,
           lt_columns      TYPE salv_t_column_ref,
           ls_column       TYPE salv_s_column_ref,
@@ -968,7 +967,9 @@ CLASS zcl_abapgit_popups IMPLEMENTATION.
         ENDIF.
 
         IF iv_header_text CN ' _0'.
-          CREATE OBJECT lo_table_header EXPORTING text = iv_header_text.
+          CREATE OBJECT lo_table_header
+            EXPORTING
+              text = iv_header_text.
           mo_select_list_popup->set_top_of_list( lo_table_header ).
         ENDIF.
 

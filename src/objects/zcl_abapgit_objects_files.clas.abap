@@ -369,8 +369,10 @@ CLASS ZCL_ABAPGIT_OBJECTS_FILES IMPLEMENTATION.
 
     lv_xml = zcl_abapgit_convert=>xstring_to_string_utf8( lv_data ).
 
-    CREATE OBJECT ro_xml EXPORTING iv_xml = lv_xml
-                                   iv_filename = lv_filename.
+    CREATE OBJECT ro_xml
+      EXPORTING
+        iv_xml      = lv_xml
+        iv_filename = lv_filename.
 
   ENDMETHOD.
 

@@ -76,7 +76,9 @@ CLASS ZCL_ABAPGIT_TRANSPORT_2_BRANCH IMPLEMENTATION.
 
   METHOD stage_transport_objects.
     DATA lo_transport_objects TYPE REF TO zcl_abapgit_transport_objects.
-    CREATE OBJECT lo_transport_objects EXPORTING it_transport_objects = it_transport_objects.
+    CREATE OBJECT lo_transport_objects
+      EXPORTING
+        it_transport_objects = it_transport_objects.
 
     lo_transport_objects->to_stage(
       io_stage           = io_stage

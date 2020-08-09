@@ -787,9 +787,13 @@ CLASS ZCL_ABAPGIT_OBJECT_TABL IMPLEMENTATION.
     CREATE OBJECT lo_local_version_output.
     me->zif_abapgit_object~serialize( lo_local_version_output ).
 
-    CREATE OBJECT lo_local_version_input EXPORTING iv_xml = lo_local_version_output->render( ).
+    CREATE OBJECT lo_local_version_input
+      EXPORTING
+        iv_xml = lo_local_version_output->render( ).
 
-    CREATE OBJECT ri_comparator TYPE zcl_abapgit_object_tabl_compar EXPORTING io_local = lo_local_version_input.
+    CREATE OBJECT ri_comparator TYPE zcl_abapgit_object_tabl_compar
+      EXPORTING
+        io_local = lo_local_version_input.
 
   ENDMETHOD.
 

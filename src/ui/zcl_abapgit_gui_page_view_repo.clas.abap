@@ -386,9 +386,6 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_VIEW_REPO IMPLEMENTATION.
 
   METHOD build_main_menu.
 
-    DATA: lo_advsub  TYPE REF TO zcl_abapgit_html_toolbar,
-          lo_helpsub TYPE REF TO zcl_abapgit_html_toolbar.
-
     CREATE OBJECT ro_menu EXPORTING iv_id = 'toolbar-main'.
 
     ro_menu->add(
@@ -677,7 +674,9 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_VIEW_REPO IMPLEMENTATION.
         lv_render_transports = zcl_abapgit_factory=>get_cts_api(
           )->is_chrec_possible_for_package( mo_repo->get_package( ) ).
 
-        CREATE OBJECT lo_browser EXPORTING io_repo = mo_repo.
+        CREATE OBJECT lo_browser
+          EXPORTING
+            io_repo = mo_repo.
 
         lt_repo_items = lo_browser->list( iv_path         = mv_cur_dir
                                           iv_by_folders   = mv_show_folders
@@ -1041,7 +1040,9 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_VIEW_REPO IMPLEMENTATION.
 
     CASE iv_action.
       WHEN zif_abapgit_definitions=>c_action-go_repo. " Switch to another repo
-        CREATE OBJECT ei_page TYPE zcl_abapgit_gui_page_view_repo EXPORTING iv_key = |{ iv_getdata }|.
+        CREATE OBJECT ei_page TYPE zcl_abapgit_gui_page_view_repo
+          EXPORTING
+            iv_key = |{ iv_getdata }|.
         ev_state        = zcl_abapgit_gui=>c_event_state-new_page_replacing.
 
       WHEN c_actions-toggle_hide_files. " Toggle file diplay

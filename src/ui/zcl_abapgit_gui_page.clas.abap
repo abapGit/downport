@@ -195,7 +195,9 @@ CLASS ZCL_ABAPGIT_GUI_PAGE IMPLEMENTATION.
 
     " You should remember that the exception viewer dispatches the events of
     " error message panel
-    CREATE OBJECT mo_exception_viewer EXPORTING ix_error = mx_error.
+    CREATE OBJECT mo_exception_viewer
+      EXPORTING
+        ix_error = mx_error.
 
     " You should remember that we render the message panel just once
     " for each exception/error text.

@@ -239,7 +239,9 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_PATCH IMPLEMENTATION.
 
       lv_something_patched = abap_true.
 
-      CREATE OBJECT lo_git_add_patch EXPORTING it_diff = <ls_diff_file>-o_diff->get( ).
+      CREATE OBJECT lo_git_add_patch
+        EXPORTING
+          it_diff = <ls_diff_file>-o_diff->get( ).
 
       lv_patch = lo_git_add_patch->get_patch_binary( ).
 
@@ -751,8 +753,10 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_PATCH IMPLEMENTATION.
 
         start_staging( it_postdata ).
 
-        CREATE OBJECT ei_page TYPE zcl_abapgit_gui_page_commit EXPORTING io_repo = mo_repo_online
-                                                                         io_stage = mo_stage.
+        CREATE OBJECT ei_page TYPE zcl_abapgit_gui_page_commit
+          EXPORTING
+            io_repo  = mo_repo_online
+            io_stage = mo_stage.
         ev_state = zcl_abapgit_gui=>c_event_state-new_page.
 
       WHEN OTHERS.

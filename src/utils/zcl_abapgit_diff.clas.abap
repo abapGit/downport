@@ -415,8 +415,10 @@ CLASS zcl_abapgit_diff IMPLEMENTATION.
     APPEND '^\s*INITIALIZATION(\s|\.)' TO lt_regex.
 
     LOOP AT lt_regex INTO lv_regex.
-      CREATE OBJECT lo_regex EXPORTING pattern = lv_regex
-                                       ignore_case = abap_true.
+      CREATE OBJECT lo_regex
+        EXPORTING
+          pattern     = lv_regex
+          ignore_case = abap_true.
       APPEND lo_regex TO rt_regex_set.
     ENDLOOP.
 

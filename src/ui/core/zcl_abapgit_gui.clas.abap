@@ -378,8 +378,10 @@ CLASS ZCL_ABAPGIT_GUI IMPLEMENTATION.
 
     FIELD-SYMBOLS <ls_asset> LIKE LINE OF lt_assets.
 
-    CREATE OBJECT mo_html_viewer EXPORTING query_table_disabled = abap_true
-                                           parent = cl_gui_container=>screen0.
+    CREATE OBJECT mo_html_viewer
+      EXPORTING
+        query_table_disabled = abap_true
+        parent               = cl_gui_container=>screen0.
 
     IF mi_asset_man IS BOUND.
       lt_assets = mi_asset_man->get_all_assets( ).
@@ -403,10 +405,9 @@ CLASS ZCL_ABAPGIT_GUI IMPLEMENTATION.
 
   METHOD zif_abapgit_gui_services~cache_asset.
 
-    DATA: lv_xstr  TYPE xstring,
-          lt_xdata TYPE lvc_t_mime,
-          lv_size  TYPE i.
-    DATA lt_html TYPE w3htmltab.
+    DATA: lt_xdata TYPE lvc_t_mime,
+          lv_size  TYPE i,
+          lt_html  TYPE w3htmltab.
 
     ASSERT iv_text IS SUPPLIED OR iv_xdata IS SUPPLIED.
 

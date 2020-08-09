@@ -231,7 +231,9 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_CODE_INSP IMPLEMENTATION.
           " we need to refresh as the source might have changed
           lo_repo_online->refresh( ).
 
-          CREATE OBJECT ei_page TYPE zcl_abapgit_gui_page_stage EXPORTING io_repo = lo_repo_online.
+          CREATE OBJECT ei_page TYPE zcl_abapgit_gui_page_stage
+            EXPORTING
+              io_repo = lo_repo_online.
           ev_state = zcl_abapgit_gui=>c_event_state-new_page.
 
         ELSE.
@@ -247,8 +249,10 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_CODE_INSP IMPLEMENTATION.
 
         IF is_stage_allowed( ) = abap_true.
 
-          CREATE OBJECT ei_page TYPE zcl_abapgit_gui_page_commit EXPORTING io_repo = lo_repo_online
-                                                                           io_stage = mo_stage.
+          CREATE OBJECT ei_page TYPE zcl_abapgit_gui_page_commit
+            EXPORTING
+              io_repo  = lo_repo_online
+              io_stage = mo_stage.
           ev_state = zcl_abapgit_gui=>c_event_state-new_page.
 
         ELSE.

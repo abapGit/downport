@@ -41,7 +41,9 @@ CLASS ltcl_xml IMPLEMENTATION.
                     ig_data = ls_old ).
     lv_xml = lo_output->render( ).
 
-    CREATE OBJECT lo_input EXPORTING iv_xml = lv_xml.
+    CREATE OBJECT lo_input
+      EXPORTING
+        iv_xml = lv_xml.
     lo_input->read( EXPORTING iv_name = 'DATA'
                     CHANGING cg_data = ls_new ).
 
@@ -72,7 +74,9 @@ CLASS ltcl_xml IMPLEMENTATION.
                     ig_data = ls_old ).
     lv_xml = lo_output->render( ).
 
-    CREATE OBJECT lo_input EXPORTING iv_xml = lv_xml.
+    CREATE OBJECT lo_input
+      EXPORTING
+        iv_xml = lv_xml.
     lo_input->read( EXPORTING iv_name = 'DATA'
                     CHANGING cg_data = ls_new ).
 
@@ -104,7 +108,9 @@ CLASS ltcl_xml IMPLEMENTATION.
                     ig_data = ls_new ).
     lv_xml = lo_output->render( ).
 
-    CREATE OBJECT lo_input EXPORTING iv_xml = lv_xml.
+    CREATE OBJECT lo_input
+      EXPORTING
+        iv_xml = lv_xml.
     lo_input->read( EXPORTING iv_name = 'DATA'
                     CHANGING cg_data = ls_old ).
 

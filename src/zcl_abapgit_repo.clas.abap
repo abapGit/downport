@@ -383,7 +383,9 @@ CLASS ZCL_ABAPGIT_REPO IMPLEMENTATION.
 
 
   METHOD get_dot_abapgit.
-    CREATE OBJECT ro_dot_abapgit EXPORTING is_data = ms_data-dot_abapgit.
+    CREATE OBJECT ro_dot_abapgit
+      EXPORTING
+        is_data = ms_data-dot_abapgit.
   ENDMETHOD.
 
 
@@ -431,12 +433,16 @@ CLASS ZCL_ABAPGIT_REPO IMPLEMENTATION.
       io_dot                = get_dot_abapgit( )
       ii_log                = ii_log ).
 
-    CREATE OBJECT lo_filter EXPORTING iv_package = get_package( ).
+    CREATE OBJECT lo_filter
+      EXPORTING
+        iv_package = get_package( ).
 
     lo_filter->apply( EXPORTING it_filter = it_filter
                       CHANGING  ct_tadir  = lt_tadir ).
 
-    CREATE OBJECT lo_serialize EXPORTING iv_serialize_master_lang_only = ms_data-local_settings-serialize_master_lang_only.
+    CREATE OBJECT lo_serialize
+      EXPORTING
+        iv_serialize_master_lang_only = ms_data-local_settings-serialize_master_lang_only.
 
 * if there are less than 10 objects run in single thread
 * this helps a lot when debugging, plus performance gain
@@ -476,7 +482,12 @@ CLASS ZCL_ABAPGIT_REPO IMPLEMENTATION.
     FIELD-SYMBOLS <ls_object> LIKE LINE OF ms_data-local_checksums.
 
     LOOP AT ms_data-local_checksums ASSIGNING <ls_object>.
-      APPEND LINES OF <ls_object>-files TO rt_checksums.
+      " Check if item exists
+      READ TABLE mt_local TRANSPORTING NO FIELDS
+        WITH KEY item = <ls_object>-item.
+      IF sy-subrc = 0.
+        APPEND LINES OF <ls_object>-files TO rt_checksums.
+      ENDIF.
     ENDLOOP.
 
   ENDMETHOD.
