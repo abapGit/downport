@@ -26,9 +26,6 @@ CLASS zcl_abapgit_object_avas DEFINITION
         !is_avas TYPE ty_avas
       RAISING
         zcx_abapgit_exception .
-    METHODS insert_links
-      IMPORTING
-        !is_avas TYPE ty_avas .
     METHODS instantiate
       RETURNING
         VALUE(ro_avas) TYPE REF TO cl_cls_attr_value_assignment
@@ -74,14 +71,6 @@ CLASS ZCL_ABAPGIT_OBJECT_AVAS IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD insert_links.
-
-* todo, how does links work?
-    RETURN.
-
-  ENDMETHOD.
-
-
   METHOD instantiate.
 
     DATA: lv_id  TYPE guid_32,
@@ -90,9 +79,7 @@ CLASS ZCL_ABAPGIT_OBJECT_AVAS IMPLEMENTATION.
     lv_id = ms_item-obj_name.
 
     TRY.
-        CREATE OBJECT ro_avas
-          EXPORTING
-            im_assignment_id = lv_id.
+        ro_avas = NEW #( im_assignment_id = lv_id ).
       CATCH cx_pak_wb_object_locked INTO lx_err.
         zcx_abapgit_exception=>raise( |AVAS { lv_id }: locked: { lx_err->get_longtext( ) }| ).
       CATCH cx_pak_not_authorized INTO lx_err.
@@ -162,7 +149,7 @@ CLASS ZCL_ABAPGIT_OBJECT_AVAS IMPLEMENTATION.
     tadir_insert( iv_package ).
 
     insert_assignments( ls_avas ).
-    insert_links( ls_avas ).
+* todo, how does links work?
 
 * corr_insert?
 

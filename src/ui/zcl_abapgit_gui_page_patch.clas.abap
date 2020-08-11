@@ -68,7 +68,6 @@ CLASS zcl_abapgit_gui_page_patch DEFINITION
           io_html      TYPE REF TO zcl_abapgit_html
           iv_filename  TYPE string
           is_diff_line TYPE zif_abapgit_definitions=>ty_diff
-          iv_fstate    TYPE char1
           iv_index     TYPE sy-tabix
         RAISING
           zcx_abapgit_exception,
@@ -166,7 +165,6 @@ CLASS zcl_abapgit_gui_page_patch DEFINITION
       is_patch_line_possible
         IMPORTING
           is_diff_line                     TYPE zif_abapgit_definitions=>ty_diff
-          iv_fstate                        TYPE char1
         RETURNING
           VALUE(rv_is_patch_line_possible) TYPE abap_bool.
 
@@ -239,9 +237,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_PATCH IMPLEMENTATION.
 
       lv_something_patched = abap_true.
 
-      CREATE OBJECT lo_git_add_patch
-        EXPORTING
-          it_diff = <ls_diff_file>-o_diff->get( ).
+      lo_git_add_patch = NEW #( it_diff = <ls_diff_file>-o_diff->get( ) ).
 
       lv_patch = lo_git_add_patch->get_patch_binary( ).
 
@@ -396,7 +392,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_PATCH IMPLEMENTATION.
 
     " While patching we always want to be in split mode
     CLEAR: mv_unified.
-    CREATE OBJECT mo_stage.
+    mo_stage = NEW #( ).
 
     ms_control-page_menu = build_menu( ).
 
@@ -617,7 +613,6 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_PATCH IMPLEMENTATION.
     render_patch( io_html      = io_html
                   iv_filename  = iv_filename
                   is_diff_line = is_diff_line
-                  iv_fstate    = iv_fstate
                   iv_index     = iv_index ).
 
     super->render_line_split_row(
@@ -646,9 +641,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_PATCH IMPLEMENTATION.
 
     lv_patched = get_diff_object( iv_filename )->is_line_patched( iv_index ).
 
-    lv_is_patch_possible = is_patch_line_possible(
-                               is_diff_line = is_diff_line
-                               iv_fstate    = iv_fstate ).
+    lv_is_patch_possible = is_patch_line_possible( is_diff_line ).
 
     IF lv_is_patch_possible = abap_true.
 
@@ -681,7 +674,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_PATCH IMPLEMENTATION.
 
   METHOD render_scripts.
 
-    CREATE OBJECT ro_html.
+    ro_html = NEW #( ).
 
     ro_html->zif_abapgit_html~set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
     ro_html->add( 'preparePatch();' ).
@@ -753,10 +746,8 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_PATCH IMPLEMENTATION.
 
         start_staging( it_postdata ).
 
-        CREATE OBJECT ei_page TYPE zcl_abapgit_gui_page_commit
-          EXPORTING
-            io_repo  = mo_repo_online
-            io_stage = mo_stage.
+        ei_page = NEW zcl_abapgit_gui_page_commit( io_repo = mo_repo_online
+                                                   io_stage = mo_stage ).
         ev_state = zcl_abapgit_gui=>c_event_state-new_page.
 
       WHEN OTHERS.

@@ -90,10 +90,8 @@ CLASS ZCL_ABAPGIT_SYNTAX_HIGHLIGHTER IMPLEMENTATION.
     DATA ls_rule LIKE LINE OF mt_rules.
 
     IF NOT iv_regex IS INITIAL.
-      CREATE OBJECT ls_rule-regex
-        EXPORTING
-          pattern     = iv_regex
-          ignore_case = abap_true.
+      ls_rule-regex = NEW #( pattern = iv_regex
+                             ignore_case = abap_true ).
     ENDIF.
 
     ls_rule-token         = iv_token.
@@ -123,15 +121,15 @@ CLASS ZCL_ABAPGIT_SYNTAX_HIGHLIGHTER IMPLEMENTATION.
 
     " Create instance of highighter dynamically dependent on syntax type
     IF iv_filename CP '*.abap'.
-      CREATE OBJECT ro_instance TYPE zcl_abapgit_syntax_abap.
+      ro_instance = NEW zcl_abapgit_syntax_abap( ).
     ELSEIF iv_filename CP '*.xml' OR iv_filename CP '*.html'.
-      CREATE OBJECT ro_instance TYPE zcl_abapgit_syntax_xml.
+      ro_instance = NEW zcl_abapgit_syntax_xml( ).
     ELSEIF iv_filename CP '*.css'.
-      CREATE OBJECT ro_instance TYPE zcl_abapgit_syntax_css.
+      ro_instance = NEW zcl_abapgit_syntax_css( ).
     ELSEIF iv_filename CP '*.js'.
-      CREATE OBJECT ro_instance TYPE zcl_abapgit_syntax_js.
+      ro_instance = NEW zcl_abapgit_syntax_js( ).
     ELSEIF iv_filename CP '*.json'.
-      CREATE OBJECT ro_instance TYPE zcl_abapgit_syntax_json.
+      ro_instance = NEW zcl_abapgit_syntax_json( ).
     ELSE.
       CLEAR ro_instance.
     ENDIF.
