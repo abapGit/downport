@@ -12,6 +12,7 @@ CLASS zcl_abapgit_gui_page_patch DEFINITION
           iv_key        TYPE zif_abapgit_persistence=>ty_repo-key
           is_file       TYPE zif_abapgit_definitions=>ty_file OPTIONAL
           is_object     TYPE zif_abapgit_definitions=>ty_item OPTIONAL
+          it_files      TYPE zif_abapgit_definitions=>ty_stage_tt OPTIONAL
           iv_patch_mode TYPE abap_bool OPTIONAL
         RAISING
           zcx_abapgit_exception,
@@ -178,7 +179,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_GUI_PAGE_PATCH IMPLEMENTATION.
+CLASS zcl_abapgit_gui_page_patch IMPLEMENTATION.
 
 
   METHOD add_menu_begin.
@@ -237,7 +238,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_PATCH IMPLEMENTATION.
 
       lv_something_patched = abap_true.
 
-      CREATE OBJECT lo_git_add_patch EXPORTING it_diff = <ls_diff_file>-o_diff->get( ).
+      lo_git_add_patch = NEW #( it_diff = <ls_diff_file>-o_diff->get( ) ).
 
       lv_patch = lo_git_add_patch->get_patch_binary( ).
 
@@ -382,7 +383,8 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_PATCH IMPLEMENTATION.
     super->constructor(
       iv_key    = iv_key
       is_file   = is_file
-      is_object = is_object ).
+      is_object = is_object
+      it_files  = it_files ).
 
     IF mo_repo->is_offline( ) = abap_true.
       zcx_abapgit_exception=>raise( |Can't patch offline repos| ).
@@ -392,7 +394,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_PATCH IMPLEMENTATION.
 
     " While patching we always want to be in split mode
     CLEAR: mv_unified.
-    CREATE OBJECT mo_stage.
+    mo_stage = NEW #( ).
 
     ms_control-page_menu = build_menu( ).
 
@@ -502,7 +504,12 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_PATCH IMPLEMENTATION.
   METHOD refresh.
 
     DATA:
-      lt_diff_files_old TYPE tt_file_diff.
+      lt_diff_files_old TYPE tt_file_diff,
+      lt_files          TYPE zif_abapgit_definitions=>ty_stage_tt,
+      ls_file           LIKE LINE OF lt_files.
+
+    FIELD-SYMBOLS: <ls_diff_file_old> TYPE zcl_abapgit_gui_page_diff=>ty_file_diff.
+
 
     lt_diff_files_old = mt_diff_files.
 
@@ -515,7 +522,17 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_PATCH IMPLEMENTATION.
         refresh_local_object( iv_action ).
     ENDCASE.
 
-    calculate_diff( ).
+    " We need to supply files again in calculate_diff. Because
+    " we only want to refresh the visible files. Otherwise all
+    " diff files would appear.
+    " Which is not wanted when we previously only selected particular files.
+    LOOP AT lt_diff_files_old ASSIGNING <ls_diff_file_old>.
+      CLEAR: ls_file.
+      MOVE-CORRESPONDING <ls_diff_file_old> TO ls_file-file.
+      INSERT ls_file INTO TABLE lt_files.
+    ENDLOOP.
+
+    calculate_diff( it_files = lt_files ).
     restore_patch_flags( lt_diff_files_old ).
 
   ENDMETHOD.
@@ -674,7 +691,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_PATCH IMPLEMENTATION.
 
   METHOD render_scripts.
 
-    CREATE OBJECT ro_html.
+    ro_html = NEW #( ).
 
     ro_html->zif_abapgit_html~set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
     ro_html->add( 'preparePatch();' ).
@@ -746,8 +763,8 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_PATCH IMPLEMENTATION.
 
         start_staging( it_postdata ).
 
-        CREATE OBJECT ei_page TYPE zcl_abapgit_gui_page_commit EXPORTING io_repo = mo_repo_online
-                                                                         io_stage = mo_stage.
+        ei_page = NEW zcl_abapgit_gui_page_commit( io_repo = mo_repo_online
+                                                   io_stage = mo_stage ).
         ev_state = zcl_abapgit_gui=>c_event_state-new_page.
 
       WHEN OTHERS.

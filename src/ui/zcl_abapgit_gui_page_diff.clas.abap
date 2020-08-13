@@ -35,6 +35,7 @@ CLASS zcl_abapgit_gui_page_diff DEFINITION
         !iv_key    TYPE zif_abapgit_persistence=>ty_repo-key
         !is_file   TYPE zif_abapgit_definitions=>ty_file OPTIONAL
         !is_object TYPE zif_abapgit_definitions=>ty_item OPTIONAL
+        !it_files  TYPE zif_abapgit_definitions=>ty_stage_tt OPTIONAL
       RAISING
         zcx_abapgit_exception.
 
@@ -68,6 +69,7 @@ CLASS zcl_abapgit_gui_page_diff DEFINITION
         IMPORTING
           is_file   TYPE zif_abapgit_definitions=>ty_file OPTIONAL
           is_object TYPE zif_abapgit_definitions=>ty_item OPTIONAL
+          it_files  TYPE zif_abapgit_definitions=>ty_stage_tt OPTIONAL
         RAISING
           zcx_abapgit_exception,
       add_menu_begin
@@ -185,12 +187,17 @@ CLASS zcl_abapgit_gui_page_diff DEFINITION
         VALUE(ro_html) TYPE REF TO zcl_abapgit_html
       RAISING
         zcx_abapgit_exception.
+    METHODS filter_diff_by_files
+      IMPORTING
+        it_files      TYPE zif_abapgit_definitions=>ty_stage_tt
+      CHANGING
+        ct_diff_files TYPE tt_file_diff.
 
 ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_GUI_PAGE_DIFF IMPLEMENTATION.
+CLASS zcl_abapgit_gui_page_diff IMPLEMENTATION.
 
 
   METHOD add_filter_sub_menu.
@@ -215,7 +222,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DIFF IMPLEMENTATION.
     DELETE ADJACENT DUPLICATES FROM lt_users.
 
     IF lines( lt_types ) > 1 OR lines( lt_users ) > 1.
-      CREATE OBJECT lo_sub_filter EXPORTING iv_id = 'diff-filter'.
+      lo_sub_filter = NEW #( iv_id = 'diff-filter' ).
 
       " File types
       IF lines( lt_types ) > 1.
@@ -254,7 +261,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DIFF IMPLEMENTATION.
           lv_jump_target TYPE string.
     FIELD-SYMBOLS: <ls_diff> LIKE LINE OF mt_diff_files.
 
-    CREATE OBJECT lo_sub_jump EXPORTING iv_id = 'jump'.
+    lo_sub_jump = NEW #( iv_id = 'jump' ).
 
     LOOP AT mt_diff_files ASSIGNING <ls_diff>.
 
@@ -363,11 +370,11 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DIFF IMPLEMENTATION.
     " Diff data
     IF <ls_diff>-type <> 'binary'.
       IF <ls_diff>-fstate = c_fstate-remote. " Remote file leading changes
-        CREATE OBJECT <ls_diff>-o_diff EXPORTING iv_new = <ls_remote>-data
-                                                 iv_old = <ls_local>-file-data.
+        <ls_diff>-o_diff = NEW #( iv_new = <ls_remote>-data
+                                  iv_old = <ls_local>-file-data ).
       ELSE.             " Local leading changes or both were modified
-        CREATE OBJECT <ls_diff>-o_diff EXPORTING iv_new = <ls_local>-file-data
-                                                 iv_old = <ls_remote>-data.
+        <ls_diff>-o_diff = NEW #( iv_new = <ls_local>-file-data
+                                  iv_old = <ls_remote>-data ).
       ENDIF.
     ENDIF.
 
@@ -376,7 +383,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DIFF IMPLEMENTATION.
 
   METHOD build_menu.
 
-    CREATE OBJECT ro_menu.
+    ro_menu = NEW #( ).
 
     add_menu_begin( ro_menu ).
     add_jump_sub_menu( ro_menu ).
@@ -422,6 +429,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DIFF IMPLEMENTATION.
       ENDLOOP.
 
     ELSE.                             " Diff for the whole repo
+
       SORT lt_status BY
         path ASCENDING
         filename ASCENDING.
@@ -432,6 +440,12 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DIFF IMPLEMENTATION.
       ENDLOOP.
 
     ENDIF.
+
+    filter_diff_by_files(
+      EXPORTING
+        it_files      = it_files
+      CHANGING
+        ct_diff_files = mt_diff_files ).
 
   ENDMETHOD.
 
@@ -453,7 +467,8 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DIFF IMPLEMENTATION.
 
     calculate_diff(
         is_file   = is_file
-        is_object = is_object ).
+        is_object = is_object
+        it_files  = it_files ).
 
     IF lines( mt_diff_files ) = 0.
       zcx_abapgit_exception=>raise( 'PAGE_DIFF ERROR: No diff files found' ).
@@ -518,7 +533,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DIFF IMPLEMENTATION.
     DATA: lv_beacon  TYPE string,
           lt_beacons TYPE zif_abapgit_definitions=>ty_string_tt.
 
-    CREATE OBJECT ro_html.
+    ro_html = NEW #( ).
 
     IF is_diff_line-beacon > 0.
       lt_beacons = is_diff-o_diff->get_beacons( ).
@@ -561,7 +576,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DIFF IMPLEMENTATION.
           li_progress  TYPE REF TO zif_abapgit_progress.
 
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     li_progress = zcl_abapgit_progress=>get_instance( lines( mt_diff_files ) ).
 
@@ -586,7 +601,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DIFF IMPLEMENTATION.
 
   METHOD render_diff.
 
-    CREATE OBJECT ro_html.
+    ro_html = NEW #( ).
 
     ro_html->add( |<div class="diff" data-type="{ is_diff-type
       }" data-changed-by="{ is_diff-changed_by
@@ -617,7 +632,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DIFF IMPLEMENTATION.
     DATA: ls_stats    TYPE zif_abapgit_definitions=>ty_count,
           lv_adt_link TYPE string.
 
-    CREATE OBJECT ro_html.
+    ro_html = NEW #( ).
 
     ro_html->add( '<div class="diff_head">' ).              "#EC NOTEXT
 
@@ -689,7 +704,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DIFF IMPLEMENTATION.
     FIELD-SYMBOLS <ls_diff>  LIKE LINE OF lt_diffs.
 
     lo_highlighter = zcl_abapgit_syntax_highlighter=>create( is_diff-filename ).
-    CREATE OBJECT ro_html.
+    ro_html = NEW #( ).
 
     lt_diffs = is_diff-o_diff->get( ).
 
@@ -748,7 +763,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DIFF IMPLEMENTATION.
           lv_mark TYPE string,
           lv_bg   TYPE string.
 
-    CREATE OBJECT ro_html.
+    ro_html = NEW #( ).
 
     " New line
     lv_mark = ` `.
@@ -815,7 +830,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DIFF IMPLEMENTATION.
 
     FIELD-SYMBOLS <ls_diff_line> LIKE LINE OF mt_delayed_lines.
 
-    CREATE OBJECT ro_html.
+    ro_html = NEW #( ).
 
     " Release delayed subsequent update lines
     IF is_diff_line-result <> zif_abapgit_definitions=>c_diff-update.
@@ -865,7 +880,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DIFF IMPLEMENTATION.
 
   METHOD render_scripts.
 
-    CREATE OBJECT ro_html.
+    ro_html = NEW #( ).
 
     ro_html->zif_abapgit_html~set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
 
@@ -894,7 +909,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DIFF IMPLEMENTATION.
 
   METHOD render_table_head.
 
-    CREATE OBJECT ro_html.
+    ro_html = NEW #( ).
 
     ro_html->add( '<thead class="header">' ).               "#EC NOTEXT
     ro_html->add( '<tr>' ).                                 "#EC NOTEXT
@@ -961,4 +976,26 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DIFF IMPLEMENTATION.
     ENDCASE.
 
   ENDMETHOD.
+
+  METHOD filter_diff_by_files.
+
+    FIELD-SYMBOLS: <ls_diff_file> TYPE ty_file_diff.
+
+    IF lines( it_files ) = 0.
+      RETURN.
+    ENDIF.
+
+    " Diff only for specified files
+    LOOP AT ct_diff_files ASSIGNING <ls_diff_file>.
+
+      READ TABLE it_files TRANSPORTING NO FIELDS
+                          WITH KEY file-filename = <ls_diff_file>-filename.
+      IF sy-subrc <> 0.
+        DELETE TABLE ct_diff_files FROM <ls_diff_file>.
+      ENDIF.
+
+    ENDLOOP.
+
+  ENDMETHOD.
+
 ENDCLASS.

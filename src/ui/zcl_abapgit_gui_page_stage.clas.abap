@@ -87,7 +87,7 @@ CLASS zcl_abapgit_gui_page_stage DEFINITION
       RETURNING
         VALUE(ro_menu) TYPE REF TO zcl_abapgit_html_toolbar .
     METHODS get_page_patch
-      IMPORTING iv_getdata     TYPE clike
+      IMPORTING io_stage       TYPE REF TO zcl_abapgit_stage
       RETURNING VALUE(ri_page) TYPE REF TO zif_abapgit_gui_renderable
       RAISING   zcx_abapgit_exception.
     METHODS render_master_language_warning
@@ -113,14 +113,16 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_STAGE IMPLEMENTATION.
 
   METHOD build_menu.
 
-    CREATE OBJECT ro_menu.
+    ro_menu = NEW #( ).
 
-    IF lines( ms_files-local ) > 0.
+    IF lines( ms_files-local ) > 0
+    OR lines( ms_files-remote ) > 0.
       ro_menu->add( iv_txt = |Diff|
                     iv_act = |{ zif_abapgit_definitions=>c_action-go_diff }?key={ mo_repo->get_key( ) }| ).
 
       ro_menu->add( iv_txt = |Patch|
-                    iv_act = |{ zif_abapgit_definitions=>c_action-go_patch }?key={ mo_repo->get_key( ) }| ).
+                    iv_typ = zif_abapgit_html=>c_action_type-onclick
+                    iv_id  = |patchBtn| ).
     ENDIF.
 
   ENDMETHOD.
@@ -234,16 +236,18 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_STAGE IMPLEMENTATION.
 
   METHOD get_page_patch.
 
-    DATA: lo_page TYPE REF TO zcl_abapgit_gui_page_patch,
-          lv_key  TYPE zif_abapgit_persistence=>ty_repo-key.
+    DATA: lo_page  TYPE REF TO zcl_abapgit_gui_page_patch,
+          lv_key   TYPE zif_abapgit_persistence=>ty_repo-key,
+          lt_files TYPE zif_abapgit_definitions=>ty_stage_tt.
 
-    zcl_abapgit_html_action_utils=>file_obj_decode(
-      EXPORTING
-        iv_string = iv_getdata
-      IMPORTING
-        ev_key    = lv_key ).
+    lv_key = mo_repo->get_key( ).
+    lt_files = io_stage->get_all( ).
 
-    CREATE OBJECT lo_page EXPORTING iv_key = lv_key.
+    DELETE lt_files WHERE method <> zif_abapgit_definitions=>c_method-add
+                    AND   method <> zif_abapgit_definitions=>c_method-rm.
+
+    lo_page = NEW #( iv_key = lv_key
+                     it_files = lt_files ).
 
     ri_page = lo_page.
 
@@ -255,7 +259,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_STAGE IMPLEMENTATION.
     DATA: lv_local_count TYPE i,
           lv_add_all_txt TYPE string.
 
-    CREATE OBJECT ro_html.
+    ro_html = NEW #( ).
     lv_local_count = count_default_files_to_commit( ).
     IF lv_local_count > 0.
       lv_add_all_txt = |Add all and commit ({ lv_local_count })|.
@@ -299,7 +303,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_STAGE IMPLEMENTATION.
 
   METHOD render_content.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div class="repo">' ).
     ri_html->add( zcl_abapgit_gui_chunk_lib=>render_repo_top( mo_repo ) ).
@@ -341,7 +345,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_STAGE IMPLEMENTATION.
           lv_transport_string TYPE string,
           lv_transport_html   TYPE string.
 
-    CREATE OBJECT ro_html.
+    ro_html = NEW #( ).
 
     lv_transport_string = iv_transport.
 
@@ -401,7 +405,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_STAGE IMPLEMENTATION.
                    <ls_status> LIKE LINE OF ms_files-status,
                    <ls_local>  LIKE LINE OF ms_files-local.
 
-    CREATE OBJECT ro_html.
+    ro_html = NEW #( ).
 
     ro_html->add( '<table id="stageTab" class="stage_tab w100">' ).
 
@@ -488,7 +492,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_STAGE IMPLEMENTATION.
 
     DATA: ls_dot_abapgit TYPE zif_abapgit_dot_abapgit=>ty_dot_abapgit.
 
-    CREATE OBJECT ro_html.
+    ro_html = NEW #( ).
 
     ls_dot_abapgit = mo_repo->get_dot_abapgit( )->get_data( ).
 
@@ -503,7 +507,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_STAGE IMPLEMENTATION.
 
   METHOD render_scripts.
 
-    CREATE OBJECT ro_html.
+    ro_html = NEW #( ).
 
     ro_html->zif_abapgit_html~set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
 
@@ -511,12 +515,14 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_STAGE IMPLEMENTATION.
     ro_html->add( |  seed:            "{ mv_seed }",| ). " Unique page id
     ro_html->add( |  user:            "{ to_lower( sy-uname ) }",| ).
     ro_html->add( '  formAction:      "stage_commit",' ).
+    ro_html->add( |  patchAction:     "{ zif_abapgit_definitions=>c_action-go_patch }",| ).
 
     ro_html->add( '  ids: {' ).
     ro_html->add( '    stageTab:          "stageTab",' ).
     ro_html->add( '    commitAllBtn:      "commitAllButton",' ).
     ro_html->add( '    commitSelectedBtn: "commitSelectedButton",' ).
     ro_html->add( '    commitFilteredBtn: "commitFilteredButton",' ).
+    ro_html->add( '    patchBtn:          "patchBtn",' ).
     ro_html->add( '    objectSearch:      "objectSearch",' ).
     ro_html->add( '  }' ).
 
@@ -532,7 +538,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_STAGE IMPLEMENTATION.
     FIELD-SYMBOLS <ls_remote> LIKE LINE OF ms_files-remote.
     FIELD-SYMBOLS <ls_status> LIKE LINE OF ms_files-status.
 
-    CREATE OBJECT ro_stage.
+    ro_stage = NEW #( ).
 
     LOOP AT ms_files-local ASSIGNING <ls_local>.
       READ TABLE ms_files-status ASSIGNING <ls_status>
@@ -586,7 +592,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_STAGE IMPLEMENTATION.
       zcx_abapgit_exception=>raise( 'process_stage_list: empty list' ).
     ENDIF.
 
-    CREATE OBJECT ro_stage.
+    ro_stage = NEW #( ).
 
     LOOP AT lt_fields ASSIGNING <ls_item>
       "Ignore Files that we don't want to stage, so any errors don't stop the staging process
@@ -653,8 +659,8 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_STAGE IMPLEMENTATION.
 
         lo_stage = stage_all( ).
 
-        CREATE OBJECT ei_page TYPE zcl_abapgit_gui_page_commit EXPORTING io_repo = mo_repo
-                                                                         io_stage = lo_stage.
+        ei_page = NEW zcl_abapgit_gui_page_commit( io_repo = mo_repo
+                                                   io_stage = lo_stage ).
 
         ev_state = zcl_abapgit_gui=>c_event_state-new_page.
 
@@ -662,8 +668,8 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_STAGE IMPLEMENTATION.
 
         lo_stage = stage_selected( it_postdata ).
 
-        CREATE OBJECT ei_page TYPE zcl_abapgit_gui_page_commit EXPORTING io_repo = mo_repo
-                                                                         io_stage = lo_stage.
+        ei_page = NEW zcl_abapgit_gui_page_commit( io_repo = mo_repo
+                                                   io_stage = lo_stage ).
 
         ev_state = zcl_abapgit_gui=>c_event_state-new_page.
 
@@ -682,7 +688,8 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_STAGE IMPLEMENTATION.
 
       WHEN zif_abapgit_definitions=>c_action-go_patch.                         " Go Patch page
 
-        ei_page  = get_page_patch( iv_getdata ).
+        lo_stage = stage_selected( it_postdata ).
+        ei_page  = get_page_patch( lo_stage ).
         ev_state = zcl_abapgit_gui=>c_event_state-new_page.
 
       WHEN OTHERS.
@@ -705,7 +712,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_STAGE IMPLEMENTATION.
 
     ls_hotkey_action-ui_component = 'Stage'.
     ls_hotkey_action-description  = |Patch|.
-    ls_hotkey_action-action       = zif_abapgit_definitions=>c_action-go_patch.
+    ls_hotkey_action-action       = 'submitPatch'. " JS function in StageHelper
     ls_hotkey_action-hotkey       = |p|.
     INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
 
