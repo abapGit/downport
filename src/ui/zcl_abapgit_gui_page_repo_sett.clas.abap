@@ -92,7 +92,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_REPO_SETT IMPLEMENTATION.
 
   METHOD render_content.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
     ri_html->add( '<div class="settings_container">' ).
     ri_html->add( |<form id="settings_form" method="post" action="sapevent:{ c_action-save_settings }">| ).
 
@@ -316,6 +316,8 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_REPO_SETT IMPLEMENTATION.
     save_local_settings( lt_post_fields ).
 
     mo_repo->refresh( ).
+
+    MESSAGE |{ mo_repo->get_name( ) }: settings saved successfully.| TYPE 'S'.
 
   ENDMETHOD.
 
