@@ -32,7 +32,7 @@ CLASS ltcl_find_remote_dot_abapgit IMPLEMENTATION.
     given_any_repo( ).
     given_dot_abapgit_file( ).
 
-    when_find_remote_dot_abapgit(  ).
+    when_find_remote_dot_abapgit( ).
 
     then_dot_abapgit_is_bound( ).
     then_no_exception_is_raised( ).
@@ -45,7 +45,7 @@ CLASS ltcl_find_remote_dot_abapgit IMPLEMENTATION.
     given_any_repo( ).
     given_no_dot_abapgit_file( ).
 
-    when_find_remote_dot_abapgit(  ).
+    when_find_remote_dot_abapgit( ).
 
     then_dot_abapgit_is_not_bound( ).
     then_exception_is_raised( ).
@@ -60,7 +60,7 @@ CLASS ltcl_find_remote_dot_abapgit IMPLEMENTATION.
     ls_data-key = c_dummy_repo_key.
 
     " online/offline doesn't matter...
-    CREATE OBJECT mo_repo TYPE zcl_abapgit_repo_offline EXPORTING is_data = ls_data.
+    mo_repo = NEW zcl_abapgit_repo_offline( is_data = ls_data ).
 
   ENDMETHOD.
 

@@ -730,12 +730,12 @@ CLASS ZCL_ABAPGIT_OBJECT_WDYN IMPLEMENTATION.
           lv_object_name TYPE seu_objkey.
 
 
-    CREATE OBJECT lo_component.
+    lo_component = NEW #( ).
 
     lv_object_name = ms_item-obj_name.
-    CREATE OBJECT lo_request EXPORTING p_object_type = 'YC'
-                                       p_object_name = lv_object_name
-                                       p_operation = swbm_c_op_delete_no_dialog.
+    lo_request = NEW #( p_object_type = 'YC'
+                        p_object_name = lv_object_name
+                        p_operation = swbm_c_op_delete_no_dialog ).
 
     lo_component->if_wb_program~process_wb_request(
       p_wb_request       = lo_request
@@ -778,11 +778,8 @@ CLASS ZCL_ABAPGIT_OBJECT_WDYN IMPLEMENTATION.
     READ TABLE ls_component-comp_metadata-descriptions INTO ls_description INDEX 1.
     IF sy-subrc = 0.
       zcl_abapgit_sotr_handler=>create_sotr(
-        iv_pgmid    = 'LIMU'
-        iv_object   = 'WDYV'
-        iv_obj_name = ms_item-obj_name
-        iv_package  = iv_package
-        io_xml      = io_xml ).
+        iv_package = iv_package
+        io_xml     = io_xml ).
     ENDIF.
 
     zcl_abapgit_objects_activation=>add_item( ms_item ).

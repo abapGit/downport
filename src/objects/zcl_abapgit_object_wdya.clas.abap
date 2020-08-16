@@ -72,9 +72,9 @@ CLASS ZCL_ABAPGIT_OBJECT_WDYA IMPLEMENTATION.
 
 
     TRY.
-        CREATE OBJECT lo_app EXPORTING name = is_app-application_name
-                                       definition = is_app
-                                       devclass = iv_package.
+        lo_app = NEW #( name = is_app-application_name
+                        definition = is_app
+                        devclass = iv_package ).
 
         LOOP AT it_properties ASSIGNING <ls_property>.
           li_prop = lo_app->if_wdy_md_application~create_property( <ls_property>-name ).
@@ -170,11 +170,8 @@ CLASS ZCL_ABAPGIT_OBJECT_WDYA IMPLEMENTATION.
           iv_package    = iv_package ).
 
     zcl_abapgit_sotr_handler=>create_sotr(
-      iv_pgmid    = 'R3TR'
-      iv_object   = ms_item-obj_type
-      iv_obj_name = ms_item-obj_name
-      iv_package  = iv_package
-      io_xml      = io_xml ).
+      iv_package = iv_package
+      io_xml     = io_xml ).
 
   ENDMETHOD.
 
