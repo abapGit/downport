@@ -269,7 +269,7 @@ CLASS zcl_abapgit_gui_repo_over IMPLEMENTATION.
 
   METHOD render_scripts.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
     ri_html->add( 'setInitialFocus("filter");' ).
@@ -358,14 +358,18 @@ CLASS zcl_abapgit_gui_repo_over IMPLEMENTATION.
           iv_txt = <ls_overview>-package
           iv_act = |{ zif_abapgit_definitions=>c_action-jump }?{ lv_package_jump_data }| ) }</td>| ).
 
-      lv_branch_html = `<span class="branch branch_branch">`
-        && `<i title="Current branch" class="icon icon-code-branch grey70"></i>`
-        && <ls_overview>-branch
-        && `</span>`.
+      IF <ls_overview>-branch IS INITIAL.
+        ii_html->add( |<td>&nbsp;</td>| ).
+      ELSE.
+        lv_branch_html = `<span class="branch branch_branch">`
+          && `<i title="Current branch" class="icon icon-code-branch grey70"></i>`
+          && <ls_overview>-branch
+          && `</span>`.
 
-      ii_html->add( |<td>{ ii_html->a(
-        iv_txt = lv_branch_html
-        iv_act = |{ zif_abapgit_definitions=>c_action-git_branch_switch }?{ <ls_overview>-key }| ) }</td>| ).
+        ii_html->add( |<td>{ ii_html->a(
+          iv_txt = lv_branch_html
+          iv_act = |{ zif_abapgit_definitions=>c_action-git_branch_switch }?{ <ls_overview>-key }| ) }</td>| ).
+      ENDIF.
 
       ii_html->add( |<td class="ro-detail">{ <ls_overview>-deserialized_by }</td>| ).
       ii_html->add( |<td class="ro-detail">{ <ls_overview>-deserialized_at }</td>| ).
@@ -496,7 +500,7 @@ CLASS zcl_abapgit_gui_repo_over IMPLEMENTATION.
 
     DATA lv_attrs TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     IF iv_value IS NOT INITIAL.
       lv_attrs = | value="{ iv_value }"|.
@@ -545,7 +549,7 @@ CLASS zcl_abapgit_gui_repo_over IMPLEMENTATION.
     apply_order_by( CHANGING ct_overview = mt_overview ).
     apply_filter( CHANGING ct_overview = mt_overview ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     render_header_bar( ri_html ).
     render_table( ii_html     = ri_html
