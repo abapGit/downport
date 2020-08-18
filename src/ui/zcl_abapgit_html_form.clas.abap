@@ -164,7 +164,7 @@ CLASS ZCL_ABAPGIT_HTML_FORM IMPLEMENTATION.
 
     DATA lv_ts TYPE timestampl.
 
-    CREATE OBJECT ro_form.
+    ro_form = NEW #( ).
     ro_form->mv_form_id = iv_form_id.
 
     IF ro_form->mv_form_id IS INITIAL.
@@ -225,7 +225,7 @@ CLASS ZCL_ABAPGIT_HTML_FORM IMPLEMENTATION.
       ls_form_id = | id="{ mv_form_id }"|.
     ENDIF.
 
-    ri_html = zcl_abapgit_html=>create( ).
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( |<div class="{ iv_form_class }">| ).
     ri_html->add( |<form method="post"{ ls_form_id }>| ).

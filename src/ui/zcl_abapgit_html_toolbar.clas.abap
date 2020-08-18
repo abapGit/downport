@@ -119,7 +119,7 @@ CLASS ZCL_ABAPGIT_HTML_TOOLBAR IMPLEMENTATION.
 
     DATA: lv_class TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     lv_class = 'nav-container' ##NO_TEXT.
     IF iv_right = abap_true.
@@ -137,7 +137,7 @@ CLASS ZCL_ABAPGIT_HTML_TOOLBAR IMPLEMENTATION.
 
     DATA: lv_class TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     lv_class = 'nav-container' ##NO_TEXT.
     IF iv_right = abap_true.
@@ -172,7 +172,7 @@ CLASS ZCL_ABAPGIT_HTML_TOOLBAR IMPLEMENTATION.
     FIELD-SYMBOLS <ls_item> LIKE LINE OF mt_items.
 
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     IF iv_sort = abap_true.
       SORT mt_items BY txt ASCENDING AS TEXT.
@@ -202,13 +202,13 @@ CLASS ZCL_ABAPGIT_HTML_TOOLBAR IMPLEMENTATION.
 
       IF lv_has_icons = abap_true.
         IF <ls_item>-chk = abap_true.
-          lv_icon  = zcl_abapgit_html=>icon( 'check/blue' ).
+          lv_icon  = ri_html->icon( 'check/blue' ).
           lv_check = ' data-check="X"'.
         ELSEIF <ls_item>-chk = abap_false.
-          lv_icon = zcl_abapgit_html=>icon( 'check/grey' ).
+          lv_icon = ri_html->icon( 'check/grey' ).
           lv_check = ' data-check=""'.
         ELSE. " abap_undefined -> not a check box
-          lv_icon = zcl_abapgit_html=>icon( <ls_item>-ico ).
+          lv_icon = ri_html->icon( <ls_item>-ico ).
         ENDIF.
       ENDIF.
 

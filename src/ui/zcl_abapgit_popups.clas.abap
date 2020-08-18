@@ -504,8 +504,9 @@ CLASS zcl_abapgit_popups IMPLEMENTATION.
       ENDIF.
       ASSERT <ls_branch> IS ASSIGNED.
       rs_branch = lo_branches->find_by_name( <ls_branch>-name ).
-      MESSAGE |Branch switched from { zcl_abapgit_git_branch_list=>get_display_name( iv_default_branch ) } to {
-        zcl_abapgit_git_branch_list=>get_display_name( rs_branch-name ) } | TYPE 'S'.
+      lv_text = |Branch switched from { zcl_abapgit_git_branch_list=>get_display_name( iv_default_branch ) } to {
+        zcl_abapgit_git_branch_list=>get_display_name( rs_branch-name ) } |.
+      MESSAGE lv_text TYPE 'S'.
     ENDIF.
 
   ENDMETHOD.
@@ -967,7 +968,7 @@ CLASS zcl_abapgit_popups IMPLEMENTATION.
         ENDIF.
 
         IF iv_header_text CN ' _0'.
-          CREATE OBJECT lo_table_header EXPORTING text = iv_header_text.
+          lo_table_header = NEW #( text = iv_header_text ).
           mo_select_list_popup->set_top_of_list( lo_table_header ).
         ENDIF.
 
