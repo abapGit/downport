@@ -769,10 +769,13 @@ CLASS ZCL_ABAPGIT_OBJECT_TABL IMPLEMENTATION.
 
     DATA: lv_tabname TYPE dd02l-tabname.
 
-    SELECT SINGLE tabname FROM dd02l INTO lv_tabname
-      WHERE tabname = ms_item-obj_name
-      AND as4local = 'A'
-      AND as4vers = '0000'.
+    lv_tabname = ms_item-obj_name.
+    CALL FUNCTION 'DD_GET_NAMETAB_HEADER'
+      EXPORTING
+        tabname   = lv_tabname
+      EXCEPTIONS
+        not_found = 1
+        OTHERS    = 2.
     rv_bool = boolc( sy-subrc = 0 ).
 
   ENDMETHOD.
@@ -784,12 +787,12 @@ CLASS ZCL_ABAPGIT_OBJECT_TABL IMPLEMENTATION.
           lo_local_version_input  TYPE REF TO zcl_abapgit_xml_input.
 
 
-    CREATE OBJECT lo_local_version_output.
+    lo_local_version_output = NEW #( ).
     me->zif_abapgit_object~serialize( lo_local_version_output ).
 
-    CREATE OBJECT lo_local_version_input EXPORTING iv_xml = lo_local_version_output->render( ).
+    lo_local_version_input = NEW #( iv_xml = lo_local_version_output->render( ) ).
 
-    CREATE OBJECT ri_comparator TYPE zcl_abapgit_object_tabl_compar EXPORTING io_local = lo_local_version_input.
+    ri_comparator = NEW zcl_abapgit_object_tabl_compar( io_local = lo_local_version_input ).
 
   ENDMETHOD.
 
