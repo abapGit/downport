@@ -32,6 +32,7 @@ CLASS zcl_abapgit_gui_repo_over DEFINITION
     TYPES:
       BEGIN OF ty_overview,
         favorite        TYPE string,
+        "! True for offline, false for online repo
         type            TYPE string,
         key             TYPE string,
         name            TYPE string,
@@ -269,7 +270,7 @@ CLASS zcl_abapgit_gui_repo_over IMPLEMENTATION.
 
   METHOD render_scripts.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
     ri_html->add( 'setInitialFocus("filter");' ).
@@ -298,16 +299,16 @@ CLASS zcl_abapgit_gui_repo_over IMPLEMENTATION.
     CONSTANTS: lc_separator TYPE string VALUE `<span class="separator">|</span>`.
 
     DATA:
-      lv_type_icon           TYPE string,
-      lv_favorite_icon       TYPE string,
-      lv_favorite_class      TYPE string,
-      lv_package_jump_data   TYPE string,
-      lv_package_obj_name    TYPE sobj_name,
-      lv_stage_link          TYPE string,
-      lv_patch_link          TYPE string,
-      lv_code_inspector_link TYPE string,
-      lv_repo_settings_link  TYPE string,
-      lv_branch_html         TYPE string.
+      lv_type_icon         TYPE string,
+      lv_favorite_icon     TYPE string,
+      lv_favorite_class    TYPE string,
+      lv_package_jump_data TYPE string,
+      lv_package_obj_name  TYPE sobj_name,
+      lv_stage_link        TYPE string,
+      lv_patch_link        TYPE string,
+      lv_check_link        TYPE string,
+      lv_settings_link     TYPE string,
+      lv_branch_html       TYPE string.
 
     FIELD-SYMBOLS: <ls_overview> LIKE LINE OF it_overview.
 
@@ -379,27 +380,31 @@ CLASS zcl_abapgit_gui_repo_over IMPLEMENTATION.
 
       ii_html->add( |<td class='ro-action'> | ).
 
-      lv_stage_link = ii_html->a(
-        iv_txt = |Stage|
-        iv_act = |{ zif_abapgit_definitions=>c_action-go_stage }?{ <ls_overview>-key } | ).
-
-      lv_patch_link = ii_html->a(
-        iv_txt = |Patch|
-        iv_act = |{ zif_abapgit_definitions=>c_action-go_patch }?{ <ls_overview>-key } | ).
-
-      lv_code_inspector_link = ii_html->a(
-        iv_txt = |Code inspector|
+      lv_check_link = ii_html->a(
+        iv_txt = |Check|
         iv_act = |{ zif_abapgit_definitions=>c_action-repo_code_inspector }?{ <ls_overview>-key } | ).
 
-      lv_repo_settings_link = ii_html->a(
+      ii_html->add( lv_check_link && lc_separator ).
+
+      IF <ls_overview>-type = abap_false. " online repo
+        lv_stage_link = ii_html->a(
+          iv_txt = |Stage|
+          iv_act = |{ zif_abapgit_definitions=>c_action-go_stage }?{ <ls_overview>-key } | ).
+
+        ii_html->add( lv_stage_link && lc_separator ).
+
+        lv_patch_link = ii_html->a(
+          iv_txt = |Patch|
+          iv_act = |{ zif_abapgit_definitions=>c_action-go_patch }?{ <ls_overview>-key } | ).
+
+        ii_html->add( lv_patch_link && lc_separator ).
+      ENDIF.
+
+      lv_settings_link = ii_html->a(
         iv_txt = |Settings|
         iv_act = |{ zif_abapgit_definitions=>c_action-repo_settings }?{ <ls_overview>-key } | ).
 
-      ii_html->add(
-        lv_code_inspector_link && lc_separator &&
-        lv_stage_link && lc_separator &&
-        lv_patch_link && lc_separator &&
-        lv_repo_settings_link ).
+      ii_html->add( lv_settings_link ).
 
       ii_html->add( |</td>| ).
 
@@ -500,7 +505,7 @@ CLASS zcl_abapgit_gui_repo_over IMPLEMENTATION.
 
     DATA lv_attrs TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     IF iv_value IS NOT INITIAL.
       lv_attrs = | value="{ iv_value }"|.
@@ -549,7 +554,7 @@ CLASS zcl_abapgit_gui_repo_over IMPLEMENTATION.
     apply_order_by( CHANGING ct_overview = mt_overview ).
     apply_filter( CHANGING ct_overview = mt_overview ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     render_header_bar( ri_html ).
     render_table( ii_html     = ri_html

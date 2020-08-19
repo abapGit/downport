@@ -887,6 +887,7 @@ CLASS ZCL_ABAPGIT_OBJECTS_PROGRAM IMPLEMENTATION.
     CALL FUNCTION 'RPY_PROGRAM_READ'
       EXPORTING
         program_name     = lv_program_name
+        with_includelist = abap_false
         with_lowercase   = abap_true
       TABLES
         source_extended  = lt_source
@@ -912,7 +913,7 @@ CLASS ZCL_ABAPGIT_OBJECTS_PROGRAM IMPLEMENTATION.
     IF io_xml IS BOUND.
       lo_xml = io_xml.
     ELSE.
-      CREATE OBJECT lo_xml.
+      lo_xml = NEW #( ).
     ENDIF.
 
     lo_xml->add( iv_name = 'PROGDIR'
