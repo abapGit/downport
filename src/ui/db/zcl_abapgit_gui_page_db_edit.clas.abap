@@ -46,7 +46,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DB_EDIT IMPLEMENTATION.
   METHOD constructor.
     super->constructor( ).
     ms_key = is_key.
-    ms_control-page_title = 'CONFIG EDIT'.
+    ms_control-page_title = 'Config Edit'.
   ENDMETHOD.
 
 
@@ -97,8 +97,8 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DB_EDIT IMPLEMENTATION.
     lv_data = escape( val    = zcl_abapgit_xml_pretty=>print( lv_data )
                       format = cl_abap_format=>e_html_attr ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
-    CREATE OBJECT lo_toolbar.
+    ri_html = NEW zcl_abapgit_html( ).
+    lo_toolbar = NEW #( ).
     lo_toolbar->add( iv_act = 'submitFormById(''db_form'');'
                      iv_txt = 'Save'
                      iv_typ = zif_abapgit_html=>c_action_type-onclick

@@ -91,7 +91,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_COMMIT IMPLEMENTATION.
     mo_repo   = io_repo.
     mo_stage  = io_stage.
 
-    ms_control-page_title = 'COMMIT'.
+    ms_control-page_title = 'Commit'.
   ENDMETHOD.
 
 
@@ -239,7 +239,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_COMMIT IMPLEMENTATION.
 
   METHOD render_content.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div class="repo">' ).
     ri_html->add( zcl_abapgit_gui_chunk_lib=>render_repo_top(
@@ -309,18 +309,18 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_COMMIT IMPLEMENTATION.
       lv_comment = get_comment_default( ).
     ENDIF.
 
-    CREATE OBJECT ro_html.
+    ro_html = NEW #( ).
 
     ro_html->add( '<div class="form-container">' ).
     ro_html->add( '<form id="commit_form" class="aligned-form"'
                && ' method="post" action="sapevent:commit_post">' ).
 
     ro_html->add( render_text_input( iv_name  = 'committer_name'
-                                     iv_label = 'committer name'
+                                     iv_label = 'Committer Name'
                                      iv_value = lv_user ) ).
 
     ro_html->add( render_text_input( iv_name  = 'committer_email'
-                                     iv_label = 'committer e-mail'
+                                     iv_label = 'Committer E-mail'
                                      iv_value = lv_email ) ).
 
     lo_settings = zcl_abapgit_persist_settings=>get_instance( )->read( ).
@@ -328,12 +328,12 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_COMMIT IMPLEMENTATION.
     lv_s_param = lo_settings->get_commitmsg_comment_length( ).
 
     ro_html->add( render_text_input( iv_name       = 'comment'
-                                     iv_label      = 'comment'
+                                     iv_label      = 'Comment'
                                      iv_value      = lv_comment
                                      iv_max_length = lv_s_param ) ).
 
     ro_html->add( '<div class="row">' ).
-    ro_html->add( '<label for="c-body">body</label>' ).
+    ro_html->add( '<label for="c-body">Body</label>' ).
 
     lv_body_size = lo_settings->get_commitmsg_body_size( ).
     IF lv_body_size > lc_body_col_max.
@@ -352,11 +352,11 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_COMMIT IMPLEMENTATION.
     ro_html->add( '</div>' ).
 
     ro_html->add( render_text_input( iv_name  = 'author_name'
-                                     iv_label = 'author name'
+                                     iv_label = 'Author Name'
                                      iv_value = lv_author_name ) ).
 
     ro_html->add( render_text_input( iv_name  = 'author_email'
-                                     iv_label = 'author e-mail'
+                                     iv_label = 'Author E-mail'
                                      iv_value = lv_author_email ) ).
 
     ro_html->add( '</form>' ).
@@ -369,8 +369,8 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_COMMIT IMPLEMENTATION.
 
     DATA lo_toolbar TYPE REF TO zcl_abapgit_html_toolbar.
 
-    CREATE OBJECT ro_html.
-    CREATE OBJECT lo_toolbar.
+    ro_html = NEW #( ).
+    lo_toolbar = NEW #( ).
 
     lo_toolbar->add( iv_act = 'submitFormById(''commit_form'');'
                      iv_txt = 'Commit'
@@ -390,7 +390,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_COMMIT IMPLEMENTATION.
 
   METHOD render_scripts.
 
-    CREATE OBJECT ro_html.
+    ro_html = NEW #( ).
 
     ro_html->zif_abapgit_html~set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
     ro_html->add( 'setInitialFocus("comment");' ).
@@ -405,14 +405,14 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_COMMIT IMPLEMENTATION.
     FIELD-SYMBOLS: <ls_stage> LIKE LINE OF lt_stage.
 
 
-    CREATE OBJECT ro_html.
+    ro_html = NEW #( ).
 
     lt_stage = mo_stage->get_all( ).
 
     ro_html->add( '<table class="stage_tab">' ).
     ro_html->add( '<thead>' ).
     ro_html->add( '<tr>' ).
-    ro_html->add( '<th colspan="3">Staged files</th>' ).
+    ro_html->add( '<th colspan="3">Staged Files</th>' ).
     ro_html->add( '</tr>' ).
     ro_html->add( '</thead>' ).
 
@@ -443,7 +443,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_COMMIT IMPLEMENTATION.
 
     DATA lv_attrs TYPE string.
 
-    CREATE OBJECT ro_html.
+    ro_html = NEW #( ).
 
     IF iv_value IS NOT INITIAL AND
        iv_max_length IS NOT INITIAL.

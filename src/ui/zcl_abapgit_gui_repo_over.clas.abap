@@ -252,7 +252,7 @@ CLASS zcl_abapgit_gui_repo_over IMPLEMENTATION.
     ii_html->add( |</form>| ).
 
     ii_html->add( zcl_abapgit_html=>a(
-      iv_txt = '<i id="icon-filter-favorite" class="icon icon-check"></i> Only favorites'
+      iv_txt = '<i id="icon-filter-favorite" class="icon icon-check"></i> Only Favorites'
       iv_act = |gHelper.toggleRepoListFavorites()|
       iv_typ = zif_abapgit_html=>c_action_type-onclick ) ).
 
@@ -270,7 +270,7 @@ CLASS zcl_abapgit_gui_repo_over IMPLEMENTATION.
 
   METHOD render_scripts.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
     ri_html->add( 'setInitialFocus("filter");' ).
@@ -505,7 +505,7 @@ CLASS zcl_abapgit_gui_repo_over IMPLEMENTATION.
 
     DATA lv_attrs TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     IF iv_value IS NOT INITIAL.
       lv_attrs = | value="{ iv_value }"|.
@@ -554,7 +554,7 @@ CLASS zcl_abapgit_gui_repo_over IMPLEMENTATION.
     apply_order_by( CHANGING ct_overview = mt_overview ).
     apply_filter( CHANGING ct_overview = mt_overview ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     render_header_bar( ri_html ).
     render_table( ii_html     = ri_html

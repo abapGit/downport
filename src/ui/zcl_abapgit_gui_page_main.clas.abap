@@ -45,7 +45,7 @@ CLASS zcl_abapgit_gui_page_main IMPLEMENTATION.
 
   METHOD build_main_menu.
 
-    CREATE OBJECT ro_menu EXPORTING iv_id = 'toolbar-main'.
+    ro_menu = NEW #( iv_id = 'toolbar-main' ).
 
     ro_menu->add(
       iv_txt = zcl_abapgit_gui_buttons=>new_online( )
@@ -66,17 +66,17 @@ CLASS zcl_abapgit_gui_page_main IMPLEMENTATION.
   METHOD constructor.
     super->constructor( ).
     ms_control-page_menu  = build_main_menu( ).
-    ms_control-page_title = 'REPOSITORY LIST'.
+    ms_control-page_title = 'Repository List'.
   ENDMETHOD.
 
 
   METHOD render_content.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
     gui_services( )->get_hotkeys_ctl( )->register_hotkeys( me ).
 
     IF mo_repo_overview IS INITIAL.
-      CREATE OBJECT mo_repo_overview TYPE zcl_abapgit_gui_repo_over.
+      mo_repo_overview = NEW zcl_abapgit_gui_repo_over( ).
     ENDIF.
 
     ri_html->add( mo_repo_overview->zif_abapgit_gui_renderable~render( ) ).
@@ -105,7 +105,7 @@ CLASS zcl_abapgit_gui_page_main IMPLEMENTATION.
         ENDTRY.
 
         mv_repo_key = lv_key.
-        CREATE OBJECT ei_page TYPE zcl_abapgit_gui_page_view_repo EXPORTING iv_key = lv_key.
+        ei_page = NEW zcl_abapgit_gui_page_view_repo( iv_key = lv_key ).
         ev_state = zcl_abapgit_gui=>c_event_state-new_page.
 
       WHEN zif_abapgit_definitions=>c_action-change_order_by.
@@ -131,7 +131,7 @@ CLASS zcl_abapgit_gui_page_main IMPLEMENTATION.
       WHEN zif_abapgit_definitions=>c_action-repo_settings.
 
         lv_key = iv_getdata.
-        CREATE OBJECT ei_page TYPE zcl_abapgit_gui_page_repo_sett EXPORTING io_repo = zcl_abapgit_repo_srv=>get_instance( )->get( lv_key ).
+        ei_page = NEW zcl_abapgit_gui_page_repo_sett( io_repo = zcl_abapgit_repo_srv=>get_instance( )->get( lv_key ) ).
         ev_state = zcl_abapgit_gui=>c_event_state-new_page.
 
       WHEN OTHERS.
@@ -162,7 +162,7 @@ CLASS zcl_abapgit_gui_page_main IMPLEMENTATION.
         IMPORTING ev_key     = lv_key ).
     ENDIF.
 
-    CREATE OBJECT ri_page TYPE zcl_abapgit_gui_page_patch EXPORTING iv_key = lv_key.
+    ri_page = NEW zcl_abapgit_gui_page_patch( iv_key = lv_key ).
 
   ENDMETHOD.
 

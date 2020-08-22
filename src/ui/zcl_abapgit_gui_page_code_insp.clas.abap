@@ -173,7 +173,11 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_CODE_INSP IMPLEMENTATION.
 
   METHOD render_content.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
+
+    ri_html->add( `<div class="repo">` ).
+    ri_html->add( zcl_abapgit_gui_chunk_lib=>render_repo_top( mo_repo ) ).
+    ri_html->add( `</div>` ).
 
     IF mv_check_variant IS INITIAL.
       ri_html->add( zcl_abapgit_gui_chunk_lib=>render_error( iv_error = 'No check variant supplied.' ) ).
@@ -184,10 +188,6 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_CODE_INSP IMPLEMENTATION.
 
     ri_html->add( '<div class="ci-head">' ).
     ri_html->add( |Code inspector check variant: <span class="ci-variant">{ mv_check_variant }</span>| ).
-    ri_html->add( |<div class="float-right package-name">{
-      zcl_abapgit_html=>icon( 'box/grey70' ) }<span>{
-      mo_repo->get_package( ) }</span></div>| ).
-    ri_html->add( '</div>' ).
 
     IF lines( mt_result ) = 0.
       ri_html->add( '<div class="dummydiv success">' ).
@@ -231,7 +231,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_CODE_INSP IMPLEMENTATION.
           " we need to refresh as the source might have changed
           lo_repo_online->refresh( ).
 
-          CREATE OBJECT ei_page TYPE zcl_abapgit_gui_page_stage EXPORTING io_repo = lo_repo_online.
+          ei_page = NEW zcl_abapgit_gui_page_stage( io_repo = lo_repo_online ).
           ev_state = zcl_abapgit_gui=>c_event_state-new_page.
 
         ELSE.
@@ -247,8 +247,8 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_CODE_INSP IMPLEMENTATION.
 
         IF is_stage_allowed( ) = abap_true.
 
-          CREATE OBJECT ei_page TYPE zcl_abapgit_gui_page_commit EXPORTING io_repo = lo_repo_online
-                                                                           io_stage = mo_stage.
+          ei_page = NEW zcl_abapgit_gui_page_commit( io_repo = lo_repo_online
+                                                     io_stage = mo_stage ).
           ev_state = zcl_abapgit_gui=>c_event_state-new_page.
 
         ELSE.

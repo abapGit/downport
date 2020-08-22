@@ -29,7 +29,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DB_DIS IMPLEMENTATION.
   METHOD constructor.
     super->constructor( ).
     ms_key = is_key.
-    ms_control-page_title = 'CONFIG DISPLAY'.
+    ms_control-page_title = 'Config Display'.
   ENDMETHOD.
 
 
@@ -57,8 +57,8 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DB_DIS IMPLEMENTATION.
     lv_action       = zcl_abapgit_html_action_utils=>dbkey_encode( ls_action ).
     lv_data         = lo_highlighter->process_line( zcl_abapgit_xml_pretty=>print( lv_data ) ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
-    CREATE OBJECT lo_toolbar.
+    ri_html = NEW zcl_abapgit_html( ).
+    lo_toolbar = NEW #( ).
     lo_toolbar->add( iv_act = |{ zif_abapgit_definitions=>c_action-db_edit }?{ lv_action }|
                      iv_txt = 'Edit' ) ##NO_TEXT.
 
