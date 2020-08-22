@@ -70,8 +70,8 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_ADDONLINE IMPLEMENTATION.
 
   METHOD constructor.
     super->constructor( ).
-    mo_validation_log = NEW #( ).
-    mo_form_data = NEW #( ).
+    CREATE OBJECT mo_validation_log.
+    CREATE OBJECT mo_form_data.
   ENDMETHOD.
 
 
@@ -79,7 +79,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_ADDONLINE IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_addonline.
 
-    lo_component = NEW #( ).
+    CREATE OBJECT lo_component.
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title = 'Clone online repository'
@@ -94,7 +94,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_ADDONLINE IMPLEMENTATION.
     DATA ls_field LIKE LINE OF lt_form.
 
     lt_form = zcl_abapgit_html_action_utils=>parse_post_data( it_post_data ).
-    ro_form_data = NEW #( ).
+    CREATE OBJECT ro_form_data.
 
     LOOP AT lt_form INTO ls_field.
       CASE ls_field-name.
@@ -121,7 +121,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_ADDONLINE IMPLEMENTATION.
 
     DATA lx_err TYPE REF TO zcx_abapgit_exception.
 
-    ro_validation_log = NEW #( ).
+    CREATE OBJECT ro_validation_log.
 
     IF io_form_data->get( c_id-url ) IS INITIAL.
       ro_validation_log->set(
@@ -249,7 +249,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_ADDONLINE IMPLEMENTATION.
 
     gui_services( )->register_event_handler( me ).
 
-    ri_html = NEW zcl_abapgit_html( ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
 
     lo_form = zcl_abapgit_html_form=>create( iv_form_id = 'add-repo-online-form' ).
     lo_form->text(
