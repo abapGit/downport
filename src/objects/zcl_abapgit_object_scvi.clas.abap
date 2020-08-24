@@ -111,7 +111,7 @@ CLASS ZCL_ABAPGIT_OBJECT_SCVI IMPLEMENTATION.
 
     DATA: lo_screen_variant TYPE REF TO zcl_abapgit_objects_generic.
 
-    CREATE OBJECT lo_screen_variant EXPORTING is_item = ms_item.
+    lo_screen_variant = NEW #( is_item = ms_item ).
 
     rv_bool = lo_screen_variant->exists( ).
 
