@@ -179,7 +179,7 @@ ENDCLASS.
 
 
 
-CLASS zcl_abapgit_gui_page_patch IMPLEMENTATION.
+CLASS ZCL_ABAPGIT_GUI_PAGE_PATCH IMPLEMENTATION.
 
 
   METHOD add_menu_begin.
@@ -238,7 +238,7 @@ CLASS zcl_abapgit_gui_page_patch IMPLEMENTATION.
 
       lv_something_patched = abap_true.
 
-      CREATE OBJECT lo_git_add_patch EXPORTING it_diff = <ls_diff_file>-o_diff->get( ).
+      lo_git_add_patch = NEW #( it_diff = <ls_diff_file>-o_diff->get( ) ).
 
       lv_patch = lo_git_add_patch->get_patch_binary( ).
 
@@ -394,7 +394,7 @@ CLASS zcl_abapgit_gui_page_patch IMPLEMENTATION.
 
     " While patching we always want to be in split mode
     CLEAR: mv_unified.
-    CREATE OBJECT mo_stage.
+    mo_stage = NEW #( ).
 
     ms_control-page_title = 'Patch'.
     ms_control-page_menu = build_menu( ).
@@ -610,7 +610,7 @@ CLASS zcl_abapgit_gui_page_patch IMPLEMENTATION.
 
       lv_act_id = |{ c_actions-refresh_local_object }_{ is_diff-obj_type }_{ is_diff-obj_name }|.
 
-      io_html->add_a(
+      ii_html->add_a(
           iv_txt   = |Refresh|
           iv_typ   = zif_abapgit_html=>c_action_type-dummy
           iv_act   = lv_act_id
@@ -620,7 +620,7 @@ CLASS zcl_abapgit_gui_page_patch IMPLEMENTATION.
     ENDIF.
 
     super->render_diff_head_after_state(
-        io_html = io_html
+        ii_html = ii_html
         is_diff = is_diff ).
 
   ENDMETHOD.
@@ -692,7 +692,7 @@ CLASS zcl_abapgit_gui_page_patch IMPLEMENTATION.
 
   METHOD render_scripts.
 
-    CREATE OBJECT ro_html.
+    ro_html = NEW #( ).
 
     ro_html->zif_abapgit_html~set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
     ro_html->add( 'preparePatch();' ).
@@ -764,8 +764,8 @@ CLASS zcl_abapgit_gui_page_patch IMPLEMENTATION.
 
         start_staging( it_postdata ).
 
-        CREATE OBJECT ei_page TYPE zcl_abapgit_gui_page_commit EXPORTING io_repo = mo_repo_online
-                                                                         io_stage = mo_stage.
+        ei_page = NEW zcl_abapgit_gui_page_commit( io_repo = mo_repo_online
+                                                   io_stage = mo_stage ).
         ev_state = zcl_abapgit_gui=>c_event_state-new_page.
 
       WHEN OTHERS.

@@ -15,6 +15,8 @@ CLASS zcl_abapgit_gui_page_view_repo DEFINITION
         toggle_changes    TYPE string VALUE 'toggle_changes' ##NO_TEXT,
         toggle_diff_first TYPE string VALUE 'toggle_diff_first ' ##NO_TEXT,
         display_more      TYPE string VALUE 'display_more' ##NO_TEXT,
+        repo_switch_origin_to_pr TYPE string VALUE 'repo_switch_origin_to_pr',
+        repo_reset_origin  TYPE string VALUE 'repo_reset_origin',
       END OF c_actions.
 
 
@@ -79,8 +81,6 @@ CLASS zcl_abapgit_gui_page_view_repo DEFINITION
       render_item_lock_column
         IMPORTING is_item        TYPE zif_abapgit_definitions=>ty_repo_item
         RETURNING VALUE(rv_html) TYPE string,
-      render_empty_package
-        RETURNING VALUE(rv_html) TYPE string,
       render_parent_dir
         RETURNING VALUE(ri_html) TYPE REF TO zif_abapgit_html
         RAISING   zcx_abapgit_exception.
@@ -123,10 +123,23 @@ CLASS zcl_abapgit_gui_page_view_repo DEFINITION
                   io_tb_tag         TYPE REF TO zcl_abapgit_html_toolbar
                   io_tb_advanced    TYPE REF TO zcl_abapgit_html_toolbar
         RETURNING VALUE(ro_toolbar) TYPE REF TO zcl_abapgit_html_toolbar
-        RAISING   zcx_abapgit_exception.
+        RAISING   zcx_abapgit_exception,
+      switch_to_pr
+        IMPORTING
+          it_fields TYPE tihttpnvp OPTIONAL
+          iv_revert TYPE abap_bool OPTIONAL
+        RETURNING
+          VALUE(rv_switched) TYPE abap_bool
+        RAISING
+          zcx_abapgit_exception.
 
     METHODS build_main_menu
       RETURNING VALUE(ro_menu) TYPE REF TO zcl_abapgit_html_toolbar.
+    METHODS render_scripts
+      RETURNING
+        VALUE(ri_html) TYPE REF TO zif_abapgit_html
+      RAISING
+        zcx_abapgit_exception.
 ENDCLASS.
 
 
@@ -193,7 +206,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_VIEW_REPO IMPLEMENTATION.
     DATA:
       lv_crossout LIKE zif_abapgit_html=>c_html_opt-crossout.
 
-    CREATE OBJECT ro_advanced_dropdown.
+    ro_advanced_dropdown = NEW #( ).
 
     IF iv_rstate IS NOT INITIAL OR iv_lstate IS NOT INITIAL. " In case of asyncronicities
       ro_advanced_dropdown->add( iv_txt = 'Reset Local (Force Pull)'
@@ -265,7 +278,9 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_VIEW_REPO IMPLEMENTATION.
 
   METHOD build_branch_dropdown.
 
-    CREATE OBJECT ro_branch_dropdown.
+    DATA lo_repo_online TYPE REF TO zcl_abapgit_repo_online.
+
+    ro_branch_dropdown = NEW #( ).
 
     IF mo_repo->is_offline( ) = abap_true.
       RETURN.
@@ -281,6 +296,17 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_VIEW_REPO IMPLEMENTATION.
     ro_branch_dropdown->add( iv_txt = 'Delete'
                              iv_act = |{ zif_abapgit_definitions=>c_action-git_branch_delete }?{ mv_key }| ).
 
+    lo_repo_online ?= mo_repo. " TODO refactor this disaster
+    IF lo_repo_online->get_switched_origin( ) IS NOT INITIAL.
+      ro_branch_dropdown->add(
+        iv_txt = 'Switch Origin: Revert <sup>beta<sup>'
+        iv_act = |{ c_actions-repo_reset_origin }| ).
+    ELSE.
+      ro_branch_dropdown->add(
+        iv_txt = 'Switch Origin: to PR <sup>beta<sup>'
+        iv_act = |{ c_actions-repo_switch_origin_to_pr }| ).
+    ENDIF.
+
   ENDMETHOD.
 
 
@@ -293,39 +319,9 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_VIEW_REPO IMPLEMENTATION.
     REPLACE FIRST OCCURRENCE OF mv_cur_dir IN lv_path WITH ''.
     lv_encode = zcl_abapgit_html_action_utils=>dir_encode( lv_path ).
 
-    rv_html = zcl_abapgit_html=>a( iv_txt = lv_path
-                                   iv_act = |{ c_actions-change_dir }?{ lv_encode }| ).
-
-  ENDMETHOD.
-
-
-  METHOD build_view_menu.
-
-    CREATE OBJECT ro_toolbar.
-
-    ro_toolbar->add(
-        iv_txt = 'Changes First'
-        iv_chk = mv_diff_first
-        iv_act = c_actions-toggle_diff_first ).
-
-    IF mo_repo->has_remote_source( ) = abap_true.
-
-      ro_toolbar->add(
-        iv_txt = 'Changes Only'
-        iv_chk = mv_changes_only
-        iv_act = c_actions-toggle_changes ).
-
-      ro_toolbar->add(
-        iv_txt = 'File Paths'
-        iv_chk = boolc( NOT mv_hide_files = abap_true )
-        iv_act = c_actions-toggle_hide_files ).
-
-    ENDIF.
-
-    ro_toolbar->add(
-      iv_txt = 'Folders'
-      iv_chk = mv_show_folders
-      iv_act = c_actions-toggle_folders ).
+    rv_html = zcl_abapgit_html=>zif_abapgit_html~a(
+      iv_txt = lv_path
+      iv_act = |{ c_actions-change_dir }?{ lv_encode }| ).
 
   ENDMETHOD.
 
@@ -379,7 +375,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_VIEW_REPO IMPLEMENTATION.
 
   METHOD build_main_menu.
 
-    CREATE OBJECT ro_menu EXPORTING iv_id = 'toolbar-main'.
+    ro_menu = NEW #( iv_id = 'toolbar-main' ).
 
     ro_menu->add(
       iv_txt = zcl_abapgit_gui_buttons=>repo_list( )
@@ -399,7 +395,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_VIEW_REPO IMPLEMENTATION.
     DATA:
       li_log TYPE REF TO zif_abapgit_log.
 
-    CREATE OBJECT ro_toolbar EXPORTING iv_id = 'toolbar-repo'.
+    ro_toolbar = NEW #( iv_id = 'toolbar-repo' ).
 
     IF mo_repo->is_offline( ) = abap_false.
       IF iv_rstate IS NOT INITIAL. " Something new at remote
@@ -470,18 +466,20 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_VIEW_REPO IMPLEMENTATION.
 
     DATA: lv_encode TYPE string.
 
-    lv_encode = zcl_abapgit_html_action_utils=>jump_encode( iv_obj_type = is_item-obj_type
-                                                    iv_obj_name = is_item-obj_name ).
+    lv_encode = zcl_abapgit_html_action_utils=>jump_encode(
+      iv_obj_type = is_item-obj_type
+      iv_obj_name = is_item-obj_name ).
 
-    rv_html = zcl_abapgit_html=>a( iv_txt = |{ is_item-obj_name }|
-                                   iv_act = |{ zif_abapgit_definitions=>c_action-jump }?{ lv_encode }| ).
+    rv_html = zcl_abapgit_html=>zif_abapgit_html~a(
+      iv_txt = |{ is_item-obj_name }|
+      iv_act = |{ zif_abapgit_definitions=>c_action-jump }?{ lv_encode }| ).
 
   ENDMETHOD.
 
 
   METHOD build_tag_dropdown.
 
-    CREATE OBJECT ro_tag_dropdown.
+    ro_tag_dropdown = NEW #( ).
 
     IF mo_repo->is_offline( ) = abap_true.
       RETURN.
@@ -497,6 +495,37 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_VIEW_REPO IMPLEMENTATION.
     ro_tag_dropdown->add( iv_txt = 'Delete'
                           iv_act = |{ zif_abapgit_definitions=>c_action-git_tag_delete }?{ mv_key }| ).
 
+
+  ENDMETHOD.
+
+
+  METHOD build_view_menu.
+
+    ro_toolbar = NEW #( ).
+
+    ro_toolbar->add(
+        iv_txt = 'Changes First'
+        iv_chk = mv_diff_first
+        iv_act = c_actions-toggle_diff_first ).
+
+    IF mo_repo->has_remote_source( ) = abap_true.
+
+      ro_toolbar->add(
+        iv_txt = 'Changes Only'
+        iv_chk = mv_changes_only
+        iv_act = c_actions-toggle_changes ).
+
+      ro_toolbar->add(
+        iv_txt = 'File Paths'
+        iv_chk = boolc( NOT mv_hide_files = abap_true )
+        iv_act = c_actions-toggle_hide_files ).
+
+    ENDIF.
+
+    ro_toolbar->add(
+      iv_txt = 'Folders'
+      iv_chk = mv_show_folders
+      iv_act = c_actions-toggle_folders ).
 
   ENDMETHOD.
 
@@ -526,7 +555,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_VIEW_REPO IMPLEMENTATION.
     lv_package = mo_repo->get_package( ).
 
     mv_are_changes_recorded_in_tr = zcl_abapgit_factory=>get_sap_package( lv_package
-                                                      )->are_changes_recorded_in_tr_req( ).
+      )->are_changes_recorded_in_tr_req( ).
 
   ENDMETHOD.
 
@@ -654,8 +683,6 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_VIEW_REPO IMPLEMENTATION.
 
     gui_services( )->get_hotkeys_ctl( )->register_hotkeys( me ).
     gui_services( )->register_event_handler( me ).
-    register_deferred_script(
-      zcl_abapgit_gui_chunk_lib=>render_repo_palette( zif_abapgit_definitions=>c_action-go_repo ) ).
 
     " Reinit, for the case of type change
     mo_repo = zcl_abapgit_repo_srv=>get_instance( )->get( mo_repo->get_key( ) ).
@@ -672,7 +699,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_VIEW_REPO IMPLEMENTATION.
 
     lo_news = zcl_abapgit_news=>create( mo_repo ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
     ri_html->add( |<div class="repo" id="repo{ mv_key }">| ).
     ri_html->add( zcl_abapgit_gui_chunk_lib=>render_repo_top(
       io_repo               = mo_repo
@@ -685,7 +712,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_VIEW_REPO IMPLEMENTATION.
         lv_render_transports = zcl_abapgit_factory=>get_cts_api(
           )->is_chrec_possible_for_package( mo_repo->get_package( ) ).
 
-        CREATE OBJECT lo_browser EXPORTING io_repo = mo_repo.
+        lo_browser = NEW #( io_repo = mo_repo ).
 
         lt_repo_items = lo_browser->list( iv_path         = mv_cur_dir
                                           iv_by_folders   = mv_show_folders
@@ -712,28 +739,30 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_VIEW_REPO IMPLEMENTATION.
 
         ri_html->add( '<div class="repo_container">' ).
 
-        " Offline match banner
+        CLEAR lv_msg.
+
         IF mo_repo->is_offline( ) = abap_true
             AND mo_repo->has_remote_source( ) = abap_true
             AND lv_lstate IS INITIAL AND lv_rstate IS INITIAL.
-          ri_html->add(
-            |<div class="panel success repo_banner">|
-            && |ZIP source is attached and completely <b>matches</b> to the local state|
-            && |</div>| ).
-        ENDIF.
-
-        " Repo content table
-        ri_html->add( '<table class="repo_tab">' ).
-
-        IF zcl_abapgit_path=>is_root( mv_cur_dir ) = abap_false.
-          ri_html->add( render_parent_dir( ) ).
-        ENDIF.
-
-        ri_html->add( render_order_by( ) ).
-
-        IF lines( lt_repo_items ) = 0.
-          ri_html->add( render_empty_package( ) ).
+          " Offline match banner
+          lv_msg = 'ZIP source is attached and completely <b>matches</b> the local state'.
+        ELSEIF lines( lt_repo_items ) = 0.
+          " Online match banner
+          IF mv_changes_only = abap_true.
+            lv_msg = 'Local state completely <b>matches</b> the remote repository'.
+          ELSE.
+            lv_msg = |Package is empty. Show { build_dir_jump_link( 'parent' ) } package|.
+          ENDIF.
         ELSE.
+          " Repo content table
+          ri_html->add( '<table class="repo_tab">' ).
+
+          IF zcl_abapgit_path=>is_root( mv_cur_dir ) = abap_false.
+            ri_html->add( render_parent_dir( ) ).
+          ENDIF.
+
+          ri_html->add( render_order_by( ) ).
+
           LOOP AT lt_repo_items ASSIGNING <ls_item>.
             IF mv_max_lines > 0 AND sy-tabix > mv_max_lines.
               lv_max = abap_true.
@@ -742,9 +771,13 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_VIEW_REPO IMPLEMENTATION.
             ri_html->add( render_item( is_item = <ls_item>
                                        iv_render_transports = lv_render_transports ) ).
           ENDLOOP.
+
+          ri_html->add( '</table>' ).
         ENDIF.
 
-        ri_html->add( '</table>' ).
+        IF NOT lv_msg IS INITIAL.
+          ri_html->add( |<div class="panel success repo_banner">{ lv_msg }</div>| ).
+        ENDIF.
 
         IF lv_max = abap_true.
           ri_html->add( '<div class = "dummydiv">' ).
@@ -755,11 +788,11 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_VIEW_REPO IMPLEMENTATION.
           ENDIF.
           lv_add_str = |+{ mv_max_setting }|.
           ri_html->add( |Only { lv_max_str } shown in list. Display {
-            zcl_abapgit_html=>a( iv_txt = lv_add_str
-                                 iv_act = c_actions-display_more )
+            ri_html->a( iv_txt = lv_add_str
+                        iv_act = c_actions-display_more )
             } more. (Set in Advanced > {
-            zcl_abapgit_html=>a( iv_txt = 'Settings'
-                                 iv_act = zif_abapgit_definitions=>c_action-go_settings )
+            ri_html->a( iv_txt = 'Settings'
+                        iv_act = zif_abapgit_definitions=>c_action-go_settings )
             } )| ).
           ri_html->add( '</div>' ).
         ENDIF.
@@ -776,22 +809,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_VIEW_REPO IMPLEMENTATION.
           ix_error = lx_error ) ).
     ENDTRY.
 
-  ENDMETHOD.
-
-
-  METHOD render_empty_package.
-
-    DATA: lv_text TYPE string.
-
-    IF mv_changes_only = abap_true.
-      lv_text = |No changes|.
-    ELSE.
-      lv_text = |Empty package|.
-    ENDIF.
-
-    rv_html = |<tr class="unsupported"><td class="paddings">|
-           && |  <center>{ lv_text }</center>|
-           && |</td></tr>|.
+    register_deferred_script( render_scripts( ) ).
 
   ENDMETHOD.
 
@@ -800,7 +818,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_VIEW_REPO IMPLEMENTATION.
 
     DATA lo_toolbar TYPE REF TO zcl_abapgit_html_toolbar.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
     lo_toolbar = build_head_menu( iv_lstate = iv_lstate
                                   iv_rstate = iv_rstate ).
 
@@ -825,7 +843,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_VIEW_REPO IMPLEMENTATION.
     DATA: lv_link    TYPE string,
           lv_colspan TYPE i.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     IF iv_render_transports = abap_false.
       lv_colspan = 2.
@@ -878,7 +896,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_VIEW_REPO IMPLEMENTATION.
     DATA: lv_difflink TYPE string,
           ls_file     LIKE LINE OF is_item-files.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     IF is_item-is_dir = abap_true. " Directory
 
@@ -933,7 +951,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_VIEW_REPO IMPLEMENTATION.
 
     DATA: ls_file LIKE LINE OF is_item-files.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     IF mv_hide_files = abap_true AND is_item-obj_type IS NOT INITIAL.
       RETURN.
@@ -965,10 +983,11 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_VIEW_REPO IMPLEMENTATION.
                                                                     iv_object_name             = is_item-obj_name
                                                                     iv_resolve_task_to_request = abap_false ).
           lv_transport_string = lv_transport.
-          lv_icon_html = zcl_abapgit_html=>a( iv_txt = zcl_abapgit_html=>icon( iv_name = 'briefcase/darkgrey'
-                                                                               iv_hint = lv_transport_string )
-                                              iv_act = |{ zif_abapgit_definitions=>c_action-jump_transport }?| &&
-                                                       lv_transport ).
+          lv_icon_html = zcl_abapgit_html=>zif_abapgit_html~a(
+            iv_txt = zcl_abapgit_html=>icon( iv_name = 'briefcase/darkgrey'
+                                             iv_hint = lv_transport_string )
+            iv_act = |{ zif_abapgit_definitions=>c_action-jump_transport }?| && lv_transport ).
+
           rv_html = |<td class="icon">| &&
                     |{ lv_icon_html }| &&
                     |</td>|.
@@ -987,7 +1006,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_VIEW_REPO IMPLEMENTATION.
       lt_col_spec TYPE zif_abapgit_definitions=>tty_col_spec,
       ls_col_spec TYPE zif_abapgit_definitions=>ty_col_spec.
 
-    CREATE OBJECT ro_html.
+    ro_html = NEW #( ).
 
     APPEND INITIAL LINE TO lt_col_spec.
     IF mv_are_changes_recorded_in_tr = abap_true.
@@ -1030,7 +1049,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_VIEW_REPO IMPLEMENTATION.
 
   METHOD render_parent_dir.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<tr class="folder">' ).
     ri_html->add( |<td class="icon">{ zcl_abapgit_html=>icon( 'folder' ) }</td>| ).
@@ -1043,13 +1062,63 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_VIEW_REPO IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD render_scripts.
+
+    DATA lv_json TYPE string.
+
+    ri_html = NEW zcl_abapgit_html( ).
+
+    ri_html->set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
+    ri_html->add( zcl_abapgit_gui_chunk_lib=>render_repo_palette( zif_abapgit_definitions=>c_action-go_repo ) ).
+
+  ENDMETHOD.
+
+
+  METHOD switch_to_pr.
+
+    DATA lo_repo_online TYPE REF TO zcl_abapgit_repo_online.
+    DATA ls_field LIKE LINE OF it_fields.
+    DATA lt_pulls TYPE zif_abapgit_pr_enum_provider=>tty_pulls.
+    DATA ls_pull LIKE LINE OF lt_pulls.
+
+    IF mo_repo->is_offline( ) = abap_true.
+      zcx_abapgit_exception=>raise( 'Unexpected PR switch for offline repo' ).
+    ENDIF.
+    IF mo_repo->get_local_settings( )-write_protected = abap_true.
+      zcx_abapgit_exception=>raise( 'Cannot switch branch. Local code is write-protected by repo config' ).
+    ENDIF.
+
+    lo_repo_online ?= mo_repo.
+
+    IF iv_revert = abap_true.
+      lo_repo_online->switch_origin( '' ).
+    ELSE.
+      lt_pulls = zcl_abapgit_pr_enumerator=>new( lo_repo_online )->get_pulls( ).
+      IF lines( lt_pulls ) = 0.
+        RETURN. " false
+      ENDIF.
+
+      ls_pull = zcl_abapgit_ui_factory=>get_popups( )->choose_pr_popup( lt_pulls ).
+      IF ls_pull IS INITIAL.
+        RETURN. " false
+      ENDIF.
+
+      lo_repo_online->switch_origin( ls_pull-head_url ).
+      lo_repo_online->set_branch_name( |refs/heads/{ ls_pull-head_branch }| ). " TODO refactor
+      rv_switched = abap_true.
+    ENDIF.
+
+  ENDMETHOD.
+
+
   METHOD zif_abapgit_gui_event_handler~on_event.
 
-    DATA: lv_path TYPE string.
+    DATA lv_path TYPE string.
+    DATA lv_switched TYPE abap_bool.
 
     CASE iv_action.
       WHEN zif_abapgit_definitions=>c_action-go_repo. " Switch to another repo
-        CREATE OBJECT ei_page TYPE zcl_abapgit_gui_page_view_repo EXPORTING iv_key = |{ iv_getdata }|.
+        ei_page = NEW zcl_abapgit_gui_page_view_repo( iv_key = |{ iv_getdata }| ).
         ev_state        = zcl_abapgit_gui=>c_event_state-new_page_replacing.
 
       WHEN c_actions-toggle_hide_files. " Toggle file diplay
@@ -1091,9 +1160,21 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_VIEW_REPO IMPLEMENTATION.
         open_in_master_language( ).
         ev_state        = zcl_abapgit_gui=>c_event_state-re_render.
 
+      WHEN c_actions-repo_switch_origin_to_pr.
+        lv_switched = switch_to_pr( ).
+        IF lv_switched = abap_true.
+          ev_state = zcl_abapgit_gui=>c_event_state-re_render.
+        ELSE.
+          ev_state = zcl_abapgit_gui=>c_event_state-no_more_act.
+        ENDIF.
+
+      WHEN c_actions-repo_reset_origin.
+        switch_to_pr( iv_revert = abap_true ).
+        ev_state = zcl_abapgit_gui=>c_event_state-re_render.
+
       WHEN OTHERS.
 
-        super->zif_abapgit_gui_event_handler~on_event(
+        super->zif_abapgit_gui_event_handler~on_event( " TODO refactor, move to HOC components
           EXPORTING
             iv_action    = iv_action
             iv_getdata   = iv_getdata
@@ -1158,5 +1239,4 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_VIEW_REPO IMPLEMENTATION.
     INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
 
   ENDMETHOD.
-
 ENDCLASS.

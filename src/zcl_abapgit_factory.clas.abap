@@ -39,6 +39,9 @@ CLASS zcl_abapgit_factory DEFINITION
     CLASS-METHODS get_longtexts
       RETURNING
         VALUE(ri_longtexts) TYPE REF TO zif_abapgit_longtexts .
+    CLASS-METHODS get_http_agent
+      RETURNING
+        VALUE(ri_http_agent) TYPE REF TO zif_abapgit_http_agent .
   PROTECTED SECTION.
   PRIVATE SECTION.
 
@@ -74,6 +77,7 @@ CLASS zcl_abapgit_factory DEFINITION
     CLASS-DATA gi_cts_api TYPE REF TO zif_abapgit_cts_api .
     CLASS-DATA gi_environment TYPE REF TO zif_abapgit_environment .
     CLASS-DATA gi_longtext TYPE REF TO zif_abapgit_longtexts .
+    CLASS-DATA gi_http_agent TYPE REF TO zif_abapgit_http_agent .
 ENDCLASS.
 
 
@@ -83,7 +87,7 @@ CLASS ZCL_ABAPGIT_FACTORY IMPLEMENTATION.
 
   METHOD get_branch_overview.
 
-    CREATE OBJECT ri_branch_overview TYPE zcl_abapgit_branch_overview EXPORTING io_repo = io_repo.
+    ri_branch_overview = NEW zcl_abapgit_branch_overview( io_repo = io_repo ).
 
   ENDMETHOD.
 
@@ -98,7 +102,7 @@ CLASS ZCL_ABAPGIT_FACTORY IMPLEMENTATION.
     IF sy-subrc <> 0.
       ls_code_inspector-package = iv_package.
 
-      CREATE OBJECT ls_code_inspector-instance TYPE zcl_abapgit_code_inspector EXPORTING iv_package = iv_package.
+      ls_code_inspector-instance = NEW zcl_abapgit_code_inspector( iv_package = iv_package ).
 
       INSERT ls_code_inspector
              INTO TABLE gt_code_inspector
@@ -113,7 +117,7 @@ CLASS ZCL_ABAPGIT_FACTORY IMPLEMENTATION.
 
   METHOD get_cts_api.
     IF gi_cts_api IS NOT BOUND.
-      CREATE OBJECT gi_cts_api TYPE zcl_abapgit_cts_api.
+      gi_cts_api = NEW zcl_abapgit_cts_api( ).
     ENDIF.
 
     ri_cts_api = gi_cts_api.
@@ -122,16 +126,27 @@ CLASS ZCL_ABAPGIT_FACTORY IMPLEMENTATION.
 
   METHOD get_environment.
     IF gi_environment IS NOT BOUND.
-      CREATE OBJECT gi_environment TYPE zcl_abapgit_environment.
+      gi_environment = NEW zcl_abapgit_environment( ).
     ENDIF.
     ri_environment = gi_environment.
+  ENDMETHOD.
+
+
+  METHOD get_http_agent.
+
+    IF gi_http_agent IS BOUND.
+      ri_http_agent = gi_http_agent.
+    ELSE.
+      ri_http_agent = zcl_abapgit_http_agent=>create( ).
+    ENDIF.
+
   ENDMETHOD.
 
 
   METHOD get_longtexts.
 
     IF gi_longtext IS NOT BOUND.
-      CREATE OBJECT gi_longtext TYPE zcl_abapgit_longtexts.
+      gi_longtext = NEW zcl_abapgit_longtexts( ).
     ENDIF.
     ri_longtexts = gi_longtext.
 
@@ -148,7 +163,7 @@ CLASS ZCL_ABAPGIT_FACTORY IMPLEMENTATION.
     IF sy-subrc <> 0.
 
       ls_sap_package-package = iv_package.
-      CREATE OBJECT ls_sap_package-instance TYPE zcl_abapgit_sap_package EXPORTING iv_package = iv_package.
+      ls_sap_package-instance = NEW zcl_abapgit_sap_package( iv_package = iv_package ).
 
       INSERT ls_sap_package
              INTO TABLE gt_sap_package
@@ -164,7 +179,7 @@ CLASS ZCL_ABAPGIT_FACTORY IMPLEMENTATION.
   METHOD get_stage_logic.
 
     IF gi_stage_logic IS INITIAL.
-      CREATE OBJECT gi_stage_logic TYPE zcl_abapgit_stage_logic.
+      gi_stage_logic = NEW zcl_abapgit_stage_logic( ).
     ENDIF.
 
     ri_logic = gi_stage_logic.
@@ -175,7 +190,7 @@ CLASS ZCL_ABAPGIT_FACTORY IMPLEMENTATION.
   METHOD get_tadir.
 
     IF gi_tadir IS INITIAL.
-      CREATE OBJECT gi_tadir TYPE zcl_abapgit_tadir.
+      gi_tadir = NEW zcl_abapgit_tadir( ).
     ENDIF.
 
     ri_tadir = gi_tadir.

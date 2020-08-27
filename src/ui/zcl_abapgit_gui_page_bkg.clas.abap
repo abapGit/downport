@@ -65,7 +65,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_BKG IMPLEMENTATION.
 
   METHOD build_menu.
 
-    CREATE OBJECT ro_menu.
+    ro_menu = NEW #( ).
 
     ro_menu->add( iv_txt = 'Run background logic'
                   iv_act = zif_abapgit_definitions=>c_action-go_background_run ) ##NO_TEXT.
@@ -78,7 +78,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_BKG IMPLEMENTATION.
     super->constructor( ).
 
     mv_key = iv_key.
-    ms_control-page_title = 'Backround'.
+    ms_control-page_title = 'Background'.
     ms_control-page_menu  = build_menu( ).
 
   ENDMETHOD.
@@ -143,7 +143,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_BKG IMPLEMENTATION.
           lt_per TYPE zcl_abapgit_persist_background=>tt_background.
 
 
-    CREATE OBJECT lo_per.
+    lo_per = NEW #( ).
     lt_per = lo_per->list( ).
 
     READ TABLE lt_per INTO rs_persist WITH KEY key = io_repo->get_key( ).
@@ -164,9 +164,9 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_BKG IMPLEMENTATION.
     ls_per = read_persist( lo_repo ).
 
 
-    CREATE OBJECT ro_html.
+    ro_html = NEW #( ).
 
-    ro_html->add( '<div id="toc">' ).
+    ro_html->add( '<div id="toc" class="settings_container">' ).
 
     ro_html->add( zcl_abapgit_gui_chunk_lib=>render_repo_top( lo_repo ) ).
     ro_html->add( '<br>' ).
@@ -203,7 +203,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_BKG IMPLEMENTATION.
 
   METHOD render_content.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( render( ) ).
 
@@ -217,7 +217,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_BKG IMPLEMENTATION.
           lv_checked TYPE string.
 
 
-    CREATE OBJECT ro_html.
+    ro_html = NEW #( ).
 
     lt_methods = zcl_abapgit_background=>list_methods( ).
 
@@ -253,7 +253,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_BKG IMPLEMENTATION.
           ls_setting  LIKE LINE OF lt_settings.
 
 
-    CREATE OBJECT ro_html.
+    ro_html = NEW #( ).
 
     IF is_per-method IS INITIAL.
       RETURN.
@@ -290,7 +290,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_BKG IMPLEMENTATION.
 
     DATA lo_persistence TYPE REF TO zcl_abapgit_persist_background.
 
-    CREATE OBJECT lo_persistence.
+    lo_persistence = NEW #( ).
 
     IF is_bg_task-method IS INITIAL.
       lo_persistence->delete( is_bg_task-key ).
