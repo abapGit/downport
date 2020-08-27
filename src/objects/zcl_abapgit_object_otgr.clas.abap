@@ -40,9 +40,9 @@ CLASS ZCL_ABAPGIT_OBJECT_OTGR IMPLEMENTATION.
     lv_name = ms_item-obj_name.
 
     TRY.
-        CREATE OBJECT ro_otgr EXPORTING im_name = lv_name
-                                        im_new = lv_new
-                                        im_activation_state = cl_pak_wb_domains=>co_activation_state-active.
+        ro_otgr = NEW #( im_name = lv_name
+                         im_new = lv_new
+                         im_activation_state = cl_pak_wb_domains=>co_activation_state-active ).
       CATCH cx_pak_invalid_data
           cx_pak_not_authorized
           cx_pak_invalid_state
