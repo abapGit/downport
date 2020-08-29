@@ -8,8 +8,6 @@ CLASS zcl_abapgit_html DEFINITION
 
     ALIASES add
       FOR zif_abapgit_html~add .
-    ALIASES add_a
-      FOR zif_abapgit_html~add_a .
     ALIASES add_checkbox
       FOR zif_abapgit_html~add_checkbox .
     ALIASES add_icon
@@ -102,21 +100,6 @@ CLASS ZCL_ABAPGIT_HTML IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD add_a.
-
-    add( zif_abapgit_html~a(
-      iv_txt   = iv_txt
-      iv_act   = iv_act
-      iv_typ   = iv_typ
-      iv_opt   = iv_opt
-      iv_class = iv_class
-      iv_id    = iv_id
-      iv_style = iv_style
-      iv_title = iv_title ) ).
-
-  ENDMETHOD.
-
-
   METHOD checkbox.
 
     DATA: lv_checked TYPE string.
@@ -131,8 +114,8 @@ CLASS ZCL_ABAPGIT_HTML IMPLEMENTATION.
 
 
   METHOD class_constructor.
-    CREATE OBJECT go_single_tags_re EXPORTING pattern = '<(AREA|BASE|BR|COL|COMMAND|EMBED|HR|IMG|INPUT|LINK|META|PARAM|SOURCE|!)'
-                                              ignore_case = abap_false.
+    go_single_tags_re = NEW #( pattern = '<(AREA|BASE|BR|COL|COMMAND|EMBED|HR|IMG|INPUT|LINK|META|PARAM|SOURCE|!)'
+                               ignore_case = abap_false ).
   ENDMETHOD.
 
 
@@ -343,6 +326,21 @@ CLASS ZCL_ABAPGIT_HTML IMPLEMENTATION.
 
     rv_str = |<a{ lv_id }{ lv_class }{ lv_href }{ lv_click }{ lv_style }{ lv_title }>|
           && |{ iv_txt }</a>|.
+
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_html~add_a.
+
+    add( zif_abapgit_html~a(
+      iv_txt   = iv_txt
+      iv_act   = iv_act
+      iv_typ   = iv_typ
+      iv_opt   = iv_opt
+      iv_class = iv_class
+      iv_id    = iv_id
+      iv_style = iv_style
+      iv_title = iv_title ) ).
 
   ENDMETHOD.
 

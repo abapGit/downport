@@ -14,25 +14,30 @@ CLASS zcl_abapgit_gui_page_debuginfo DEFINITION
       render_content REDEFINITION.
 
   PRIVATE SECTION.
+
     METHODS get_jump_class
-      IMPORTING iv_class       TYPE seoclsname
-      RETURNING VALUE(rv_html) TYPE string.
+      IMPORTING
+        !iv_class      TYPE seoclsname
+      RETURNING
+        VALUE(rv_html) TYPE string .
     METHODS render_debug_info
-      RETURNING VALUE(ro_html) TYPE REF TO zcl_abapgit_html
-      RAISING   zcx_abapgit_exception.
+      RETURNING
+        VALUE(ri_html) TYPE REF TO zif_abapgit_html
+      RAISING
+        zcx_abapgit_exception .
     METHODS render_supported_object_types
-      RETURNING VALUE(rv_html) TYPE string.
+      RETURNING
+        VALUE(rv_html) TYPE string .
     METHODS render_scripts
       RETURNING
         VALUE(ro_html) TYPE REF TO zcl_abapgit_html
       RAISING
-        zcx_abapgit_exception.
-
+        zcx_abapgit_exception .
 ENDCLASS.
 
 
 
-CLASS zcl_abapgit_gui_page_debuginfo IMPLEMENTATION.
+CLASS ZCL_ABAPGIT_GUI_PAGE_DEBUGINFO IMPLEMENTATION.
 
 
   METHOD constructor.
@@ -57,7 +62,7 @@ CLASS zcl_abapgit_gui_page_debuginfo IMPLEMENTATION.
 
   METHOD render_content.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div id="debug_info" class="debug_container">' ).
     ri_html->add( render_debug_info( ) ).
@@ -90,38 +95,38 @@ CLASS zcl_abapgit_gui_page_debuginfo IMPLEMENTATION.
     READ TABLE lt_ver_tab INTO ls_version INDEX 3. " gui patch
     lv_gui_version = |{ lv_gui_version }.{ ls_version-filename }|.
 
-    CREATE OBJECT ro_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
-    ro_html->add( |<table>| ).
-    ro_html->add( |<tr><td>abapGit version:</td><td>{ zif_abapgit_version=>gc_abap_version }</td></tr>| ).
-    ro_html->add( |<tr><td>XML version:    </td><td>{ zif_abapgit_version=>gc_xml_version }</td></tr>| ).
-    ro_html->add( |<tr><td>GUI version:    </td><td>{ lv_gui_version }</td></tr>| ).
-    ro_html->add( |<tr><td>APACK version:  </td><td>{
+    ri_html->add( |<table>| ).
+    ri_html->add( |<tr><td>abapGit version:</td><td>{ zif_abapgit_version=>gc_abap_version }</td></tr>| ).
+    ri_html->add( |<tr><td>XML version:    </td><td>{ zif_abapgit_version=>gc_xml_version }</td></tr>| ).
+    ri_html->add( |<tr><td>GUI version:    </td><td>{ lv_gui_version }</td></tr>| ).
+    ri_html->add( |<tr><td>APACK version:  </td><td>{
                   zcl_abapgit_apack_migration=>c_apack_interface_version }</td></tr>| ).
-    ro_html->add( |<tr><td>LCL_TIME:       </td><td>{ zcl_abapgit_time=>get_unix( ) }</td></tr>| ).
-    ro_html->add( |<tr><td>SY time:        </td><td>{ sy-datum } { sy-uzeit } { sy-tzone }</td></tr>| ).
-    ro_html->add( |</table>| ).
-    ro_html->add( |<br>| ).
+    ri_html->add( |<tr><td>LCL_TIME:       </td><td>{ zcl_abapgit_time=>get_unix( ) }</td></tr>| ).
+    ri_html->add( |<tr><td>SY time:        </td><td>{ sy-datum } { sy-uzeit } { sy-tzone }</td></tr>| ).
+    ri_html->add( |</table>| ).
+    ri_html->add( |<br>| ).
 
     lv_devclass = zcl_abapgit_services_abapgit=>is_installed( ).
     IF NOT lv_devclass IS INITIAL.
-      ro_html->add( 'abapGit installed in package&nbsp;' ).
-      ro_html->add( lv_devclass ).
+      ri_html->add( 'abapGit installed in package&nbsp;' ).
+      ri_html->add( lv_devclass ).
     ELSE.
-      ro_html->add_a( iv_txt = 'install abapGit repo'
+      ri_html->add_a( iv_txt = 'install abapGit repo'
                       iv_act = zif_abapgit_definitions=>c_action-abapgit_install ).
-      ro_html->add( ' - To keep abapGit up-to-date (or also to contribute) you need to' ).
-      ro_html->add( 'install it as a repository.' ).
+      ri_html->add( ' - To keep abapGit up-to-date (or also to contribute) you need to' ).
+      ri_html->add( 'install it as a repository.' ).
     ENDIF.
 
-    ro_html->add( |<br>| ).
+    ri_html->add( |<br>| ).
 
   ENDMETHOD.
 
 
   METHOD render_scripts.
 
-    CREATE OBJECT ro_html.
+    ro_html = NEW #( ).
 
     ro_html->zif_abapgit_html~set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
     ro_html->add( 'debugOutput("<table><tr><td>Browser:</td><td>" + navigator.userAgent + ' &&
@@ -186,7 +191,7 @@ CLASS zcl_abapgit_gui_page_debuginfo IMPLEMENTATION.
 
         CATCH cx_sy_create_object_error.
           TRY. " 2nd step, try looking for plugins
-              CREATE OBJECT li_object TYPE zcl_abapgit_objects_bridge EXPORTING is_item = ls_item.
+              li_object = NEW zcl_abapgit_objects_bridge( is_item = ls_item ).
             CATCH cx_sy_create_object_error.
               rv_html = rv_html && |<td class="error" colspan="5">{ lv_class } - error instantiating class</td>|.
               CONTINUE.
