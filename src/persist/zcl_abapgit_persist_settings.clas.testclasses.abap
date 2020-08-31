@@ -38,7 +38,7 @@ CLASS ltcl_persistence_settings IMPLEMENTATION.
 
   METHOD setup.
     mo_persistence_settings = zcl_abapgit_persist_settings=>get_instance( ).
-    CREATE OBJECT mo_settings.
+    mo_settings = NEW #( ).
     clear_settings_database( ).
   ENDMETHOD.
 
