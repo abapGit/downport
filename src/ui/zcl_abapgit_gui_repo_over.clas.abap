@@ -270,7 +270,7 @@ CLASS ZCL_ABAPGIT_GUI_REPO_OVER IMPLEMENTATION.
 
   METHOD render_scripts.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
     ri_html->add( 'setInitialFocus("filter");' ).
@@ -333,11 +333,11 @@ CLASS ZCL_ABAPGIT_GUI_REPO_OVER IMPLEMENTATION.
       ii_html->add( |<tr class="repo { lv_favorite_class }">| ).
       ii_html->add( |<td class="wmin">| ).
       ii_html->add_a( iv_act = |{ zif_abapgit_definitions=>c_action-repo_toggle_fav }?{ <ls_overview>-key }|
-                      iv_txt = zcl_abapgit_html=>icon( iv_name  = lv_favorite_icon
-                                                       iv_class = 'pad-sides'
-                                                       iv_hint  = 'Click to toggle favorite' ) ).
+                      iv_txt = ii_html->icon( iv_name  = lv_favorite_icon
+                                              iv_class = 'pad-sides'
+                                              iv_hint  = 'Click to toggle favorite' ) ).
       ii_html->add( |</td>| ).
-      ii_html->add( |<td class="wmin">{ zcl_abapgit_html=>icon( lv_type_icon ) }</td>| ).
+      ii_html->add( |<td class="wmin">{ ii_html->icon( lv_type_icon ) }</td>| ).
 
       ii_html->add( |<td>{ ii_html->a( iv_txt = <ls_overview>-name
                                        iv_act = |{ c_action-select }?{ <ls_overview>-key }| ) }</td>| ).
@@ -505,7 +505,7 @@ CLASS ZCL_ABAPGIT_GUI_REPO_OVER IMPLEMENTATION.
 
     DATA lv_attrs TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     IF iv_value IS NOT INITIAL.
       lv_attrs = | value="{ iv_value }"|.
@@ -554,7 +554,7 @@ CLASS ZCL_ABAPGIT_GUI_REPO_OVER IMPLEMENTATION.
     apply_order_by( CHANGING ct_overview = mt_overview ).
     apply_filter( CHANGING ct_overview = mt_overview ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     render_header_bar( ri_html ).
     render_table( ii_html     = ri_html

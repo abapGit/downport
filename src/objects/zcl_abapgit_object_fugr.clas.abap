@@ -123,13 +123,13 @@ CLASS zcl_abapgit_object_fugr DEFINITION PUBLIC INHERITING FROM zcl_abapgit_obje
     METHODS serialize_texts
       IMPORTING
         !iv_prog_name TYPE programm
-        !io_xml       TYPE REF TO zcl_abapgit_xml_output
+        !io_xml       TYPE REF TO zif_abapgit_xml_output
       RAISING
         zcx_abapgit_exception .
     METHODS deserialize_texts
       IMPORTING
         !iv_prog_name TYPE programm
-        !io_xml       TYPE REF TO zcl_abapgit_xml_input
+        !io_xml       TYPE REF TO zif_abapgit_xml_input
       RAISING
         zcx_abapgit_exception .
 ENDCLASS.
@@ -929,8 +929,8 @@ CLASS ZCL_ABAPGIT_OBJECT_FUGR IMPLEMENTATION.
 
     LOOP AT it_includes INTO lv_include.
 
-      CREATE OBJECT lo_cross EXPORTING p_name = lv_include
-                                       p_include = lv_include.
+      lo_cross = NEW #( p_name = lv_include
+                        p_include = lv_include ).
 
       lo_cross->index_actualize( ).
 

@@ -30,7 +30,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_TUTORIAL IMPLEMENTATION.
 
   METHOD build_main_menu.
 
-    CREATE OBJECT ro_menu EXPORTING iv_id = 'toolbar-main'.
+    ro_menu = NEW #( iv_id = 'toolbar-main' ).
 
     ro_menu->add(
       iv_txt = zcl_abapgit_gui_buttons=>new_online( )
@@ -52,7 +52,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_TUTORIAL IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_tutorial.
 
-    CREATE OBJECT lo_component.
+    lo_component = NEW #( ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Tutorial'
@@ -64,7 +64,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_TUTORIAL IMPLEMENTATION.
 
   METHOD zif_abapgit_gui_renderable~render.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div class="tutorial">' ).
 
@@ -102,7 +102,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_TUTORIAL IMPLEMENTATION.
     ri_html->add( '<h2>Repository list and favorites</h2>' ).
     ri_html->add( '<p><ul>' ).
     ri_html->add( |<li>To favorite a repository, use the {
-                  zcl_abapgit_html=>icon( 'star/darkgrey' ) } icon in the repository list.</li>| ).
+                  ri_html->icon( 'star/darkgrey' ) } icon in the repository list.</li>| ).
     ri_html->add( |<li>To go to a repository, click on the repository name.</li>| ).
     ri_html->add( |<li>To go back to your favorites, use the| ).
     ri_html->add_a(
