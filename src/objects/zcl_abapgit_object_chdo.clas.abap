@@ -41,8 +41,7 @@ CLASS zcl_abapgit_object_chdo DEFINITION
              reports_generated TYPE SORTED TABLE OF tcdrps WITH UNIQUE KEY object reportname,
              objects           TYPE SORTED TABLE OF tcdobs WITH UNIQUE KEY object tabname,
              objects_text      TYPE SORTED TABLE OF tcdobts WITH UNIQUE KEY spras object,
-           END OF ty_change_document,
-           tt_change_document TYPE STANDARD TABLE OF ty_change_document.
+           END OF ty_change_document.
 
     DATA: mv_object TYPE cdobjectcl.
 
@@ -285,7 +284,7 @@ CLASS zcl_abapgit_object_chdo IMPLEMENTATION.
 
   METHOD get_generic.
 
-    CREATE OBJECT ro_generic EXPORTING is_item = ms_item.
+    ro_generic = NEW #( is_item = ms_item ).
 
   ENDMETHOD.
 

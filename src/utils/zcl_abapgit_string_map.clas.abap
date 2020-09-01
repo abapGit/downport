@@ -11,8 +11,6 @@ CLASS zcl_abapgit_string_map DEFINITION
         v TYPE string,
       END OF ty_entry.
     TYPES:
-      tty_entries TYPE STANDARD TABLE OF ty_entry WITH KEY k.
-    TYPES:
       tts_entries TYPE SORTED TABLE OF ty_entry WITH UNIQUE KEY k.
 
     CLASS-METHODS create
@@ -79,7 +77,7 @@ CLASS ZCL_ABAPGIT_STRING_MAP IMPLEMENTATION.
 
 
   METHOD create.
-    CREATE OBJECT ro_instance.
+    ro_instance = NEW #( ).
   ENDMETHOD.
 
 

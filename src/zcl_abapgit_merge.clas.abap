@@ -111,7 +111,7 @@ CLASS ZCL_ABAPGIT_MERGE IMPLEMENTATION.
 
     lt_files = all_files( ).
 
-    CREATE OBJECT ms_merge-stage EXPORTING iv_merge_source = ms_merge-source-sha1.
+    ms_merge-stage = NEW #( iv_merge_source = ms_merge-source-sha1 ).
 
     LOOP AT lt_files ASSIGNING <ls_file>.
 
@@ -277,7 +277,7 @@ CLASS ZCL_ABAPGIT_MERGE IMPLEMENTATION.
     APPEND ms_merge-source TO lt_upload.
     APPEND ms_merge-target TO lt_upload.
 
-    zcl_abapgit_git_transport=>upload_pack(
+    zcl_abapgit_git_transport=>upload_pack_by_branch(
       EXPORTING
         iv_url         = ms_merge-repo->get_url( )
         iv_branch_name = ms_merge-repo->get_branch_name( )
