@@ -72,7 +72,7 @@ CLASS ZCL_ABAPGIT_2FA_AUTH_REGISTRY IMPLEMENTATION.
         ENDLOOP.
       CATCH cx_class_not_existent.
 * class in local report
-        CREATE OBJECT li_authenticator TYPE zcl_abapgit_2fa_github_auth.
+        li_authenticator = NEW zcl_abapgit_2fa_github_auth( ).
         INSERT li_authenticator INTO TABLE gt_registered_authenticators.
     ENDTRY.
 
