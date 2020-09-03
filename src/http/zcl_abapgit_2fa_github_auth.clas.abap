@@ -137,7 +137,7 @@ CLASS ZCL_ABAPGIT_2FA_GITHUB_AUTH IMPLEMENTATION.
 
     lv_response = cl_abap_codepage=>convert_from( ii_response->get_data( ) ).
 
-    CREATE OBJECT lo_regex EXPORTING pattern = lc_search_regex.
+    lo_regex = NEW #( pattern = lc_search_regex ).
 
     lo_matcher = lo_regex->create_matcher( text = lv_response ).
     WHILE lo_matcher->find_next( ) = abap_true.
@@ -154,7 +154,7 @@ CLASS ZCL_ABAPGIT_2FA_GITHUB_AUTH IMPLEMENTATION.
 
     lv_response = cl_abap_codepage=>convert_from( ii_response->get_data( ) ).
 
-    CREATE OBJECT lo_regex EXPORTING pattern = lc_search_regex.
+    lo_regex = NEW #( pattern = lc_search_regex ).
 
     lo_matcher = lo_regex->create_matcher( text = lv_response ).
     IF lo_matcher->match( ) = abap_true.
@@ -233,7 +233,7 @@ CLASS ZCL_ABAPGIT_2FA_GITHUB_AUTH IMPLEMENTATION.
     IF rv_access_token IS INITIAL.
       RAISE EXCEPTION TYPE zcx_abapgit_2fa_gen_failed
         EXPORTING
-          mv_text = 'Token generation failed: parser error' ##NO_TEXT.
+          mv_text = 'Token generation failed: parser error'.
     ENDIF.
 
     " GitHub might need some time until the new token is ready to use, give it a second

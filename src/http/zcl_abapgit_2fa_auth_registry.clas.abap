@@ -72,7 +72,7 @@ CLASS ZCL_ABAPGIT_2FA_AUTH_REGISTRY IMPLEMENTATION.
         ENDLOOP.
       CATCH cx_class_not_existent.
 * class in local report
-        CREATE OBJECT li_authenticator TYPE zcl_abapgit_2fa_github_auth.
+        li_authenticator = NEW zcl_abapgit_2fa_github_auth( ).
         INSERT li_authenticator INTO TABLE gt_registered_authenticators.
     ENDTRY.
 
@@ -125,7 +125,7 @@ CLASS ZCL_ABAPGIT_2FA_AUTH_REGISTRY IMPLEMENTATION.
         fields          = lt_fields
       EXCEPTIONS
         error_in_fields = 1
-        OTHERS          = 2. "#EC NOTEXT
+        OTHERS          = 2.
     IF sy-subrc <> 0.
       zcx_abapgit_exception=>raise( 'Error from POPUP_GET_VALUES' ).
     ENDIF.

@@ -373,7 +373,7 @@ CLASS ZCL_ABAPGIT_GIT_PACK IMPLEMENTATION.
 
     LOOP AT lt_deltas INTO ls_object.
       li_progress->show( iv_current = sy-tabix
-                         iv_text    = 'Decode deltas' ) ##NO_TEXT.
+                         iv_text    = 'Decode deltas' ).
 
       delta( EXPORTING is_object = ls_object
              CHANGING ct_objects = ct_objects ).
@@ -516,7 +516,7 @@ CLASS ZCL_ABAPGIT_GIT_PACK IMPLEMENTATION.
     FIELD-SYMBOLS: <ls_object> LIKE LINE OF ct_objects.
 
 
-    CREATE OBJECT lo_stream EXPORTING iv_data = is_object-data.
+    lo_stream = NEW #( iv_data = is_object-data ).
 
 * find base
     READ TABLE ct_objects ASSIGNING <ls_object>
@@ -685,7 +685,7 @@ CLASS ZCL_ABAPGIT_GIT_PACK IMPLEMENTATION.
 
     lv_string = ''.
 
-    CONCATENATE 'tree' lv_tree_lower INTO lv_tmp SEPARATED BY space. "#EC NOTEXT
+    CONCATENATE 'tree' lv_tree_lower INTO lv_tmp SEPARATED BY space.
     CONCATENATE lv_string lv_tmp zif_abapgit_definitions=>c_newline INTO lv_string.
 
     IF NOT is_commit-parent IS INITIAL.
@@ -693,7 +693,7 @@ CLASS ZCL_ABAPGIT_GIT_PACK IMPLEMENTATION.
       TRANSLATE lv_parent_lower TO LOWER CASE.
 
       CONCATENATE 'parent' lv_parent_lower
-        INTO lv_tmp SEPARATED BY space.                     "#EC NOTEXT
+        INTO lv_tmp SEPARATED BY space.
       CONCATENATE lv_string lv_tmp zif_abapgit_definitions=>c_newline INTO lv_string.
     ENDIF.
 
@@ -702,16 +702,16 @@ CLASS ZCL_ABAPGIT_GIT_PACK IMPLEMENTATION.
       TRANSLATE lv_parent_lower TO LOWER CASE.
 
       CONCATENATE 'parent' lv_parent_lower
-        INTO lv_tmp SEPARATED BY space.                     "#EC NOTEXT
+        INTO lv_tmp SEPARATED BY space.
       CONCATENATE lv_string lv_tmp zif_abapgit_definitions=>c_newline INTO lv_string.
     ENDIF.
 
     CONCATENATE 'author' is_commit-author
-      INTO lv_tmp SEPARATED BY space.                       "#EC NOTEXT
+      INTO lv_tmp SEPARATED BY space.
     CONCATENATE lv_string lv_tmp zif_abapgit_definitions=>c_newline INTO lv_string.
 
     CONCATENATE 'committer' is_commit-committer
-      INTO lv_tmp SEPARATED BY space.                       "#EC NOTEXT
+      INTO lv_tmp SEPARATED BY space.
     CONCATENATE lv_string lv_tmp zif_abapgit_definitions=>c_newline INTO lv_string.
 
     IF NOT is_commit-gpgsig IS INITIAL.

@@ -75,7 +75,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_BOVERVIEW IMPLEMENTATION.
                    <ls_create> LIKE LINE OF <ls_commit>-create.
 
 
-    CREATE OBJECT ro_html.
+    ro_html = NEW #( ).
 
     ro_html->add( zcl_abapgit_gui_chunk_lib=>render_repo_top(
       io_repo         = mo_repo
@@ -103,12 +103,12 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_BOVERVIEW IMPLEMENTATION.
 
     ro_html->add( '<script type="text/javascript" src="https://cdnjs.' &&
       'cloudflare.com/ajax/libs/gitgraph.js/1.14.0/gitgraph.min.js">' &&
-      '</script>' ) ##NO_TEXT.
+      '</script>' ).
 
     ro_html->add( '<script type="text/javascript">' ).
     ro_html->add( 'var myTemplateConfig = {' ).
     ro_html->add( 'colors: [ "#979797", "#008fb5", "#f1c109", "'
-      && '#095256", "#087F8C", "#5AAA95", "#86A873", "#BB9F06" ],' ) ##NO_TEXT.
+      && '#095256", "#087F8C", "#5AAA95", "#86A873", "#BB9F06" ],' ).
     ro_html->add( 'branch: {' ).
     ro_html->add( '  lineWidth: 8,' ).
     ro_html->add( '  spacingX: 50' ).
@@ -199,20 +199,20 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_BOVERVIEW IMPLEMENTATION.
 
   METHOD build_menu.
 
-    CREATE OBJECT ro_menu.
+    ro_menu = NEW #( ).
 
     IF mv_compress = abap_true.
       ro_menu->add(
         iv_txt = 'Uncompress Graph'
-        iv_act = c_actions-uncompress ) ##NO_TEXT.
+        iv_act = c_actions-uncompress ).
     ELSE.
       ro_menu->add(
         iv_txt = 'Compress Graph'
-        iv_act = c_actions-compress ) ##NO_TEXT.
+        iv_act = c_actions-compress ).
     ENDIF.
 
     ro_menu->add( iv_txt = 'Refresh'
-                  iv_act = c_actions-refresh ) ##NO_TEXT.
+                  iv_act = c_actions-refresh ).
 
   ENDMETHOD.
 
@@ -237,11 +237,11 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_BOVERVIEW IMPLEMENTATION.
 
     lt_fields = zcl_abapgit_html_action_utils=>parse_fields( lv_string ).
 
-    READ TABLE lt_fields ASSIGNING <ls_field> WITH KEY name = 'source' ##NO_TEXT.
+    READ TABLE lt_fields ASSIGNING <ls_field> WITH KEY name = 'source'.
     ASSERT sy-subrc = 0.
     rs_merge-source = <ls_field>-value.
 
-    READ TABLE lt_fields ASSIGNING <ls_field> WITH KEY name = 'target' ##NO_TEXT.
+    READ TABLE lt_fields ASSIGNING <ls_field> WITH KEY name = 'target'.
     ASSERT sy-subrc = 0.
     rs_merge-target = <ls_field>-value.
 
@@ -277,7 +277,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_BOVERVIEW IMPLEMENTATION.
     FIELD-SYMBOLS: <ls_branch> LIKE LINE OF lt_branches.
 
 
-    CREATE OBJECT ro_html.
+    ro_html = NEW #( ).
 
     lt_branches = mi_branch_overview->get_branches( ).
 
@@ -311,7 +311,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_BOVERVIEW IMPLEMENTATION.
 
     FIELD-SYMBOLS: <ls_commit> LIKE LINE OF mt_commits.
 
-    CREATE OBJECT ro_html.
+    ro_html = NEW #( ).
 
     LOOP AT mt_commits ASSIGNING <ls_commit>.
 
@@ -364,7 +364,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_BOVERVIEW IMPLEMENTATION.
 
   METHOD render_content.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div id="toc">' ).
     ri_html->add( body( ) ).
@@ -375,13 +375,13 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_BOVERVIEW IMPLEMENTATION.
 
   METHOD render_merge.
 
-    CREATE OBJECT ro_html.
+    ro_html = NEW #( ).
 
     ro_html->add( '<form id="commit_form" method="post" action="sapevent:merge">' ).
-    ro_html->add( 'Merge' ) ##NO_TEXT.
-    ro_html->add( form_select( 'source' ) ) ##NO_TEXT.
-    ro_html->add( 'into' ) ##NO_TEXT.
-    ro_html->add( form_select( 'target' ) ) ##NO_TEXT.
+    ro_html->add( 'Merge' ).
+    ro_html->add( form_select( 'source' ) ).
+    ro_html->add( 'into' ).
+    ro_html->add( form_select( 'target' ) ).
     ro_html->add( '<input type="submit" value="Submit">' ).
     ro_html->add( '</form>' ).
 
@@ -408,9 +408,9 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_BOVERVIEW IMPLEMENTATION.
         ev_state = zcl_abapgit_gui=>c_event_state-re_render.
       WHEN c_actions-merge.
         ls_merge = decode_merge( it_postdata ).
-        CREATE OBJECT lo_merge EXPORTING io_repo = mo_repo
-                                         iv_source = ls_merge-source
-                                         iv_target = ls_merge-target.
+        lo_merge = NEW #( io_repo = mo_repo
+                          iv_source = ls_merge-source
+                          iv_target = ls_merge-target ).
         ei_page = lo_merge.
         ev_state = zcl_abapgit_gui=>c_event_state-new_page.
       WHEN OTHERS.

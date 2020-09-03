@@ -343,7 +343,7 @@ CLASS ZCL_ABAPGIT_OBJECTS IMPLEMENTATION.
 
   METHOD class_name.
 
-    CONCATENATE 'ZCL_ABAPGIT_OBJECT_' is_item-obj_type INTO rv_class_name. "#EC NOTEXT
+    CONCATENATE 'ZCL_ABAPGIT_OBJECT_' is_item-obj_type INTO rv_class_name.
 
   ENDMETHOD.
 
@@ -379,8 +379,8 @@ CLASS ZCL_ABAPGIT_OBJECTS IMPLEMENTATION.
         RETURN.
       ENDIF.
 
-      CREATE OBJECT lo_remote_version EXPORTING iv_xml = zcl_abapgit_convert=>xstring_to_string_utf8( ls_remote_file-data )
-                                                iv_filename = ls_remote_file-filename.
+      lo_remote_version = NEW #( iv_xml = zcl_abapgit_convert=>xstring_to_string_utf8( ls_remote_file-data )
+                                 iv_filename = ls_remote_file-filename ).
 
       ls_result = li_comparator->compare( io_remote = lo_remote_version
                                           ii_log = ii_log ).
@@ -411,7 +411,7 @@ CLASS ZCL_ABAPGIT_OBJECTS IMPLEMENTATION.
             answer                = lv_answer
           EXCEPTIONS
             text_not_found        = 1
-            OTHERS                = 2.                        "#EC NOTEXT
+            OTHERS                = 2.
         IF sy-subrc <> 0 OR lv_answer = 1.
           zcx_abapgit_exception=>raise( |Deserialization for object { is_result-obj_name } | &
                                         |(type { is_result-obj_type }) aborted by user| ).
@@ -457,10 +457,10 @@ CLASS ZCL_ABAPGIT_OBJECTS IMPLEMENTATION.
             is_item     = is_item
             iv_language = iv_language.
       CATCH cx_sy_create_object_error.
-        lv_message = |Object type { is_item-obj_type } not supported, serialize|. "#EC NOTEXT
+        lv_message = |Object type { is_item-obj_type } not supported, serialize|.
         IF iv_native_only = abap_false.
           TRY. " 2nd step, try looking for plugins
-              CREATE OBJECT ri_obj TYPE zcl_abapgit_objects_bridge EXPORTING is_item = is_item.
+              ri_obj = NEW zcl_abapgit_objects_bridge( is_item = is_item ).
             CATCH cx_sy_create_object_error.
               zcx_abapgit_exception=>raise( lv_message ).
           ENDTRY.
@@ -501,7 +501,7 @@ CLASS ZCL_ABAPGIT_OBJECTS IMPLEMENTATION.
 
         LOOP AT lt_tadir ASSIGNING <ls_tadir>.
           li_progress->show( iv_current = sy-tabix
-                             iv_text    = |Delete { <ls_tadir>-obj_name }| ) ##NO_TEXT.
+                             iv_text    = |Delete { <ls_tadir>-obj_name }| ).
 
           CLEAR ls_item.
           ls_item-obj_type = <ls_tadir>-object.
@@ -614,7 +614,7 @@ CLASS ZCL_ABAPGIT_OBJECTS IMPLEMENTATION.
     lo_folder_logic = zcl_abapgit_folder_logic=>get_instance( ).
     LOOP AT lt_results ASSIGNING <ls_result>.
       li_progress->show( iv_current = sy-tabix
-                         iv_text    = |Deserialize { <ls_result>-obj_name }| ) ##NO_TEXT.
+                         iv_text    = |Deserialize { <ls_result>-obj_name }| ).
 
       CLEAR ls_item.
       ls_item-obj_type = <ls_result>-obj_type.
@@ -634,8 +634,8 @@ CLASS ZCL_ABAPGIT_OBJECTS IMPLEMENTATION.
             lv_path = <ls_result>-path.
           ENDIF.
 
-          CREATE OBJECT lo_files EXPORTING is_item = ls_item
-                                           iv_path = lv_path.
+          lo_files = NEW #( is_item = ls_item
+                            iv_path = lv_path ).
           lo_files->set_files( lt_remote ).
 
           "analyze XML in order to instantiate the proper serializer
@@ -742,7 +742,7 @@ CLASS ZCL_ABAPGIT_OBJECTS IMPLEMENTATION.
     LOOP AT is_step-objects ASSIGNING <ls_obj>.
       li_progress->show(
         iv_current = sy-tabix
-        iv_text    = |Deserialize { is_step-descr } - { <ls_obj>-item-obj_name }| ) ##NO_TEXT.
+        iv_text    = |Deserialize { is_step-descr } - { <ls_obj>-item-obj_name }| ).
 
       TRY.
           <ls_obj>-obj->deserialize( iv_package = <ls_obj>-package
@@ -1148,12 +1148,12 @@ CLASS ZCL_ABAPGIT_OBJECTS IMPLEMENTATION.
         rs_files_and_item-item-obj_name }| ).
     ENDIF.
 
-    CREATE OBJECT lo_files EXPORTING is_item = rs_files_and_item-item.
+    lo_files = NEW #( is_item = rs_files_and_item-item ).
 
     li_obj = create_object( is_item     = rs_files_and_item-item
                             iv_language = iv_language ).
     li_obj->mo_files = lo_files.
-    CREATE OBJECT lo_xml.
+    lo_xml = NEW #( ).
 
     IF iv_serialize_master_lang_only = abap_true.
       lo_xml->i18n_params( iv_serialize_master_lang_only = abap_true ).

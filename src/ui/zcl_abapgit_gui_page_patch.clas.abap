@@ -3,6 +3,7 @@ CLASS zcl_abapgit_gui_page_patch DEFINITION
   INHERITING FROM zcl_abapgit_gui_page_diff
   CREATE PUBLIC .
 
+
   PUBLIC SECTION.
     INTERFACES zif_abapgit_gui_hotkeys.
 
@@ -185,8 +186,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_PATCH IMPLEMENTATION.
     io_menu->add( iv_txt = 'Stage'
                   iv_act = c_actions-stage
                   iv_id  = 'stage'
-                  iv_typ = zif_abapgit_html=>c_action_type-dummy
-                   ) ##NO_TEXT.
+                  iv_typ = zif_abapgit_html=>c_action_type-dummy ).
 
   ENDMETHOD.
 
@@ -217,7 +217,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_PATCH IMPLEMENTATION.
 
       lv_something_patched = abap_true.
 
-      CREATE OBJECT lo_git_add_patch EXPORTING it_diff = <ls_diff_file>-o_diff->get( ).
+      lo_git_add_patch = NEW #( it_diff = <ls_diff_file>-o_diff->get( ) ).
 
       lv_patch = lo_git_add_patch->get_patch_binary( ).
 
@@ -373,7 +373,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_PATCH IMPLEMENTATION.
 
     " While patching we always want to be in split mode
     CLEAR: mv_unified.
-    CREATE OBJECT mo_stage.
+    mo_stage = NEW #( ).
 
     ms_control-page_title = 'Patch'.
     ms_control-page_menu = build_menu( ).
@@ -628,7 +628,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_PATCH IMPLEMENTATION.
 
     CONSTANTS:
       BEGIN OF lc_css_class,
-        patch TYPE string VALUE `patch` ##NO_TEXT,
+        patch TYPE string VALUE `patch`,
       END OF lc_css_class.
 
     DATA:
@@ -671,7 +671,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_PATCH IMPLEMENTATION.
 
   METHOD render_scripts.
 
-    CREATE OBJECT ro_html.
+    ro_html = NEW #( ).
 
     ro_html->zif_abapgit_html~set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
     ro_html->add( 'preparePatch();' ).
@@ -743,8 +743,8 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_PATCH IMPLEMENTATION.
 
         start_staging( it_postdata ).
 
-        CREATE OBJECT ei_page TYPE zcl_abapgit_gui_page_commit EXPORTING io_repo = mo_repo_online
-                                                                         io_stage = mo_stage.
+        ei_page = NEW zcl_abapgit_gui_page_commit( io_repo = mo_repo_online
+                                                   io_stage = mo_stage ).
         ev_state = zcl_abapgit_gui=>c_event_state-new_page.
 
       WHEN OTHERS.

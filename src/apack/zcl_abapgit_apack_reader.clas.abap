@@ -79,7 +79,7 @@ CLASS zcl_abapgit_apack_reader IMPLEMENTATION.
 
 
   METHOD create_instance.
-    CREATE OBJECT ro_manifest_reader EXPORTING iv_package_name = iv_package_name.
+    ro_manifest_reader = NEW #( iv_package_name = iv_package_name ).
   ENDMETHOD.
 
 
@@ -109,7 +109,7 @@ CLASS zcl_abapgit_apack_reader IMPLEMENTATION.
     CALL TRANSFORMATION id
       OPTIONS value_handling = 'accept_data_loss'
       SOURCE XML lv_xml
-      RESULT data = rs_data ##NO_TEXT.
+      RESULT data = rs_data.
 
   ENDMETHOD.
 

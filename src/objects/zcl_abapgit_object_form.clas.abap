@@ -131,7 +131,7 @@ CLASS ZCL_ABAPGIT_OBJECT_FORM IMPLEMENTATION.
     DATA lv_string TYPE string.
     DATA lo_xml TYPE REF TO zcl_abapgit_xml_output.
 
-    CREATE OBJECT lo_xml.
+    lo_xml = NEW #( ).
     lo_xml->add( iv_name = c_objectname_tdlines
                  ig_data = it_lines ).
     lv_string = lo_xml->render( ).
@@ -172,7 +172,7 @@ CLASS ZCL_ABAPGIT_OBJECT_FORM IMPLEMENTATION.
 
     ENDTRY.
 
-    CREATE OBJECT lo_xml EXPORTING iv_xml = lv_string.
+    lo_xml = NEW #( iv_xml = lv_string ).
     lo_xml->read( EXPORTING iv_name = c_objectname_tdlines
                   CHANGING  cg_data = rt_lines ).
 
@@ -195,7 +195,7 @@ CLASS ZCL_ABAPGIT_OBJECT_FORM IMPLEMENTATION.
       TABLES
         selections    = rt_text_header
       EXCEPTIONS
-        OTHERS        = 1 ##fm_subrc_ok ##NO_TEXT.  "#EC CI_SUBRC
+        OTHERS        = 1 ##fm_subrc_ok.  "#EC CI_SUBRC
 
   ENDMETHOD.
 
@@ -372,16 +372,16 @@ CLASS ZCL_ABAPGIT_OBJECT_FORM IMPLEMENTATION.
     FIELD-SYMBOLS: <ls_bdcdata> LIKE LINE OF lt_bdcdata.
 
     APPEND INITIAL LINE TO lt_bdcdata ASSIGNING <ls_bdcdata>.
-    <ls_bdcdata>-program  = 'SAPMSSCF' ##NO_TEXT.
-    <ls_bdcdata>-dynpro   = '1102' ##NO_TEXT.
+    <ls_bdcdata>-program  = 'SAPMSSCF'.
+    <ls_bdcdata>-dynpro   = '1102'.
     <ls_bdcdata>-dynbegin = abap_true.
 
     APPEND INITIAL LINE TO lt_bdcdata ASSIGNING <ls_bdcdata>.
-    <ls_bdcdata>-fnam = 'BDC_OKCODE' ##NO_TEXT.
-    <ls_bdcdata>-fval = '=SHOW' ##NO_TEXT.
+    <ls_bdcdata>-fnam = 'BDC_OKCODE'.
+    <ls_bdcdata>-fval = '=SHOW'.
 
     APPEND INITIAL LINE TO lt_bdcdata ASSIGNING <ls_bdcdata>.
-    <ls_bdcdata>-fnam = 'RSSCF-TDFORM' ##NO_TEXT.
+    <ls_bdcdata>-fnam = 'RSSCF-TDFORM'.
     <ls_bdcdata>-fval = ms_item-obj_name.
 
     CALL FUNCTION 'ABAP4_CALL_TRANSACTION'

@@ -26,9 +26,9 @@ CLASS ZCL_ABAPGIT_OBJECT_ENHS IMPLEMENTATION.
 
     CASE iv_tool.
       WHEN cl_enh_tool_badi_def=>tooltype.
-        CREATE OBJECT ri_enho TYPE zcl_abapgit_object_enhs_badi_d.
+        ri_enho = NEW zcl_abapgit_object_enhs_badi_d( ).
       WHEN cl_enh_tool_hook_def=>tool_type.
-        CREATE OBJECT ri_enho TYPE zcl_abapgit_object_enhs_hook_d.
+        ri_enho = NEW zcl_abapgit_object_enhs_hook_d( ).
       WHEN OTHERS.
         zcx_abapgit_exception=>raise( |ENHS: Unsupported tool { iv_tool }| ).
     ENDCASE.
@@ -72,9 +72,7 @@ CLASS ZCL_ABAPGIT_OBJECT_ENHS IMPLEMENTATION.
         li_enh_object->unlock( ).
 
       CATCH cx_enh_root INTO lx_enh_root.
-        zcx_abapgit_exception=>raise(
-        iv_text = lx_enh_root->get_text( )
-        ix_previous = lx_enh_root ).
+        zcx_abapgit_exception=>raise_with_text( lx_enh_root ).
     ENDTRY.
 
   ENDMETHOD.
@@ -113,9 +111,7 @@ CLASS ZCL_ABAPGIT_OBJECT_ENHS IMPLEMENTATION.
             devclass       = lv_package ).
 
       CATCH cx_enh_root INTO lx_enh_root.
-        zcx_abapgit_exception=>raise(
-        iv_text = lx_enh_root->get_text( )
-        ix_previous = lx_enh_root ).
+        zcx_abapgit_exception=>raise_with_text( lx_enh_root ).
     ENDTRY.
 
     li_enhs = factory( lv_tool ).
@@ -202,9 +198,7 @@ CLASS ZCL_ABAPGIT_OBJECT_ENHS IMPLEMENTATION.
         li_spot_ref = cl_enh_factory=>get_enhancement_spot( lv_spot_name ).
 
       CATCH cx_enh_root INTO lx_enh_root.
-        zcx_abapgit_exception=>raise(
-        iv_text = lx_enh_root->get_text( )
-        ix_previous = lx_enh_root ).
+        zcx_abapgit_exception=>raise_with_text( lx_enh_root ).
     ENDTRY.
 
     li_enhs = factory( li_spot_ref->get_tool( ) ).

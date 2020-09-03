@@ -53,7 +53,7 @@ CLASS zcl_abapgit_ecatt_helper IMPLEMENTATION.
     "download method will create the xml stream
     "note: it's the redefined download( ) of each object type specific download, which is called
     TRY.
-        CREATE OBJECT lo_load_help_dummy EXPORTING im_maintain_function = ''.
+        lo_load_help_dummy = NEW #( im_maintain_function = '' ).
 
         io_download->download( im_object_name    = iv_object_name
                                im_object_version = iv_object_version
@@ -125,7 +125,7 @@ CLASS zcl_abapgit_ecatt_helper IMPLEMENTATION.
     lo_xml->get_attributes( IMPORTING ex_dom = ri_template_over_all ).
 
 * MD: Workaround, because nodes starting with "XML" are not allowed
-    li_nc_xmlref_typ ?= ri_template_over_all->get_elements_by_tag_name_ns( 'XMLREF_TYP' ). "#EC NOTEXT
+    li_nc_xmlref_typ ?= ri_template_over_all->get_elements_by_tag_name_ns( 'XMLREF_TYP' ).
     CALL METHOD li_nc_xmlref_typ->('GET_LENGTH')  " downport
       RECEIVING
         rval = lv_count.

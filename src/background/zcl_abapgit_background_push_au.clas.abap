@@ -58,7 +58,7 @@ CLASS ZCL_ABAPGIT_BACKGROUND_PUSH_AU IMPLEMENTATION.
     IF lines( lt_objects ) = 1.
       rv_comment = |BG: { lv_str }|.
     ELSE.
-      rv_comment = 'BG: Multiple objects' ##NO_TEXT.
+      rv_comment = 'BG: Multiple objects'.
       LOOP AT lt_objects INTO lv_str.
         CONCATENATE rv_comment zif_abapgit_definitions=>c_newline lv_str INTO rv_comment.
       ENDLOOP.
@@ -130,7 +130,7 @@ CLASS ZCL_ABAPGIT_BACKGROUND_PUSH_AU IMPLEMENTATION.
 *     Fill user details
       ls_comment-committer = determine_user_details( lv_changed_by ).
 
-      CREATE OBJECT lo_stage.
+      lo_stage = NEW #( ).
 
       CLEAR ls_user_files.
 
@@ -190,9 +190,9 @@ CLASS ZCL_ABAPGIT_BACKGROUND_PUSH_AU IMPLEMENTATION.
 
     ASSERT lines( is_files-remote ) > 0.
 
-    CREATE OBJECT lo_stage.
+    lo_stage = NEW #( ).
 
-    ls_comment-comment = 'BG: Deletion' ##NO_TEXT.
+    ls_comment-comment = 'BG: Deletion'.
 
     LOOP AT is_files-remote ASSIGNING <ls_remote>.
 
@@ -206,7 +206,7 @@ CLASS ZCL_ABAPGIT_BACKGROUND_PUSH_AU IMPLEMENTATION.
 
     ENDLOOP.
 
-    ls_comment-committer-name  = 'Deletion' ##NO_TEXT.
+    ls_comment-committer-name  = 'Deletion'.
     ls_comment-committer-email = 'deletion@localhost'.
 
     io_repo->push( is_comment = ls_comment
@@ -217,7 +217,7 @@ CLASS ZCL_ABAPGIT_BACKGROUND_PUSH_AU IMPLEMENTATION.
 
   METHOD zif_abapgit_background~get_description.
 
-    rv_description = 'Automatic push, auto author' ##NO_TEXT.
+    rv_description = 'Automatic push, auto author'.
 
   ENDMETHOD.
 
@@ -237,7 +237,7 @@ CLASS ZCL_ABAPGIT_BACKGROUND_PUSH_AU IMPLEMENTATION.
     ls_files = zcl_abapgit_factory=>get_stage_logic( )->get( io_repo ).
 
     IF lines( ls_files-local ) = 0 AND lines( ls_files-remote ) = 0.
-      ii_log->add_info( 'Nothing to stage' ) ##NO_TEXT.
+      ii_log->add_info( 'Nothing to stage' ).
       RETURN.
     ENDIF.
 

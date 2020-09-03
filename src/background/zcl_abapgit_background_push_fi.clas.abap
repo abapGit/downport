@@ -54,7 +54,7 @@ CLASS ZCL_ABAPGIT_BACKGROUND_PUSH_FI IMPLEMENTATION.
     IF lines( lt_objects ) = 1.
       rv_comment = |BG: { lv_str }|.
     ELSE.
-      rv_comment = 'BG: Multiple objects' ##NO_TEXT.
+      rv_comment = 'BG: Multiple objects'.
       LOOP AT lt_objects INTO lv_str.
         CONCATENATE rv_comment zif_abapgit_definitions=>c_newline lv_str INTO rv_comment.
       ENDLOOP.
@@ -77,7 +77,7 @@ CLASS ZCL_ABAPGIT_BACKGROUND_PUSH_FI IMPLEMENTATION.
     ASSERT lines( ls_files-local ) > 0
         OR lines( ls_files-remote ) > 0.
 
-    CREATE OBJECT lo_stage.
+    lo_stage = NEW #( ).
 
     LOOP AT ls_files-local ASSIGNING <ls_local>.
       mi_log->add_info( |stage: { <ls_local>-file-path } { <ls_local>-file-filename }| ).
@@ -107,7 +107,7 @@ CLASS ZCL_ABAPGIT_BACKGROUND_PUSH_FI IMPLEMENTATION.
 
   METHOD zif_abapgit_background~get_description.
 
-    rv_description = 'Automatic push, fixed author' ##NO_TEXT.
+    rv_description = 'Automatic push, fixed author'.
 
   ENDMETHOD.
 
