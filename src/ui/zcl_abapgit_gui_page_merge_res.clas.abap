@@ -151,7 +151,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_MERGE_RES IMPLEMENTATION.
 
   METHOD build_menu.
 
-    ro_menu = NEW #( ).
+    CREATE OBJECT ro_menu.
     ro_menu->add( iv_txt = 'Toggle merge mode'
                   iv_act = c_actions-toggle_mode ).
     ro_menu->add( iv_txt = 'Cancel'
@@ -221,7 +221,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_MERGE_RES IMPLEMENTATION.
     DATA: lv_beacon  TYPE string,
           lt_beacons TYPE zif_abapgit_definitions=>ty_string_tt.
 
-    ro_html = NEW #( ).
+    CREATE OBJECT ro_html.
 
     IF is_diff_line-beacon > 0.
       lt_beacons = is_diff-o_diff->get_beacons( ).
@@ -250,7 +250,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_MERGE_RES IMPLEMENTATION.
       zcx_abapgit_exception=>raise( 'no conflict found' ).
     ENDIF.
 
-    ri_html = NEW zcl_abapgit_html( ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
     ri_html->add( |<div id="diff-list" data-repo-key="{ mo_repo->get_key( ) }">| ).
     ri_html->add( render_diff( ms_diff_file ) ).
     ri_html->add( '</div>' ).
@@ -263,7 +263,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_MERGE_RES IMPLEMENTATION.
     DATA: lv_target_content TYPE string.
     FIELD-SYMBOLS: <ls_conflict> TYPE zif_abapgit_definitions=>ty_merge_conflict.
 
-    ri_html = NEW zcl_abapgit_html( ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
 
     ri_html->add( |<div class="diff" data-type="{ is_diff-type
       }" data-changed-by="{ is_diff-changed_by
@@ -341,7 +341,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_MERGE_RES IMPLEMENTATION.
 
     DATA: ls_stats TYPE zif_abapgit_definitions=>ty_count.
 
-    ro_html = NEW #( ).
+    CREATE OBJECT ro_html.
 
     ro_html->add( '<div class="diff_head">' ).
 
@@ -367,7 +367,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_MERGE_RES IMPLEMENTATION.
     FIELD-SYMBOLS <ls_diff>  LIKE LINE OF lt_diffs.
 
     lo_highlighter = zcl_abapgit_syntax_highlighter=>create( is_diff-filename ).
-    ro_html = NEW #( ).
+    CREATE OBJECT ro_html.
 
     lt_diffs = is_diff-o_diff->get( ).
 
@@ -410,7 +410,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_MERGE_RES IMPLEMENTATION.
           lv_mark TYPE string,
           lv_bg   TYPE string.
 
-    ro_html = NEW #( ).
+    CREATE OBJECT ro_html.
 
     " New line
     lv_mark = ` `.
@@ -448,7 +448,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_MERGE_RES IMPLEMENTATION.
 
   METHOD render_table_head.
 
-    ri_html = NEW zcl_abapgit_html( ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
 
     ri_html->add( '<thead class="header">' ).
     ri_html->add( '<tr>' ).
@@ -514,8 +514,8 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_MERGE_RES IMPLEMENTATION.
     ENDIF.
 
     IF ms_diff_file-type <> 'binary'.
-      ms_diff_file-o_diff = NEW #( iv_new = <ls_conflict>-source_data
-                                   iv_old = <ls_conflict>-target_data ).
+      CREATE OBJECT ms_diff_file-o_diff EXPORTING iv_new = <ls_conflict>-source_data
+                                                  iv_old = <ls_conflict>-target_data.
     ENDIF.
 
   ENDMETHOD.
