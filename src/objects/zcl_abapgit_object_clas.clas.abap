@@ -88,7 +88,7 @@ CLASS ZCL_ABAPGIT_OBJECT_CLAS IMPLEMENTATION.
     super->constructor( is_item     = is_item
                         iv_language = iv_language ).
 
-    CREATE OBJECT mi_object_oriented_object_fct TYPE zcl_abapgit_oo_class.
+    mi_object_oriented_object_fct = NEW zcl_abapgit_oo_class( ).
 
     mv_classpool_name = cl_oo_classname_service=>get_classpool_name( |{ is_item-obj_name }| ).
 
@@ -563,6 +563,9 @@ CLASS ZCL_ABAPGIT_OBJECT_CLAS IMPLEMENTATION.
 
 
   METHOD zif_abapgit_object~deserialize.
+
+    DATA: ls_clskey TYPE seoclskey.
+
     deserialize_abap( io_xml     = io_xml
                       iv_package = iv_package ).
 
@@ -572,6 +575,24 @@ CLASS ZCL_ABAPGIT_OBJECT_CLAS IMPLEMENTATION.
                       iv_package = iv_package ).
 
     deserialize_docu( io_xml ).
+
+    " If a method was moved to an interface, abapGit does not remove the old
+    " method include and it's necessary to repair the class (#3833)
+    " TODO: Remove 2020-11 or replace with general solution
+    IF ms_item-obj_name = 'ZCX_ABAPGIT_EXCEPTION'.
+      ls_clskey-clsname = ms_item-obj_name.
+
+      CALL FUNCTION 'SEO_CLASS_REPAIR_CLASSPOOL'
+        EXPORTING
+          clskey       = ls_clskey
+        EXCEPTIONS
+          not_existing = 1
+          OTHERS       = 2.
+      IF sy-subrc <> 0.
+        zcx_abapgit_exception=>raise( |Error repairing class { ms_item-obj_name }| ).
+      ENDIF.
+    ENDIF.
+
   ENDMETHOD.
 
 

@@ -73,7 +73,7 @@ CLASS zcl_abapgit_gui_page_patch DEFINITION
         zcx_abapgit_exception .
     METHODS render_patch_head
       IMPORTING
-        !io_html TYPE REF TO zcl_abapgit_html
+        !ii_html TYPE REF TO zif_abapgit_html
         !is_diff TYPE ty_file_diff .
     METHODS start_staging
       IMPORTING
@@ -152,7 +152,7 @@ CLASS zcl_abapgit_gui_page_patch DEFINITION
         VALUE(rv_is_patch_line_possible) TYPE abap_bool .
     METHODS render_scripts
       RETURNING
-        VALUE(ro_html) TYPE REF TO zcl_abapgit_html
+        VALUE(ri_html) TYPE REF TO zif_abapgit_html
       RAISING
         zcx_abapgit_exception .
 ENDCLASS.
@@ -217,7 +217,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_PATCH IMPLEMENTATION.
 
       lv_something_patched = abap_true.
 
-      CREATE OBJECT lo_git_add_patch EXPORTING it_diff = <ls_diff_file>-o_diff->get( ).
+      lo_git_add_patch = NEW #( it_diff = <ls_diff_file>-o_diff->get( ) ).
 
       lv_patch = lo_git_add_patch->get_patch_binary( ).
 
@@ -373,7 +373,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_PATCH IMPLEMENTATION.
 
     " While patching we always want to be in split mode
     CLEAR: mv_unified.
-    CREATE OBJECT mo_stage.
+    mo_stage = NEW #( ).
 
     ms_control-page_title = 'Patch'.
     ms_control-page_menu = build_menu( ).
@@ -662,27 +662,27 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_PATCH IMPLEMENTATION.
 
   METHOD render_patch_head.
 
-    io_html->add( |<th class="patch">| ).
-    io_html->add_checkbox( iv_id = |patch_file_{ get_normalized_fname_with_path( is_diff ) }| ).
-    io_html->add( '</th>' ).
+    ii_html->add( |<th class="patch">| ).
+    ii_html->add_checkbox( |patch_file_{ get_normalized_fname_with_path( is_diff ) }| ).
+    ii_html->add( '</th>' ).
 
   ENDMETHOD.
 
 
   METHOD render_scripts.
 
-    CREATE OBJECT ro_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
-    ro_html->zif_abapgit_html~set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
-    ro_html->add( 'preparePatch();' ).
-    ro_html->add( 'registerStagePatch();' ).
+    ri_html->set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
+    ri_html->add( 'preparePatch();' ).
+    ri_html->add( 'registerStagePatch();' ).
 
   ENDMETHOD.
 
 
   METHOD render_table_head_non_unified.
 
-    render_patch_head( io_html = io_html
+    render_patch_head( ii_html = io_html
                        is_diff = is_diff ).
 
     super->render_table_head_non_unified(
@@ -743,8 +743,8 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_PATCH IMPLEMENTATION.
 
         start_staging( it_postdata ).
 
-        CREATE OBJECT ei_page TYPE zcl_abapgit_gui_page_commit EXPORTING io_repo = mo_repo_online
-                                                                         io_stage = mo_stage.
+        ei_page = NEW zcl_abapgit_gui_page_commit( io_repo = mo_repo_online
+                                                   io_stage = mo_stage ).
         ev_state = zcl_abapgit_gui=>c_event_state-new_page.
 
       WHEN OTHERS.
