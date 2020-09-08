@@ -51,7 +51,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DEBUGINFO IMPLEMENTATION.
     DATA lv_encode TYPE string.
     DATA li_html TYPE REF TO zif_abapgit_html.
 
-    CREATE OBJECT li_html TYPE zcl_abapgit_html.
+    li_html = NEW zcl_abapgit_html( ).
 
     lv_encode = zcl_abapgit_html_action_utils=>jump_encode( iv_obj_type = 'CLAS'
                                                             iv_obj_name = |{ iv_class }| ).
@@ -65,7 +65,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DEBUGINFO IMPLEMENTATION.
 
   METHOD render_content.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div id="debug_info" class="debug_container">' ).
     ri_html->add( render_debug_info( ) ).
@@ -98,7 +98,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DEBUGINFO IMPLEMENTATION.
     READ TABLE lt_ver_tab INTO ls_version INDEX 3. " gui patch
     lv_gui_version = |{ lv_gui_version }.{ ls_version-filename }|.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( |<table>| ).
     ri_html->add( |<tr><td>abapGit version:</td><td>{ zif_abapgit_version=>gc_abap_version }</td></tr>| ).
@@ -129,7 +129,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DEBUGINFO IMPLEMENTATION.
 
   METHOD render_scripts.
 
-    CREATE OBJECT ro_html.
+    ro_html = NEW #( ).
 
     ro_html->zif_abapgit_html~set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
     ro_html->add( 'debugOutput("<table><tr><td>Browser:</td><td>" + navigator.userAgent + ' &&
@@ -194,7 +194,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DEBUGINFO IMPLEMENTATION.
 
         CATCH cx_sy_create_object_error.
           TRY. " 2nd step, try looking for plugins
-              CREATE OBJECT li_object TYPE zcl_abapgit_objects_bridge EXPORTING is_item = ls_item.
+              li_object = NEW zcl_abapgit_objects_bridge( is_item = ls_item ).
             CATCH cx_sy_create_object_error.
               rv_html = rv_html && |<td class="error" colspan="5">{ lv_class } - error instantiating class</td>|.
               CONTINUE.
