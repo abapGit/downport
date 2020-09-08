@@ -115,7 +115,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_GUI_REPO_OVER IMPLEMENTATION.
+CLASS zcl_abapgit_gui_repo_over IMPLEMENTATION.
 
 
   METHOD apply_filter.
@@ -270,7 +270,7 @@ CLASS ZCL_ABAPGIT_GUI_REPO_OVER IMPLEMENTATION.
 
   METHOD render_scripts.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
     ri_html->add( 'setInitialFocus("filter");' ).
@@ -306,6 +306,8 @@ CLASS ZCL_ABAPGIT_GUI_REPO_OVER IMPLEMENTATION.
       lv_package_obj_name  TYPE sobj_name,
       lv_stage_link        TYPE string,
       lv_patch_link        TYPE string,
+      lv_zip_import_link   TYPE string,
+      lv_zip_export_link   TYPE string,
       lv_check_link        TYPE string,
       lv_settings_link     TYPE string,
       lv_branch_html       TYPE string.
@@ -398,6 +400,18 @@ CLASS ZCL_ABAPGIT_GUI_REPO_OVER IMPLEMENTATION.
           iv_act = |{ zif_abapgit_definitions=>c_action-go_patch }?{ <ls_overview>-key } | ).
 
         ii_html->add( lv_patch_link && lc_separator ).
+      ELSE. " offline repo
+        lv_zip_import_link = ii_html->a(
+          iv_txt = |Import|
+          iv_act = |{ zif_abapgit_definitions=>c_action-zip_import }?{ <ls_overview>-key } | ).
+
+        ii_html->add( lv_zip_import_link && lc_separator ).
+
+        lv_zip_export_link = ii_html->a(
+          iv_txt = |Export|
+          iv_act = |{ zif_abapgit_definitions=>c_action-zip_export }?{ <ls_overview>-key } | ).
+
+        ii_html->add( lv_zip_export_link && lc_separator ).
       ENDIF.
 
       lv_settings_link = ii_html->a(
@@ -505,7 +519,7 @@ CLASS ZCL_ABAPGIT_GUI_REPO_OVER IMPLEMENTATION.
 
     DATA lv_attrs TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     IF iv_value IS NOT INITIAL.
       lv_attrs = | value="{ iv_value }"|.
@@ -554,7 +568,7 @@ CLASS ZCL_ABAPGIT_GUI_REPO_OVER IMPLEMENTATION.
     apply_order_by( CHANGING ct_overview = mt_overview ).
     apply_filter( CHANGING ct_overview = mt_overview ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     render_header_bar( ri_html ).
     render_table( ii_html     = ri_html
