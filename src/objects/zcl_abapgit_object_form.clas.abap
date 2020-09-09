@@ -131,7 +131,7 @@ CLASS ZCL_ABAPGIT_OBJECT_FORM IMPLEMENTATION.
     DATA lv_string TYPE string.
     DATA lo_xml TYPE REF TO zcl_abapgit_xml_output.
 
-    lo_xml = NEW #( ).
+    CREATE OBJECT lo_xml.
     lo_xml->add( iv_name = c_objectname_tdlines
                  ig_data = it_lines ).
     lv_string = lo_xml->render( ).
@@ -172,7 +172,7 @@ CLASS ZCL_ABAPGIT_OBJECT_FORM IMPLEMENTATION.
 
     ENDTRY.
 
-    lo_xml = NEW #( iv_xml = lv_string ).
+    CREATE OBJECT lo_xml EXPORTING iv_xml = lv_string.
     lo_xml->read( EXPORTING iv_name = c_objectname_tdlines
                   CHANGING  cg_data = rt_lines ).
 
