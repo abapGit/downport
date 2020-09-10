@@ -60,8 +60,8 @@ CLASS ZCL_ABAPGIT_2FA_AUTH_BASE IMPLEMENTATION.
 
 
   METHOD constructor.
-    CREATE OBJECT mo_url_regex EXPORTING pattern = iv_supported_url_regex
-                                         ignore_case = abap_true.
+    mo_url_regex = NEW #( pattern = iv_supported_url_regex
+                          ignore_case = abap_true ).
   ENDMETHOD.
 
 
@@ -84,7 +84,7 @@ CLASS ZCL_ABAPGIT_2FA_AUTH_BASE IMPLEMENTATION.
           lx_abapgit_exc TYPE REF TO zcx_abapgit_exception,
           lv_error_text  TYPE string.
 
-    CREATE OBJECT lo_proxy.
+    lo_proxy = NEW #( ).
     cl_http_client=>create_by_url(
       EXPORTING
         url                = iv_url

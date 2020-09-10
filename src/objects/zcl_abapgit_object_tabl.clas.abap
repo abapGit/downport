@@ -521,9 +521,9 @@ CLASS ZCL_ABAPGIT_OBJECT_TABL IMPLEMENTATION.
   METHOD zif_abapgit_object~changed_by.
 
     TYPES: BEGIN OF ty_data,
-             as4user TYPE as4user,
-             as4date TYPE as4date,
-             as4time TYPE as4time,
+             as4user TYPE dd02l-as4user,
+             as4date TYPE dd02l-as4date,
+             as4time TYPE dd02l-as4time,
            END OF ty_data.
 
     DATA: lt_data TYPE STANDARD TABLE OF ty_data WITH DEFAULT KEY,
@@ -787,12 +787,12 @@ CLASS ZCL_ABAPGIT_OBJECT_TABL IMPLEMENTATION.
           lo_local_version_input  TYPE REF TO zcl_abapgit_xml_input.
 
 
-    CREATE OBJECT lo_local_version_output.
+    lo_local_version_output = NEW #( ).
     me->zif_abapgit_object~serialize( lo_local_version_output ).
 
-    CREATE OBJECT lo_local_version_input EXPORTING iv_xml = lo_local_version_output->render( ).
+    lo_local_version_input = NEW #( iv_xml = lo_local_version_output->render( ) ).
 
-    CREATE OBJECT ri_comparator TYPE zcl_abapgit_object_tabl_compar EXPORTING io_local = lo_local_version_input.
+    ri_comparator = NEW zcl_abapgit_object_tabl_compar( io_local = lo_local_version_input ).
 
   ENDMETHOD.
 

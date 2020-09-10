@@ -39,8 +39,8 @@ CLASS ZCL_ABAPGIT_OBJECT_OTGR IMPLEMENTATION.
     lv_name = ms_item-obj_name.
 
     TRY.
-        CREATE OBJECT ro_otgr EXPORTING im_name = lv_name
-                                        im_new = lv_new.
+        ro_otgr = NEW #( im_name = lv_name
+                         im_new = lv_new ).
       CATCH cx_pak_invalid_data
           cx_pak_not_authorized
           cx_pak_invalid_state
@@ -104,7 +104,7 @@ CLASS ZCL_ABAPGIT_OBJECT_OTGR IMPLEMENTATION.
           lo_otgr       TYPE REF TO cl_cls_object_type_group,
           lx_pak_error  TYPE REF TO cx_root,
           lv_text       TYPE string,
-          lv_masterlang TYPE sylangu,
+          lv_masterlang TYPE sy-langu,
           lo_parents    TYPE REF TO data.
 
     FIELD-SYMBOLS: <ls_groupt>  LIKE LINE OF ls_otgr-texts,
