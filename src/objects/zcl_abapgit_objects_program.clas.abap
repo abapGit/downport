@@ -529,6 +529,7 @@ CLASS ZCL_ABAPGIT_OBJECTS_PROGRAM IMPLEMENTATION.
     ls_progdir_new-rstat   = is_progdir-rstat.
     ls_progdir_new-sqlx    = is_progdir-sqlx.
     ls_progdir_new-uccheck = is_progdir-uccheck.
+    ls_progdir_new-clas    = is_progdir-clas.
 
     CALL FUNCTION 'UPDATE_PROGDIR'
       EXPORTING
@@ -913,7 +914,7 @@ CLASS ZCL_ABAPGIT_OBJECTS_PROGRAM IMPLEMENTATION.
     IF io_xml IS BOUND.
       lo_xml = io_xml.
     ELSE.
-      CREATE OBJECT lo_xml.
+      lo_xml = NEW #( ).
     ENDIF.
 
     lo_xml->add( iv_name = 'PROGDIR'
