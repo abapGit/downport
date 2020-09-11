@@ -61,7 +61,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_CODI_BASE IMPLEMENTATION.
     DATA:
       lo_sort_menu TYPE REF TO zcl_abapgit_html_toolbar.
 
-    CREATE OBJECT lo_sort_menu.
+    lo_sort_menu = NEW #( ).
 
     lo_sort_menu->add(
       iv_txt = 'By Object, Check, Sub-object'
@@ -73,7 +73,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_CODI_BASE IMPLEMENTATION.
       iv_txt = 'By Check, Object, Sub-object'
       iv_act = c_actions-sort_3 ).
 
-    CREATE OBJECT ro_menu.
+    ro_menu = NEW #( ).
 
     ro_menu->add( iv_txt = 'Sort'
                   io_sub = lo_sort_menu ).
@@ -216,17 +216,24 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_CODI_BASE IMPLEMENTATION.
        ( is_result-sobjname = is_result-objname AND
          is_result-sobjtype = is_result-sobjtype ).
       lv_obj_txt = |{ is_result-objtype } { is_result-objname }|.
-    ELSEIF is_result-objtype = 'CLAS'.
+    ELSEIF is_result-objtype = 'CLAS' OR
+         ( is_result-objtype = 'PROG' AND NOT is_result-sobjname+30(*) IS INITIAL ).
       TRY.
           CASE is_result-sobjname+30(*).
             WHEN seop_incextapp_definition.
-              lv_obj_txt = |{ is_result-objname } : Local Definitions|.
+              lv_obj_txt = |CLAS { is_result-objname } : Local Definitions|.
             WHEN seop_incextapp_implementation.
-              lv_obj_txt = |{ is_result-objname } : Local Implementations|.
+              lv_obj_txt = |CLAS { is_result-objname } : Local Implementations|.
             WHEN seop_incextapp_macros.
-              lv_obj_txt = |{ is_result-objname } : Macros|.
+              lv_obj_txt = |CLAS { is_result-objname } : Macros|.
             WHEN seop_incextapp_testclasses.
-              lv_obj_txt = |{ is_result-objname } : Test Classes|.
+              lv_obj_txt = |CLAS { is_result-objname } : Test Classes|.
+            WHEN 'CU'.
+              lv_obj_txt = |CLAS { is_result-objname } : Public Section|.
+            WHEN 'CO'.
+              lv_obj_txt = |CLAS { is_result-objname } : Protected Section|.
+            WHEN 'CI'.
+              lv_obj_txt = |CLAS { is_result-objname } : Private Section|.
             WHEN OTHERS.
               cl_oo_classname_service=>get_method_by_include(
                 EXPORTING
@@ -238,9 +245,9 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_CODI_BASE IMPLEMENTATION.
                   method_not_existing = 2
                   OTHERS              = 3 ).
               IF sy-subrc = 0.
-                lv_obj_txt = |{ ls_mtdkey-clsname }->{ ls_mtdkey-cpdname }|.
+                lv_obj_txt = |CLAS { ls_mtdkey-clsname }->{ ls_mtdkey-cpdname }|.
               ELSE.
-                lv_obj_txt = is_result-sobjname.
+                lv_obj_txt = |{ is_result-objtype } { is_result-sobjname }|.
               ENDIF.
 
           ENDCASE.
@@ -266,7 +273,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_CODI_BASE IMPLEMENTATION.
 
   METHOD render_variant.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div class="ci-head">' ).
     ri_html->add( |Code inspector check variant: <span class="ci-variant">{ iv_variant }</span>| ).
