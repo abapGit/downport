@@ -303,7 +303,7 @@ CLASS zcl_abapgit_oo_base IMPLEMENTATION.
 
   METHOD zif_abapgit_oo_object_fnc~serialize_abap.
     DATA lo_oo_serializer TYPE REF TO zcl_abapgit_oo_serializer.
-    lo_oo_serializer = NEW #( ).
+    CREATE OBJECT lo_oo_serializer.
     CASE iv_type.
       WHEN seop_ext_class_locals_def.
         rt_source = lo_oo_serializer->serialize_locals_def( is_class_key ).
