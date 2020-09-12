@@ -77,7 +77,7 @@ CLASS zcl_abapgit_gui_page_diff DEFINITION
         !io_menu TYPE REF TO zcl_abapgit_html_toolbar .
     METHODS render_table_head_non_unified
       IMPORTING
-        !io_html TYPE REF TO zcl_abapgit_html
+        !ii_html TYPE REF TO zif_abapgit_html
         !is_diff TYPE ty_file_diff .
     METHODS render_beacon_begin_of_row
       IMPORTING
@@ -115,13 +115,13 @@ CLASS zcl_abapgit_gui_page_diff DEFINITION
       END OF c_actions .
     DATA mt_delayed_lines TYPE zif_abapgit_definitions=>ty_diffs_tt .
     DATA mv_repo_key TYPE zif_abapgit_persistence=>ty_repo-key .
-    DATA mv_seed TYPE string .                  " Unique page id to bind JS sessionStorage
+    DATA mv_seed TYPE string .                    " Unique page id to bind JS sessionStorage
 
     METHODS render_diff
       IMPORTING
         !is_diff       TYPE ty_file_diff
       RETURNING
-        VALUE(ro_html) TYPE REF TO zcl_abapgit_html
+        VALUE(ri_html) TYPE REF TO zif_abapgit_html
       RAISING
         zcx_abapgit_exception .
     METHODS render_diff_head
@@ -133,7 +133,7 @@ CLASS zcl_abapgit_gui_page_diff DEFINITION
       IMPORTING
         !is_diff       TYPE ty_file_diff
       RETURNING
-        VALUE(ro_html) TYPE REF TO zcl_abapgit_html
+        VALUE(ri_html) TYPE REF TO zif_abapgit_html
       RAISING
         zcx_abapgit_exception .
     METHODS render_beacon
@@ -156,7 +156,7 @@ CLASS zcl_abapgit_gui_page_diff DEFINITION
       IMPORTING
         !is_diff_line  TYPE zif_abapgit_definitions=>ty_diff OPTIONAL
       RETURNING
-        VALUE(ro_html) TYPE REF TO zcl_abapgit_html .
+        VALUE(ri_html) TYPE REF TO zif_abapgit_html .
     METHODS append_diff
       IMPORTING
         !it_remote TYPE zif_abapgit_definitions=>ty_files_tt
@@ -180,15 +180,15 @@ CLASS zcl_abapgit_gui_page_diff DEFINITION
       IMPORTING
         !is_diff       TYPE ty_file_diff
       RETURNING
-        VALUE(ro_html) TYPE REF TO zcl_abapgit_html
+        VALUE(ri_html) TYPE REF TO zif_abapgit_html
       RAISING
         zcx_abapgit_exception .
     METHODS render_table_head_unified
       IMPORTING
-        !io_html TYPE REF TO zcl_abapgit_html .
+        !ii_html TYPE REF TO zif_abapgit_html .
     METHODS render_scripts
       RETURNING
-        VALUE(ro_html) TYPE REF TO zcl_abapgit_html
+        VALUE(ri_html) TYPE REF TO zif_abapgit_html
       RAISING
         zcx_abapgit_exception .
     METHODS filter_diff_by_files
@@ -225,7 +225,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DIFF IMPLEMENTATION.
     DELETE ADJACENT DUPLICATES FROM lt_users.
 
     IF lines( lt_types ) > 1 OR lines( lt_users ) > 1.
-      CREATE OBJECT lo_sub_filter EXPORTING iv_id = 'diff-filter'.
+      lo_sub_filter = NEW #( iv_id = 'diff-filter' ).
 
       " File types
       IF lines( lt_types ) > 1.
@@ -264,7 +264,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DIFF IMPLEMENTATION.
           lv_jump_target TYPE string.
     FIELD-SYMBOLS: <ls_diff> LIKE LINE OF mt_diff_files.
 
-    CREATE OBJECT lo_sub_jump EXPORTING iv_id = 'jump'.
+    lo_sub_jump = NEW #( iv_id = 'jump' ).
 
     LOOP AT mt_diff_files ASSIGNING <ls_diff>.
 
@@ -373,11 +373,11 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DIFF IMPLEMENTATION.
     " Diff data
     IF <ls_diff>-type <> 'binary'.
       IF <ls_diff>-fstate = c_fstate-remote. " Remote file leading changes
-        CREATE OBJECT <ls_diff>-o_diff EXPORTING iv_new = <ls_remote>-data
-                                                 iv_old = <ls_local>-file-data.
+        <ls_diff>-o_diff = NEW #( iv_new = <ls_remote>-data
+                                  iv_old = <ls_local>-file-data ).
       ELSE.             " Local leading changes or both were modified
-        CREATE OBJECT <ls_diff>-o_diff EXPORTING iv_new = <ls_local>-file-data
-                                                 iv_old = <ls_remote>-data.
+        <ls_diff>-o_diff = NEW #( iv_new = <ls_local>-file-data
+                                  iv_old = <ls_remote>-data ).
       ENDIF.
     ENDIF.
 
@@ -386,7 +386,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DIFF IMPLEMENTATION.
 
   METHOD build_menu.
 
-    CREATE OBJECT ro_menu.
+    ro_menu = NEW #( ).
 
     add_menu_begin( ro_menu ).
     add_jump_sub_menu( ro_menu ).
@@ -558,7 +558,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DIFF IMPLEMENTATION.
     DATA: lv_beacon  TYPE string,
           lt_beacons TYPE zif_abapgit_definitions=>ty_string_tt.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     IF is_diff_line-beacon > 0.
       lt_beacons = is_diff-o_diff->get_beacons( ).
@@ -601,7 +601,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DIFF IMPLEMENTATION.
           li_progress  TYPE REF TO zif_abapgit_progress.
 
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     li_progress = zcl_abapgit_progress=>get_instance( lines( mt_diff_files ) ).
 
@@ -630,28 +630,28 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DIFF IMPLEMENTATION.
 
   METHOD render_diff.
 
-    CREATE OBJECT ro_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
-    ro_html->add( |<div class="diff" data-type="{ is_diff-type
+    ri_html->add( |<div class="diff" data-type="{ is_diff-type
       }" data-changed-by="{ is_diff-changed_by
       }" data-file="{ is_diff-path && is_diff-filename }">| ).
-    ro_html->add( render_diff_head( is_diff ) ).
+    ri_html->add( render_diff_head( is_diff ) ).
 
     " Content
     IF is_diff-type <> 'binary'.
-      ro_html->add( '<div class="diff_content">' ).
-      ro_html->add( |<table class="diff_tab syntax-hl" id={ is_diff-filename }>| ).
-      ro_html->add( render_table_head( is_diff ) ).
-      ro_html->add( render_lines( is_diff ) ).
-      ro_html->add( '</table>' ).
+      ri_html->add( '<div class="diff_content">' ).
+      ri_html->add( |<table class="diff_tab syntax-hl" id={ is_diff-filename }>| ).
+      ri_html->add( render_table_head( is_diff ) ).
+      ri_html->add( render_lines( is_diff ) ).
+      ri_html->add( '</table>' ).
     ELSE.
-      ro_html->add( '<div class="diff_content paddings center grey">' ).
-      ro_html->add( 'The content seems to be binary.' ).
-      ro_html->add( 'Cannot display as diff.' ).
+      ri_html->add( '<div class="diff_content paddings center grey">' ).
+      ri_html->add( 'The content seems to be binary.' ).
+      ri_html->add( 'Cannot display as diff.' ).
     ENDIF.
-    ro_html->add( '</div>' ).
+    ri_html->add( '</div>' ).
 
-    ro_html->add( '</div>' ).
+    ri_html->add( '</div>' ).
 
   ENDMETHOD.
 
@@ -661,7 +661,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DIFF IMPLEMENTATION.
     DATA: ls_stats    TYPE zif_abapgit_definitions=>ty_count,
           lv_adt_link TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div class="diff_head">' ).
 
@@ -730,10 +730,10 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DIFF IMPLEMENTATION.
           lv_insert_nav  TYPE abap_bool,
           lv_tabix       TYPE syst-tabix.
 
-    FIELD-SYMBOLS <ls_diff>  LIKE LINE OF lt_diffs.
+    FIELD-SYMBOLS <ls_diff> LIKE LINE OF lt_diffs.
 
     lo_highlighter = zcl_abapgit_syntax_highlighter=>create( is_diff-filename ).
-    CREATE OBJECT ro_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     lt_diffs = is_diff-o_diff->get( ).
 
@@ -749,7 +749,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DIFF IMPLEMENTATION.
       ENDIF.
 
       IF lv_insert_nav = abap_true. " Insert separator line with navigation
-        ro_html->add( render_beacon( is_diff_line = <ls_diff>
+        ri_html->add( render_beacon( is_diff_line = <ls_diff>
                                      is_diff = is_diff ) ).
         lv_insert_nav = abap_false.
       ENDIF.
@@ -768,9 +768,9 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DIFF IMPLEMENTATION.
       CONDENSE <ls_diff>-old_num.
 
       IF mv_unified = abap_true.
-        ro_html->add( render_line_unified( is_diff_line = <ls_diff> ) ).
+        ri_html->add( render_line_unified( is_diff_line = <ls_diff> ) ).
       ELSE.
-        ro_html->add( render_line_split( is_diff_line = <ls_diff>
+        ri_html->add( render_line_split( is_diff_line = <ls_diff>
                                          iv_filename  = get_normalized_fname_with_path( is_diff )
                                          iv_fstate    = is_diff-fstate
                                          iv_index     = lv_tabix ) ).
@@ -779,7 +779,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DIFF IMPLEMENTATION.
     ENDLOOP.
 
     IF mv_unified = abap_true.
-      ro_html->add( render_line_unified( ) ). " Release delayed lines
+      ri_html->add( render_line_unified( ) ). " Release delayed lines
     ENDIF.
 
   ENDMETHOD.
@@ -792,7 +792,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DIFF IMPLEMENTATION.
           lv_mark TYPE string,
           lv_bg   TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     " New line
     lv_mark = ` `.
@@ -859,125 +859,125 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DIFF IMPLEMENTATION.
 
     FIELD-SYMBOLS <ls_diff_line> LIKE LINE OF mt_delayed_lines.
 
-    CREATE OBJECT ro_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     " Release delayed subsequent update lines
     IF is_diff_line-result <> zif_abapgit_definitions=>c_diff-update.
       LOOP AT mt_delayed_lines ASSIGNING <ls_diff_line>.
-        ro_html->add( '<tr>' ).
-        ro_html->add( |<td class="num diff_others" line-num="{ <ls_diff_line>-old_num }"></td>|
+        ri_html->add( '<tr>' ).
+        ri_html->add( |<td class="num diff_others" line-num="{ <ls_diff_line>-old_num }"></td>|
                    && |<td class="num diff_others" line-num=""></td>|
                    && |<td class="mark diff_others">-</td>|
                    && |<td class="code diff_del diff_unified">{ <ls_diff_line>-old }</td>| ).
-        ro_html->add( '</tr>' ).
+        ri_html->add( '</tr>' ).
       ENDLOOP.
       LOOP AT mt_delayed_lines ASSIGNING <ls_diff_line>.
-        ro_html->add( '<tr>' ).
-        ro_html->add( |<td class="num diff_others" line-num=""></td>|
+        ri_html->add( '<tr>' ).
+        ri_html->add( |<td class="num diff_others" line-num=""></td>|
                    && |<td class="num diff_others" line-num="{ <ls_diff_line>-new_num }"></td>|
                    && |<td class="mark diff_others">+</td>|
                    && |<td class="code diff_ins diff_others">{ <ls_diff_line>-new }</td>| ).
-        ro_html->add( '</tr>' ).
+        ri_html->add( '</tr>' ).
       ENDLOOP.
       CLEAR mt_delayed_lines.
     ENDIF.
 
-    ro_html->add( '<tr>' ).
+    ri_html->add( '<tr>' ).
     CASE is_diff_line-result.
       WHEN zif_abapgit_definitions=>c_diff-update.
         APPEND is_diff_line TO mt_delayed_lines. " Delay output of subsequent updates
       WHEN zif_abapgit_definitions=>c_diff-insert.
-        ro_html->add( |<td class="num diff_others" line-num=""></td>|
+        ri_html->add( |<td class="num diff_others" line-num=""></td>|
                    && |<td class="num diff_others" line-num="{ is_diff_line-new_num }"></td>|
                    && |<td class="mark diff_others">+</td>|
                    && |<td class="code diff_ins diff_others">{ is_diff_line-new }</td>| ).
       WHEN zif_abapgit_definitions=>c_diff-delete.
-        ro_html->add( |<td class="num diff_others" line-num="{ is_diff_line-old_num }"></td>|
+        ri_html->add( |<td class="num diff_others" line-num="{ is_diff_line-old_num }"></td>|
                    && |<td class="num diff_others" line-num=""></td>|
                    && |<td class="mark diff_others">-</td>|
                    && |<td class="code diff_del diff_unified">{ is_diff_line-old }</td>| ).
       WHEN OTHERS. "none
-        ro_html->add( |<td class="num diff_others" line-num="{ is_diff_line-old_num }"></td>|
+        ri_html->add( |<td class="num diff_others" line-num="{ is_diff_line-old_num }"></td>|
                    && |<td class="num diff_others" line-num="{ is_diff_line-new_num }"></td>|
                    && |<td class="mark diff_others">&nbsp;</td>|
                    && |<td class="code diff_unified">{ is_diff_line-old }</td>| ).
     ENDCASE.
-    ro_html->add( '</tr>' ).
+    ri_html->add( '</tr>' ).
 
   ENDMETHOD.
 
 
   METHOD render_scripts.
 
-    CREATE OBJECT ro_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
-    ro_html->zif_abapgit_html~set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
+    ri_html->set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
 
-    ro_html->add( 'restoreScrollPosition();' ).
-    ro_html->add( 'var gHelper = new DiffHelper({' ).
-    ro_html->add( |  seed:        "{ mv_seed }",| ).
-    ro_html->add( '  ids: {' ).
-    ro_html->add( '    jump:        "jump",' ).
-    ro_html->add( '    diffList:    "diff-list",' ).
-    ro_html->add( '    filterMenu:  "diff-filter",' ).
-    ro_html->add( '  }' ).
-    ro_html->add( '});' ).
+    ri_html->add( 'restoreScrollPosition();' ).
+    ri_html->add( 'var gHelper = new DiffHelper({' ).
+    ri_html->add( |  seed:        "{ mv_seed }",| ).
+    ri_html->add( '  ids: {' ).
+    ri_html->add( '    jump:        "jump",' ).
+    ri_html->add( '    diffList:    "diff-list",' ).
+    ri_html->add( '    filterMenu:  "diff-filter",' ).
+    ri_html->add( '  }' ).
+    ri_html->add( '});' ).
 
-    ro_html->add( 'addMarginBottom();' ).
+    ri_html->add( 'addMarginBottom();' ).
 
-    ro_html->add( 'var gGoJumpPalette = new CommandPalette(enumerateJumpAllFiles, {' ).
-    ro_html->add( '  toggleKey: "F2",' ).
-    ro_html->add( '  hotkeyDescription: "Jump to file ..."' ).
-    ro_html->add( '});' ).
+    ri_html->add( 'var gGoJumpPalette = new CommandPalette(enumerateJumpAllFiles, {' ).
+    ri_html->add( '  toggleKey: "F2",' ).
+    ri_html->add( '  hotkeyDescription: "Jump to file ..."' ).
+    ri_html->add( '});' ).
 
     " Feature for selecting ABAP code by column and copy to clipboard
-    ro_html->add( 'var columnSelection = new DiffColumnSelection();' ).
+    ri_html->add( 'var columnSelection = new DiffColumnSelection();' ).
 
   ENDMETHOD.
 
 
   METHOD render_table_head.
 
-    CREATE OBJECT ro_html.
-    ro_html->add( '<thead class="header">' ).
-    ro_html->add( '<tr>' ).
+    ri_html = NEW zcl_abapgit_html( ).
+    ri_html->add( '<thead class="header">' ).
+    ri_html->add( '<tr>' ).
 
     IF mv_unified = abap_true.
 
-      render_table_head_unified( ro_html ).
+      render_table_head_unified( ri_html ).
 
     ELSE.
 
       render_table_head_non_unified(
-          io_html = ro_html
+          ii_html = ri_html
           is_diff = is_diff ).
 
     ENDIF.
 
-    ro_html->add( '</tr>' ).
-    ro_html->add( '</thead>' ).
+    ri_html->add( '</tr>' ).
+    ri_html->add( '</thead>' ).
 
   ENDMETHOD.
 
 
   METHOD render_table_head_non_unified.
 
-    io_html->add( '<th class="num"></th>' ).
-    io_html->add( '<th class="mark"></th>' ).
-    io_html->add( '<th>LOCAL</th>' ).
-    io_html->add( '<th class="num"></th>' ).
-    io_html->add( '<th class="mark"></th>' ).
-    io_html->add( '<th>REMOTE</th>' ).
+    ii_html->add( '<th class="num"></th>' ).
+    ii_html->add( '<th class="mark"></th>' ).
+    ii_html->add( '<th>LOCAL</th>' ).
+    ii_html->add( '<th class="num"></th>' ).
+    ii_html->add( '<th class="mark"></th>' ).
+    ii_html->add( '<th>REMOTE</th>' ).
 
   ENDMETHOD.
 
 
   METHOD render_table_head_unified.
 
-    io_html->add( '<th class="num">old</th>' ).
-    io_html->add( '<th class="num">new</th>' ).
-    io_html->add( '<th class="mark"></th>' ).
-    io_html->add( '<th>code</th>' ).
+    ii_html->add( '<th class="num">old</th>' ).
+    ii_html->add( '<th class="num">new</th>' ).
+    ii_html->add( '<th class="mark"></th>' ).
+    ii_html->add( '<th>code</th>' ).
 
   ENDMETHOD.
 

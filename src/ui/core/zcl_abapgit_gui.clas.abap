@@ -192,7 +192,7 @@ CLASS ZCL_ABAPGIT_GUI IMPLEMENTATION.
       ENDIF.
     ENDIF.
 
-    CREATE OBJECT mo_html_parts.
+    mo_html_parts = NEW #( ).
 
     mv_rollback_on_error = iv_rollback_on_error.
     mi_asset_man      = ii_asset_man.
@@ -387,8 +387,8 @@ CLASS ZCL_ABAPGIT_GUI IMPLEMENTATION.
 
     FIELD-SYMBOLS <ls_asset> LIKE LINE OF lt_assets.
 
-    CREATE OBJECT mo_html_viewer EXPORTING query_table_disabled = abap_true
-                                           parent = cl_gui_container=>screen0.
+    mo_html_viewer = NEW #( query_table_disabled = abap_true
+                            parent = cl_gui_container=>screen0 ).
 
     IF mi_asset_man IS BOUND.
       lt_assets = mi_asset_man->get_all_assets( ).
