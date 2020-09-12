@@ -93,7 +93,7 @@ CLASS ZCL_ABAPGIT_REPO_SRV IMPLEMENTATION.
 
   METHOD get_instance.
     IF gi_ref IS INITIAL.
-      gi_ref = NEW zcl_abapgit_repo_srv( ).
+      CREATE OBJECT gi_ref TYPE zcl_abapgit_repo_srv.
     ENDIF.
     ri_srv = gi_ref.
   ENDMETHOD.
@@ -102,9 +102,9 @@ CLASS ZCL_ABAPGIT_REPO_SRV IMPLEMENTATION.
   METHOD instantiate_and_add.
 
     IF is_repo_meta-offline = abap_false.
-      ro_repo = NEW zcl_abapgit_repo_online( is_data = is_repo_meta ).
+      CREATE OBJECT ro_repo TYPE zcl_abapgit_repo_online EXPORTING is_data = is_repo_meta.
     ELSE.
-      ro_repo = NEW zcl_abapgit_repo_offline( is_data = is_repo_meta ).
+      CREATE OBJECT ro_repo TYPE zcl_abapgit_repo_offline EXPORTING is_data = is_repo_meta.
     ENDIF.
     add( ro_repo ).
 
