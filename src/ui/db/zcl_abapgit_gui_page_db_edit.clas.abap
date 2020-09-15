@@ -97,8 +97,8 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DB_EDIT IMPLEMENTATION.
     lv_data = escape( val    = zcl_abapgit_xml_pretty=>print( lv_data )
                       format = cl_abap_format=>e_html_attr ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
-    CREATE OBJECT lo_toolbar.
+    ri_html = NEW zcl_abapgit_html( ).
+    lo_toolbar = NEW #( ).
     lo_toolbar->add( iv_act = 'submitFormById(''db_form'');'
                      iv_txt = 'Save'
                      iv_typ = zif_abapgit_html=>c_action_type-onclick
@@ -114,7 +114,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DB_EDIT IMPLEMENTATION.
     ri_html->add( '</td></tr></table>' ).
 
     " Form
-    ri_html->add( |<form id="db_form" method="post" action="sapevent:| && |{ c_action-update }">| ).
+    ri_html->add( |<form id="db_form" method="post" action="sapevent:{ c_action-update }">| ).
     ri_html->add( |<input type="hidden" name="type" value="{ ms_key-type }">| ).
     ri_html->add( |<input type="hidden" name="value" value="{ ms_key-value }">| ).
     ri_html->add( |<textarea rows="20" cols="100" name="xmldata">{ lv_data }</textarea>| ).
