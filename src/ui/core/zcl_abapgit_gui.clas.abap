@@ -183,7 +183,7 @@ CLASS ZCL_ABAPGIT_GUI IMPLEMENTATION.
       ENDIF.
     ENDIF.
 
-    CREATE OBJECT mo_html_parts.
+    mo_html_parts = NEW #( ).
 
     mv_rollback_on_error = iv_rollback_on_error.
     mi_asset_man      = ii_asset_man.

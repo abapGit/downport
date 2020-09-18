@@ -120,7 +120,7 @@ CLASS ZCL_ABAPGIT_PERSISTENCE_DB IMPLEMENTATION.
   METHOD get_instance.
 
     IF go_db IS NOT BOUND.
-      CREATE OBJECT go_db.
+      go_db = NEW #( ).
     ENDIF.
     ro_db = go_db.
 
