@@ -93,7 +93,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_BOVERVIEW IMPLEMENTATION.
                    <ls_create> LIKE LINE OF <ls_commit>-create.
 
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( zcl_abapgit_gui_chunk_lib=>render_repo_top(
       io_repo         = mo_repo
@@ -217,7 +217,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_BOVERVIEW IMPLEMENTATION.
 
   METHOD build_menu.
 
-    CREATE OBJECT ro_menu.
+    ro_menu = NEW #( ).
 
     IF mv_compress = abap_true.
       ro_menu->add(
@@ -245,15 +245,11 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_BOVERVIEW IMPLEMENTATION.
 
   METHOD decode_merge.
 
-    DATA: lv_string TYPE string,
-          lt_fields TYPE tihttpnvp.
-
+    DATA lt_fields TYPE tihttpnvp.
     FIELD-SYMBOLS: <ls_field> LIKE LINE OF lt_fields.
 
 
-    lv_string = zcl_abapgit_utils=>translate_postdata( it_postdata ).
-
-    lt_fields = zcl_abapgit_html_action_utils=>parse_fields( lv_string ).
+    lt_fields = zcl_abapgit_html_action_utils=>parse_post_form_data( it_postdata ).
 
     READ TABLE lt_fields ASSIGNING <ls_field> WITH KEY name = 'source'.
     ASSERT sy-subrc = 0.
@@ -295,7 +291,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_BOVERVIEW IMPLEMENTATION.
     FIELD-SYMBOLS: <ls_branch> LIKE LINE OF lt_branches.
 
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     lt_branches = mi_branch_overview->get_branches( ).
 
@@ -329,7 +325,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_BOVERVIEW IMPLEMENTATION.
 
     FIELD-SYMBOLS: <ls_commit> LIKE LINE OF mt_commits.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     LOOP AT mt_commits ASSIGNING <ls_commit>.
 
@@ -381,7 +377,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_BOVERVIEW IMPLEMENTATION.
 
   METHOD render_content.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div id="toc">' ).
     ri_html->add( body( ) ).
@@ -392,7 +388,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_BOVERVIEW IMPLEMENTATION.
 
   METHOD render_merge.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<form id="commit_form" method="post" action="sapevent:merge">' ).
     ri_html->add( 'Merge' ).
@@ -425,9 +421,9 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_BOVERVIEW IMPLEMENTATION.
         rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
       WHEN c_actions-merge.
         ls_merge = decode_merge( ii_event->mt_postdata ).
-        CREATE OBJECT lo_merge EXPORTING io_repo = mo_repo
-                                         iv_source = ls_merge-source
-                                         iv_target = ls_merge-target.
+        lo_merge = NEW #( io_repo = mo_repo
+                          iv_source = ls_merge-source
+                          iv_target = ls_merge-target ).
         rs_handled-page = lo_merge.
         rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page.
       WHEN OTHERS.
