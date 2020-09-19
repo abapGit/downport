@@ -140,7 +140,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DB IMPLEMENTATION.
 
     lt_data = zcl_abapgit_persistence_db=>get_instance( )->list( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div class="db_list">' ).
     ri_html->add( '<table class="db_tab">' ).
@@ -165,7 +165,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DB IMPLEMENTATION.
 
       lv_action  = zcl_abapgit_html_action_utils=>dbkey_encode( <ls_data> ).
 
-      CREATE OBJECT lo_toolbar.
+      lo_toolbar = NEW #( ).
       lo_toolbar->add( iv_txt = 'Display'
                        iv_act = |{ zif_abapgit_definitions=>c_action-db_display }?{ lv_action }| ).
       lo_toolbar->add( iv_txt = 'Edit'
@@ -194,11 +194,13 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DB IMPLEMENTATION.
 
     DATA: ls_db TYPE zif_abapgit_persistence=>ty_content.
 
-    CASE iv_action.
+    CASE ii_event->mv_action.
       WHEN c_action-delete.
-        ls_db = zcl_abapgit_html_action_utils=>dbkey_decode( iv_getdata ).
+        ls_db = zcl_abapgit_html_action_utils=>dbkey_decode( ii_event->mv_getdata ).
         delete( ls_db ).
-        ev_state = zcl_abapgit_gui=>c_event_state-re_render.
+        rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
+      WHEN OTHERS.
+        rs_handled = super->zif_abapgit_gui_event_handler~on_event( ii_event ).
     ENDCASE.
 
   ENDMETHOD.

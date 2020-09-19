@@ -40,12 +40,12 @@ ENDCLASS.
 
 
 
-CLASS zcl_abapgit_gui_page_main IMPLEMENTATION.
+CLASS ZCL_ABAPGIT_GUI_PAGE_MAIN IMPLEMENTATION.
 
 
   METHOD build_main_menu.
 
-    CREATE OBJECT ro_menu EXPORTING iv_id = 'toolbar-main'.
+    ro_menu = NEW #( iv_id = 'toolbar-main' ).
 
     ro_menu->add(
       iv_txt = zcl_abapgit_gui_buttons=>new_online( )
@@ -70,85 +70,6 @@ CLASS zcl_abapgit_gui_page_main IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD render_content.
-
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
-    gui_services( )->get_hotkeys_ctl( )->register_hotkeys( me ).
-
-    IF mo_repo_overview IS INITIAL.
-      CREATE OBJECT mo_repo_overview TYPE zcl_abapgit_gui_repo_over.
-    ENDIF.
-
-    ri_html->add( mo_repo_overview->zif_abapgit_gui_renderable~render( ) ).
-
-    register_deferred_script( zcl_abapgit_gui_chunk_lib=>render_repo_palette( c_actions-select ) ).
-
-  ENDMETHOD.
-
-
-  METHOD zif_abapgit_gui_event_handler~on_event.
-
-    DATA: lv_key TYPE zif_abapgit_persistence=>ty_value.
-
-    CASE iv_action.
-      WHEN c_actions-abapgit_home.
-        CLEAR mv_repo_key.
-        ev_state = zcl_abapgit_gui=>c_event_state-re_render.
-      WHEN c_actions-select.
-
-        lv_key = iv_getdata.
-        zcl_abapgit_persistence_user=>get_instance( )->set_repo_show( lv_key ).
-
-        TRY.
-            zcl_abapgit_repo_srv=>get_instance( )->get( lv_key )->refresh( ).
-          CATCH zcx_abapgit_exception ##NO_HANDLER.
-        ENDTRY.
-
-        mv_repo_key = lv_key.
-        CREATE OBJECT ei_page TYPE zcl_abapgit_gui_page_view_repo EXPORTING iv_key = lv_key.
-        ev_state = zcl_abapgit_gui=>c_event_state-new_page.
-
-      WHEN zif_abapgit_definitions=>c_action-change_order_by.
-
-        mo_repo_overview->set_order_by( zcl_abapgit_gui_chunk_lib=>parse_change_order_by( iv_getdata ) ).
-        ev_state = zcl_abapgit_gui=>c_event_state-re_render.
-
-      WHEN zif_abapgit_definitions=>c_action-direction.
-
-        mo_repo_overview->set_order_direction( zcl_abapgit_gui_chunk_lib=>parse_direction( iv_getdata ) ).
-        ev_state = zcl_abapgit_gui=>c_event_state-re_render.
-
-      WHEN c_actions-apply_filter.
-
-        mo_repo_overview->set_filter( it_postdata ).
-        ev_state = zcl_abapgit_gui=>c_event_state-re_render.
-
-      WHEN zif_abapgit_definitions=>c_action-go_patch.
-
-        ei_page = get_patch_page( iv_getdata ).
-        ev_state = zcl_abapgit_gui=>c_event_state-new_page.
-
-      WHEN zif_abapgit_definitions=>c_action-repo_settings.
-
-        lv_key = iv_getdata.
-        CREATE OBJECT ei_page TYPE zcl_abapgit_gui_page_repo_sett EXPORTING io_repo = zcl_abapgit_repo_srv=>get_instance( )->get( lv_key ).
-        ev_state = zcl_abapgit_gui=>c_event_state-new_page.
-
-      WHEN OTHERS.
-
-        super->zif_abapgit_gui_event_handler~on_event(
-          EXPORTING
-            iv_action    = iv_action
-            iv_getdata   = iv_getdata
-            it_postdata  = it_postdata
-          IMPORTING
-            ei_page      = ei_page
-            ev_state     = ev_state ).
-
-    ENDCASE.
-
-  ENDMETHOD.
-
   METHOD get_patch_page.
 
     DATA lv_key TYPE zif_abapgit_persistence=>ty_value.
@@ -162,7 +83,80 @@ CLASS zcl_abapgit_gui_page_main IMPLEMENTATION.
         IMPORTING ev_key     = lv_key ).
     ENDIF.
 
-    CREATE OBJECT ri_page TYPE zcl_abapgit_gui_page_patch EXPORTING iv_key = lv_key.
+    ri_page = NEW zcl_abapgit_gui_page_patch( iv_key = lv_key ).
+
+  ENDMETHOD.
+
+
+  METHOD render_content.
+
+    ri_html = NEW zcl_abapgit_html( ).
+    gui_services( )->get_hotkeys_ctl( )->register_hotkeys( me ).
+
+    IF mo_repo_overview IS INITIAL.
+      mo_repo_overview = NEW zcl_abapgit_gui_repo_over( ).
+    ENDIF.
+
+    ri_html->add( mo_repo_overview->zif_abapgit_gui_renderable~render( ) ).
+
+    register_deferred_script( zcl_abapgit_gui_chunk_lib=>render_repo_palette( c_actions-select ) ).
+
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_gui_event_handler~on_event.
+
+    DATA: lv_key TYPE zif_abapgit_persistence=>ty_value.
+
+    CASE ii_event->mv_action.
+      WHEN c_actions-abapgit_home.
+        CLEAR mv_repo_key.
+        rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
+      WHEN c_actions-select.
+
+        lv_key = ii_event->mv_getdata.
+        zcl_abapgit_persistence_user=>get_instance( )->set_repo_show( lv_key ).
+
+        TRY.
+            zcl_abapgit_repo_srv=>get_instance( )->get( lv_key )->refresh( ).
+          CATCH zcx_abapgit_exception ##NO_HANDLER.
+        ENDTRY.
+
+        mv_repo_key = lv_key.
+        rs_handled-page = NEW zcl_abapgit_gui_page_view_repo( iv_key = lv_key ).
+        rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page.
+
+      WHEN zif_abapgit_definitions=>c_action-change_order_by.
+
+        mo_repo_overview->set_order_by( zcl_abapgit_gui_chunk_lib=>parse_change_order_by( ii_event->mv_getdata ) ).
+        rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
+
+      WHEN zif_abapgit_definitions=>c_action-direction.
+
+        mo_repo_overview->set_order_direction( zcl_abapgit_gui_chunk_lib=>parse_direction( ii_event->mv_getdata ) ).
+        rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
+
+      WHEN c_actions-apply_filter.
+
+        mo_repo_overview->set_filter( ii_event->mt_postdata ).
+        rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
+
+      WHEN zif_abapgit_definitions=>c_action-go_patch.
+
+        rs_handled-page = get_patch_page( ii_event->mv_getdata ).
+        rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page.
+
+      WHEN zif_abapgit_definitions=>c_action-repo_settings.
+
+        lv_key = ii_event->mv_getdata.
+        rs_handled-page = NEW zcl_abapgit_gui_page_repo_sett( io_repo = zcl_abapgit_repo_srv=>get_instance( )->get( lv_key ) ).
+        rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page.
+
+      WHEN OTHERS.
+
+        rs_handled = super->zif_abapgit_gui_event_handler~on_event( ii_event ).
+
+    ENDCASE.
 
   ENDMETHOD.
 

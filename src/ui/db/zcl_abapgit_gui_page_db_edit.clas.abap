@@ -97,8 +97,8 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DB_EDIT IMPLEMENTATION.
     lv_data = escape( val    = zcl_abapgit_xml_pretty=>print( lv_data )
                       format = cl_abap_format=>e_html_attr ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
-    CREATE OBJECT lo_toolbar.
+    ri_html = NEW zcl_abapgit_html( ).
+    lo_toolbar = NEW #( ).
     lo_toolbar->add( iv_act = 'submitFormById(''db_form'');'
                      iv_txt = 'Save'
                      iv_typ = zif_abapgit_html=>c_action_type-onclick
@@ -143,11 +143,13 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DB_EDIT IMPLEMENTATION.
 
     DATA: ls_db TYPE zif_abapgit_persistence=>ty_content.
 
-    CASE iv_action.
+    CASE ii_event->mv_action.
       WHEN c_action-update.
-        ls_db = dbcontent_decode( it_postdata ).
+        ls_db = dbcontent_decode( ii_event->mt_postdata ).
         update( ls_db ).
-        ev_state = zcl_abapgit_gui=>c_event_state-go_back.
+        rs_handled-state = zcl_abapgit_gui=>c_event_state-go_back.
+      WHEN OTHERS.
+        rs_handled = super->zif_abapgit_gui_event_handler~on_event( ii_event ).
     ENDCASE.
 
   ENDMETHOD.
