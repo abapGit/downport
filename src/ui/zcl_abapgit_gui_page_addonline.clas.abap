@@ -44,10 +44,11 @@ CLASS zcl_abapgit_gui_page_addonline DEFINITION
 
     DATA mo_validation_log TYPE REF TO zcl_abapgit_string_map.
     DATA mo_form_data TYPE REF TO zcl_abapgit_string_map.
+    DATA mo_form TYPE REF TO zcl_abapgit_html_form.
 
     METHODS parse_form
       IMPORTING
-        it_post_data        TYPE cnht_post_data_tab
+        it_form_fields TYPE tihttpnvp
       RETURNING
         VALUE(ro_form_data) TYPE REF TO zcl_abapgit_string_map
       RAISING
@@ -61,6 +62,10 @@ CLASS zcl_abapgit_gui_page_addonline DEFINITION
       RAISING
         zcx_abapgit_exception.
 
+    METHODS get_form_schema
+      RETURNING
+        VALUE(ro_form) TYPE REF TO zcl_abapgit_html_form.
+
 ENDCLASS.
 
 
@@ -70,8 +75,9 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_ADDONLINE IMPLEMENTATION.
 
   METHOD constructor.
     super->constructor( ).
-    CREATE OBJECT mo_validation_log.
-    CREATE OBJECT mo_form_data.
+    mo_validation_log = NEW #( ).
+    mo_form_data = NEW #( ).
+    mo_form = get_form_schema( ).
   ENDMETHOD.
 
 
@@ -79,7 +85,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_ADDONLINE IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_addonline.
 
-    CREATE OBJECT lo_component.
+    lo_component = NEW #( ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title = 'Clone online repository'
@@ -88,31 +94,80 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_ADDONLINE IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD get_form_schema.
+
+    ro_form = zcl_abapgit_html_form=>create( iv_form_id = 'add-repo-online-form' ).
+    ro_form->text(
+      iv_name        = c_id-url
+      iv_required    = abap_true
+      iv_label       = 'Git repository URL'
+      iv_hint        = 'HTTPS address of the repository to clone'
+      iv_placeholder = 'https://github.com/...git' ).
+    ro_form->text(
+      iv_name        = c_id-package
+      iv_side_action = c_event-choose_package
+      iv_required    = abap_true
+      iv_upper_case  = abap_true
+      iv_label       = 'Package'
+      iv_hint        = 'SAP package for the code (should be a dedicated one)'
+      iv_placeholder = 'Z... / $...' ).
+    ro_form->text(
+      iv_name        = c_id-branch_name
+      iv_side_action = c_event-choose_branch
+      iv_label       = 'Branch'
+      iv_hint        = 'Switch to a specific branch on clone (default: master)'
+      iv_placeholder = 'master' ).
+    ro_form->radio(
+      iv_name        = c_id-folder_logic
+      iv_default_value = zif_abapgit_dot_abapgit=>c_folder_logic-prefix
+      iv_label       = 'Folder logic'
+      iv_hint        = 'Define how package folders are named in the repo (see https://docs.abapgit.org)' ).
+    ro_form->option(
+      iv_label       = 'Prefix'
+      iv_value       = zif_abapgit_dot_abapgit=>c_folder_logic-prefix ).
+    ro_form->option(
+      iv_label       = 'Full'
+      iv_value       = zif_abapgit_dot_abapgit=>c_folder_logic-full ).
+    ro_form->text(
+      iv_name        = c_id-display_name
+      iv_label       = 'Display name'
+      iv_hint        = 'Name to show instead of original repo name (optional)' ).
+    ro_form->checkbox(
+      iv_name        = c_id-ignore_subpackages
+      iv_label       = 'Ignore subpackages'
+      iv_hint        = 'Syncronize root package only (see https://docs.abapgit.org)' ).
+    ro_form->checkbox(
+      iv_name        = c_id-master_lang_only
+      iv_label       = 'Serialize master language only'
+      iv_hint        = 'Ignore translations, serialize just master language' ).
+    ro_form->command(
+      iv_label       = 'Clone online repo'
+      iv_is_main     = abap_true
+      iv_action      = c_event-add_online_repo ).
+    ro_form->command(
+      iv_label       = 'Create package'
+      iv_action      = c_event-create_package ).
+    ro_form->command(
+      iv_label       = 'Back'
+      iv_action      = c_event-go_back ).
+
+  ENDMETHOD.
+
+
   METHOD parse_form.
 
-    DATA lt_form TYPE tihttpnvp.
-    DATA ls_field LIKE LINE OF lt_form.
+    DATA ls_field LIKE LINE OF it_form_fields.
 
-    lt_form = zcl_abapgit_html_action_utils=>parse_post_form_data( it_post_data ).
-    CREATE OBJECT ro_form_data.
+    ro_form_data = NEW #( ).
 
-    LOOP AT lt_form INTO ls_field.
-      CASE ls_field-name.
-        WHEN c_id-url OR c_id-package OR c_id-branch_name OR c_id-display_name OR c_id-folder_logic.
-          IF ls_field-name = c_id-package.
-            ls_field-value = to_upper( ls_field-value ).
-          ENDIF.
-          ro_form_data->set(
-            iv_key = ls_field-name
-            iv_val = ls_field-value ).
-        WHEN c_id-ignore_subpackages OR c_id-master_lang_only. " Flags
-          ro_form_data->set(
-            iv_key = ls_field-name
-            iv_val = boolc( ls_field-value = 'on' ) ).
-        WHEN OTHERS.
-          zcx_abapgit_exception=>raise( |Unexpected form field [{ ls_field-name }]| ).
-      ENDCASE.
+    " temporary, TODO refactor later, after gui_event class is ready, move to on_event
+    LOOP AT it_form_fields INTO ls_field.
+      ro_form_data->set(
+        iv_key = ls_field-name
+        iv_val = ls_field-value ).
     ENDLOOP.
+
+    ro_form_data = mo_form->validate_normalize_form_data( ro_form_data ).
 
   ENDMETHOD.
 
@@ -121,7 +176,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_ADDONLINE IMPLEMENTATION.
 
     DATA lx_err TYPE REF TO zcx_abapgit_exception.
 
-    CREATE OBJECT ro_validation_log.
+    ro_validation_log = NEW #( ).
 
     IF io_form_data->get( c_id-url ) IS INITIAL.
       ro_validation_log->set(
@@ -170,7 +225,8 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_ADDONLINE IMPLEMENTATION.
     DATA: ls_repo_params     TYPE zif_abapgit_services_repo=>ty_repo_params,
           lo_new_online_repo TYPE REF TO zcl_abapgit_repo_online.
 
-    mo_form_data = parse_form( ii_event->mt_postdata ). " import data from html before re-render
+    " import data from html before re-render
+    mo_form_data = parse_form( zcl_abapgit_html_action_utils=>parse_post_form_data( ii_event->mt_postdata ) ).
 
     CASE ii_event->mv_action.
       WHEN c_event-go_back.
@@ -234,7 +290,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_ADDONLINE IMPLEMENTATION.
         IF mo_validation_log->is_empty( ) = abap_true.
           mo_form_data->to_abap( CHANGING cs_container = ls_repo_params ).
           lo_new_online_repo = zcl_abapgit_services_repo=>new_online( ls_repo_params ).
-          CREATE OBJECT rs_handled-page TYPE zcl_abapgit_gui_page_view_repo EXPORTING iv_key = lo_new_online_repo->get_key( ).
+          rs_handled-page = NEW zcl_abapgit_gui_page_view_repo( iv_key = lo_new_online_repo->get_key( ) ).
           rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page_replacing.
         ELSE.
           rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render. " Display errors
@@ -247,67 +303,11 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_ADDONLINE IMPLEMENTATION.
 
   METHOD zif_abapgit_gui_renderable~render.
 
-    DATA lo_form TYPE REF TO zcl_abapgit_html_form.
-
     gui_services( )->register_event_handler( me ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
-    lo_form = zcl_abapgit_html_form=>create( iv_form_id = 'add-repo-online-form' ).
-    lo_form->text(
-      iv_name        = c_id-url
-      iv_required    = abap_true
-      iv_label       = 'Git repository URL'
-      iv_hint        = 'HTTPS address of the repository to clone'
-      iv_placeholder = 'https://github.com/...git' ).
-    lo_form->text(
-      iv_name        = c_id-package
-      iv_side_action = c_event-choose_package
-      iv_required    = abap_true
-      iv_label       = 'Package'
-      iv_hint        = 'SAP package for the code (should be a dedicated one)'
-      iv_placeholder = 'Z... / $...' ).
-    lo_form->text(
-      iv_name        = c_id-branch_name
-      iv_side_action = c_event-choose_branch
-      iv_label       = 'Branch'
-      iv_hint        = 'Switch to a specific branch on clone (default: master)'
-      iv_placeholder = 'master' ).
-    lo_form->radio(
-      iv_name        = c_id-folder_logic
-      iv_default_value = zif_abapgit_dot_abapgit=>c_folder_logic-prefix
-      iv_label       = 'Folder logic'
-      iv_hint        = 'Define how package folders are named in the repo (see https://docs.abapgit.org)' ).
-    lo_form->option(
-      iv_label       = 'Prefix'
-      iv_value       = zif_abapgit_dot_abapgit=>c_folder_logic-prefix ).
-    lo_form->option(
-      iv_label       = 'Full'
-      iv_value       = zif_abapgit_dot_abapgit=>c_folder_logic-full ).
-    lo_form->text(
-      iv_name        = c_id-display_name
-      iv_label       = 'Display name'
-      iv_hint        = 'Name to show instead of original repo name (optional)' ).
-    lo_form->checkbox(
-      iv_name        = c_id-ignore_subpackages
-      iv_label       = 'Ignore subpackages'
-      iv_hint        = 'Syncronize root package only (see https://docs.abapgit.org)' ).
-    lo_form->checkbox(
-      iv_name        = c_id-master_lang_only
-      iv_label       = 'Serialize master language only'
-      iv_hint        = 'Ignore translations, serialize just master language' ).
-    lo_form->command(
-      iv_label       = 'Clone online repo'
-      iv_is_main     = abap_true
-      iv_action      = c_event-add_online_repo ).
-    lo_form->command(
-      iv_label       = 'Create package'
-      iv_action      = c_event-create_package ).
-    lo_form->command(
-      iv_label       = 'Back'
-      iv_action      = c_event-go_back ).
-
-    ri_html->add( lo_form->render(
+    ri_html->add( mo_form->render(
       iv_form_class     = 'dialog w600px m-em5-sides margin-v1' " to center add wmax600px and auto-center instead
       io_values         = mo_form_data
       io_validation_log = mo_validation_log ) ).
