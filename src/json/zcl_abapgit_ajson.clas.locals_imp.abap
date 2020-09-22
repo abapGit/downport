@@ -248,7 +248,7 @@ ENDCLASS.
 CLASS lcl_json_to_abap IMPLEMENTATION.
 
   METHOD bind.
-    CREATE OBJECT co_instance.
+    co_instance = NEW #( ).
     GET REFERENCE OF cv_obj INTO co_instance->mr_obj.
   ENDMETHOD.
 
