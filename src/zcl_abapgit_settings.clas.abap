@@ -12,9 +12,10 @@ CLASS zcl_abapgit_settings DEFINITION PUBLIC CREATE PUBLIC.
 
     CONSTANTS:
       BEGIN OF c_ui_theme,
-        default TYPE string VALUE 'default',
-        dark    TYPE string VALUE 'dark',
-        belize  TYPE string VALUE 'belize',
+        default         TYPE string VALUE 'default',
+        dark            TYPE string VALUE 'dark',
+        belize          TYPE string VALUE 'belize',
+        synced_with_gui TYPE string VALUE 'synced_with_gui',
       END OF c_ui_theme.
 
     METHODS:
@@ -142,6 +143,8 @@ CLASS zcl_abapgit_settings DEFINITION PUBLIC CREATE PUBLIC.
         IMPORTING
           iv_scaling TYPE zif_abapgit_definitions=>ty_s_user_settings-icon_scaling,
       get_ui_theme
+        IMPORTING
+          iv_resolve_synced  TYPE abap_bool DEFAULT abap_true
         RETURNING
           VALUE(rv_ui_theme) TYPE zif_abapgit_definitions=>ty_s_user_settings-ui_theme,
       set_ui_theme
@@ -270,7 +273,7 @@ CLASS zcl_abapgit_settings IMPLEMENTATION.
     DATA: li_output TYPE REF TO zif_abapgit_xml_output.
 
 
-    CREATE OBJECT li_output TYPE zcl_abapgit_xml_output.
+    li_output = NEW zcl_abapgit_xml_output( ).
 
     li_output->add( iv_name = zcl_abapgit_persistence_db=>c_type_settings
                     ig_data = ms_settings ).
@@ -286,7 +289,34 @@ CLASS zcl_abapgit_settings IMPLEMENTATION.
 
 
   METHOD get_ui_theme.
+    DATA: lv_frontend_theme TYPE string.
+
     rv_ui_theme = ms_user_settings-ui_theme.
+
+    IF rv_ui_theme = c_ui_theme-synced_with_gui AND iv_resolve_synced = abap_true.
+      TRY.
+          CALL METHOD ('CL_GUI_RESOURCES')=>get_themename
+            IMPORTING
+              themename              = lv_frontend_theme
+            EXCEPTIONS
+              get_std_resource_error = 1
+              OTHERS                 = 2.
+          IF sy-subrc <> 0.
+            rv_ui_theme = c_ui_theme-default.
+            RETURN.
+          ENDIF.
+        CATCH cx_sy_dyn_call_error.
+          rv_ui_theme = c_ui_theme-default.
+          RETURN.
+      ENDTRY.
+
+      CASE lv_frontend_theme.
+        WHEN 'Belize'.
+          rv_ui_theme = c_ui_theme-belize.
+        WHEN OTHERS.
+          rv_ui_theme = c_ui_theme-default.
+      ENDCASE.
+    ENDIF.
   ENDMETHOD.
 
 
@@ -415,7 +445,8 @@ CLASS zcl_abapgit_settings IMPLEMENTATION.
     ms_user_settings-ui_theme = iv_ui_theme.
     IF ms_user_settings-ui_theme <> c_ui_theme-default
         AND ms_user_settings-ui_theme <> c_ui_theme-dark
-        AND ms_user_settings-ui_theme <> c_ui_theme-belize.
+        AND ms_user_settings-ui_theme <> c_ui_theme-belize
+        AND ms_user_settings-ui_theme <> c_ui_theme-synced_with_gui.
       ms_user_settings-ui_theme = c_ui_theme-default. " Reset to default
     ENDIF.
   ENDMETHOD.
@@ -436,7 +467,7 @@ CLASS zcl_abapgit_settings IMPLEMENTATION.
     DATA: lo_input TYPE REF TO zif_abapgit_xml_input.
 
 
-    CREATE OBJECT lo_input TYPE zcl_abapgit_xml_input EXPORTING iv_xml = iv_settings_xml.
+    lo_input = NEW zcl_abapgit_xml_input( iv_xml = iv_settings_xml ).
 
     CLEAR ms_settings.
 

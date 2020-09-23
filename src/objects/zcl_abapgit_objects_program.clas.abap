@@ -430,11 +430,7 @@ CLASS zcl_abapgit_objects_program IMPLEMENTATION.
     SELECT SINGLE progname FROM reposrc INTO lv_progname
       WHERE progname = is_progdir-name
       AND r3state = 'A'.
-    IF sy-subrc = 0.
-      lv_exists = abap_true.
-    ELSE.
-      lv_exists = abap_false.
-    ENDIF.
+    lv_exists = boolc( sy-subrc = 0 ).
 
     IF lv_exists = abap_true.
       zcl_abapgit_language=>set_current_language( mv_language ).
@@ -914,7 +910,7 @@ CLASS zcl_abapgit_objects_program IMPLEMENTATION.
     IF io_xml IS BOUND.
       li_xml = io_xml.
     ELSE.
-      CREATE OBJECT li_xml TYPE zcl_abapgit_xml_output.
+      li_xml = NEW zcl_abapgit_xml_output( ).
     ENDIF.
 
     li_xml->add( iv_name = 'PROGDIR'

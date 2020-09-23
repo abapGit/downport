@@ -8,6 +8,14 @@ ENDCLASS.
 
 CLASS ltcl_get_t100_longtext IMPLEMENTATION.
 
+  METHOD if_message~get_longtext.
+    RETURN.
+  ENDMETHOD.
+
+  METHOD if_message~get_text.
+    RETURN.
+  ENDMETHOD.
+
   METHOD test01.
 
     DATA lo_cut TYPE REF TO zcl_abapgit_message_helper.
@@ -17,7 +25,7 @@ CLASS ltcl_get_t100_longtext IMPLEMENTATION.
     if_t100_message~t100key-msgno = '058'.
     if_t100_message~t100key-attr1 = 'ATTR'.
 
-    CREATE OBJECT lo_cut EXPORTING ii_t100_message = me.
+    lo_cut = NEW #( ii_t100_message = me ).
 
     lv_result = lo_cut->get_t100_longtext( ).
     cl_abap_unit_assert=>assert_not_initial( lv_result ).
