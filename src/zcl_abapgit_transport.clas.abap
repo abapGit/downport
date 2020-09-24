@@ -129,7 +129,7 @@ CLASS ZCL_ABAPGIT_TRANSPORT IMPLEMENTATION.
 
     LOOP AT it_requests ASSIGNING <ls_request>.
       LOOP AT <ls_request>-objects ASSIGNING <ls_object>.
-        " VARX, see https://github.com/larshp/abapGit/issues/3107
+        " VARX, see https://github.com/abapGit/abapGit/issues/3107
         IF <ls_object>-pgmid = 'LIMU' AND <ls_object>-object <> 'VARX'.
           CALL FUNCTION 'GET_R3TR_OBJECT_FROM_LIMU_OBJ'
             EXPORTING
@@ -218,7 +218,7 @@ CLASS ZCL_ABAPGIT_TRANSPORT IMPLEMENTATION.
       ls_data-dot_abapgit-folder_logic = zcl_abapgit_ui_factory=>get_popups( )->popup_folder_logic( ).
     ENDIF.
 
-    CREATE OBJECT lo_repo EXPORTING is_data = ls_data.
+    lo_repo = NEW #( is_data = ls_data ).
 
     rv_xstr = zcl_abapgit_zip=>export(
       io_repo     = lo_repo
