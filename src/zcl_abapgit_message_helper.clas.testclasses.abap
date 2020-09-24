@@ -25,7 +25,7 @@ CLASS ltcl_get_t100_longtext IMPLEMENTATION.
     if_t100_message~t100key-msgno = '058'.
     if_t100_message~t100key-attr1 = 'ATTR'.
 
-    lo_cut = NEW #( ii_t100_message = me ).
+    CREATE OBJECT lo_cut EXPORTING ii_t100_message = me.
 
     lv_result = lo_cut->get_t100_longtext( ).
     cl_abap_unit_assert=>assert_not_initial( lv_result ).
