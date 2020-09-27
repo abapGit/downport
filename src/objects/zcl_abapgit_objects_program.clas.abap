@@ -199,9 +199,9 @@ CLASS zcl_abapgit_objects_program IMPLEMENTATION.
       <ls_men> TYPE rsmpe_men.
 
     IF cs_adm IS NOT INITIAL
-        AND ( cs_adm-actcode CO lc_num_n_space
+        AND cs_adm-actcode CO lc_num_n_space
         AND cs_adm-mencode CO lc_num_n_space
-        AND cs_adm-pfkcode CO lc_num_n_space ). "Check performed in form check_adm of include LSMPIF03
+        AND cs_adm-pfkcode CO lc_num_n_space. "Check performed in form check_adm of include LSMPIF03
       RETURN.
     ENDIF.
 
@@ -910,7 +910,7 @@ CLASS zcl_abapgit_objects_program IMPLEMENTATION.
     IF io_xml IS BOUND.
       li_xml = io_xml.
     ELSE.
-      CREATE OBJECT li_xml TYPE zcl_abapgit_xml_output.
+      li_xml = NEW zcl_abapgit_xml_output( ).
     ENDIF.
 
     li_xml->add( iv_name = 'PROGDIR'
