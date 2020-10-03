@@ -370,8 +370,8 @@ CLASS ZCL_ABAPGIT_OBJECTS IMPLEMENTATION.
         RETURN.
       ENDIF.
 
-      CREATE OBJECT li_remote_version TYPE zcl_abapgit_xml_input EXPORTING iv_xml = zcl_abapgit_convert=>xstring_to_string_utf8( ls_remote_file-data )
-                                                                           iv_filename = ls_remote_file-filename.
+      li_remote_version = NEW zcl_abapgit_xml_input( iv_xml = zcl_abapgit_convert=>xstring_to_string_utf8( ls_remote_file-data )
+                                                     iv_filename = ls_remote_file-filename ).
 
       ls_result = li_comparator->compare( ii_remote = li_remote_version
                                           ii_log = ii_log ).
@@ -451,7 +451,7 @@ CLASS ZCL_ABAPGIT_OBJECTS IMPLEMENTATION.
         lv_message = |Object type { is_item-obj_type } not supported, serialize|.
         IF iv_native_only = abap_false.
           TRY. " 2nd step, try looking for plugins
-              CREATE OBJECT ri_obj TYPE zcl_abapgit_objects_bridge EXPORTING is_item = is_item.
+              ri_obj = NEW zcl_abapgit_objects_bridge( is_item = is_item ).
             CATCH cx_sy_create_object_error.
               zcx_abapgit_exception=>raise( lv_message ).
           ENDTRY.
@@ -470,6 +470,7 @@ CLASS ZCL_ABAPGIT_OBJECTS IMPLEMENTATION.
           lt_tadir    LIKE it_tadir,
           lt_items    TYPE zif_abapgit_definitions=>ty_items_tt,
           lx_error    TYPE REF TO zcx_abapgit_exception,
+          lv_count    TYPE i,
           lv_text     TYPE string.
 
     FIELD-SYMBOLS: <ls_tadir> LIKE LINE OF it_tadir.
@@ -490,27 +491,43 @@ CLASS ZCL_ABAPGIT_OBJECTS IMPLEMENTATION.
         check_objects_locked( iv_language = zif_abapgit_definitions=>c_english
                               it_items    = lt_items ).
 
-        LOOP AT lt_tadir ASSIGNING <ls_tadir>.
-          li_progress->show( iv_current = sy-tabix
-                             iv_text    = |Delete { <ls_tadir>-obj_name }| ).
-
-          CLEAR ls_item.
-          ls_item-obj_type = <ls_tadir>-object.
-          ls_item-obj_name = <ls_tadir>-obj_name.
-          delete_obj(
-            iv_package = <ls_tadir>-devclass
-            is_item    = ls_item ).
-
-* make sure to save object deletions
-          COMMIT WORK.
-        ENDLOOP.
-
       CATCH zcx_abapgit_exception INTO lx_error.
         zcl_abapgit_default_transport=>get_instance( )->reset( ).
         RAISE EXCEPTION lx_error.
     ENDTRY.
 
+    lv_count = 1.
+    DO 3 TIMES.
+      LOOP AT lt_tadir ASSIGNING <ls_tadir>.
+        li_progress->show( iv_current = lv_count
+                           iv_text    = |Delete { <ls_tadir>-obj_name }| ).
+
+        CLEAR ls_item.
+        ls_item-obj_type = <ls_tadir>-object.
+        ls_item-obj_name = <ls_tadir>-obj_name.
+
+        TRY.
+            delete_obj(
+              iv_package = <ls_tadir>-devclass
+              is_item    = ls_item ).
+
+            DELETE lt_tadir.
+            lv_count = lv_count + 1.
+
+            " make sure to save object deletions
+            COMMIT WORK.
+          CATCH zcx_abapgit_exception INTO lx_error ##NO_HANDLER.
+            " ignore errors inside the loops and raise it later
+        ENDTRY.
+
+      ENDLOOP.
+    ENDDO.
+
     zcl_abapgit_default_transport=>get_instance( )->reset( ).
+
+    IF lx_error IS BOUND AND lines( lt_tadir ) > 0.
+      RAISE EXCEPTION lx_error.
+    ENDIF.
 
   ENDMETHOD.
 
@@ -624,8 +641,8 @@ CLASS ZCL_ABAPGIT_OBJECTS IMPLEMENTATION.
             lv_path = <ls_result>-path.
           ENDIF.
 
-          CREATE OBJECT lo_files EXPORTING is_item = ls_item
-                                           iv_path = lv_path.
+          lo_files = NEW #( is_item = ls_item
+                            iv_path = lv_path ).
           lo_files->set_files( lt_remote ).
 
           "analyze XML in order to instantiate the proper serializer
@@ -1138,12 +1155,12 @@ CLASS ZCL_ABAPGIT_OBJECTS IMPLEMENTATION.
         rs_files_and_item-item-obj_name }| ).
     ENDIF.
 
-    CREATE OBJECT lo_files EXPORTING is_item = rs_files_and_item-item.
+    lo_files = NEW #( is_item = rs_files_and_item-item ).
 
     li_obj = create_object( is_item     = rs_files_and_item-item
                             iv_language = iv_language ).
     li_obj->mo_files = lo_files.
-    CREATE OBJECT li_xml TYPE zcl_abapgit_xml_output.
+    li_xml = NEW zcl_abapgit_xml_output( ).
 
     IF iv_serialize_master_lang_only = abap_true.
       li_xml->i18n_params( iv_serialize_master_lang_only = abap_true ).
