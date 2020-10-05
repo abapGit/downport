@@ -77,12 +77,12 @@ CLASS zcl_abapgit_gui_page_patch DEFINITION
         !is_diff TYPE ty_file_diff .
     METHODS start_staging
       IMPORTING
-        !it_postdata TYPE cnht_post_data_tab
+        !ii_event TYPE REF TO zif_abapgit_gui_event
       RAISING
         zcx_abapgit_exception .
     METHODS apply_patch_from_form_fields
       IMPORTING
-        !it_postdata TYPE cnht_post_data_tab
+        !ii_event TYPE REF TO zif_abapgit_gui_event
       RAISING
         zcx_abapgit_exception .
     METHODS restore_patch_flags
@@ -217,7 +217,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_PATCH IMPLEMENTATION.
 
       lv_something_patched = abap_true.
 
-      CREATE OBJECT lo_git_add_patch EXPORTING it_diff = <ls_diff_file>-o_diff->get( ).
+      lo_git_add_patch = NEW #( it_diff = <ls_diff_file>-o_diff->get( ) ).
 
       lv_patch = lo_git_add_patch->get_patch_binary( ).
 
@@ -317,19 +317,11 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_PATCH IMPLEMENTATION.
   METHOD apply_patch_from_form_fields.
 
     DATA:
-      lt_fields TYPE tihttpnvp,
       lv_add    TYPE string,
       lv_remove TYPE string.
 
-    lt_fields = zcl_abapgit_html_action_utils=>parse_post_form_data( it_postdata ).
-
-    zcl_abapgit_html_action_utils=>get_field( EXPORTING iv_name  = c_patch_action-add
-                                                        it_field = lt_fields
-                                              CHANGING  cg_field = lv_add ).
-
-    zcl_abapgit_html_action_utils=>get_field( EXPORTING iv_name  = c_patch_action-remove
-                                                        it_field = lt_fields
-                                              CHANGING  cg_field = lv_remove ).
+    lv_add    = ii_event->form_data( )->get( c_patch_action-add ).
+    lv_remove = ii_event->form_data( )->get( c_patch_action-remove ).
 
     apply_patch_all( iv_patch      = lv_add
                      iv_patch_flag = abap_true ).
@@ -372,7 +364,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_PATCH IMPLEMENTATION.
 
     " While patching we always want to be in split mode
     CLEAR: mv_unified.
-    CREATE OBJECT mo_stage.
+    mo_stage = NEW #( ).
 
     ms_control-page_title = 'Patch'.
     ms_control-page_menu = build_menu( ).
@@ -670,7 +662,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_PATCH IMPLEMENTATION.
 
   METHOD render_scripts.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
     ri_html->add( 'preparePatch();' ).
@@ -729,7 +721,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_PATCH IMPLEMENTATION.
 
   METHOD start_staging.
 
-    apply_patch_from_form_fields( it_postdata ).
+    apply_patch_from_form_fields( ii_event ).
     add_to_stage( ).
 
   ENDMETHOD.
@@ -740,10 +732,10 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_PATCH IMPLEMENTATION.
     CASE ii_event->mv_action.
       WHEN c_actions-stage.
 
-        start_staging( ii_event->mt_postdata ).
+        start_staging( ii_event ).
 
-        CREATE OBJECT rs_handled-page TYPE zcl_abapgit_gui_page_commit EXPORTING io_repo = mo_repo_online
-                                                                                 io_stage = mo_stage.
+        rs_handled-page = NEW zcl_abapgit_gui_page_commit( io_repo = mo_repo_online
+                                                           io_stage = mo_stage ).
         rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page.
 
       WHEN OTHERS.
@@ -751,7 +743,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_PATCH IMPLEMENTATION.
         FIND FIRST OCCURRENCE OF REGEX |^{ c_actions-refresh }| IN ii_event->mv_action.
         IF sy-subrc = 0.
 
-          apply_patch_from_form_fields( ii_event->mt_postdata ).
+          apply_patch_from_form_fields( ii_event ).
           refresh( ii_event->mv_action ).
           rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
 

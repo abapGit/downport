@@ -25,9 +25,11 @@ CLASS zcl_abapgit_gui_page_commit DEFINITION
 
     CLASS-METHODS parse_commit_request
       IMPORTING
-        !it_postdata TYPE cnht_post_data_tab
-      EXPORTING
-        !eg_fields   TYPE any .
+        !ii_event TYPE REF TO zif_abapgit_gui_event
+      RETURNING
+        VALUE(rs_commit) TYPE zif_abapgit_services_git=>ty_commit_fields
+      RAISING
+        zcx_abapgit_exception .
 
     METHODS render_content REDEFINITION .
 
@@ -177,63 +179,21 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_COMMIT IMPLEMENTATION.
 
   METHOD parse_commit_request.
 
-    DATA lt_fields TYPE tihttpnvp.
+    DATA lo_map TYPE REF TO zcl_abapgit_string_map.
 
-    FIELD-SYMBOLS <lv_body> TYPE string.
-
-    CLEAR eg_fields.
-
-    lt_fields = zcl_abapgit_html_action_utils=>parse_post_form_data(
-      it_post_data = it_postdata
-      iv_upper_cased = abap_true ).
-
-    zcl_abapgit_html_action_utils=>get_field(
-      EXPORTING
-        iv_name = 'COMMITTER_NAME'
-        it_field = lt_fields
-      CHANGING
-        cg_field = eg_fields ).
-    zcl_abapgit_html_action_utils=>get_field(
-      EXPORTING
-        iv_name = 'COMMITTER_EMAIL'
-        it_field = lt_fields
-      CHANGING
-        cg_field = eg_fields ).
-    zcl_abapgit_html_action_utils=>get_field(
-      EXPORTING
-        iv_name = 'AUTHOR_NAME'
-        it_field = lt_fields
-      CHANGING
-        cg_field = eg_fields ).
-    zcl_abapgit_html_action_utils=>get_field(
-      EXPORTING
-        iv_name = 'AUTHOR_EMAIL'
-        it_field = lt_fields
-      CHANGING
-      cg_field = eg_fields ).
-    zcl_abapgit_html_action_utils=>get_field(
-      EXPORTING
-        iv_name = 'COMMENT'
-        it_field = lt_fields
-      CHANGING
-      cg_field = eg_fields ).
-    zcl_abapgit_html_action_utils=>get_field(
-      EXPORTING
-        iv_name = 'BODY'
-        it_field = lt_fields
-      CHANGING
-        cg_field = eg_fields ).
-
-    ASSIGN COMPONENT 'BODY' OF STRUCTURE eg_fields TO <lv_body>.
-    ASSERT <lv_body> IS ASSIGNED.
-    REPLACE ALL OCCURRENCES OF zif_abapgit_definitions=>c_crlf IN <lv_body> WITH zif_abapgit_definitions=>c_newline.
+    lo_map = ii_event->form_data( iv_upper_cased = abap_true ).
+    lo_map->to_abap( CHANGING cs_container = rs_commit ).
+    REPLACE ALL OCCURRENCES
+      OF zif_abapgit_definitions=>c_crlf
+      IN rs_commit-body
+      WITH zif_abapgit_definitions=>c_newline.
 
   ENDMETHOD.
 
 
   METHOD render_content.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div class="repo">' ).
     ri_html->add( zcl_abapgit_gui_chunk_lib=>render_repo_top(
@@ -303,7 +263,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_COMMIT IMPLEMENTATION.
       lv_comment = get_comment_default( ).
     ENDIF.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div class="form-container">' ).
     ri_html->add( '<form id="commit_form" class="aligned-form"'
@@ -363,8 +323,8 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_COMMIT IMPLEMENTATION.
 
     DATA lo_toolbar TYPE REF TO zcl_abapgit_html_toolbar.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
-    CREATE OBJECT lo_toolbar.
+    ri_html = NEW zcl_abapgit_html( ).
+    lo_toolbar = NEW #( ).
 
     lo_toolbar->add( iv_act = 'submitFormById(''commit_form'');'
                      iv_txt = 'Commit'
@@ -384,7 +344,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_COMMIT IMPLEMENTATION.
 
   METHOD render_scripts.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
     ri_html->add( 'setInitialFocus("comment");' ).
@@ -399,7 +359,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_COMMIT IMPLEMENTATION.
     FIELD-SYMBOLS: <ls_stage> LIKE LINE OF lt_stage.
 
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     lt_stage = mo_stage->get_all( ).
 
@@ -437,7 +397,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_COMMIT IMPLEMENTATION.
 
     DATA lv_attrs TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     IF iv_value IS NOT INITIAL AND
        iv_max_length IS NOT INITIAL.
@@ -462,10 +422,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_COMMIT IMPLEMENTATION.
     CASE ii_event->mv_action.
       WHEN c_action-commit_post.
 
-        parse_commit_request(
-          EXPORTING it_postdata = ii_event->mt_postdata
-          IMPORTING eg_fields   = ms_commit ).
-
+        ms_commit = parse_commit_request( ii_event ).
         ms_commit-repo_key = mo_repo->get_key( ).
 
         zcl_abapgit_services_git=>commit(
