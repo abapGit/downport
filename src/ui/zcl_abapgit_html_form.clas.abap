@@ -186,7 +186,7 @@ CLASS ZCL_ABAPGIT_HTML_FORM IMPLEMENTATION.
 
     DATA lv_ts TYPE timestampl.
 
-    ro_form = NEW #( ).
+    CREATE OBJECT ro_form.
     ro_form->mv_form_id = iv_form_id.
 
     IF ro_form->mv_form_id IS INITIAL.
@@ -251,7 +251,7 @@ CLASS ZCL_ABAPGIT_HTML_FORM IMPLEMENTATION.
       ls_form_id = | id="{ mv_form_id }"|.
     ENDIF.
 
-    ri_html = NEW zcl_abapgit_html( ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
 
     ri_html->add( |<div class="{ iv_form_class }">| ).
     ri_html->add( |<form method="post"{ ls_form_id }>| ).
@@ -474,7 +474,7 @@ CLASS ZCL_ABAPGIT_HTML_FORM IMPLEMENTATION.
     DATA ls_field LIKE LINE OF mt_fields.
     FIELD-SYMBOLS <ls_entry> LIKE LINE OF io_form_data->mt_entries.
 
-    ro_form_data = NEW #( ).
+    CREATE OBJECT ro_form_data.
 
     LOOP AT io_form_data->mt_entries ASSIGNING <ls_entry>.
       READ TABLE mt_fields INTO ls_field WITH KEY by_name COMPONENTS name = <ls_entry>-k.
@@ -505,7 +505,7 @@ CLASS ZCL_ABAPGIT_HTML_FORM IMPLEMENTATION.
     DATA ls_field LIKE LINE OF mt_fields.
     FIELD-SYMBOLS <ls_entry> LIKE LINE OF io_form_data->mt_entries.
 
-    ro_validation_log = NEW #( ).
+    CREATE OBJECT ro_validation_log.
 
     LOOP AT io_form_data->mt_entries ASSIGNING <ls_entry>.
       READ TABLE mt_fields INTO ls_field WITH KEY by_name COMPONENTS name = <ls_entry>-k.
