@@ -60,7 +60,7 @@ CLASS ZCL_ABAPGIT_OBJECT_PINF IMPLEMENTATION.
 
   METHOD create_facade.
 
-    CREATE OBJECT ri_facade TYPE lcl_package_interface_facade EXPORTING ii_interface = ii_interface.
+    ri_facade = NEW lcl_package_interface_facade( ii_interface = ii_interface ).
 
   ENDMETHOD.
 
