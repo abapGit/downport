@@ -82,7 +82,7 @@ CLASS ZCL_ABAPGIT_OBJECT_SSFO IMPLEMENTATION.
         old TYPE string,
         new TYPE string,
       END OF ty_id_mapping,
-      tty_id_mapping TYPE HASHED TABLE OF ty_id_mapping
+      ty_id_mappings TYPE HASHED TABLE OF ty_id_mapping
                           WITH UNIQUE KEY old.
 
     DATA: lv_name       TYPE string,
@@ -90,7 +90,7 @@ CLASS ZCL_ABAPGIT_OBJECT_SSFO IMPLEMENTATION.
           li_node       TYPE REF TO if_ixml_node,
           li_attr       TYPE REF TO if_ixml_named_node_map,
           li_iterator   TYPE REF TO if_ixml_node_iterator,
-          lt_id_mapping TYPE tty_id_mapping,
+          lt_id_mapping TYPE ty_id_mappings,
           ls_id_mapping LIKE LINE OF lt_id_mapping.
 
     li_iterator = ii_xml_doc->create_iterator( ).
@@ -235,7 +235,7 @@ CLASS ZCL_ABAPGIT_OBJECT_SSFO IMPLEMENTATION.
           lv_text                TYPE string,
           lv_within_code_section TYPE abap_bool.
 
-    CREATE OBJECT lo_sf.
+    lo_sf = NEW #( ).
 
 * set "created by" and "changed by" to current user
     li_iterator = io_xml->get_raw( )->get_root_element( )->create_iterator( ).
@@ -415,7 +415,7 @@ CLASS ZCL_ABAPGIT_OBJECT_SSFO IMPLEMENTATION.
     li_ixml = cl_ixml=>create( ).
     li_xml_doc = li_ixml->create_document( ).
 
-    CREATE OBJECT lo_sf.
+    lo_sf = NEW #( ).
     lv_formname = ms_item-obj_name. " convert type
     TRY.
         lo_sf->load( im_formname = lv_formname

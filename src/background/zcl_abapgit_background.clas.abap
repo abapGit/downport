@@ -4,18 +4,18 @@ CLASS zcl_abapgit_background DEFINITION
 
   PUBLIC SECTION.
 
-    TYPES: BEGIN OF ty_methods,
+    TYPES: BEGIN OF ty_method,
              class       TYPE seoclsname,
              description TYPE string,
-           END OF ty_methods.
+           END OF ty_method.
 
-    TYPES: ty_methods_tt TYPE SORTED TABLE OF ty_methods WITH UNIQUE KEY class.
+    TYPES: ty_methods TYPE SORTED TABLE OF ty_method WITH UNIQUE KEY class.
 
     CLASS-METHODS run
       RAISING
         zcx_abapgit_exception .
     CLASS-METHODS list_methods
-      RETURNING VALUE(rt_methods) TYPE ty_methods_tt.
+      RETURNING VALUE(rt_methods) TYPE ty_methods.
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
@@ -73,7 +73,7 @@ CLASS ZCL_ABAPGIT_BACKGROUND IMPLEMENTATION.
 
     DATA: lo_per        TYPE REF TO zcl_abapgit_persist_background,
           lo_repo       TYPE REF TO zcl_abapgit_repo_online,
-          lt_list       TYPE zcl_abapgit_persist_background=>tt_background,
+          lt_list       TYPE zcl_abapgit_persist_background=>ty_background_keys,
           li_background TYPE REF TO zif_abapgit_background,
           li_log        TYPE REF TO zif_abapgit_log,
           lv_repo_name  TYPE string.
@@ -95,7 +95,7 @@ CLASS ZCL_ABAPGIT_BACKGROUND IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    CREATE OBJECT lo_per.
+    lo_per = NEW #( ).
     lt_list = lo_per->list( ).
 
     WRITE: / 'Background mode'.
@@ -110,7 +110,7 @@ CLASS ZCL_ABAPGIT_BACKGROUND IMPLEMENTATION.
         iv_username = <ls_list>-username
         iv_password = <ls_list>-password ).
 
-      CREATE OBJECT li_log TYPE zcl_abapgit_log.
+      li_log = NEW zcl_abapgit_log( ).
       CREATE OBJECT li_background TYPE (<ls_list>-method).
 
       li_background->run(

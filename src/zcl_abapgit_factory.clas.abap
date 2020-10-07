@@ -51,20 +51,20 @@ CLASS zcl_abapgit_factory DEFINITION
         instance TYPE REF TO zif_abapgit_sap_package,
       END OF ty_sap_package .
     TYPES:
-      tty_sap_package TYPE HASHED TABLE OF ty_sap_package
+      ty_sap_packages TYPE HASHED TABLE OF ty_sap_package
                                     WITH UNIQUE KEY package .
     TYPES:
-      BEGIN OF ty_code_inspector,
+      BEGIN OF ty_code_inspector_pack,
         package  TYPE devclass,
         instance TYPE REF TO zif_abapgit_code_inspector,
-      END OF ty_code_inspector .
+      END OF ty_code_inspector_pack .
     TYPES:
-      tty_code_inspector TYPE HASHED TABLE OF ty_code_inspector
+      ty_code_inspector_packs TYPE HASHED TABLE OF ty_code_inspector_pack
                                        WITH UNIQUE KEY package .
 
     CLASS-DATA gi_tadir TYPE REF TO zif_abapgit_tadir .
-    CLASS-DATA gt_sap_package TYPE tty_sap_package .
-    CLASS-DATA gt_code_inspector TYPE tty_code_inspector .
+    CLASS-DATA gt_sap_package TYPE ty_sap_packages .
+    CLASS-DATA gt_code_inspector TYPE ty_code_inspector_packs .
     CLASS-DATA gi_stage_logic TYPE REF TO zif_abapgit_stage_logic .
     CLASS-DATA gi_cts_api TYPE REF TO zif_abapgit_cts_api .
     CLASS-DATA gi_environment TYPE REF TO zif_abapgit_environment .
@@ -79,7 +79,7 @@ CLASS ZCL_ABAPGIT_FACTORY IMPLEMENTATION.
 
   METHOD get_branch_overview.
 
-    CREATE OBJECT ri_branch_overview TYPE zcl_abapgit_branch_overview EXPORTING io_repo = io_repo.
+    ri_branch_overview = NEW zcl_abapgit_branch_overview( io_repo = io_repo ).
 
   ENDMETHOD.
 
@@ -87,14 +87,14 @@ CLASS ZCL_ABAPGIT_FACTORY IMPLEMENTATION.
   METHOD get_code_inspector.
 
     DATA: ls_code_inspector LIKE LINE OF gt_code_inspector.
-    FIELD-SYMBOLS: <ls_code_inspector> TYPE ty_code_inspector.
+    FIELD-SYMBOLS: <ls_code_inspector> TYPE ty_code_inspector_pack.
 
     READ TABLE gt_code_inspector ASSIGNING <ls_code_inspector>
       WITH TABLE KEY package = iv_package.
     IF sy-subrc <> 0.
       ls_code_inspector-package = iv_package.
 
-      CREATE OBJECT ls_code_inspector-instance TYPE zcl_abapgit_code_inspector EXPORTING iv_package = iv_package.
+      ls_code_inspector-instance = NEW zcl_abapgit_code_inspector( iv_package = iv_package ).
 
       INSERT ls_code_inspector
              INTO TABLE gt_code_inspector
@@ -109,7 +109,7 @@ CLASS ZCL_ABAPGIT_FACTORY IMPLEMENTATION.
 
   METHOD get_cts_api.
     IF gi_cts_api IS NOT BOUND.
-      CREATE OBJECT gi_cts_api TYPE zcl_abapgit_cts_api.
+      gi_cts_api = NEW zcl_abapgit_cts_api( ).
     ENDIF.
 
     ri_cts_api = gi_cts_api.
@@ -118,7 +118,7 @@ CLASS ZCL_ABAPGIT_FACTORY IMPLEMENTATION.
 
   METHOD get_environment.
     IF gi_environment IS NOT BOUND.
-      CREATE OBJECT gi_environment TYPE zcl_abapgit_environment.
+      gi_environment = NEW zcl_abapgit_environment( ).
     ENDIF.
     ri_environment = gi_environment.
   ENDMETHOD.
@@ -138,7 +138,7 @@ CLASS ZCL_ABAPGIT_FACTORY IMPLEMENTATION.
   METHOD get_longtexts.
 
     IF gi_longtext IS NOT BOUND.
-      CREATE OBJECT gi_longtext TYPE zcl_abapgit_longtexts.
+      gi_longtext = NEW zcl_abapgit_longtexts( ).
     ENDIF.
     ri_longtexts = gi_longtext.
 
@@ -155,7 +155,7 @@ CLASS ZCL_ABAPGIT_FACTORY IMPLEMENTATION.
     IF sy-subrc <> 0.
 
       ls_sap_package-package = iv_package.
-      CREATE OBJECT ls_sap_package-instance TYPE zcl_abapgit_sap_package EXPORTING iv_package = iv_package.
+      ls_sap_package-instance = NEW zcl_abapgit_sap_package( iv_package = iv_package ).
 
       INSERT ls_sap_package
              INTO TABLE gt_sap_package
@@ -171,7 +171,7 @@ CLASS ZCL_ABAPGIT_FACTORY IMPLEMENTATION.
   METHOD get_stage_logic.
 
     IF gi_stage_logic IS INITIAL.
-      CREATE OBJECT gi_stage_logic TYPE zcl_abapgit_stage_logic.
+      gi_stage_logic = NEW zcl_abapgit_stage_logic( ).
     ENDIF.
 
     ri_logic = gi_stage_logic.
@@ -182,7 +182,7 @@ CLASS ZCL_ABAPGIT_FACTORY IMPLEMENTATION.
   METHOD get_tadir.
 
     IF gi_tadir IS INITIAL.
-      CREATE OBJECT gi_tadir TYPE zcl_abapgit_tadir.
+      gi_tadir = NEW zcl_abapgit_tadir( ).
     ENDIF.
 
     ri_tadir = gi_tadir.

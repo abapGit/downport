@@ -65,7 +65,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_BKG IMPLEMENTATION.
 
   METHOD build_menu.
 
-    CREATE OBJECT ro_menu.
+    ro_menu = NEW #( ).
 
     ro_menu->add( iv_txt = 'Run background logic'
                   iv_act = zif_abapgit_definitions=>c_action-go_background_run ).
@@ -140,10 +140,10 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_BKG IMPLEMENTATION.
   METHOD read_persist.
 
     DATA: lo_per TYPE REF TO zcl_abapgit_persist_background,
-          lt_per TYPE zcl_abapgit_persist_background=>tt_background.
+          lt_per TYPE zcl_abapgit_persist_background=>ty_background_keys.
 
 
-    CREATE OBJECT lo_per.
+    lo_per = NEW #( ).
     lt_per = lo_per->list( ).
 
     READ TABLE lt_per INTO rs_persist WITH KEY key = io_repo->get_key( ).
@@ -164,7 +164,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_BKG IMPLEMENTATION.
     ls_per = read_persist( lo_repo ).
 
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div id="toc" class="settings_container">' ).
 
@@ -203,7 +203,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_BKG IMPLEMENTATION.
 
   METHOD render_content.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( render( ) ).
 
@@ -212,12 +212,12 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_BKG IMPLEMENTATION.
 
   METHOD render_methods.
 
-    DATA: lt_methods TYPE zcl_abapgit_background=>ty_methods_tt,
+    DATA: lt_methods TYPE zcl_abapgit_background=>ty_methods,
           ls_method  LIKE LINE OF lt_methods,
           lv_checked TYPE string.
 
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     lt_methods = zcl_abapgit_background=>list_methods( ).
 
@@ -253,7 +253,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_BKG IMPLEMENTATION.
           ls_setting  LIKE LINE OF lt_settings.
 
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     IF is_per-method IS INITIAL.
       RETURN.
@@ -290,7 +290,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_BKG IMPLEMENTATION.
 
     DATA lo_persistence TYPE REF TO zcl_abapgit_persist_background.
 
-    CREATE OBJECT lo_persistence.
+    lo_persistence = NEW #( ).
 
     IF is_bg_task-method IS INITIAL.
       lo_persistence->delete( is_bg_task-key ).

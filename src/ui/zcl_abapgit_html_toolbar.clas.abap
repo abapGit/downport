@@ -58,9 +58,9 @@ CLASS zcl_abapgit_html_toolbar DEFINITION
         title TYPE string,
       END OF ty_item .
     TYPES:
-      tt_items TYPE STANDARD TABLE OF ty_item .
+      ty_items TYPE STANDARD TABLE OF ty_item .
 
-    DATA mt_items TYPE tt_items .
+    DATA mt_items TYPE ty_items .
     DATA mv_id TYPE string .
 
     METHODS render_items
@@ -119,7 +119,7 @@ CLASS ZCL_ABAPGIT_HTML_TOOLBAR IMPLEMENTATION.
 
     DATA: lv_class TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     lv_class = 'nav-container'.
     IF iv_right = abap_true.
@@ -137,7 +137,7 @@ CLASS ZCL_ABAPGIT_HTML_TOOLBAR IMPLEMENTATION.
 
     DATA: lv_class TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     lv_class = 'nav-container'.
     IF iv_right = abap_true.
@@ -172,7 +172,7 @@ CLASS ZCL_ABAPGIT_HTML_TOOLBAR IMPLEMENTATION.
     FIELD-SYMBOLS <ls_item> LIKE LINE OF mt_items.
 
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     IF iv_sort = abap_true.
       SORT mt_items BY txt ASCENDING AS TEXT.

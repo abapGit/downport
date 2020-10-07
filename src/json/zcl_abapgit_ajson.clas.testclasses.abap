@@ -116,7 +116,7 @@ CLASS ltcl_parser_test IMPLEMENTATION.
     DATA lt_act TYPE zcl_abapgit_ajson=>ty_nodes_tt.
     DATA lo_nodes TYPE REF TO lcl_nodes_helper.
 
-    CREATE OBJECT lo_nodes.
+    lo_nodes = NEW #( ).
     lo_nodes->add( '                 |         |object |                        |  |8' ).
     lo_nodes->add( '/                |string   |str    |abc                     |  |0' ).
     lo_nodes->add( '/                |number   |num    |123                     |  |0' ).
@@ -147,7 +147,7 @@ CLASS ltcl_parser_test IMPLEMENTATION.
     lo_nodes->add( '/issues/2/end/   |col      |num    |22                      |  |0' ).
     lo_nodes->add( '/issues/2/       |filename |str    |./zxxx.prog.abap        |  |0' ).
 
-    CREATE OBJECT lo_cut.
+    lo_cut = NEW #( ).
     lt_act = lo_cut->parse( sample_json( ) ).
     cl_abap_unit_assert=>assert_equals(
       act = lt_act
@@ -299,7 +299,7 @@ CLASS ltcl_reader_test IMPLEMENTATION.
     DATA lo_cut TYPE REF TO zcl_abapgit_ajson.
     DATA lo_nodes TYPE REF TO lcl_nodes_helper.
 
-    CREATE OBJECT lo_nodes.
+    lo_nodes = NEW #( ).
     lo_nodes->add( '          |         |array  |                        |  |2' ).
     lo_nodes->add( '/         |1        |object |                        |1 |5' ).
     lo_nodes->add( '/1/       |message  |str    |Indentation problem ... |  |0' ).
@@ -331,7 +331,7 @@ CLASS ltcl_reader_test IMPLEMENTATION.
 
     " **********************************************************************
 
-    CREATE OBJECT lo_nodes.
+    lo_nodes = NEW #( ).
     lo_nodes->add( '                 |         |object |                        |  |8' ).
     lo_nodes->add( '/                |string   |str    |abc                     |  |0' ).
     lo_nodes->add( '/                |number   |num    |123                     |  |0' ).
@@ -370,7 +370,7 @@ CLASS ltcl_reader_test IMPLEMENTATION.
 
     " **********************************************************************
 
-    CREATE OBJECT lo_nodes.
+    lo_nodes = NEW #( ).
     lo_nodes->add( '  |         |object |                        | |2' ).
     lo_nodes->add( '/ |row      |num    |3                       | |0' ).
     lo_nodes->add( '/ |col      |num    |21                      | |0' ).
@@ -544,7 +544,7 @@ CLASS ltcl_reader_test IMPLEMENTATION.
     DATA lt_exp TYPE string_table.
     DATA lo_err TYPE REF TO zcx_abapgit_ajson_error.
 
-    CREATE OBJECT lo_nodes.
+    lo_nodes = NEW #( ).
     lo_nodes->add( '  |         |array  |                        | |6' ).
     lo_nodes->add( '/ |1        |num    |123                     |1|0' ).
     lo_nodes->add( '/ |2        |num    |234                     |2|0' ).
@@ -560,7 +560,7 @@ CLASS ltcl_reader_test IMPLEMENTATION.
     APPEND '' TO lt_exp.
     APPEND '' TO lt_exp.
 
-    CREATE OBJECT lo_cut.
+    lo_cut = NEW #( ).
     lo_cut->mt_json_tree = lo_nodes->mt_nodes.
 
     lt_act = lo_cut->zif_abapgit_ajson_reader~array_to_string_table( '/' ).
@@ -570,7 +570,7 @@ CLASS ltcl_reader_test IMPLEMENTATION.
 
     " negative
 
-    CREATE OBJECT lo_nodes.
+    lo_nodes = NEW #( ).
     lo_nodes->add( '  |         |object |                        | |1' ).
     lo_nodes->add( '/ |a        |str    |abc                     | |0' ).
     lo_cut->mt_json_tree = lo_nodes->mt_nodes.
@@ -602,7 +602,7 @@ CLASS ltcl_reader_test IMPLEMENTATION.
           exp = 'Array expected at: /a' ).
     ENDTRY.
 
-    CREATE OBJECT lo_nodes.
+    lo_nodes = NEW #( ).
     lo_nodes->add( '  |         |array  |                        | |1' ).
     lo_nodes->add( '/ |1        |object |                        |1|0' ).
     lo_cut->mt_json_tree = lo_nodes->mt_nodes.
@@ -624,10 +624,10 @@ CLASS ltcl_reader_test IMPLEMENTATION.
     DATA lo_nodes TYPE REF TO lcl_nodes_helper.
     DATA lv_exp TYPE d.
 
-    CREATE OBJECT lo_cut.
+    lo_cut = NEW #( ).
     lv_exp = '20200728'.
 
-    CREATE OBJECT lo_nodes.
+    lo_nodes = NEW #( ).
     lo_nodes->add( '  |         |object |                        | |1' ).
     lo_nodes->add( '/ |date1    |str    |2020-07-28              | |0' ).
     lo_cut->mt_json_tree = lo_nodes->mt_nodes.
@@ -636,7 +636,7 @@ CLASS ltcl_reader_test IMPLEMENTATION.
       act = lo_cut->zif_abapgit_ajson_reader~get_date( '/date1' )
       exp = lv_exp ).
 
-    CREATE OBJECT lo_nodes.
+    lo_nodes = NEW #( ).
     lo_nodes->add( '  |         |object |                        | |1' ).
     lo_nodes->add( '/ |date1    |str    |2020-07-28T01:00:00Z    | |0' ).
     lo_cut->mt_json_tree = lo_nodes->mt_nodes.
@@ -645,7 +645,7 @@ CLASS ltcl_reader_test IMPLEMENTATION.
       act = lo_cut->zif_abapgit_ajson_reader~get_date( '/date1' )
       exp = lv_exp ).
 
-    CREATE OBJECT lo_nodes.
+    lo_nodes = NEW #( ).
     lo_nodes->add( '  |         |object |                        | |1' ).
     lo_nodes->add( '/ |date1    |str    |20200728                | |0' ).
     lo_cut->mt_json_tree = lo_nodes->mt_nodes.
@@ -676,14 +676,14 @@ CLASS ltcl_json_to_abap DEFINITION
         a TYPE string,
         b TYPE i,
       END OF ty_struc,
-      tty_struc TYPE STANDARD TABLE OF ty_struc WITH DEFAULT KEY,
+      ty_struc_tt TYPE STANDARD TABLE OF ty_struc WITH DEFAULT KEY,
       BEGIN OF ty_complex,
         str   TYPE string,
         int   TYPE i,
         float TYPE f,
         bool  TYPE abap_bool,
         obj   TYPE ty_struc,
-        tab   TYPE tty_struc,
+        tab   TYPE ty_struc_tt,
         oref  TYPE REF TO object,
         date1 TYPE d,
         date2 TYPE d,
@@ -915,7 +915,7 @@ CLASS ltcl_json_to_abap IMPLEMENTATION.
         cv_obj = ls_mock
         co_instance = lo_cut ).
 
-    CREATE OBJECT lo_nodes.
+    lo_nodes = NEW #( ).
     lo_nodes->add( '/      |      |object |       | ' ).
     lo_nodes->add( '/      |str   |str    |hello  | ' ).
     lo_nodes->add( '/      |int   |num    |5      | ' ).
@@ -983,7 +983,7 @@ CLASS ltcl_json_to_abap IMPLEMENTATION.
         co_instance = lo_cut ).
 
     TRY.
-        CREATE OBJECT lo_nodes.
+        lo_nodes = NEW #( ).
         lo_nodes->add( '/    |      |object | ' ).
         lo_nodes->add( '/    |str   |object | ' ).
 
@@ -996,7 +996,7 @@ CLASS ltcl_json_to_abap IMPLEMENTATION.
     ENDTRY.
 
     TRY.
-        CREATE OBJECT lo_nodes.
+        lo_nodes = NEW #( ).
         lo_nodes->add( '/    |      |object | ' ).
         lo_nodes->add( '/    |str   |array  | ' ).
 
@@ -1009,7 +1009,7 @@ CLASS ltcl_json_to_abap IMPLEMENTATION.
     ENDTRY.
 
     TRY.
-        CREATE OBJECT lo_nodes.
+        lo_nodes = NEW #( ).
         lo_nodes->add( '/    |      |object |      ' ).
         lo_nodes->add( '/    |int   |str    |hello ' ).
 
@@ -1022,7 +1022,7 @@ CLASS ltcl_json_to_abap IMPLEMENTATION.
     ENDTRY.
 
     TRY.
-        CREATE OBJECT lo_nodes.
+        lo_nodes = NEW #( ).
         lo_nodes->add( '/    |      |object |        ' ).
         lo_nodes->add( '/    |date1 |str    |baddate ' ).
 
@@ -1063,7 +1063,7 @@ CLASS ltcl_integrated DEFINITION
         start    TYPE ty_loc,
         end      TYPE ty_loc,
       END OF ty_issue,
-      tt_issues TYPE STANDARD TABLE OF ty_issue WITH DEFAULT KEY,
+      ty_issues TYPE STANDARD TABLE OF ty_issue WITH DEFAULT KEY,
       BEGIN OF ty_target,
         string  TYPE string,
         number  TYPE i,
@@ -1072,7 +1072,7 @@ CLASS ltcl_integrated DEFINITION
         false   TYPE abap_bool,
         null    TYPE string,
         date    TYPE string, " ??? TODO
-        issues  TYPE tt_issues,
+        issues  TYPE ty_issues,
       END OF ty_target.
 
     METHODS reader FOR TESTING RAISING zcx_abapgit_ajson_error.

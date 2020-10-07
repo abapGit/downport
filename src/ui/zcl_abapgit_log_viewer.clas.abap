@@ -33,7 +33,7 @@ CLASS zcl_abapgit_log_viewer DEFINITION
         cell_type TYPE salv_t_int4_column,
       END OF ty_log_out.
     TYPES:
-      tty_log_out TYPE STANDARD TABLE OF ty_log_out
+      ty_log_outs TYPE STANDARD TABLE OF ty_log_out
                                 WITH NON-UNIQUE DEFAULT KEY.
 
     CLASS-METHODS:
@@ -41,7 +41,7 @@ CLASS zcl_abapgit_log_viewer DEFINITION
         IMPORTING
           ii_log            TYPE REF TO zif_abapgit_log
         RETURNING
-          VALUE(rt_log_out) TYPE tty_log_out,
+          VALUE(rt_log_out) TYPE ty_log_outs,
 
       show_longtext
         IMPORTING
@@ -86,7 +86,7 @@ CLASS zcl_abapgit_log_viewer DEFINITION
           VALUE(ro_exception_viewer) TYPE REF TO zcl_abapgit_exception_viewer.
 
     CLASS-DATA:
-      gt_log TYPE tty_log_out.
+      gt_log TYPE ty_log_outs.
 
 ENDCLASS.
 
@@ -163,7 +163,7 @@ CLASS ZCL_ABAPGIT_LOG_VIEWER IMPLEMENTATION.
     ASSERT is_log-exception IS BOUND.
     lx_abapgit ?= is_log-exception.
 
-    CREATE OBJECT ro_exception_viewer EXPORTING ix_error = lx_abapgit.
+    ro_exception_viewer = NEW #( ix_error = lx_abapgit ).
 
   ENDMETHOD.
 
@@ -217,7 +217,7 @@ CLASS ZCL_ABAPGIT_LOG_VIEWER IMPLEMENTATION.
 
   METHOD prepare_log_for_display.
 
-    DATA: lt_message      TYPE zif_abapgit_log=>tty_log_out,
+    DATA: lt_message      TYPE zif_abapgit_log=>ty_log_outs,
           lr_message      TYPE REF TO zif_abapgit_log=>ty_log_out,
           ls_log          TYPE ty_log_out,
           li_t100_message TYPE REF TO if_t100_message,
@@ -355,7 +355,7 @@ CLASS ZCL_ABAPGIT_LOG_VIEWER IMPLEMENTATION.
                                   start_line   = 4
                                   end_line     = 25 ).
 
-        CREATE OBJECT lo_form_header EXPORTING text = iv_header_text.
+        lo_form_header = NEW #( text = iv_header_text ).
 
         lo_alv->set_top_of_list( lo_form_header ).
 
@@ -425,12 +425,12 @@ CLASS ZCL_ABAPGIT_LOG_VIEWER IMPLEMENTATION.
 
   METHOD to_html.
 
-    DATA: lt_message TYPE zif_abapgit_log=>tty_log_out,
+    DATA: lt_message TYPE zif_abapgit_log=>ty_log_outs,
           lr_message TYPE REF TO zif_abapgit_log=>ty_log_out,
           lv_class   TYPE string,
           lv_icon    TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     IF ii_log->count( ) = 0.
       RETURN.
@@ -462,7 +462,7 @@ CLASS ZCL_ABAPGIT_LOG_VIEWER IMPLEMENTATION.
 
   METHOD write_log.
 
-    DATA: lt_message TYPE zif_abapgit_log=>tty_log_out,
+    DATA: lt_message TYPE zif_abapgit_log=>ty_log_outs,
           lr_message TYPE REF TO zif_abapgit_log=>ty_log_out,
           lv_text    TYPE string.
 

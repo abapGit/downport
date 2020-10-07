@@ -124,10 +124,10 @@ CLASS zcl_abapgit_settings DEFINITION PUBLIC CREATE PUBLIC.
           VALUE(rv_link_hint_key) TYPE string,
       set_hotkeys
         IMPORTING
-          it_hotkeys TYPE zif_abapgit_definitions=>tty_hotkey,
+          it_hotkeys TYPE zif_abapgit_definitions=>ty_hotkey_tt,
       get_hotkeys
         RETURNING
-          VALUE(rt_hotkeys) TYPE zif_abapgit_definitions=>tty_hotkey
+          VALUE(rt_hotkeys) TYPE zif_abapgit_definitions=>ty_hotkey_tt
         RAISING
           zcx_abapgit_exception,
       set_parallel_proc_disabled
@@ -180,7 +180,7 @@ ENDCLASS.
 
 
 
-CLASS zcl_abapgit_settings IMPLEMENTATION.
+CLASS ZCL_ABAPGIT_SETTINGS IMPLEMENTATION.
 
 
   METHOD get_activate_wo_popup.
@@ -273,7 +273,7 @@ CLASS zcl_abapgit_settings IMPLEMENTATION.
     DATA: li_output TYPE REF TO zif_abapgit_xml_output.
 
 
-    CREATE OBJECT li_output TYPE zcl_abapgit_xml_output.
+    li_output = NEW zcl_abapgit_xml_output( ).
 
     li_output->add( iv_name = zcl_abapgit_persistence_db=>c_type_settings
                     ig_data = ms_settings ).
@@ -467,7 +467,7 @@ CLASS zcl_abapgit_settings IMPLEMENTATION.
     DATA: lo_input TYPE REF TO zif_abapgit_xml_input.
 
 
-    CREATE OBJECT lo_input TYPE zcl_abapgit_xml_input EXPORTING iv_xml = iv_settings_xml.
+    lo_input = NEW zcl_abapgit_xml_input( iv_xml = iv_settings_xml ).
 
     CLEAR ms_settings.
 

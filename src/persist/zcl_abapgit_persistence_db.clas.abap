@@ -30,12 +30,12 @@ CLASS zcl_abapgit_persistence_db DEFINITION
         zcx_abapgit_exception .
     METHODS list
       RETURNING
-        VALUE(rt_content) TYPE zif_abapgit_persistence=>tt_content .
+        VALUE(rt_content) TYPE zif_abapgit_persistence=>ty_contents .
     METHODS list_by_type
       IMPORTING
         !iv_type          TYPE zif_abapgit_persistence=>ty_type
       RETURNING
-        VALUE(rt_content) TYPE zif_abapgit_persistence=>tt_content .
+        VALUE(rt_content) TYPE zif_abapgit_persistence=>ty_contents .
     METHODS lock
       IMPORTING
         !iv_mode  TYPE enqmode DEFAULT 'E'
@@ -120,7 +120,7 @@ CLASS ZCL_ABAPGIT_PERSISTENCE_DB IMPLEMENTATION.
   METHOD get_instance.
 
     IF go_db IS NOT BOUND.
-      CREATE OBJECT go_db.
+      go_db = NEW #( ).
     ENDIF.
     ro_db = go_db.
 

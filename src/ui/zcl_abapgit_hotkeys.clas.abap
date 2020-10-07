@@ -17,13 +17,13 @@ CLASS zcl_abapgit_hotkeys DEFINITION
     CLASS-METHODS:
       get_all_default_hotkeys
         RETURNING
-          VALUE(rt_hotkey_actions) TYPE zif_abapgit_gui_hotkeys=>tty_hotkey_with_descr
+          VALUE(rt_hotkey_actions) TYPE zif_abapgit_gui_hotkeys=>ty_hotkeys_with_descr
         RAISING
           zcx_abapgit_exception,
 
       merge_hotkeys_with_settings
         CHANGING
-          ct_hotkey_actions TYPE zif_abapgit_gui_hotkeys=>tty_hotkey_with_descr
+          ct_hotkey_actions TYPE zif_abapgit_gui_hotkeys=>ty_hotkeys_with_descr
         RAISING
           zcx_abapgit_exception.
 
@@ -59,15 +59,15 @@ CLASS zcl_abapgit_hotkeys DEFINITION
       IMPORTING
         !iv_class_name    TYPE seoclsname
       RETURNING
-        VALUE(rt_hotkeys) TYPE zif_abapgit_gui_hotkeys=>tty_hotkey_with_descr .
+        VALUE(rt_hotkeys) TYPE zif_abapgit_gui_hotkeys=>ty_hotkeys_with_descr .
     CLASS-METHODS get_hotkeys_from_global_intf
       RETURNING
-        VALUE(rt_hotkeys) TYPE zif_abapgit_gui_hotkeys=>tty_hotkey_with_descr
+        VALUE(rt_hotkeys) TYPE zif_abapgit_gui_hotkeys=>ty_hotkeys_with_descr
       RAISING
         zcx_abapgit_exception .
     CLASS-METHODS get_hotkeys_from_local_intf
       RETURNING
-        VALUE(rt_hotkeys) TYPE zif_abapgit_gui_hotkeys=>tty_hotkey_with_descr
+        VALUE(rt_hotkeys) TYPE zif_abapgit_gui_hotkeys=>ty_hotkeys_with_descr
       RAISING
         zcx_abapgit_exception .
     CLASS-METHODS get_local_intf_implementations
@@ -77,7 +77,7 @@ CLASS zcl_abapgit_hotkeys DEFINITION
         zcx_abapgit_exception .
     METHODS render_scripts
       IMPORTING
-        !it_hotkeys    TYPE zif_abapgit_gui_hotkeys=>tty_hotkey_with_descr
+        !it_hotkeys    TYPE zif_abapgit_gui_hotkeys=>ty_hotkeys_with_descr
       RETURNING
         VALUE(ri_html) TYPE REF TO zif_abapgit_html .
 ENDCLASS.
@@ -231,7 +231,7 @@ CLASS ZCL_ABAPGIT_HOTKEYS IMPLEMENTATION.
 
   METHOD merge_hotkeys_with_settings.
 
-    DATA lt_user_defined_hotkeys TYPE zif_abapgit_definitions=>tty_hotkey.
+    DATA lt_user_defined_hotkeys TYPE zif_abapgit_definitions=>ty_hotkey_tt.
     FIELD-SYMBOLS <ls_hotkey> LIKE LINE OF ct_hotkey_actions.
     FIELD-SYMBOLS <ls_user_defined_hotkey> LIKE LINE OF lt_user_defined_hotkeys.
 
@@ -270,7 +270,7 @@ CLASS ZCL_ABAPGIT_HOTKEYS IMPLEMENTATION.
 
     lv_json = lv_json && `}`.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
     ri_html->set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
     ri_html->add( |setKeyBindings({ lv_json });| ).
 
@@ -338,14 +338,14 @@ CLASS ZCL_ABAPGIT_HOTKEYS IMPLEMENTATION.
 
     DATA:
       lv_hint               TYPE string,
-      lt_registered_hotkeys TYPE zif_abapgit_gui_hotkeys=>tty_hotkey_with_descr,
+      lt_registered_hotkeys TYPE zif_abapgit_gui_hotkeys=>ty_hotkeys_with_descr,
       lv_hotkey             TYPE string.
 
     FIELD-SYMBOLS <ls_hotkey> LIKE LINE OF lt_registered_hotkeys.
 
     zif_abapgit_gui_hotkey_ctl~register_hotkeys( me ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     lt_registered_hotkeys = zif_abapgit_gui_hotkey_ctl~get_registered_hotkeys( ).
     SORT lt_registered_hotkeys BY ui_component description.

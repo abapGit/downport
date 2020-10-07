@@ -9,16 +9,16 @@ CLASS ltcl_xml DEFINITION FOR TESTING DURATION SHORT RISK LEVEL HARMLESS.
       down FOR TESTING
         RAISING zcx_abapgit_exception.
 
-    TYPES: BEGIN OF st_old,
+    TYPES: BEGIN OF ty_old,
              foo TYPE i,
              bar TYPE c LENGTH 1,
-           END OF st_old.
+           END OF ty_old.
 
-    TYPES: BEGIN OF st_new,
+    TYPES: BEGIN OF ty_new,
              foo TYPE i,
              bar TYPE c LENGTH 1,
              moo TYPE f,
-           END OF st_new.
+           END OF ty_new.
 
 ENDCLASS.
 
@@ -27,8 +27,8 @@ CLASS ltcl_xml IMPLEMENTATION.
 
   METHOD empty.
 
-    DATA: ls_old    TYPE st_old,
-          ls_new    TYPE st_new,
+    DATA: ls_old    TYPE ty_old,
+          ls_new    TYPE ty_new,
           lv_xml    TYPE string,
           lo_input  TYPE REF TO zcl_abapgit_xml_input,
           lo_output TYPE REF TO zcl_abapgit_xml_output.
@@ -36,12 +36,12 @@ CLASS ltcl_xml IMPLEMENTATION.
 
     CLEAR ls_old.
 
-    CREATE OBJECT lo_output.
+    lo_output = NEW #( ).
     lo_output->zif_abapgit_xml_output~add( iv_name = 'DATA'
                                            ig_data = ls_old ).
     lv_xml = lo_output->zif_abapgit_xml_output~render( ).
 
-    CREATE OBJECT lo_input EXPORTING iv_xml = lv_xml.
+    lo_input = NEW #( iv_xml = lv_xml ).
     lo_input->zif_abapgit_xml_input~read( EXPORTING iv_name = 'DATA'
                                           CHANGING cg_data = ls_new ).
 
@@ -57,8 +57,8 @@ CLASS ltcl_xml IMPLEMENTATION.
 
   METHOD up.
 
-    DATA: ls_old    TYPE st_old,
-          ls_new    TYPE st_new,
+    DATA: ls_old    TYPE ty_old,
+          ls_new    TYPE ty_new,
           lv_xml    TYPE string,
           lo_input  TYPE REF TO zcl_abapgit_xml_input,
           lo_output TYPE REF TO zcl_abapgit_xml_output.
@@ -67,12 +67,12 @@ CLASS ltcl_xml IMPLEMENTATION.
     ls_old-foo = 2.
     ls_old-bar = 'A'.
 
-    CREATE OBJECT lo_output.
+    lo_output = NEW #( ).
     lo_output->zif_abapgit_xml_output~add( iv_name = 'DATA'
                                            ig_data = ls_old ).
     lv_xml = lo_output->zif_abapgit_xml_output~render( ).
 
-    CREATE OBJECT lo_input EXPORTING iv_xml = lv_xml.
+    lo_input = NEW #( iv_xml = lv_xml ).
     lo_input->zif_abapgit_xml_input~read( EXPORTING iv_name = 'DATA'
                                           CHANGING cg_data = ls_new ).
 
@@ -88,8 +88,8 @@ CLASS ltcl_xml IMPLEMENTATION.
 
   METHOD down.
 
-    DATA: ls_old    TYPE st_old,
-          ls_new    TYPE st_new,
+    DATA: ls_old    TYPE ty_old,
+          ls_new    TYPE ty_new,
           lv_xml    TYPE string,
           lo_input  TYPE REF TO zcl_abapgit_xml_input,
           lo_output TYPE REF TO zcl_abapgit_xml_output.
@@ -99,12 +99,12 @@ CLASS ltcl_xml IMPLEMENTATION.
     ls_new-bar = 'A'.
     ls_new-moo = 5.
 
-    CREATE OBJECT lo_output.
+    lo_output = NEW #( ).
     lo_output->zif_abapgit_xml_output~add( iv_name = 'DATA'
                                            ig_data = ls_new ).
     lv_xml = lo_output->zif_abapgit_xml_output~render( ).
 
-    CREATE OBJECT lo_input EXPORTING iv_xml = lv_xml.
+    lo_input = NEW #( iv_xml = lv_xml ).
     lo_input->zif_abapgit_xml_input~read( EXPORTING iv_name = 'DATA'
                                           CHANGING cg_data = ls_old ).
 

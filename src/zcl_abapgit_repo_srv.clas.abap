@@ -30,6 +30,14 @@ CLASS zcl_abapgit_repo_srv DEFINITION
     DATA mv_init TYPE abap_bool VALUE abap_false ##NO_TEXT.
     DATA mt_list TYPE zif_abapgit_definitions=>ty_repo_ref_tt .
 
+    METHODS determine_branch_name
+      IMPORTING
+        !iv_name       TYPE string
+        !iv_url        TYPE string
+      RETURNING
+        VALUE(rv_name) TYPE string
+      RAISING
+        zcx_abapgit_exception .
     METHODS refresh
       RAISING
         zcx_abapgit_exception .
@@ -57,7 +65,7 @@ CLASS zcl_abapgit_repo_srv DEFINITION
     METHODS validate_sub_super_packages
       IMPORTING
         !iv_package    TYPE devclass
-        !it_repos      TYPE zif_abapgit_persistence=>tt_repo
+        !it_repos      TYPE zif_abapgit_persistence=>ty_repos
         !iv_ign_subpkg TYPE abap_bool DEFAULT abap_false
       EXPORTING
         VALUE(eo_repo) TYPE REF TO zcl_abapgit_repo
@@ -91,9 +99,28 @@ CLASS ZCL_ABAPGIT_REPO_SRV IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD determine_branch_name.
+
+    DATA lo_branch_list TYPE REF TO zcl_abapgit_git_branch_list.
+
+    rv_name = iv_name.
+    IF rv_name IS INITIAL.
+      ASSERT NOT iv_url IS INITIAL.
+      lo_branch_list = zcl_abapgit_git_transport=>branches( iv_url ).
+      rv_name = lo_branch_list->get_head_symref( ).
+    ELSEIF -1 = find(
+        val = rv_name
+        sub = zif_abapgit_definitions=>c_git_branch-heads_prefix ).
+      " Assume short branch name was received
+      rv_name = zif_abapgit_definitions=>c_git_branch-heads_prefix && rv_name.
+    ENDIF.
+
+  ENDMETHOD.
+
+
   METHOD get_instance.
     IF gi_ref IS INITIAL.
-      CREATE OBJECT gi_ref TYPE zcl_abapgit_repo_srv.
+      gi_ref = NEW zcl_abapgit_repo_srv( ).
     ENDIF.
     ri_srv = gi_ref.
   ENDMETHOD.
@@ -102,9 +129,9 @@ CLASS ZCL_ABAPGIT_REPO_SRV IMPLEMENTATION.
   METHOD instantiate_and_add.
 
     IF is_repo_meta-offline = abap_false.
-      CREATE OBJECT ro_repo TYPE zcl_abapgit_repo_online EXPORTING is_data = is_repo_meta.
+      ro_repo = NEW zcl_abapgit_repo_online( is_data = is_repo_meta ).
     ELSE.
-      CREATE OBJECT ro_repo TYPE zcl_abapgit_repo_offline EXPORTING is_data = is_repo_meta.
+      ro_repo = NEW zcl_abapgit_repo_offline( is_data = is_repo_meta ).
     ENDIF.
     add( ro_repo ).
 
@@ -125,7 +152,7 @@ CLASS ZCL_ABAPGIT_REPO_SRV IMPLEMENTATION.
 
   METHOD refresh.
 
-    DATA: lt_list TYPE zif_abapgit_persistence=>tt_repo.
+    DATA: lt_list TYPE zif_abapgit_persistence=>ty_repos.
 
     FIELD-SYMBOLS: <ls_list> LIKE LINE OF lt_list.
 
@@ -273,7 +300,7 @@ CLASS ZCL_ABAPGIT_REPO_SRV IMPLEMENTATION.
   METHOD zif_abapgit_repo_srv~get_repo_from_package.
 
     DATA:
-      lt_repos TYPE zif_abapgit_persistence=>tt_repo,
+      lt_repos TYPE zif_abapgit_persistence=>ty_repos,
       lv_name  TYPE zif_abapgit_persistence=>ty_local_settings-display_name,
       lv_owner TYPE zif_abapgit_persistence=>ty_local_settings-display_name.
 
@@ -400,25 +427,18 @@ CLASS ZCL_ABAPGIT_REPO_SRV IMPLEMENTATION.
     ASSERT NOT iv_url IS INITIAL
       AND NOT iv_package IS INITIAL.
 
-    lv_branch_name = iv_branch_name.
-    IF lv_branch_name IS INITIAL.
-      lv_branch_name = zif_abapgit_definitions=>c_git_branch-master.
-    ENDIF.
-    IF -1 = find(
-        val = lv_branch_name
-        sub = zif_abapgit_definitions=>c_git_branch-heads_prefix ).
-      " Assume short branch name was received
-      lv_branch_name = zif_abapgit_definitions=>c_git_branch-heads_prefix && lv_branch_name.
-    ENDIF.
-
     IF zcl_abapgit_auth=>is_allowed( zif_abapgit_auth=>gc_authorization-create_repo ) = abap_false.
       zcx_abapgit_exception=>raise( 'Not authorized' ).
     ENDIF.
 
-    validate_package( iv_package = iv_package
+    validate_package( iv_package    = iv_package
                       iv_ign_subpkg = iv_ign_subpkg ).
 
-    zcl_abapgit_url=>validate( |{ iv_url }| ).
+    zcl_abapgit_url=>validate( iv_url ).
+
+    lv_branch_name = determine_branch_name(
+      iv_name = iv_branch_name
+      iv_url  = iv_url ).
 
     ls_dot_abapgit = zcl_abapgit_dot_abapgit=>build_default( )->get_data( ).
     ls_dot_abapgit-folder_logic = iv_folder_logic.
