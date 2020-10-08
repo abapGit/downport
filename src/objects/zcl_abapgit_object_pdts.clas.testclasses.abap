@@ -166,7 +166,7 @@ CLASS ltd_mock IMPLEMENTATION.
 
   METHOD create_input_xml.
     generate( ).
-    CREATE OBJECT ri_result TYPE zcl_abapgit_xml_input EXPORTING iv_xml = mv_xml.
+    ri_result = NEW zcl_abapgit_xml_input( iv_xml = mv_xml ).
   ENDMETHOD.
 
 
@@ -247,13 +247,13 @@ CLASS ltc_turnaround_test IMPLEMENTATION.
     ls_item-obj_name = ltd_mock=>mc_task_id.
 
     TRY.
-        CREATE OBJECT mo_cut TYPE zcl_abapgit_object_pdts EXPORTING is_item = ls_item
-                                                                    iv_language = sy-langu.
+        mo_cut = NEW zcl_abapgit_object_pdts( is_item = ls_item
+                                              iv_language = sy-langu ).
       CATCH zcx_abapgit_exception.
         cl_abap_unit_assert=>fail( ).
     ENDTRY.
 
-    CREATE OBJECT mo_mock.
+    mo_mock = NEW #( ).
 
   ENDMETHOD.
 
@@ -303,7 +303,7 @@ CLASS ltc_turnaround_test IMPLEMENTATION.
 
   METHOD serialize_task.
 
-    CREATE OBJECT mi_output_xml TYPE zcl_abapgit_xml_output.
+    mi_output_xml = NEW zcl_abapgit_xml_output( ).
     mo_cut->serialize( io_xml = mi_output_xml ).
     rv_result = mi_output_xml->render( ).
 
@@ -366,8 +366,8 @@ CLASS ltc_lock IMPLEMENTATION.
     ls_item-obj_type = 'PDTS'.
     ls_item-obj_name = 'TS' && lv_taskid.
 
-    CREATE OBJECT lo_cut TYPE zcl_abapgit_object_pdts EXPORTING is_item = ls_item
-                                                                iv_language = sy-langu.
+    lo_cut = NEW zcl_abapgit_object_pdts( is_item = ls_item
+                                          iv_language = sy-langu ).
 
     cl_abap_unit_assert=>assert_true( lo_cut->is_locked( ) ).
 
@@ -439,8 +439,8 @@ CLASS ltc_smoke_test IMPLEMENTATION.
     ls_item-obj_name = ltd_mock=>mc_task_id.
 
     TRY.
-        CREATE OBJECT mo_cut TYPE zcl_abapgit_object_pdts EXPORTING is_item = ls_item
-                                                                    iv_language = sy-langu.
+        mo_cut = NEW zcl_abapgit_object_pdts( is_item = ls_item
+                                              iv_language = sy-langu ).
       CATCH zcx_abapgit_exception.
         cl_abap_unit_assert=>fail( ).
     ENDTRY.
