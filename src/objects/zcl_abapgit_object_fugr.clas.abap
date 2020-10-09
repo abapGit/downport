@@ -559,8 +559,6 @@ CLASS ZCL_ABAPGIT_OBJECT_FUGR IMPLEMENTATION.
     CALL FUNCTION 'RS_GET_ALL_INCLUDES'
       EXPORTING
         program      = lv_program
-*       WITH_RESERVED_INCLUDES =
-*       WITH_CLASS_INCLUDES    = ' ' hmm, todo
       TABLES
         includetab   = rt_includes
       EXCEPTIONS
@@ -929,8 +927,8 @@ CLASS ZCL_ABAPGIT_OBJECT_FUGR IMPLEMENTATION.
 
     LOOP AT it_includes INTO lv_include.
 
-      CREATE OBJECT lo_cross EXPORTING p_name = lv_include
-                                       p_include = lv_include.
+      lo_cross = NEW #( p_name = lv_include
+                        p_include = lv_include ).
 
       lo_cross->index_actualize( ).
 

@@ -89,7 +89,7 @@ CLASS ZCL_ABAPGIT_STRING_MAP IMPLEMENTATION.
 
 
   METHOD create.
-    CREATE OBJECT ro_instance.
+    ro_instance = NEW #( ).
   ENDMETHOD.
 
 
