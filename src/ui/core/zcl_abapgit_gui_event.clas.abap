@@ -59,7 +59,7 @@ CLASS ZCL_ABAPGIT_GUI_EVENT IMPLEMENTATION.
   METHOD fields_to_map.
     FIELD-SYMBOLS <ls_field> LIKE LINE OF it_fields.
 
-    CREATE OBJECT ro_string_map.
+    ro_string_map = NEW #( ).
     LOOP AT it_fields ASSIGNING <ls_field>.
       ro_string_map->set(
         iv_key = <ls_field>-name
