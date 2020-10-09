@@ -19,16 +19,16 @@ CLASS ltcl_event IMPLEMENTATION.
     DATA lo_map TYPE REF TO zcl_abapgit_string_map.
     DATA lo_x TYPE REF TO zcx_abapgit_exception.
 
-    CREATE OBJECT li_cut TYPE zcl_abapgit_gui_event EXPORTING iv_action = 'XXX'
-                                                              iv_getdata = 'not_a_param'.
+    li_cut = NEW zcl_abapgit_gui_event( iv_action = 'XXX'
+                                        iv_getdata = 'not_a_param' ).
 
     lo_map = li_cut->query( ).
     cl_abap_unit_assert=>assert_equals(
       act = lo_map->size( )
       exp = 0 ).
 
-    CREATE OBJECT li_cut TYPE zcl_abapgit_gui_event EXPORTING iv_action = 'XXX'
-                                                              iv_getdata = 'a=b&b=c'.
+    li_cut = NEW zcl_abapgit_gui_event( iv_action = 'XXX'
+                                        iv_getdata = 'a=b&b=c' ).
 
     " Cross check just in case
     cl_abap_unit_assert=>assert_equals(
@@ -82,7 +82,7 @@ CLASS ltcl_event IMPLEMENTATION.
     DATA lo_x TYPE REF TO zcx_abapgit_exception.
     DATA lt_postdata TYPE cnht_post_data_tab.
 
-    CREATE OBJECT li_cut TYPE zcl_abapgit_gui_event EXPORTING iv_action = 'XXX'.
+    li_cut = NEW zcl_abapgit_gui_event( iv_action = 'XXX' ).
 
     lo_map = li_cut->form_data( ).
     cl_abap_unit_assert=>assert_equals(
@@ -90,8 +90,8 @@ CLASS ltcl_event IMPLEMENTATION.
       exp = 0 ).
 
     APPEND 'a=b&b=c' TO lt_postdata.
-    CREATE OBJECT li_cut TYPE zcl_abapgit_gui_event EXPORTING iv_action = 'XXX'
-                                                              it_postdata = lt_postdata.
+    li_cut = NEW zcl_abapgit_gui_event( iv_action = 'XXX'
+                                        it_postdata = lt_postdata ).
 
     " Cross check just in case
     cl_abap_unit_assert=>assert_equals(
