@@ -222,7 +222,7 @@ CLASS ltcl_news IMPLEMENTATION.
     DATA lo_log_entries TYPE REF TO lcl_log_entries.
 
     " Generate test data
-    CREATE OBJECT lo_src_text_buf.
+    lo_src_text_buf = NEW #( ).
     lo_src_text_buf->add( '======' ).
     lo_src_text_buf->add( '------' ).
     lo_src_text_buf->add( `      ` ).
@@ -239,7 +239,7 @@ CLASS ltcl_news IMPLEMENTATION.
 
     " Case 1
     " Generate expected results
-    CREATE OBJECT lo_log_entries.
+    lo_log_entries = NEW #( ).
     "                   VERSION  HEAD IMP POS  TEXT
     lo_log_entries->add( '1.28.0 /X   /   /1   /2017-02-13 v1.28.0' ).
     lo_log_entries->add( '1.28.0 /    /   /0   /+ Staging page redesigned' ).
@@ -257,7 +257,7 @@ CLASS ltcl_news IMPLEMENTATION.
 
 
     " Case 2 (exect version match)
-    CREATE OBJECT lo_log_entries.
+    lo_log_entries = NEW #( ).
     "                   VERSION  HEAD IMP UPD TEXT
     lo_log_entries->add( '1.28.0 /X  /   /1   /2017-02-13 v1.28.0' ).
     lo_log_entries->add( '1.28.0 /   /   /0   /+ Staging page redesigned' ).
@@ -272,7 +272,7 @@ CLASS ltcl_news IMPLEMENTATION.
       msg = ' Error during parsing: Case 2.' ).
 
     " Case 3 (display tail)
-    CREATE OBJECT lo_log_entries.
+    lo_log_entries = NEW #( ).
     "                   VERSION  HEAD IMP UPD TEXT
     lo_log_entries->add( '1.28.0 /X  /   /0   /2017-02-13 v1.28.0' ).
     lo_log_entries->add( '1.28.0 /   /   /0   /+ Staging page redesigned' ).
