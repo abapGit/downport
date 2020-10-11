@@ -56,7 +56,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DB_EDIT IMPLEMENTATION.
 
     DATA lo_map TYPE REF TO zcl_abapgit_string_map.
 
-    lo_map = ii_event->form_data( iv_upper_cased = abap_true ).
+    lo_map = ii_event->form_data( ).
     rs_content-type     = lo_map->get( 'TYPE' ).
     rs_content-value    = lo_map->get( 'VALUE' ).
     rs_content-data_str = lo_map->get( 'XMLDATA' ).
@@ -87,8 +87,8 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DB_EDIT IMPLEMENTATION.
     lv_data = escape( val    = zcl_abapgit_xml_pretty=>print( lv_data )
                       format = cl_abap_format=>e_html_attr ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
-    CREATE OBJECT lo_toolbar.
+    ri_html = NEW zcl_abapgit_html( ).
+    lo_toolbar = NEW #( ).
     lo_toolbar->add( iv_act = 'submitFormById(''db_form'');'
                      iv_txt = 'Save'
                      iv_typ = zif_abapgit_html=>c_action_type-onclick
