@@ -398,8 +398,8 @@ CLASS ZCL_ABAPGIT_POPUPS IMPLEMENTATION.
   METHOD popup_get_from_free_selections.
     DATA: lo_free_sel_dialog TYPE REF TO zcl_abapgit_free_sel_dialog.
 
-    CREATE OBJECT lo_free_sel_dialog EXPORTING iv_title = iv_title
-                                               iv_frame_text = iv_frame_text.
+    lo_free_sel_dialog = NEW #( iv_title = iv_title
+                                iv_frame_text = iv_frame_text ).
 
     lo_free_sel_dialog->set_fields( CHANGING ct_fields = ct_fields ).
     lo_free_sel_dialog->show( ).
@@ -691,39 +691,6 @@ CLASS ZCL_ABAPGIT_POPUPS IMPLEMENTATION.
       CATCH zcx_abapgit_cancel.
         ev_cancel = abap_true.
     ENDTRY.
-
-  ENDMETHOD.
-
-
-  METHOD zif_abapgit_popups~package_popup_callback.
-
-    DATA: ls_package_data TYPE scompkdtln,
-          lv_create       TYPE abap_bool.
-
-    FIELD-SYMBOLS: <ls_fpackage> LIKE LINE OF ct_fields.
-
-    CLEAR cs_error.
-
-    IF iv_code = 'COD1'.
-      cv_show_popup = abap_true.
-
-      READ TABLE ct_fields ASSIGNING <ls_fpackage> WITH KEY fieldname = 'DEVCLASS'.
-      ASSERT sy-subrc = 0.
-      ls_package_data-devclass = <ls_fpackage>-value.
-
-      zif_abapgit_popups~popup_to_create_package(
-        IMPORTING
-          es_package_data = ls_package_data
-          ev_create       = lv_create ).
-      IF lv_create = abap_false.
-        RETURN.
-      ENDIF.
-
-      zcl_abapgit_factory=>get_sap_package( ls_package_data-devclass )->create( ls_package_data ).
-      COMMIT WORK.
-
-      <ls_fpackage>-value = ls_package_data-devclass.
-    ENDIF.
 
   ENDMETHOD.
 
@@ -1124,7 +1091,7 @@ CLASS ZCL_ABAPGIT_POPUPS IMPLEMENTATION.
         ENDIF.
 
         IF iv_header_text CN ' _0'.
-          CREATE OBJECT lo_table_header EXPORTING text = iv_header_text.
+          lo_table_header = NEW #( text = iv_header_text ).
           mo_select_list_popup->set_top_of_list( lo_table_header ).
         ENDIF.
 
