@@ -143,7 +143,7 @@ CLASS ZCL_ABAPGIT_USER_MASTER_RECORD IMPLEMENTATION.
     IF sy-subrc = 0.
       ro_user = <ls_user>-o_user.
     ELSE.
-      ro_user = NEW #( iv_user = iv_user ).
+      CREATE OBJECT ro_user EXPORTING iv_user = iv_user.
     ENDIF.
 
   ENDMETHOD.
