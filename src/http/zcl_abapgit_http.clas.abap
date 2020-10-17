@@ -79,14 +79,6 @@ CLASS ZCL_ABAPGIT_HTTP IMPLEMENTATION.
         iv_login = lv_user ).
     ENDIF.
 
-    " Offer two factor authentication if it is available and required
-    zcl_abapgit_2fa_auth_registry=>use_2fa_if_required(
-      EXPORTING
-        iv_url      = iv_url
-      CHANGING
-        cv_username = lv_user
-        cv_password = lv_pass ).
-
     rv_scheme = ii_client->response->get_header_field( 'www-authenticate' ).
     FIND REGEX '^(\w+)' IN rv_scheme SUBMATCHES rv_scheme.
 
@@ -94,9 +86,9 @@ CLASS ZCL_ABAPGIT_HTTP IMPLEMENTATION.
       WHEN c_scheme-digest.
 * https://en.wikipedia.org/wiki/Digest_access_authentication
 * e.g. used by https://www.gerritcodereview.com/
-        CREATE OBJECT lo_digest EXPORTING ii_client = ii_client
-                                          iv_username = lv_user
-                                          iv_password = lv_pass.
+        lo_digest = NEW #( ii_client = ii_client
+                           iv_username = lv_user
+                           iv_password = lv_pass ).
         lo_digest->run( ii_client ).
         io_client->set_digest( lo_digest ).
       WHEN OTHERS.
@@ -130,7 +122,7 @@ CLASS ZCL_ABAPGIT_HTTP IMPLEMENTATION.
           lv_text                TYPE string.
 
 
-    CREATE OBJECT lo_proxy_configuration.
+    lo_proxy_configuration = NEW #( ).
 
     li_client = zcl_abapgit_exit=>get_instance( )->create_http_client( iv_url ).
 
@@ -168,7 +160,7 @@ CLASS ZCL_ABAPGIT_HTTP IMPLEMENTATION.
       zcl_abapgit_proxy_auth=>run( li_client ).
     ENDIF.
 
-    CREATE OBJECT ro_client EXPORTING ii_client = li_client.
+    ro_client = NEW #( ii_client = li_client ).
 
     IF is_local_system( iv_url ) = abap_true.
       li_client->send_sap_logon_ticket( ).
