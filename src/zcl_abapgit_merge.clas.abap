@@ -111,7 +111,7 @@ CLASS ZCL_ABAPGIT_MERGE IMPLEMENTATION.
 
     lt_files = all_files( ).
 
-    CREATE OBJECT ms_merge-stage EXPORTING iv_merge_source = ms_merge-source-sha1.
+    ms_merge-stage = NEW #( iv_merge_source = ms_merge-source-sha1 ).
 
     LOOP AT lt_files ASSIGNING <ls_file>.
 
@@ -431,13 +431,13 @@ CLASS ZCL_ABAPGIT_MERGE IMPLEMENTATION.
 
     ms_merge-stree = zcl_abapgit_git_porcelain=>full_tree(
       it_objects = mt_objects
-      iv_branch  = ms_merge-source-sha1 ).
+      iv_parent  = ms_merge-source-sha1 ).
     ms_merge-ttree = zcl_abapgit_git_porcelain=>full_tree(
       it_objects = mt_objects
-      iv_branch  = ms_merge-target-sha1 ).
+      iv_parent  = ms_merge-target-sha1 ).
     ms_merge-ctree = zcl_abapgit_git_porcelain=>full_tree(
       it_objects = mt_objects
-      iv_branch  = ms_merge-common-commit ).
+      iv_parent  = ms_merge-common-commit ).
 
     calculate_result( ).
 
