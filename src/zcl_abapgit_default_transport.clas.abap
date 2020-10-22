@@ -115,7 +115,7 @@ CLASS ZCL_ABAPGIT_DEFAULT_TRANSPORT IMPLEMENTATION.
   METHOD get_instance.
 
     IF go_instance IS NOT BOUND.
-      CREATE OBJECT go_instance.
+      go_instance = NEW #( ).
     ENDIF.
 
     ro_instance = go_instance.
@@ -204,6 +204,7 @@ CLASS ZCL_ABAPGIT_DEFAULT_TRANSPORT IMPLEMENTATION.
     CALL FUNCTION 'TR_TASK_SET'
       EXPORTING
         iv_order          = iv_transport
+        iv_validdays      = 1
       EXCEPTIONS
         invalid_username  = 1
         invalid_category  = 2
