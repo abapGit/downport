@@ -87,7 +87,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_REPO_SETT IMPLEMENTATION.
 
   METHOD render_content.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( `<div class="repo">` ).
     ri_html->add( zcl_abapgit_gui_chunk_lib=>render_repo_top( io_repo        = mo_repo
@@ -312,7 +312,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_REPO_SETT IMPLEMENTATION.
     ii_html->add( render_table_row(
       iv_name  = 'Current remote'
       iv_value = |{ lo_repo_online->get_url( )
-      } <span class="grey">@{ lo_repo_online->get_branch_name( ) }</span>| ) ).
+      } <span class="grey">@{ lo_repo_online->get_selected_branch( ) }</span>| ) ).
     ii_html->add( render_table_row(
       iv_name  = 'Switched origin'
       iv_value = |<input name="switched_origin" type="text" size="60" value="{

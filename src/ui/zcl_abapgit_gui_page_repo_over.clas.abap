@@ -104,7 +104,8 @@ CLASS zcl_abapgit_gui_page_repo_over DEFINITION
           iv_display_name TYPE string OPTIONAL
           iv_css_class    TYPE string OPTIONAL
           iv_add_tz       TYPE abap_bool OPTIONAL
-          iv_title        TYPE string OPTIONAL.
+          iv_title        TYPE string OPTIONAL
+          iv_allow_order_by TYPE any OPTIONAL.
 
     METHODS render_scripts
       RETURNING
@@ -270,7 +271,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_REPO_OVER IMPLEMENTATION.
 
   METHOD render_scripts.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
     ri_html->add( 'setInitialFocus("filter");' ).
@@ -442,64 +443,76 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_REPO_OVER IMPLEMENTATION.
 
     _add_column(
       iv_tech_name = 'FAVORITE'
-      iv_css_class = 'wmin' ).
+      iv_css_class = 'wmin'
+      iv_allow_order_by = abap_false ).
 
     _add_column(
       iv_tech_name = 'TYPE'
-      iv_css_class = 'wmin' ).
+      iv_css_class = 'wmin'
+      iv_allow_order_by = abap_false ).
 
     _add_column(
       iv_tech_name = 'NAME'
-      iv_display_name = 'Name' ).
+      iv_display_name = 'Name'
+      iv_allow_order_by = abap_true ).
 
     _add_column(
       iv_tech_name = 'URL'
-      iv_display_name = 'Url' ).
+      iv_display_name = 'Url'
+      iv_allow_order_by = abap_true ).
 
     _add_column(
       iv_tech_name = 'PACKAGE'
-      iv_display_name = 'Package' ).
+      iv_display_name = 'Package'
+      iv_allow_order_by = abap_true ).
 
     _add_column(
       iv_tech_name = 'BRANCH'
-      iv_display_name = 'Branch' ).
+      iv_display_name = 'Branch'
+      iv_allow_order_by = abap_true ).
 
     _add_column(
       iv_tech_name = 'DESERIALIZED_BY'
       iv_display_name = 'Deserialized by'
-      iv_css_class = 'ro-detail' ).
+      iv_css_class = 'ro-detail'
+      iv_allow_order_by = abap_true ).
 
     _add_column(
       iv_tech_name = 'DESERIALIZED_AT'
       iv_display_name = 'Deserialized at'
       iv_css_class = 'ro-detail'
-      iv_add_tz = abap_true ).
+      iv_allow_order_by = abap_true ).
 
     _add_column(
       iv_tech_name = 'CREATED_BY'
       iv_display_name = 'Created by'
-      iv_css_class = 'ro-detail' ).
+      iv_css_class = 'ro-detail'
+      iv_allow_order_by = abap_true ).
 
 
     _add_column(
       iv_tech_name = 'CREATED_AT'
       iv_display_name = 'Created at'
       iv_css_class = 'ro-detail'
-      iv_add_tz = abap_true ).
+      iv_add_tz = abap_true
+      iv_allow_order_by = abap_true ).
 
     _add_column(
       iv_tech_name = 'KEY'
       iv_display_name = 'Key'
-      iv_css_class = 'ro-detail' ).
+      iv_css_class = 'ro-detail'
+      iv_allow_order_by = abap_true ).
 
     _add_column(
       iv_tech_name = 'ACTION'
       iv_display_name = 'Action'
-      iv_css_class = 'ro-action' ).
+      iv_css_class = 'ro-action'
+      iv_allow_order_by = abap_false ).
 
     _add_column(
       iv_tech_name = 'GO'
-      iv_css_class = 'ro-go' ).
+      iv_css_class = 'ro-go'
+      iv_allow_order_by = abap_false ).
 
     ii_html->add( |<thead>| ).
     ii_html->add( |<tr>| ).
@@ -519,7 +532,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_REPO_OVER IMPLEMENTATION.
 
     DATA lv_attrs TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     IF iv_value IS NOT INITIAL.
       lv_attrs = | value="{ iv_value }"|.
@@ -568,7 +581,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_REPO_OVER IMPLEMENTATION.
     apply_order_by( CHANGING ct_overview = mt_overview ).
     apply_filter( CHANGING ct_overview = mt_overview ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     render_header_bar( ri_html ).
     render_table( ii_html     = ri_html
@@ -588,5 +601,6 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_REPO_OVER IMPLEMENTATION.
     <ls_col>-title = iv_title.
     <ls_col>-css_class = iv_css_class.
     <ls_col>-add_tz = iv_add_tz.
+    <ls_col>-allow_order_by = iv_allow_order_by.
   ENDMETHOD.
 ENDCLASS.
