@@ -29,6 +29,9 @@ CLASS ltcl_repo_online IMPLEMENTATION.
     ls_provider_urls-repo_url = |https://github.com/abapGit/abapGit.git|.
     ls_provider_urls-show_url = |https://github.com/abapGit/abapGit/commit/{ lv_testhash }|.
     APPEND ls_provider_urls TO lt_test_urls.
+    ls_provider_urls-repo_url = |http://github.com/abapGit/abapGit.git|.
+    ls_provider_urls-show_url = |http://github.com/abapGit/abapGit/commit/{ lv_testhash }|.
+    APPEND ls_provider_urls TO lt_test_urls.
     ls_provider_urls-repo_url = |https://bitbucket.org/abapGit/abapGit.git|.
     ls_provider_urls-show_url = |https://bitbucket.org/abapGit/abapGit/commits/{ lv_testhash }|.
     APPEND ls_provider_urls TO lt_test_urls.
@@ -42,9 +45,9 @@ CLASS ltcl_repo_online IMPLEMENTATION.
       ls_online_repo-branch_name = |master|.
       ls_online_repo-offline = abap_false.
 
-      CREATE OBJECT lr_test_repo EXPORTING is_data = ls_online_repo.
+      lr_test_repo = NEW #( is_data = ls_online_repo ).
 
-      lv_show_url = lr_test_repo->get_commit_display_url( iv_hash = lv_testhash ).
+      lv_show_url = lr_test_repo->get_default_commit_display_url( iv_hash = lv_testhash ).
 
       cl_aunit_assert=>assert_equals( exp  = <ls_provider_urls>-show_url
                                       act  = lv_show_url
