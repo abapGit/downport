@@ -108,7 +108,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_OBJECT_TABL IMPLEMENTATION.
+CLASS zcl_abapgit_object_tabl IMPLEMENTATION.
 
 
   METHOD clear_dd03p_fields.
@@ -369,6 +369,16 @@ CLASS ZCL_ABAPGIT_OBJECT_TABL IMPLEMENTATION.
         zcx_abapgit_exception=>raise( |error from DDIF_TABL_PUT @TEXTS, { sy-subrc }| ).
       ENDIF.
     ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD is_db_table_category.
+
+    " values from domain TABCLASS
+    rv_is_db_table_type = boolc( iv_tabclass = 'TRANSP'
+                              OR iv_tabclass = 'CLUSTER'
+                              OR iv_tabclass = 'POOL' ).
 
   ENDMETHOD.
 
@@ -810,13 +820,13 @@ CLASS ZCL_ABAPGIT_OBJECT_TABL IMPLEMENTATION.
           li_local_version_input  TYPE REF TO zif_abapgit_xml_input.
 
 
-    CREATE OBJECT li_local_version_output TYPE zcl_abapgit_xml_output.
+    li_local_version_output = NEW zcl_abapgit_xml_output( ).
 
-    me->zif_abapgit_object~serialize( li_local_version_output ).
+    zif_abapgit_object~serialize( li_local_version_output ).
 
-    CREATE OBJECT li_local_version_input TYPE zcl_abapgit_xml_input EXPORTING iv_xml = li_local_version_output->render( ).
+    li_local_version_input = NEW zcl_abapgit_xml_input( iv_xml = li_local_version_output->render( ) ).
 
-    CREATE OBJECT ri_comparator TYPE zcl_abapgit_object_tabl_compar EXPORTING ii_local = li_local_version_input.
+    ri_comparator = NEW zcl_abapgit_object_tabl_compar( ii_local = li_local_version_input ).
 
   ENDMETHOD.
 
@@ -991,15 +1001,4 @@ CLASS ZCL_ABAPGIT_OBJECT_TABL IMPLEMENTATION.
                  ig_data = ls_extras ).
 
   ENDMETHOD.
-
-
-  METHOD is_db_table_category.
-
-    " values from domain TABCLASS
-    rv_is_db_table_type = boolc( iv_tabclass = 'TRANSP'
-                              OR iv_tabclass = 'CLUSTER'
-                              OR iv_tabclass = 'POOL' ).
-
-  ENDMETHOD.
-
 ENDCLASS.

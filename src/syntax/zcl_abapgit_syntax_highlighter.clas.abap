@@ -82,7 +82,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_SYNTAX_HIGHLIGHTER IMPLEMENTATION.
+CLASS zcl_abapgit_syntax_highlighter IMPLEMENTATION.
 
 
   METHOD add_rule.
@@ -90,8 +90,8 @@ CLASS ZCL_ABAPGIT_SYNTAX_HIGHLIGHTER IMPLEMENTATION.
     DATA ls_rule LIKE LINE OF mt_rules.
 
     IF NOT iv_regex IS INITIAL.
-      CREATE OBJECT ls_rule-regex EXPORTING pattern = iv_regex
-                                            ignore_case = abap_true.
+      ls_rule-regex = NEW #( pattern = iv_regex
+                             ignore_case = abap_true ).
     ENDIF.
 
     ls_rule-token         = iv_token.
@@ -121,15 +121,15 @@ CLASS ZCL_ABAPGIT_SYNTAX_HIGHLIGHTER IMPLEMENTATION.
 
     " Create instance of highighter dynamically dependent on syntax type
     IF iv_filename CP '*.abap'.
-      CREATE OBJECT ro_instance TYPE zcl_abapgit_syntax_abap.
+      ro_instance = NEW zcl_abapgit_syntax_abap( ).
     ELSEIF iv_filename CP '*.xml' OR iv_filename CP '*.html'.
-      CREATE OBJECT ro_instance TYPE zcl_abapgit_syntax_xml.
+      ro_instance = NEW zcl_abapgit_syntax_xml( ).
     ELSEIF iv_filename CP '*.css'.
-      CREATE OBJECT ro_instance TYPE zcl_abapgit_syntax_css.
+      ro_instance = NEW zcl_abapgit_syntax_css( ).
     ELSEIF iv_filename CP '*.js'.
-      CREATE OBJECT ro_instance TYPE zcl_abapgit_syntax_js.
+      ro_instance = NEW zcl_abapgit_syntax_js( ).
     ELSEIF iv_filename CP '*.json'.
-      CREATE OBJECT ro_instance TYPE zcl_abapgit_syntax_json.
+      ro_instance = NEW zcl_abapgit_syntax_json( ).
     ELSE.
       CLEAR ro_instance.
     ENDIF.
@@ -190,8 +190,8 @@ CLASS ZCL_ABAPGIT_SYNTAX_HIGHLIGHTER IMPLEMENTATION.
       CLEAR ls_rule. " Failed read equals no style
       READ TABLE mt_rules INTO ls_rule WITH KEY token = <ls_match>-token.
 
-      lv_chunk = me->apply_style( iv_line  = lv_chunk
-                                  iv_class = ls_rule-style ).
+      lv_chunk = apply_style( iv_line  = lv_chunk
+                              iv_class = ls_rule-style ).
 
       rv_line = rv_line && lv_chunk.
     ENDLOOP.
@@ -264,16 +264,16 @@ CLASS ZCL_ABAPGIT_SYNTAX_HIGHLIGHTER IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    lt_matches = me->parse_line( iv_line ).
+    lt_matches = parse_line( iv_line ).
 
-    me->order_matches( EXPORTING iv_line    = iv_line
-                       CHANGING  ct_matches = lt_matches ).
+    order_matches( EXPORTING iv_line    = iv_line
+                   CHANGING  ct_matches = lt_matches ).
 
-    me->extend_matches( EXPORTING iv_line    = iv_line
-                        CHANGING  ct_matches = lt_matches ).
+    extend_matches( EXPORTING iv_line    = iv_line
+                    CHANGING  ct_matches = lt_matches ).
 
-    rv_line = me->format_line( iv_line    = iv_line
-                               it_matches = lt_matches ).
+    rv_line = format_line( iv_line    = iv_line
+                           it_matches = lt_matches ).
 
   ENDMETHOD.
 ENDCLASS.

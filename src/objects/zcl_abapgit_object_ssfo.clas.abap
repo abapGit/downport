@@ -39,7 +39,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_OBJECT_SSFO IMPLEMENTATION.
+CLASS zcl_abapgit_object_ssfo IMPLEMENTATION.
 
 
   METHOD code_item_section_handling.
@@ -146,20 +146,20 @@ CLASS ZCL_ABAPGIT_OBJECT_SSFO IMPLEMENTATION.
 
     DATA: ls_range_node_code TYPE LINE OF ty_string_range.
 
-    IF me->gt_range_node_codes IS INITIAL.
+    IF gt_range_node_codes IS INITIAL.
       ls_range_node_code-sign   = 'I'.
       ls_range_node_code-option = 'EQ'.
       ls_range_node_code-low    = 'CODE'.
-      INSERT ls_range_node_code INTO TABLE me->gt_range_node_codes.
+      INSERT ls_range_node_code INTO TABLE gt_range_node_codes.
       ls_range_node_code-low    = 'GTYPES'.
-      INSERT ls_range_node_code INTO TABLE me->gt_range_node_codes.
+      INSERT ls_range_node_code INTO TABLE gt_range_node_codes.
       ls_range_node_code-low    = 'GCODING'.
-      INSERT ls_range_node_code INTO TABLE me->gt_range_node_codes.
+      INSERT ls_range_node_code INTO TABLE gt_range_node_codes.
       ls_range_node_code-low    = 'FCODING'.
-      INSERT ls_range_node_code INTO TABLE me->gt_range_node_codes.
+      INSERT ls_range_node_code INTO TABLE gt_range_node_codes.
     ENDIF.
 
-    rt_range_node_codes = me->gt_range_node_codes.
+    rt_range_node_codes = gt_range_node_codes.
 
   ENDMETHOD.
 
@@ -235,7 +235,7 @@ CLASS ZCL_ABAPGIT_OBJECT_SSFO IMPLEMENTATION.
           lv_text                TYPE string,
           lv_within_code_section TYPE abap_bool.
 
-    CREATE OBJECT lo_sf.
+    lo_sf = NEW #( ).
 
 * set "created by" and "changed by" to current user
     li_iterator = io_xml->get_raw( )->get_root_element( )->create_iterator( ).
@@ -415,7 +415,7 @@ CLASS ZCL_ABAPGIT_OBJECT_SSFO IMPLEMENTATION.
     li_ixml = cl_ixml=>create( ).
     li_xml_doc = li_ixml->create_document( ).
 
-    CREATE OBJECT lo_sf.
+    lo_sf = NEW #( ).
     lv_formname = ms_item-obj_name. " convert type
     TRY.
         lo_sf->load( im_formname = lv_formname
