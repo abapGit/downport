@@ -275,7 +275,7 @@ CLASS zcl_abapgit_gui_page_repo_over IMPLEMENTATION.
 
   METHOD render_scripts.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
     ri_html->add( 'setInitialFocus("filter");' ).
@@ -307,15 +307,12 @@ CLASS zcl_abapgit_gui_page_repo_over IMPLEMENTATION.
       lv_type_icon         TYPE string,
       lv_favorite_icon     TYPE string,
       lv_favorite_class    TYPE string,
-      lv_package_jump_data TYPE string,
-      lv_package_obj_name  TYPE sobj_name,
       lv_stage_link        TYPE string,
       lv_patch_link        TYPE string,
       lv_zip_import_link   TYPE string,
       lv_zip_export_link   TYPE string,
       lv_check_link        TYPE string,
-      lv_settings_link     TYPE string,
-      lv_branch_html       TYPE string.
+      lv_settings_link     TYPE string.
 
     FIELD-SYMBOLS: <ls_overview> LIKE LINE OF it_overview.
 
@@ -532,7 +529,7 @@ CLASS zcl_abapgit_gui_page_repo_over IMPLEMENTATION.
 
     DATA lv_attrs TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     IF iv_value IS NOT INITIAL.
       lv_attrs = | value="{ iv_value }"|.
@@ -581,7 +578,7 @@ CLASS zcl_abapgit_gui_page_repo_over IMPLEMENTATION.
     apply_order_by( CHANGING ct_overview = mt_overview ).
     apply_filter( CHANGING ct_overview = mt_overview ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     render_header_bar( ri_html ).
     render_table( ii_html     = ri_html

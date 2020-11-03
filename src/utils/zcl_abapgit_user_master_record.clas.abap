@@ -88,7 +88,6 @@ CLASS ZCL_ABAPGIT_USER_MASTER_RECORD IMPLEMENTATION.
       ls_address     TYPE bapiaddr3,
       lt_smtp        TYPE TABLE OF bapiadsmtp,
       ls_smtp        TYPE bapiadsmtp,
-      lt_dev_clients TYPE SORTED TABLE OF sy-mandt WITH UNIQUE KEY table_line,
       ls_user        TYPE ty_user,
       lo_exception   TYPE REF TO zcx_abapgit_exception.
 
@@ -135,15 +134,13 @@ CLASS ZCL_ABAPGIT_USER_MASTER_RECORD IMPLEMENTATION.
 
   METHOD get_instance.
 
-    DATA: ls_user TYPE ty_user.
-
     FIELD-SYMBOLS: <ls_user> TYPE ty_user.
 
     READ TABLE gt_user ASSIGNING <ls_user> WITH TABLE KEY user = iv_user.
     IF sy-subrc = 0.
       ro_user = <ls_user>-o_user.
     ELSE.
-      CREATE OBJECT ro_user EXPORTING iv_user = iv_user.
+      ro_user = NEW #( iv_user = iv_user ).
     ENDIF.
 
   ENDMETHOD.
