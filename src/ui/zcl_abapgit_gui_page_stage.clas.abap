@@ -48,32 +48,34 @@ CLASS zcl_abapgit_gui_page_stage DEFINITION
 
     METHODS find_changed_by
       IMPORTING
-        it_files             TYPE zif_abapgit_definitions=>ty_stage_files
-        it_transports        TYPE ty_transport_tt
+        !it_files            TYPE zif_abapgit_definitions=>ty_stage_files
+        !it_transports       TYPE ty_transport_tt
       RETURNING
         VALUE(rt_changed_by) TYPE ty_changed_by_tt .
     METHODS find_transports_remote
       IMPORTING
-        it_files      TYPE zif_abapgit_definitions=>ty_files_tt
+        !it_files      TYPE zif_abapgit_definitions=>ty_files_tt
       CHANGING
-        ct_transports TYPE ty_transport_tt
+        !ct_transports TYPE ty_transport_tt
       RAISING
-        zcx_abapgit_exception.
+        zcx_abapgit_exception .
     METHODS find_transports_local
       IMPORTING
-        it_files      TYPE zif_abapgit_definitions=>ty_files_item_tt
+        !it_files      TYPE zif_abapgit_definitions=>ty_files_item_tt
       CHANGING
-        ct_transports TYPE ty_transport_tt
+        !ct_transports TYPE ty_transport_tt
       RAISING
-        zcx_abapgit_exception.
+        zcx_abapgit_exception .
     METHODS find_transports
       IMPORTING
-        it_files             TYPE zif_abapgit_definitions=>ty_stage_files
+        !it_files            TYPE zif_abapgit_definitions=>ty_stage_files
       RETURNING
         VALUE(rt_transports) TYPE ty_transport_tt .
     METHODS render_list
       RETURNING
-        VALUE(ri_html) TYPE REF TO zif_abapgit_html .
+        VALUE(ri_html) TYPE REF TO zif_abapgit_html
+      RAISING
+        zcx_abapgit_exception .
     METHODS render_file
       IMPORTING
         !iv_context    TYPE string
@@ -83,7 +85,9 @@ CLASS zcl_abapgit_gui_page_stage DEFINITION
         !iv_changed_by TYPE xubname OPTIONAL
         !iv_transport  TYPE trkorr OPTIONAL
       RETURNING
-        VALUE(ri_html) TYPE REF TO zif_abapgit_html .
+        VALUE(ri_html) TYPE REF TO zif_abapgit_html
+      RAISING
+        zcx_abapgit_exception .
     METHODS render_actions
       RETURNING
         VALUE(ri_html) TYPE REF TO zif_abapgit_html .
@@ -123,13 +127,6 @@ CLASS zcl_abapgit_gui_page_stage DEFINITION
         VALUE(ri_html) TYPE REF TO zif_abapgit_html
       RAISING
         zcx_abapgit_exception .
-    METHODS get_transport_html
-      IMPORTING
-        iv_html             TYPE REF TO zif_abapgit_html
-        iv_transport_string TYPE string
-        iv_transport        TYPE trkorr
-      RETURNING
-        VALUE(rv_result)    TYPE string.
 ENDCLASS.
 
 
@@ -139,7 +136,7 @@ CLASS zcl_abapgit_gui_page_stage IMPLEMENTATION.
 
   METHOD build_menu.
 
-    CREATE OBJECT ro_menu.
+    ro_menu = NEW #( ).
 
     IF lines( ms_files-local ) > 0
     OR lines( ms_files-remote ) > 0.
@@ -221,14 +218,13 @@ CLASS zcl_abapgit_gui_page_stage IMPLEMENTATION.
 
     LOOP AT it_files-remote INTO ls_remote WHERE filename IS NOT INITIAL.
       TRY.
-
           zcl_abapgit_file_status=>identify_object(
             EXPORTING
               iv_filename = ls_remote-filename
-              iv_path = ls_remote-path
-              io_dot = mo_repo->get_dot_abapgit( )
+              iv_path     = ls_remote-path
+              io_dot      = mo_repo->get_dot_abapgit( )
             IMPORTING
-              es_item = ls_item ).
+              es_item     = ls_item ).
           ls_changed_by-item = ls_item.
           INSERT ls_changed_by INTO TABLE lt_changed_by_remote.
         CATCH zcx_abapgit_exception.
@@ -237,14 +233,13 @@ CLASS zcl_abapgit_gui_page_stage IMPLEMENTATION.
 
     LOOP AT rt_changed_by ASSIGNING <ls_changed_by>.
       TRY.
-          <ls_changed_by>-name = to_lower( zcl_abapgit_objects=>changed_by( <ls_changed_by>-item ) ).
+          <ls_changed_by>-name = zcl_abapgit_objects=>changed_by( <ls_changed_by>-item ).
         CATCH zcx_abapgit_exception.
       ENDTRY.
     ENDLOOP.
 
     LOOP AT lt_changed_by_remote ASSIGNING <ls_changed_by>.
       TRY.
-
           " deleted files might still be in a transport
           CLEAR lv_transport.
           READ TABLE it_transports WITH KEY item = <ls_changed_by>-item
@@ -254,9 +249,9 @@ CLASS zcl_abapgit_gui_page_stage IMPLEMENTATION.
             SELECT SINGLE as4user FROM e070 INTO lv_user
             WHERE trkorr = lv_transport-transport.
 
-            <ls_changed_by>-name = to_lower( lv_user ).
+            <ls_changed_by>-name = lv_user.
           ELSE.
-            <ls_changed_by>-name = to_lower( zcl_abapgit_objects_super=>c_user_unknown ).
+            <ls_changed_by>-name = zcl_abapgit_objects_super=>c_user_unknown.
           ENDIF.
         CATCH zcx_abapgit_exception.
       ENDTRY.
@@ -291,519 +286,6 @@ CLASS zcl_abapgit_gui_page_stage IMPLEMENTATION.
 
   ENDMETHOD.
 
-
-  METHOD get_page_patch.
-
-    DATA: lo_page  TYPE REF TO zcl_abapgit_gui_page_patch,
-          lv_key   TYPE zif_abapgit_persistence=>ty_repo-key,
-          lt_files TYPE zif_abapgit_definitions=>ty_stage_tt.
-
-    lv_key = mo_repo->get_key( ).
-    lt_files = io_stage->get_all( ).
-
-    DELETE lt_files WHERE method <> zif_abapgit_definitions=>c_method-add
-                    AND   method <> zif_abapgit_definitions=>c_method-rm.
-
-    CREATE OBJECT lo_page EXPORTING iv_key = lv_key
-                                    it_files = lt_files.
-
-    ri_page = lo_page.
-
-  ENDMETHOD.
-
-
-  METHOD render_actions.
-
-    DATA: lv_local_count TYPE i,
-          lv_add_all_txt TYPE string.
-
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
-    lv_local_count = count_default_files_to_commit( ).
-    IF lv_local_count > 0.
-      lv_add_all_txt = |Add All and Commit ({ lv_local_count })|.
-      " Otherwise empty, but the element (id) is preserved for JS
-    ENDIF.
-
-    ri_html->add( '<table class="w100 margin-v5"><tr>' ).
-
-    " Action buttons
-    ri_html->add( '<td class="indent5em">' ).
-    ri_html->add_a( iv_act   = 'errorStub(event)' " Will be reinit by JS
-                    iv_typ   = zif_abapgit_html=>c_action_type-onclick
-                    iv_id    = 'commitSelectedButton'
-                    iv_style = 'display: none'
-                    iv_txt   = 'Commit Selected (<span class="counter"></span>)'
-                    iv_opt   = zif_abapgit_html=>c_html_opt-strong ).
-    ri_html->add_a( iv_act   = 'errorStub(event)' " Will be reinit by JS
-                    iv_typ   = zif_abapgit_html=>c_action_type-onclick
-                    iv_id    = 'commitFilteredButton'
-                    iv_style = 'display: none'
-                    iv_txt   = 'Add <b>Filtered</b> and Commit (<span class="counter"></span>)' ).
-    ri_html->add_a( iv_act = |{ c_action-stage_all }|
-                    iv_id  = 'commitAllButton'
-                    iv_txt = lv_add_all_txt ).
-
-
-    ri_html->add( '</td>' ).
-
-    " Filter bar
-    ri_html->add( '<td class="right">' ).
-    ri_html->add( '<input class="stage-filter" id="objectSearch"' &&
-                  ' type="search" placeholder="Filter Objects"' &&
-                  | value="{ mv_filter_value }">| ).
-    ri_html->add( '</td>' ).
-
-    ri_html->add( '</tr>' ).
-    ri_html->add( '</table>' ).
-
-  ENDMETHOD.
-
-
-  METHOD render_content.
-
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
-
-    ri_html->add( '<div class="repo">' ).
-    ri_html->add( zcl_abapgit_gui_chunk_lib=>render_repo_top( mo_repo ) ).
-    ri_html->add( zcl_abapgit_gui_chunk_lib=>render_js_error_banner( ) ).
-    ri_html->add( render_master_language_warning( ) ).
-
-    ri_html->add( '<div class="stage-container">' ).
-    ri_html->add( render_actions( ) ).
-    ri_html->add( render_list( ) ).
-    ri_html->add( '</div>' ).
-
-    ri_html->add( '</div>' ).
-
-    gui_services( )->get_hotkeys_ctl( )->register_hotkeys( me ).
-    gui_services( )->get_html_parts( )->add_part(
-      iv_collection = zcl_abapgit_gui_component=>c_html_parts-hidden_forms
-      ii_part       = render_deferred_hidden_events( ) ).
-    register_deferred_script( render_scripts( ) ).
-
-  ENDMETHOD.
-
-
-  METHOD render_deferred_hidden_events.
-
-    DATA ls_event TYPE zcl_abapgit_gui_chunk_lib=>ty_event_signature.
-
-    ls_event-method = 'post'.
-    ls_event-name   = 'stage_commit'.
-    ri_html = zcl_abapgit_gui_chunk_lib=>render_event_as_form( ls_event ).
-    ri_html->set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
-
-  ENDMETHOD.
-
-
-  METHOD render_file.
-
-    DATA: lv_param            TYPE string,
-          lv_filename         TYPE string,
-          lv_transport_string TYPE string,
-          lv_transport_html   TYPE string.
-
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
-
-    lv_transport_string = iv_transport.
-
-    lv_filename = is_file-path && is_file-filename.
-* make sure whitespace is preserved in the DOM
-    REPLACE ALL OCCURRENCES OF ` ` IN lv_filename WITH '&nbsp;'.
-
-    ri_html->add( |<tr class="{ iv_context }">| ).
-    ri_html->add( '<td>' ).
-    ri_html->add( zcl_abapgit_gui_chunk_lib=>render_item_state(
-      iv_lstate = is_status-lstate
-      iv_rstate = is_status-rstate ) ).
-    ri_html->add( '</td>' ).
-
-    CASE iv_context.
-      WHEN 'local'.
-        lv_param = zcl_abapgit_html_action_utils=>file_encode(
-          iv_key  = mo_repo->get_key( )
-          ig_file = is_file ).
-
-        lv_filename = ri_html->a(
-          iv_txt = lv_filename
-          iv_act = |{ zif_abapgit_definitions=>c_action-go_diff }?{ lv_param }| ).
-
-        lv_transport_html = get_transport_html(
-          iv_html = ri_html
-          iv_transport_string = lv_transport_string
-          iv_transport = iv_transport ).
-
-        ri_html->add( |<td class="type">{ is_item-obj_type }</td>| ).
-        ri_html->add( |<td class="name">{ lv_filename }</td>| ).
-
-      WHEN 'remote'.
-
-        lv_transport_html = get_transport_html(
-            iv_html = ri_html
-            iv_transport_string = lv_transport_string
-            iv_transport = iv_transport ).
-
-        ri_html->add( |<td class="type">{ is_item-obj_type }</td>| ).
-        ri_html->add( |<td class="name">{ lv_filename }</td>| ).
-    ENDCASE.
-
-    ri_html->add( |<td class="user">{ iv_changed_by }</td>| ).
-    ri_html->add( |<td class="transport">{ lv_transport_html }</td>| ).
-
-    lv_transport_html = get_transport_html(
-      iv_html = ri_html
-      iv_transport_string = lv_transport_string
-      iv_transport = iv_transport ).
-
-
-    ri_html->add( |<td class="status">?</td>| ).
-    ri_html->add( '<td class="cmd"></td>' ). " Command added in JS
-
-    ri_html->add( '</tr>' ).
-
-  ENDMETHOD.
-
-  METHOD get_transport_html.
-
-    IF iv_transport_string IS INITIAL.
-      RETURN.
-    ENDIF.
-
-    rv_result = iv_html->a(
-            iv_txt = iv_transport_string
-            iv_act = |{ zif_abapgit_definitions=>c_action-jump_transport }?transport={ iv_transport }| ).
-  ENDMETHOD.
-
-
-  METHOD render_list.
-
-    DATA: lt_changed_by  TYPE ty_changed_by_tt,
-          ls_changed_by  LIKE LINE OF lt_changed_by,
-          lt_transports  TYPE ty_transport_tt,
-          ls_transport   LIKE LINE OF lt_transports,
-          ls_item_remote TYPE zif_abapgit_definitions=>ty_item.
-
-    FIELD-SYMBOLS: <ls_remote> LIKE LINE OF ms_files-remote,
-                   <ls_status> LIKE LINE OF ms_files-status,
-                   <ls_local>  LIKE LINE OF ms_files-local.
-
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
-
-    ri_html->add( '<table id="stageTab" class="stage_tab w100">' ).
-
-    lt_transports = find_transports( ms_files ).
-    lt_changed_by = find_changed_by(
-      it_files = ms_files
-      it_transports = lt_transports ).
-
-    " Local changes
-    LOOP AT ms_files-local ASSIGNING <ls_local>.
-      AT FIRST.
-        ri_html->add( '<thead><tr class="local">' ).
-        ri_html->add( '<th class="stage-status"></th>' ). " Diff state
-        ri_html->add( '<th class="stage-objtype">Type</th>' ).
-        ri_html->add( '<th title="Click filename to see diff">File</th>' ).
-        ri_html->add( '<th>Changed by</th>' ).
-        ri_html->add( '<th>Transport</th>' ).
-        ri_html->add( '<th></th>' ). " Status
-        ri_html->add( '<th class="cmd">' ).
-        ri_html->add( '<a>add</a>&#x2193; <a>reset</a>&#x2193;' ).
-        ri_html->add( '</th>' ).
-        ri_html->add( '</tr></thead>' ).
-        ri_html->add( '<tbody>' ).
-      ENDAT.
-
-      READ TABLE lt_changed_by INTO ls_changed_by WITH KEY item = <ls_local>-item. "#EC CI_SUBRC
-      READ TABLE lt_transports INTO ls_transport WITH KEY item = <ls_local>-item. "#EC CI_SUBRC
-      READ TABLE ms_files-status ASSIGNING <ls_status>
-        WITH TABLE KEY
-          path     = <ls_local>-file-path
-          filename = <ls_local>-file-filename.
-      ASSERT sy-subrc = 0.
-
-      ri_html->add( render_file(
-        iv_context = 'local'
-        is_file       = <ls_local>-file
-        is_item       = <ls_local>-item
-        is_status     = <ls_status>
-        iv_changed_by = ls_changed_by-name
-        iv_transport  = ls_transport-transport ) ).
-
-      CLEAR ls_transport.
-
-      AT LAST.
-        ri_html->add( '</tbody>' ).
-      ENDAT.
-    ENDLOOP.
-
-    " Remote changes
-    LOOP AT ms_files-remote ASSIGNING <ls_remote>.
-      AT FIRST.
-        ri_html->add( '<thead><tr class="remote">' ).
-        ri_html->add( '<th></th>' ). " Diff state
-        ri_html->add( '<th></th>' ). " Type
-        ri_html->add( '<th colspan="3">Files to remove or non-code</th>' ).
-        ri_html->add( '<th></th>' ). " Transport
-        ri_html->add( '<th class="cmd">' ).
-        ri_html->add( '<a>ignore</a>&#x2193; <a>remove</a>&#x2193; <a>reset</a>&#x2193;' ).
-        ri_html->add( '</th>' ).
-        ri_html->add( '</tr></thead>' ).
-        ri_html->add( '<tbody>' ).
-      ENDAT.
-
-      READ TABLE ms_files-status ASSIGNING <ls_status>
-        WITH TABLE KEY
-          path     = <ls_remote>-path
-          filename = <ls_remote>-filename.
-      ASSERT sy-subrc = 0.
-
-      TRY.
-          zcl_abapgit_file_status=>identify_object(
-             EXPORTING
-               iv_filename = <ls_remote>-filename
-               iv_path = <ls_remote>-path
-               io_dot = mo_repo->get_dot_abapgit( )
-             IMPORTING
-               es_item = ls_item_remote ).
-          READ TABLE lt_transports INTO ls_transport WITH KEY item = ls_item_remote.
-          READ TABLE lt_changed_by INTO ls_changed_by WITH KEY item = ls_item_remote.
-        CATCH zcx_abapgit_exception.
-          CLEAR ls_transport.
-      ENDTRY.
-
-      ri_html->add( render_file(
-        iv_context = 'remote'
-        is_status = <ls_status>
-        is_file = <ls_remote>
-        is_item = ls_item_remote
-        iv_changed_by = ls_changed_by-name
-        iv_transport = ls_transport-transport ) ).
-
-      AT LAST.
-        ri_html->add( '</tbody>' ).
-      ENDAT.
-    ENDLOOP.
-
-    ri_html->add( '</table>' ).
-
-  ENDMETHOD.
-
-
-  METHOD render_master_language_warning.
-
-    DATA: ls_dot_abapgit TYPE zif_abapgit_dot_abapgit=>ty_dot_abapgit.
-
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
-
-    ls_dot_abapgit = mo_repo->get_dot_abapgit( )->get_data( ).
-
-    IF ls_dot_abapgit-master_language <> sy-langu.
-      ri_html->add( zcl_abapgit_gui_chunk_lib=>render_warning_banner(
-                        |Caution: Master language of the repo is '{ ls_dot_abapgit-master_language }', |
-                     && |but you're logged on in '{ sy-langu }'| ) ).
-    ENDIF.
-
-  ENDMETHOD.
-
-
-  METHOD render_scripts.
-
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
-
-    ri_html->set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
-
-    ri_html->add( 'var gStageParams = {' ).
-    ri_html->add( |  seed:            "{ mv_seed }",| ). " Unique page id
-    ri_html->add( |  user:            "{ to_lower( sy-uname ) }",| ).
-    ri_html->add( '  formAction:      "stage_commit",' ).
-    ri_html->add( |  patchAction:     "{ zif_abapgit_definitions=>c_action-go_patch }",| ).
-
-    ri_html->add( '  ids: {' ).
-    ri_html->add( '    stageTab:          "stageTab",' ).
-    ri_html->add( '    commitAllBtn:      "commitAllButton",' ).
-    ri_html->add( '    commitSelectedBtn: "commitSelectedButton",' ).
-    ri_html->add( '    commitFilteredBtn: "commitFilteredButton",' ).
-    ri_html->add( '    patchBtn:          "patchBtn",' ).
-    ri_html->add( '    objectSearch:      "objectSearch",' ).
-    ri_html->add( '  }' ).
-
-    ri_html->add( '}' ).
-    ri_html->add( 'var gHelper = new StageHelper(gStageParams);' ).
-
-  ENDMETHOD.
-
-
-  METHOD stage_all.
-
-    FIELD-SYMBOLS <ls_local> LIKE LINE OF ms_files-local.
-    FIELD-SYMBOLS <ls_remote> LIKE LINE OF ms_files-remote.
-    FIELD-SYMBOLS <ls_status> LIKE LINE OF ms_files-status.
-
-    CREATE OBJECT ro_stage.
-
-    LOOP AT ms_files-local ASSIGNING <ls_local>.
-      READ TABLE ms_files-status ASSIGNING <ls_status>
-        WITH TABLE KEY
-          path     = <ls_local>-file-path
-          filename = <ls_local>-file-filename.
-      ASSERT sy-subrc = 0.
-
-      ro_stage->add(
-        iv_path     = <ls_local>-file-path
-        iv_filename = <ls_local>-file-filename
-        is_status   = <ls_status>
-        iv_data     = <ls_local>-file-data ).
-    ENDLOOP.
-
-    LOOP AT ms_files-remote ASSIGNING <ls_remote>.
-      READ TABLE ms_files-status ASSIGNING <ls_status>
-        WITH TABLE KEY
-          path     = <ls_remote>-path
-          filename = <ls_remote>-filename.
-      ASSERT sy-subrc = 0.
-
-      IF <ls_status>-lstate = zif_abapgit_definitions=>c_state-deleted
-        AND <ls_status>-rstate = zif_abapgit_definitions=>c_state-unchanged.
-
-        ro_stage->rm(
-          iv_path     = <ls_remote>-path
-          iv_filename = <ls_remote>-filename
-          is_status   = <ls_status> ).
-      ENDIF.
-
-    ENDLOOP.
-
-  ENDMETHOD.
-
-
-  METHOD stage_selected.
-
-    DATA ls_file  TYPE zif_abapgit_definitions=>ty_file.
-    DATA lo_files TYPE REF TO zcl_abapgit_string_map.
-
-    FIELD-SYMBOLS:
-      <ls_file>   LIKE LINE OF ms_files-local,
-      <ls_status> LIKE LINE OF ms_files-status,
-      <ls_item>   LIKE LINE OF lo_files->mt_entries.
-
-    lo_files = ii_event->form_data( ).
-
-    IF lo_files->size( ) = 0.
-      zcx_abapgit_exception=>raise( 'process_stage_list: empty list' ).
-    ENDIF.
-
-    CREATE OBJECT ro_stage.
-
-    LOOP AT lo_files->mt_entries ASSIGNING <ls_item>
-      "Ignore Files that we don't want to stage, so any errors don't stop the staging process
-      WHERE v <> zif_abapgit_definitions=>c_method-skip.
-
-      zcl_abapgit_path=>split_file_location(
-        EXPORTING
-          iv_fullpath = to_lower( <ls_item>-k ) " filename is lower cased
-        IMPORTING
-          ev_path     = ls_file-path
-          ev_filename = ls_file-filename ).
-
-      READ TABLE ms_files-status ASSIGNING <ls_status>
-        WITH TABLE KEY
-          path     = ls_file-path
-          filename = ls_file-filename.
-      IF sy-subrc <> 0.
-* see https://github.com/abapGit/abapGit/issues/3073
-        zcx_abapgit_exception=>raise( iv_text =
-          |Unable to stage { ls_file-filename }. If the filename contains spaces, this is a known issue.| &&
-          | Consider ignoring or staging the file at a later time.| ).
-      ENDIF.
-
-      CASE <ls_item>-v.
-        WHEN zif_abapgit_definitions=>c_method-add.
-          READ TABLE ms_files-local ASSIGNING <ls_file>
-            WITH KEY file-path     = ls_file-path
-                     file-filename = ls_file-filename.
-
-          IF sy-subrc <> 0.
-            zcx_abapgit_exception=>raise( |process_stage_list: unknown file { ls_file-path }{ ls_file-filename }| ).
-          ENDIF.
-
-          ro_stage->add( iv_path     = <ls_file>-file-path
-                         iv_filename = <ls_file>-file-filename
-                         is_status   = <ls_status>
-                         iv_data     = <ls_file>-file-data ).
-        WHEN zif_abapgit_definitions=>c_method-ignore.
-          ro_stage->ignore( iv_path     = ls_file-path
-                            iv_filename = ls_file-filename ).
-        WHEN zif_abapgit_definitions=>c_method-rm.
-          ro_stage->rm( iv_path     = ls_file-path
-                        is_status   = <ls_status>
-                        iv_filename = ls_file-filename ).
-        WHEN zif_abapgit_definitions=>c_method-skip.
-          " Do nothing
-        WHEN OTHERS.
-          zcx_abapgit_exception=>raise( |process_stage_list: unknown method { <ls_item>-v }| ).
-      ENDCASE.
-    ENDLOOP.
-
-  ENDMETHOD.
-
-
-  METHOD zif_abapgit_gui_event_handler~on_event.
-
-    DATA: lo_stage  TYPE REF TO zcl_abapgit_stage.
-
-    CASE ii_event->mv_action.
-      WHEN c_action-stage_all.
-
-        lo_stage = stage_all( ).
-
-        CREATE OBJECT rs_handled-page TYPE zcl_abapgit_gui_page_commit EXPORTING io_repo = mo_repo
-                                                                                 io_stage = lo_stage.
-
-        rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page.
-
-      WHEN c_action-stage_commit.
-
-        lo_stage = stage_selected( ii_event ).
-
-        CREATE OBJECT rs_handled-page TYPE zcl_abapgit_gui_page_commit EXPORTING io_repo = mo_repo
-                                                                                 io_stage = lo_stage.
-
-        rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page.
-
-      WHEN c_action-stage_filter.
-
-        mv_filter_value = ii_event->form_data( )->get( 'filterValue' ).
-        rs_handled-state = zcl_abapgit_gui=>c_event_state-no_more_act.
-
-      WHEN zif_abapgit_definitions=>c_action-go_patch.                         " Go Patch page
-
-        lo_stage = stage_selected( ii_event ).
-        rs_handled-page  = get_page_patch( lo_stage ).
-        rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page.
-
-      WHEN OTHERS.
-        rs_handled = super->zif_abapgit_gui_event_handler~on_event( ii_event ).
-    ENDCASE.
-
-  ENDMETHOD.
-
-
-  METHOD zif_abapgit_gui_hotkeys~get_hotkey_actions.
-
-    DATA ls_hotkey_action LIKE LINE OF rt_hotkey_actions.
-
-    ls_hotkey_action-ui_component = 'Stage'.
-    ls_hotkey_action-description  = |Patch|.
-    ls_hotkey_action-action       = 'submitPatch'. " JS function in StageHelper
-    ls_hotkey_action-hotkey       = |p|.
-    INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
-
-    ls_hotkey_action-description  = |Diff|.
-    ls_hotkey_action-action       = zif_abapgit_definitions=>c_action-go_diff.
-    ls_hotkey_action-hotkey       = |d|.
-    INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
-
-  ENDMETHOD.
 
   METHOD find_transports_local.
 
@@ -882,4 +364,489 @@ CLASS zcl_abapgit_gui_page_stage IMPLEMENTATION.
 
   ENDMETHOD.
 
+
+  METHOD get_page_patch.
+
+    DATA: lo_page  TYPE REF TO zcl_abapgit_gui_page_patch,
+          lv_key   TYPE zif_abapgit_persistence=>ty_repo-key,
+          lt_files TYPE zif_abapgit_definitions=>ty_stage_tt.
+
+    lv_key = mo_repo->get_key( ).
+    lt_files = io_stage->get_all( ).
+
+    DELETE lt_files WHERE method <> zif_abapgit_definitions=>c_method-add
+                    AND   method <> zif_abapgit_definitions=>c_method-rm.
+
+    lo_page = NEW #( iv_key = lv_key
+                     it_files = lt_files ).
+
+    ri_page = lo_page.
+
+  ENDMETHOD.
+
+
+  METHOD render_actions.
+
+    DATA: lv_local_count TYPE i,
+          lv_add_all_txt TYPE string.
+
+    ri_html = NEW zcl_abapgit_html( ).
+    lv_local_count = count_default_files_to_commit( ).
+    IF lv_local_count > 0.
+      lv_add_all_txt = |Add All and Commit ({ lv_local_count })|.
+      " Otherwise empty, but the element (id) is preserved for JS
+    ENDIF.
+
+    ri_html->add( '<table class="w100 margin-v5"><tr>' ).
+
+    " Action buttons
+    ri_html->add( '<td class="indent5em">' ).
+    ri_html->add_a( iv_act   = 'errorStub(event)' " Will be reinit by JS
+                    iv_typ   = zif_abapgit_html=>c_action_type-onclick
+                    iv_id    = 'commitSelectedButton'
+                    iv_style = 'display: none'
+                    iv_txt   = 'Commit Selected (<span class="counter"></span>)'
+                    iv_opt   = zif_abapgit_html=>c_html_opt-strong ).
+    ri_html->add_a( iv_act   = 'errorStub(event)' " Will be reinit by JS
+                    iv_typ   = zif_abapgit_html=>c_action_type-onclick
+                    iv_id    = 'commitFilteredButton'
+                    iv_style = 'display: none'
+                    iv_txt   = 'Add <b>Filtered</b> and Commit (<span class="counter"></span>)' ).
+    ri_html->add_a( iv_act = |{ c_action-stage_all }|
+                    iv_id  = 'commitAllButton'
+                    iv_txt = lv_add_all_txt ).
+
+
+    ri_html->add( '</td>' ).
+
+    " Filter bar
+    ri_html->add( '<td class="right">' ).
+    ri_html->add( '<input class="stage-filter" id="objectSearch"' &&
+                  ' type="search" placeholder="Filter Objects"' &&
+                  | value="{ mv_filter_value }">| ).
+    ri_html->add( '</td>' ).
+
+    ri_html->add( '</tr>' ).
+    ri_html->add( '</table>' ).
+
+  ENDMETHOD.
+
+
+  METHOD render_content.
+
+    ri_html = NEW zcl_abapgit_html( ).
+
+    ri_html->add( '<div class="repo">' ).
+    ri_html->add( zcl_abapgit_gui_chunk_lib=>render_repo_top( mo_repo ) ).
+    ri_html->add( zcl_abapgit_gui_chunk_lib=>render_js_error_banner( ) ).
+    ri_html->add( render_master_language_warning( ) ).
+
+    ri_html->add( '<div class="stage-container">' ).
+    ri_html->add( render_actions( ) ).
+    ri_html->add( render_list( ) ).
+    ri_html->add( '</div>' ).
+
+    ri_html->add( '</div>' ).
+
+    gui_services( )->get_hotkeys_ctl( )->register_hotkeys( me ).
+    gui_services( )->get_html_parts( )->add_part(
+      iv_collection = zcl_abapgit_gui_component=>c_html_parts-hidden_forms
+      ii_part       = render_deferred_hidden_events( ) ).
+    register_deferred_script( render_scripts( ) ).
+
+  ENDMETHOD.
+
+
+  METHOD render_deferred_hidden_events.
+
+    DATA ls_event TYPE zcl_abapgit_gui_chunk_lib=>ty_event_signature.
+
+    ls_event-method = 'post'.
+    ls_event-name   = 'stage_commit'.
+    ri_html = zcl_abapgit_gui_chunk_lib=>render_event_as_form( ls_event ).
+    ri_html->set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
+
+  ENDMETHOD.
+
+
+  METHOD render_file.
+
+    DATA: lv_param    TYPE string,
+          lv_filename TYPE string.
+
+    ri_html = NEW zcl_abapgit_html( ).
+
+    lv_filename = is_file-path && is_file-filename.
+    " make sure whitespace is preserved in the DOM
+    REPLACE ALL OCCURRENCES OF ` ` IN lv_filename WITH '&nbsp;'.
+
+    ri_html->add( |<tr class="{ iv_context }">| ).
+    ri_html->add( '<td>' ).
+    ri_html->add( zcl_abapgit_gui_chunk_lib=>render_item_state(
+      iv_lstate = is_status-lstate
+      iv_rstate = is_status-rstate ) ).
+    ri_html->add( '</td>' ).
+
+    CASE iv_context.
+      WHEN 'local'.
+        lv_param = zcl_abapgit_html_action_utils=>file_encode(
+          iv_key  = mo_repo->get_key( )
+          ig_file = is_file ).
+
+        lv_filename = ri_html->a(
+          iv_txt = lv_filename
+          iv_act = |{ zif_abapgit_definitions=>c_action-go_diff }?{ lv_param }| ).
+
+        ri_html->add( |<td class="type">{ is_item-obj_type }</td>| ).
+        ri_html->add( |<td class="name">{ lv_filename }</td>| ).
+      WHEN 'remote'.
+        ri_html->add( |<td class="type">{ is_item-obj_type }</td>| ).
+        ri_html->add( |<td class="name">{ lv_filename }</td>| ).
+    ENDCASE.
+
+    ri_html->add( '<td class="user">' ).
+    ri_html->add( zcl_abapgit_gui_chunk_lib=>render_user_name( iv_changed_by  ) ).
+    ri_html->add( '</td>' ).
+
+    ri_html->add( '<td class="transport">' ).
+    ri_html->add( zcl_abapgit_gui_chunk_lib=>render_transport( iv_transport ) ).
+    ri_html->add( '</td>' ).
+
+    ri_html->add( '<td class="status">?</td>' ).
+    ri_html->add( '<td class="cmd"></td>' ). " Command added in JS
+
+    ri_html->add( '</tr>' ).
+
+  ENDMETHOD.
+
+
+  METHOD render_list.
+
+    DATA: lt_changed_by  TYPE ty_changed_by_tt,
+          ls_changed_by  LIKE LINE OF lt_changed_by,
+          lt_transports  TYPE ty_transport_tt,
+          ls_transport   LIKE LINE OF lt_transports,
+          ls_item_remote TYPE zif_abapgit_definitions=>ty_item.
+
+    FIELD-SYMBOLS: <ls_remote> LIKE LINE OF ms_files-remote,
+                   <ls_status> LIKE LINE OF ms_files-status,
+                   <ls_local>  LIKE LINE OF ms_files-local.
+
+    ri_html = NEW zcl_abapgit_html( ).
+
+    ri_html->add( '<table id="stageTab" class="stage_tab w100">' ).
+
+    lt_transports = find_transports( ms_files ).
+    lt_changed_by = find_changed_by(
+      it_files = ms_files
+      it_transports = lt_transports ).
+
+    " Local changes
+    LOOP AT ms_files-local ASSIGNING <ls_local>.
+      AT FIRST.
+        ri_html->add( '<thead><tr class="local">' ).
+        ri_html->add( '<th class="stage-status"></th>' ). " Diff state
+        ri_html->add( '<th class="stage-objtype">Type</th>' ).
+        ri_html->add( '<th title="Click filename to see diff">File</th>' ).
+        ri_html->add( '<th>Changed by</th>' ).
+        ri_html->add( '<th>Transport</th>' ).
+        ri_html->add( '<th></th>' ). " Status
+        ri_html->add( '<th class="cmd">' ).
+        ri_html->add( '<a>add</a>&#x2193; <a>reset</a>&#x2193;' ).
+        ri_html->add( '</th>' ).
+        ri_html->add( '</tr></thead>' ).
+        ri_html->add( '<tbody>' ).
+      ENDAT.
+
+      READ TABLE lt_changed_by INTO ls_changed_by WITH KEY item = <ls_local>-item. "#EC CI_SUBRC
+      READ TABLE lt_transports INTO ls_transport WITH KEY item = <ls_local>-item. "#EC CI_SUBRC
+      READ TABLE ms_files-status ASSIGNING <ls_status>
+        WITH TABLE KEY
+          path     = <ls_local>-file-path
+          filename = <ls_local>-file-filename.
+      ASSERT sy-subrc = 0.
+
+      ri_html->add( render_file(
+        iv_context    = 'local'
+        is_file       = <ls_local>-file
+        is_item       = <ls_local>-item
+        is_status     = <ls_status>
+        iv_changed_by = ls_changed_by-name
+        iv_transport  = ls_transport-transport ) ).
+
+      CLEAR ls_transport.
+
+      AT LAST.
+        ri_html->add( '</tbody>' ).
+      ENDAT.
+    ENDLOOP.
+
+    " Remote changes
+    LOOP AT ms_files-remote ASSIGNING <ls_remote>.
+      AT FIRST.
+        ri_html->add( '<thead><tr class="remote">' ).
+        ri_html->add( '<th></th>' ). " Diff state
+        ri_html->add( '<th></th>' ). " Type
+        ri_html->add( '<th colspan="3">Files to remove or non-code</th>' ).
+        ri_html->add( '<th></th>' ). " Transport
+        ri_html->add( '<th class="cmd">' ).
+        ri_html->add( '<a>ignore</a>&#x2193; <a>remove</a>&#x2193; <a>reset</a>&#x2193;' ).
+        ri_html->add( '</th>' ).
+        ri_html->add( '</tr></thead>' ).
+        ri_html->add( '<tbody>' ).
+      ENDAT.
+
+      READ TABLE ms_files-status ASSIGNING <ls_status>
+        WITH TABLE KEY
+          path     = <ls_remote>-path
+          filename = <ls_remote>-filename.
+      ASSERT sy-subrc = 0.
+
+      TRY.
+          zcl_abapgit_file_status=>identify_object(
+            EXPORTING
+              iv_filename = <ls_remote>-filename
+              iv_path     = <ls_remote>-path
+              io_dot      = mo_repo->get_dot_abapgit( )
+            IMPORTING
+              es_item     = ls_item_remote ).
+          READ TABLE lt_transports INTO ls_transport WITH KEY item = ls_item_remote.
+          READ TABLE lt_changed_by INTO ls_changed_by WITH KEY item = ls_item_remote.
+        CATCH zcx_abapgit_exception.
+          CLEAR ls_transport.
+      ENDTRY.
+
+      ri_html->add( render_file(
+        iv_context    = 'remote'
+        is_status     = <ls_status>
+        is_file       = <ls_remote>
+        is_item       = ls_item_remote
+        iv_changed_by = ls_changed_by-name
+        iv_transport  = ls_transport-transport ) ).
+
+      AT LAST.
+        ri_html->add( '</tbody>' ).
+      ENDAT.
+    ENDLOOP.
+
+    ri_html->add( '</table>' ).
+
+  ENDMETHOD.
+
+
+  METHOD render_master_language_warning.
+
+    DATA: ls_dot_abapgit TYPE zif_abapgit_dot_abapgit=>ty_dot_abapgit.
+
+    ri_html = NEW zcl_abapgit_html( ).
+
+    ls_dot_abapgit = mo_repo->get_dot_abapgit( )->get_data( ).
+
+    IF ls_dot_abapgit-master_language <> sy-langu.
+      ri_html->add( zcl_abapgit_gui_chunk_lib=>render_warning_banner(
+                        |Caution: Master language of the repo is '{ ls_dot_abapgit-master_language }', |
+                     && |but you're logged on in '{ sy-langu }'| ) ).
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD render_scripts.
+
+    ri_html = NEW zcl_abapgit_html( ).
+
+    ri_html->set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
+
+    ri_html->add( 'var gStageParams = {' ).
+    ri_html->add( |  seed:            "{ mv_seed }",| ). " Unique page id
+    ri_html->add( |  user:            "{ to_lower( sy-uname ) }",| ).
+    ri_html->add( '  formAction:      "stage_commit",' ).
+    ri_html->add( |  patchAction:     "{ zif_abapgit_definitions=>c_action-go_patch }",| ).
+
+    ri_html->add( '  ids: {' ).
+    ri_html->add( '    stageTab:          "stageTab",' ).
+    ri_html->add( '    commitAllBtn:      "commitAllButton",' ).
+    ri_html->add( '    commitSelectedBtn: "commitSelectedButton",' ).
+    ri_html->add( '    commitFilteredBtn: "commitFilteredButton",' ).
+    ri_html->add( '    patchBtn:          "patchBtn",' ).
+    ri_html->add( '    objectSearch:      "objectSearch",' ).
+    ri_html->add( '  }' ).
+
+    ri_html->add( '}' ).
+    ri_html->add( 'var gHelper = new StageHelper(gStageParams);' ).
+
+  ENDMETHOD.
+
+
+  METHOD stage_all.
+
+    FIELD-SYMBOLS <ls_local> LIKE LINE OF ms_files-local.
+    FIELD-SYMBOLS <ls_remote> LIKE LINE OF ms_files-remote.
+    FIELD-SYMBOLS <ls_status> LIKE LINE OF ms_files-status.
+
+    ro_stage = NEW #( ).
+
+    LOOP AT ms_files-local ASSIGNING <ls_local>.
+      READ TABLE ms_files-status ASSIGNING <ls_status>
+        WITH TABLE KEY
+          path     = <ls_local>-file-path
+          filename = <ls_local>-file-filename.
+      ASSERT sy-subrc = 0.
+
+      ro_stage->add(
+        iv_path     = <ls_local>-file-path
+        iv_filename = <ls_local>-file-filename
+        is_status   = <ls_status>
+        iv_data     = <ls_local>-file-data ).
+    ENDLOOP.
+
+    LOOP AT ms_files-remote ASSIGNING <ls_remote>.
+      READ TABLE ms_files-status ASSIGNING <ls_status>
+        WITH TABLE KEY
+          path     = <ls_remote>-path
+          filename = <ls_remote>-filename.
+      ASSERT sy-subrc = 0.
+
+      IF <ls_status>-lstate = zif_abapgit_definitions=>c_state-deleted
+        AND <ls_status>-rstate = zif_abapgit_definitions=>c_state-unchanged.
+
+        ro_stage->rm(
+          iv_path     = <ls_remote>-path
+          iv_filename = <ls_remote>-filename
+          is_status   = <ls_status> ).
+      ENDIF.
+
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD stage_selected.
+
+    DATA ls_file  TYPE zif_abapgit_definitions=>ty_file.
+    DATA lo_files TYPE REF TO zcl_abapgit_string_map.
+
+    FIELD-SYMBOLS:
+      <ls_file>   LIKE LINE OF ms_files-local,
+      <ls_status> LIKE LINE OF ms_files-status,
+      <ls_item>   LIKE LINE OF lo_files->mt_entries.
+
+    lo_files = ii_event->form_data( ).
+
+    IF lo_files->size( ) = 0.
+      zcx_abapgit_exception=>raise( 'process_stage_list: empty list' ).
+    ENDIF.
+
+    ro_stage = NEW #( ).
+
+    LOOP AT lo_files->mt_entries ASSIGNING <ls_item>
+      "Ignore Files that we don't want to stage, so any errors don't stop the staging process
+      WHERE v <> zif_abapgit_definitions=>c_method-skip.
+
+      zcl_abapgit_path=>split_file_location(
+        EXPORTING
+          iv_fullpath = to_lower( <ls_item>-k ) " filename is lower cased
+        IMPORTING
+          ev_path     = ls_file-path
+          ev_filename = ls_file-filename ).
+
+      READ TABLE ms_files-status ASSIGNING <ls_status>
+        WITH TABLE KEY
+          path     = ls_file-path
+          filename = ls_file-filename.
+      IF sy-subrc <> 0.
+* see https://github.com/abapGit/abapGit/issues/3073
+        zcx_abapgit_exception=>raise( iv_text =
+          |Unable to stage { ls_file-filename }. If the filename contains spaces, this is a known issue.| &&
+          | Consider ignoring or staging the file at a later time.| ).
+      ENDIF.
+
+      CASE <ls_item>-v.
+        WHEN zif_abapgit_definitions=>c_method-add.
+          READ TABLE ms_files-local ASSIGNING <ls_file>
+            WITH KEY file-path     = ls_file-path
+                     file-filename = ls_file-filename.
+
+          IF sy-subrc <> 0.
+            zcx_abapgit_exception=>raise( |process_stage_list: unknown file { ls_file-path }{ ls_file-filename }| ).
+          ENDIF.
+
+          ro_stage->add( iv_path     = <ls_file>-file-path
+                         iv_filename = <ls_file>-file-filename
+                         is_status   = <ls_status>
+                         iv_data     = <ls_file>-file-data ).
+        WHEN zif_abapgit_definitions=>c_method-ignore.
+          ro_stage->ignore( iv_path     = ls_file-path
+                            iv_filename = ls_file-filename ).
+        WHEN zif_abapgit_definitions=>c_method-rm.
+          ro_stage->rm( iv_path     = ls_file-path
+                        is_status   = <ls_status>
+                        iv_filename = ls_file-filename ).
+        WHEN zif_abapgit_definitions=>c_method-skip.
+          " Do nothing
+        WHEN OTHERS.
+          zcx_abapgit_exception=>raise( |process_stage_list: unknown method { <ls_item>-v }| ).
+      ENDCASE.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_gui_event_handler~on_event.
+
+    DATA: lo_stage  TYPE REF TO zcl_abapgit_stage.
+
+    CASE ii_event->mv_action.
+      WHEN c_action-stage_all.
+
+        lo_stage = stage_all( ).
+
+        rs_handled-page = NEW zcl_abapgit_gui_page_commit( io_repo = mo_repo
+                                                           io_stage = lo_stage ).
+
+        rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page.
+
+      WHEN c_action-stage_commit.
+
+        lo_stage = stage_selected( ii_event ).
+
+        rs_handled-page = NEW zcl_abapgit_gui_page_commit( io_repo = mo_repo
+                                                           io_stage = lo_stage ).
+
+        rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page.
+
+      WHEN c_action-stage_filter.
+
+        mv_filter_value = ii_event->form_data( )->get( 'filterValue' ).
+        rs_handled-state = zcl_abapgit_gui=>c_event_state-no_more_act.
+
+      WHEN zif_abapgit_definitions=>c_action-go_patch.                         " Go Patch page
+
+        lo_stage = stage_selected( ii_event ).
+        rs_handled-page  = get_page_patch( lo_stage ).
+        rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page.
+
+      WHEN OTHERS.
+        rs_handled = super->zif_abapgit_gui_event_handler~on_event( ii_event ).
+    ENDCASE.
+
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_gui_hotkeys~get_hotkey_actions.
+
+    DATA ls_hotkey_action LIKE LINE OF rt_hotkey_actions.
+
+    ls_hotkey_action-ui_component = 'Stage'.
+    ls_hotkey_action-description  = |Patch|.
+    ls_hotkey_action-action       = 'submitPatch'. " JS function in StageHelper
+    ls_hotkey_action-hotkey       = |p|.
+    INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
+
+    ls_hotkey_action-description  = |Diff|.
+    ls_hotkey_action-action       = zif_abapgit_definitions=>c_action-go_diff.
+    ls_hotkey_action-hotkey       = |d|.
+    INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
+
+  ENDMETHOD.
 ENDCLASS.
