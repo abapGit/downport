@@ -186,7 +186,7 @@ CLASS ZCL_ABAPGIT_HTML_FORM IMPLEMENTATION.
 
     DATA lv_ts TYPE timestampl.
 
-    CREATE OBJECT ro_form.
+    ro_form = NEW #( ).
     ro_form->mv_form_id = iv_form_id.
 
     IF ro_form->mv_form_id IS INITIAL.
@@ -202,7 +202,7 @@ CLASS ZCL_ABAPGIT_HTML_FORM IMPLEMENTATION.
     DATA lv_value TYPE string.
     FIELD-SYMBOLS <ls_field> LIKE LINE OF mt_fields.
 
-    CREATE OBJECT ro_form_data.
+    ro_form_data = NEW #( ).
 
     LOOP AT mt_fields ASSIGNING <ls_field>.
       CLEAR lv_value.
@@ -281,10 +281,18 @@ CLASS ZCL_ABAPGIT_HTML_FORM IMPLEMENTATION.
       ls_form_id = | id="{ mv_form_id }"|.
     ENDIF.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( |<div class="{ iv_form_class }">| ).
     ri_html->add( |<form method="post"{ ls_form_id }>| ).
+
+    " Add hidden button that triggers main command when pressing enter
+    LOOP AT mt_commands ASSIGNING <ls_cmd> WHERE is_main = abap_true.
+      ri_html->add( |<button type="submit" formaction="sapevent:{ <ls_cmd>-action
+                    }" class="hidden-submit" aria-hidden="true" tabindex="-1"></button>| ).
+      EXIT.
+    ENDLOOP.
+
     ri_html->add( |<ul>| ).
 
     LOOP AT mt_fields ASSIGNING <ls_field>.
@@ -504,7 +512,7 @@ CLASS ZCL_ABAPGIT_HTML_FORM IMPLEMENTATION.
     DATA lv_value TYPE string.
     FIELD-SYMBOLS <ls_field> LIKE LINE OF mt_fields.
 
-    CREATE OBJECT ro_validation_log.
+    ro_validation_log = NEW #( ).
 
     LOOP AT mt_fields ASSIGNING <ls_field>.
       lv_value = io_form_data->get( <ls_field>-name ).
