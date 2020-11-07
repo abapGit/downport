@@ -8,6 +8,7 @@ CLASS zcl_abapgit_syntax_highlighter DEFINITION
     CLASS-METHODS create
       IMPORTING
         !iv_filename       TYPE string
+        !iv_hidden_chars   TYPE abap_bool DEFAULT abap_false
       RETURNING
         VALUE(ro_instance) TYPE REF TO zcl_abapgit_syntax_highlighter .
     METHODS process_line
@@ -37,6 +38,7 @@ CLASS zcl_abapgit_syntax_highlighter DEFINITION
     CONSTANTS c_token_none TYPE c VALUE '.' ##NO_TEXT.
     DATA:
       mt_rules TYPE STANDARD TABLE OF ty_rule .
+    DATA mv_hidden_chars TYPE abap_bool .
 
     METHODS add_rule
       IMPORTING
@@ -50,7 +52,6 @@ CLASS zcl_abapgit_syntax_highlighter DEFINITION
       RETURNING
         VALUE(rt_matches) TYPE ty_match_tt .
     METHODS order_matches
-          ABSTRACT
       IMPORTING
         !iv_line    TYPE string
       CHANGING
@@ -77,6 +78,14 @@ CLASS zcl_abapgit_syntax_highlighter DEFINITION
         !iv_string       TYPE string
       RETURNING
         VALUE(rv_result) TYPE abap_bool .
+    METHODS set_hidden_chars
+      IMPORTING
+        !iv_hidden_chars TYPE abap_bool .
+    METHODS show_hidden_chars
+      IMPORTING
+        !iv_line       TYPE string
+      RETURNING
+        VALUE(rv_line) TYPE string .
   PRIVATE SECTION.
 ENDCLASS.
 
@@ -90,8 +99,8 @@ CLASS zcl_abapgit_syntax_highlighter IMPLEMENTATION.
     DATA ls_rule LIKE LINE OF mt_rules.
 
     IF NOT iv_regex IS INITIAL.
-      CREATE OBJECT ls_rule-regex EXPORTING pattern = iv_regex
-                                            ignore_case = abap_true.
+      ls_rule-regex = NEW #( pattern = iv_regex
+                             ignore_case = abap_true ).
     ENDIF.
 
     ls_rule-token         = iv_token.
@@ -106,8 +115,11 @@ CLASS zcl_abapgit_syntax_highlighter IMPLEMENTATION.
 
     DATA lv_escaped TYPE string.
 
-    lv_escaped = escape( val = iv_line
-                         format = cl_abap_format=>e_html_attr ).
+    lv_escaped = escape( val    = iv_line
+                         format = cl_abap_format=>e_html_text ).
+
+    lv_escaped = show_hidden_chars( lv_escaped ).
+
     IF iv_class IS NOT INITIAL.
       rv_line = |<span class="{ iv_class }">{ lv_escaped }</span>|.
     ELSE.
@@ -121,19 +133,24 @@ CLASS zcl_abapgit_syntax_highlighter IMPLEMENTATION.
 
     " Create instance of highighter dynamically dependent on syntax type
     IF iv_filename CP '*.abap'.
-      CREATE OBJECT ro_instance TYPE zcl_abapgit_syntax_abap.
+      ro_instance = NEW zcl_abapgit_syntax_abap( ).
     ELSEIF iv_filename CP '*.xml' OR iv_filename CP '*.html'.
-      CREATE OBJECT ro_instance TYPE zcl_abapgit_syntax_xml.
+      ro_instance = NEW zcl_abapgit_syntax_xml( ).
     ELSEIF iv_filename CP '*.css'.
-      CREATE OBJECT ro_instance TYPE zcl_abapgit_syntax_css.
+      ro_instance = NEW zcl_abapgit_syntax_css( ).
     ELSEIF iv_filename CP '*.js'.
-      CREATE OBJECT ro_instance TYPE zcl_abapgit_syntax_js.
+      ro_instance = NEW zcl_abapgit_syntax_js( ).
     ELSEIF iv_filename CP '*.json'.
-      CREATE OBJECT ro_instance TYPE zcl_abapgit_syntax_json.
+      ro_instance = NEW zcl_abapgit_syntax_json( ).
+    ELSEIF iv_filename CP '*.txt' OR iv_filename CP '*.ini'  OR iv_filename CP '*.text'.
+      ro_instance = NEW zcl_abapgit_syntax_txt( ).
     ELSE.
       CLEAR ro_instance.
     ENDIF.
 
+    IF ro_instance IS BOUND.
+      ro_instance->set_hidden_chars( iv_hidden_chars ).
+    ENDIF.
   ENDMETHOD.
 
 
@@ -211,6 +228,10 @@ CLASS zcl_abapgit_syntax_highlighter IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD order_matches.
+  ENDMETHOD.
+
+
   METHOD parse_line.
 
     DATA:
@@ -260,7 +281,7 @@ CLASS zcl_abapgit_syntax_highlighter IMPLEMENTATION.
     DATA: lt_matches TYPE ty_match_tt.
 
     IF iv_line IS INITIAL OR is_whitespace( iv_line ) = abap_true.
-      rv_line = iv_line.
+      rv_line = show_hidden_chars( iv_line ).
       RETURN.
     ENDIF.
 
@@ -274,6 +295,39 @@ CLASS zcl_abapgit_syntax_highlighter IMPLEMENTATION.
 
     rv_line = format_line( iv_line    = iv_line
                            it_matches = lt_matches ).
+
+  ENDMETHOD.
+
+
+  METHOD set_hidden_chars.
+    mv_hidden_chars = iv_hidden_chars.
+  ENDMETHOD.
+
+
+  METHOD show_hidden_chars.
+
+    DATA lv_bom TYPE x LENGTH 3.
+
+    rv_line = iv_line.
+
+    IF mv_hidden_chars = abap_true.
+      REPLACE ALL OCCURRENCES OF cl_abap_char_utilities=>horizontal_tab IN rv_line WITH '&nbsp;&rarr;&nbsp;'.
+      REPLACE ALL OCCURRENCES OF cl_abap_char_utilities=>cr_lf(1)       IN rv_line WITH '&para;'.
+      REPLACE ALL OCCURRENCES OF ` `                                    IN rv_line WITH '&middot;'.
+
+      IF strlen( rv_line ) BETWEEN 1 AND 2.
+        lv_bom = zcl_abapgit_convert=>string_to_xstring( rv_line ).
+        IF lv_bom(2) = cl_abap_char_utilities=>byte_order_mark_big.
+          rv_line = '<span class="red">&squf;</span>'. " UTF-16 big-endian (FE FF)
+        ENDIF.
+        IF lv_bom(2) = cl_abap_char_utilities=>byte_order_mark_little.
+          rv_line = '<span class="red">&compfn;</span>'. " UTF-16 little-endian (FF FE)
+        ENDIF.
+        IF lv_bom(3) = cl_abap_char_utilities=>byte_order_mark_utf8.
+          rv_line = '<span class="red">&curren;</span>'. " UTF-8 (EF BB BF)
+        ENDIF.
+      ENDIF.
+    ENDIF.
 
   ENDMETHOD.
 ENDCLASS.
