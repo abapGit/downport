@@ -193,7 +193,7 @@ CLASS zcl_abapgit_gui_page_commit IMPLEMENTATION.
 
   METHOD render_content.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div class="repo">' ).
     ri_html->add( zcl_abapgit_gui_chunk_lib=>render_repo_top(
@@ -236,8 +236,8 @@ CLASS zcl_abapgit_gui_page_commit IMPLEMENTATION.
       lv_user  = li_user->get_default_git_user_name( ).
     ENDIF.
     IF lv_user IS INITIAL.
-      " get default from user master record
-      lv_user = zcl_abapgit_user_master_record=>get_instance( sy-uname )->get_name( ).
+      " get default from user record
+      lv_user = zcl_abapgit_user_record=>get_instance( sy-uname )->get_name( ).
     ENDIF.
 
     lv_email = li_user->get_repo_git_user_email( mo_repo->get_url( ) ).
@@ -245,8 +245,8 @@ CLASS zcl_abapgit_gui_page_commit IMPLEMENTATION.
       lv_email = li_user->get_default_git_user_email( ).
     ENDIF.
     IF lv_email IS INITIAL.
-      " get default from user master record
-      lv_email = zcl_abapgit_user_master_record=>get_instance( sy-uname )->get_email( ).
+      " get default from user record
+      lv_email = zcl_abapgit_user_record=>get_instance( sy-uname )->get_email( ).
     ENDIF.
 
     IF ms_commit IS NOT INITIAL.
@@ -262,7 +262,7 @@ CLASS zcl_abapgit_gui_page_commit IMPLEMENTATION.
       lv_comment = get_comment_default( ).
     ENDIF.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div class="form-container">' ).
     ri_html->add( '<form id="commit_form" class="aligned-form"'
@@ -322,8 +322,8 @@ CLASS zcl_abapgit_gui_page_commit IMPLEMENTATION.
 
     DATA lo_toolbar TYPE REF TO zcl_abapgit_html_toolbar.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
-    CREATE OBJECT lo_toolbar.
+    ri_html = NEW zcl_abapgit_html( ).
+    lo_toolbar = NEW #( ).
 
     lo_toolbar->add( iv_act = 'submitFormById(''commit_form'');'
                      iv_txt = 'Commit'
@@ -343,7 +343,7 @@ CLASS zcl_abapgit_gui_page_commit IMPLEMENTATION.
 
   METHOD render_scripts.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
     ri_html->add( 'setInitialFocus("comment");' ).
@@ -358,7 +358,7 @@ CLASS zcl_abapgit_gui_page_commit IMPLEMENTATION.
     FIELD-SYMBOLS: <ls_stage> LIKE LINE OF lt_stage.
 
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     lt_stage = mo_stage->get_all( ).
 
@@ -396,7 +396,7 @@ CLASS zcl_abapgit_gui_page_commit IMPLEMENTATION.
 
     DATA lv_attrs TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     IF iv_value IS NOT INITIAL AND
        iv_max_length IS NOT INITIAL.

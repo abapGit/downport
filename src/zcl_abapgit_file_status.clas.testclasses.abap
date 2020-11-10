@@ -53,7 +53,7 @@ CLASS ltcl_run_checks IMPLEMENTATION.
 
   METHOD setup.
 
-    CREATE OBJECT mi_log TYPE zcl_abapgit_log.
+    mi_log = NEW zcl_abapgit_log( ).
 
     mo_dot = zcl_abapgit_dot_abapgit=>build_default( ).
     mo_dot->set_starting_folder( '/' ).
@@ -420,7 +420,8 @@ CLASS lcl_status_result DEFINITION.
           VALUE(rs_data) TYPE zif_abapgit_definitions=>ty_result,
       assert_lines
         IMPORTING
-          iv_lines TYPE i.
+          iv_lines TYPE i
+          iv_msg   TYPE csequence OPTIONAL.
 
   PRIVATE SECTION.
     DATA: mt_results TYPE zif_abapgit_definitions=>ty_results_tt.
@@ -447,7 +448,8 @@ CLASS lcl_status_result IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals(
       act = lines( mt_results )
-      exp = iv_lines ).
+      exp = iv_lines
+      msg = iv_msg ).
 
   ENDMETHOD.
 
@@ -604,7 +606,7 @@ CLASS ltcl_status_helper IMPLEMENTATION.
       it_remote    = mt_remote
       it_cur_state = mt_state ).
 
-    CREATE OBJECT ro_result EXPORTING it_results = lt_results.
+    ro_result = NEW #( it_results = lt_results ).
 
   ENDMETHOD.
 
@@ -627,6 +629,7 @@ CLASS ltcl_calculate_status DEFINITION FOR TESTING RISK LEVEL HARMLESS
       only_local FOR TESTING RAISING zcx_abapgit_exception,
       match FOR TESTING RAISING zcx_abapgit_exception,
       diff FOR TESTING RAISING zcx_abapgit_exception,
+      moved FOR TESTING RAISING zcx_abapgit_exception,
       local_outside_main FOR TESTING RAISING zcx_abapgit_exception,
       complete FOR TESTING RAISING zcx_abapgit_exception.
 
@@ -636,7 +639,35 @@ CLASS ltcl_calculate_status IMPLEMENTATION.
 
   METHOD setup.
 
-    CREATE OBJECT mo_helper.
+    mo_helper = NEW #( ).
+
+  ENDMETHOD.
+
+  METHOD moved.
+
+    mo_helper->add_local(
+     iv_obj_type = 'DOMA'
+     iv_obj_name = '$$ZDOMA1'
+     iv_filename = '$$zdoma1.doma.xml'
+     iv_path     = '/foo/'
+     iv_devclass = 'FOO'
+     iv_sha1     = 'D1' ).
+
+    mo_helper->add_remote(
+     iv_filename = '$$zdoma1.doma.xml'
+     iv_path     = '/bar/'
+     iv_sha1     = 'D1' ).
+
+    mo_helper->add_tadir(
+      iv_obj_type = 'DOMA'
+      iv_obj_name = '$$ZDOMA1'
+      iv_devclass = 'FOO' ).
+
+    mo_result = mo_helper->run( iv_devclass = 'FOO' ).
+
+    mo_result->assert_lines(
+      iv_lines = 2
+      iv_msg   = 'there must be a status calculated for both files, they are in different folders' ).
 
   ENDMETHOD.
 

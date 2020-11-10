@@ -12,9 +12,6 @@ CLASS zcl_abapgit_popups DEFINITION
   PROTECTED SECTION.
   PRIVATE SECTION.
 
-    TYPES:
-      ty_sval_tt TYPE STANDARD TABLE OF sval WITH DEFAULT KEY.
-
     CONSTANTS c_fieldname_selected TYPE lvc_fname VALUE `SELECTED` ##NO_TEXT.
     CONSTANTS c_answer_cancel      TYPE c LENGTH 1 VALUE 'A' ##NO_TEXT.
 
@@ -32,7 +29,7 @@ CLASS zcl_abapgit_popups DEFINITION
         !iv_field_attr TYPE sval-field_attr DEFAULT ''
         !iv_obligatory TYPE spo_obl OPTIONAL
       CHANGING
-        !ct_fields     TYPE ty_sval_tt .
+        !ct_fields     TYPE zif_abapgit_popups=>ty_sval_tt .
     METHODS create_new_table
       IMPORTING
         !it_list TYPE STANDARD TABLE .
@@ -55,7 +52,7 @@ CLASS zcl_abapgit_popups DEFINITION
           !column .
     METHODS extract_field_values
       IMPORTING
-        it_fields           TYPE ty_sval_tt
+        it_fields           TYPE zif_abapgit_popups=>ty_sval_tt
       EXPORTING
         ev_url              TYPE abaptxt255-line
         ev_package          TYPE tdevc-devclass
@@ -92,7 +89,7 @@ ENDCLASS.
 
 
 
-CLASS zcl_abapgit_popups IMPLEMENTATION.
+CLASS ZCL_ABAPGIT_POPUPS IMPLEMENTATION.
 
 
   METHOD add_field.
@@ -398,8 +395,8 @@ CLASS zcl_abapgit_popups IMPLEMENTATION.
   METHOD popup_get_from_free_selections.
     DATA: lo_free_sel_dialog TYPE REF TO zcl_abapgit_free_sel_dialog.
 
-    CREATE OBJECT lo_free_sel_dialog EXPORTING iv_title = iv_title
-                                               iv_frame_text = iv_frame_text.
+    lo_free_sel_dialog = NEW #( iv_title = iv_title
+                                iv_frame_text = iv_frame_text ).
 
     lo_free_sel_dialog->set_fields( CHANGING ct_fields = ct_fields ).
     lo_free_sel_dialog->show( ).
@@ -1092,7 +1089,7 @@ CLASS zcl_abapgit_popups IMPLEMENTATION.
         ENDIF.
 
         IF iv_header_text CN ' _0'.
-          CREATE OBJECT lo_table_header EXPORTING text = iv_header_text.
+          lo_table_header = NEW #( text = iv_header_text ).
           mo_select_list_popup->set_top_of_list( lo_table_header ).
         ENDIF.
 
