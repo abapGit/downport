@@ -87,14 +87,14 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_OBJECT_CLAS IMPLEMENTATION.
+CLASS zcl_abapgit_object_clas IMPLEMENTATION.
 
 
   METHOD constructor.
     super->constructor( is_item     = is_item
                         iv_language = iv_language ).
 
-    CREATE OBJECT mi_object_oriented_object_fct TYPE zcl_abapgit_oo_class.
+    mi_object_oriented_object_fct = NEW zcl_abapgit_oo_class( ).
 
     mv_classpool_name = cl_oo_classname_service=>get_classpool_name( |{ is_item-obj_name }| ).
 
@@ -440,8 +440,8 @@ CLASS ZCL_ABAPGIT_OBJECT_CLAS IMPLEMENTATION.
     ls_clskey-clsname = ms_item-obj_name.
 
     "If class was deserialized with a previous versions of abapGit and current language was different
-    "from master language at this time, this call would return SY-LANGU as master language. To fix
-    "these objects, set SY-LANGU to master language temporarily.
+    "from main language at this time, this call would return SY-LANGU as main language. To fix
+    "these objects, set SY-LANGU to main language temporarily.
     zcl_abapgit_language=>set_current_language( mv_language ).
 
     TRY.
@@ -473,7 +473,7 @@ CLASS ZCL_ABAPGIT_OBJECT_CLAS IMPLEMENTATION.
 
     " Table d010tinf stores info. on languages in which program is maintained
     " Select all active translations of program texts
-    " Skip master language - it was already serialized
+    " Skip main language - it was already serialized
     SELECT DISTINCT language
       INTO TABLE lt_langu_additional
       FROM d010tinf

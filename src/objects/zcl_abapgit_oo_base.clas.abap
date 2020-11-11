@@ -245,7 +245,7 @@ CLASS zcl_abapgit_oo_base IMPLEMENTATION.
                AND descript <> ''
              ORDER BY PRIMARY KEY.                        "#EC CI_SUBRC
     ELSE.
-      " load master language
+      " load main language
       SELECT * FROM seocompotx INTO TABLE rt_descriptions
               WHERE clsname   = iv_obejct_name
                 AND langu = iv_language
@@ -303,7 +303,7 @@ CLASS zcl_abapgit_oo_base IMPLEMENTATION.
 
   METHOD zif_abapgit_oo_object_fnc~serialize_abap.
     DATA lo_oo_serializer TYPE REF TO zcl_abapgit_oo_serializer.
-    CREATE OBJECT lo_oo_serializer.
+    lo_oo_serializer = NEW #( ).
     CASE iv_type.
       WHEN seop_ext_class_locals_def.
         rt_source = lo_oo_serializer->serialize_locals_def( is_class_key ).

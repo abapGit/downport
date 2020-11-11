@@ -75,7 +75,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_GUI_PAGE_REPO_SETT IMPLEMENTATION.
+CLASS zcl_abapgit_gui_page_repo_sett IMPLEMENTATION.
 
 
   METHOD constructor.
@@ -87,7 +87,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_REPO_SETT IMPLEMENTATION.
 
   METHOD render_content.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( `<div class="repo">` ).
     ri_html->add( zcl_abapgit_gui_chunk_lib=>render_repo_top( io_repo        = mo_repo
@@ -137,7 +137,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_REPO_SETT IMPLEMENTATION.
     ENDIF.
 
     ii_html->add( render_table_row(
-      iv_name  = 'Master Language'
+      iv_name  = 'Main Language'
       iv_value = |{ ls_dot-master_language } ({ lv_language })|
     ) ).
 
@@ -290,7 +290,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_REPO_SETT IMPLEMENTATION.
       lv_checked = | checked|.
     ENDIF.
     ii_html->add( render_table_row(
-      iv_name  = 'Serialize Master Language Only'
+      iv_name  = 'Serialize Main Language Only'
       iv_value = |<input name="serialize_master_lang_only" type="checkbox"{ lv_checked }>|
     ) ).
 
