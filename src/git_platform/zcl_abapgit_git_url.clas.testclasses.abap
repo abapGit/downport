@@ -29,7 +29,7 @@ CLASS ltcl_repo_online IMPLEMENTATION.
 
     FIELD-SYMBOLS <ls_provider_urls> TYPE ty_show_url_test.
 
-    lo_cut = NEW #( ).
+    CREATE OBJECT lo_cut.
 
     ls_provider_urls-repo_url = |https://github.com/abapGit/abapGit.git|.
     ls_provider_urls-show_url = |https://github.com/abapGit/abapGit/commit/{ lv_testhash }|.
@@ -50,7 +50,7 @@ CLASS ltcl_repo_online IMPLEMENTATION.
       ls_online_repo-branch_name = |master|.
       ls_online_repo-offline = abap_false.
 
-      lr_test_repo = NEW #( is_data = ls_online_repo ).
+      CREATE OBJECT lr_test_repo EXPORTING is_data = ls_online_repo.
 
       lv_show_url = lo_cut->get_default_commit_display_url(
         iv_repo_url = lr_test_repo->get_url( )
