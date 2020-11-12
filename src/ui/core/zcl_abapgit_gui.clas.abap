@@ -109,7 +109,7 @@ ENDCLASS.
 
 
 
-CLASS zcl_abapgit_gui IMPLEMENTATION.
+CLASS ZCL_ABAPGIT_GUI IMPLEMENTATION.
 
 
   METHOD back.
@@ -183,7 +183,7 @@ CLASS zcl_abapgit_gui IMPLEMENTATION.
       ENDIF.
     ENDIF.
 
-    CREATE OBJECT mo_html_parts.
+    mo_html_parts = NEW #( ).
 
     mv_rollback_on_error = iv_rollback_on_error.
     mi_asset_man      = ii_asset_man.
@@ -251,10 +251,10 @@ CLASS zcl_abapgit_gui IMPLEMENTATION.
       li_event     TYPE REF TO zif_abapgit_gui_event,
       ls_handled   TYPE zif_abapgit_gui_event_handler=>ty_handling_result.
 
-    CREATE OBJECT li_event TYPE zcl_abapgit_gui_event EXPORTING ii_gui_services = me
-                                                                iv_action = iv_action
-                                                                iv_getdata = iv_getdata
-                                                                it_postdata = it_postdata.
+    li_event = NEW zcl_abapgit_gui_event( ii_gui_services = me
+                                          iv_action = iv_action
+                                          iv_getdata = iv_getdata
+                                          it_postdata = it_postdata ).
 
     TRY.
         LOOP AT mt_event_handlers INTO li_handler.
@@ -403,7 +403,9 @@ CLASS zcl_abapgit_gui IMPLEMENTATION.
 
   METHOD zif_abapgit_gui_services~cache_asset.
 
-    DATA: lt_xdata TYPE lvc_t_mime,
+    TYPES: ty_hex TYPE x LENGTH 200.
+
+    DATA: lt_xdata TYPE STANDARD TABLE OF ty_hex WITH DEFAULT KEY,
           lv_size  TYPE i,
           lt_html  TYPE w3htmltab.
 

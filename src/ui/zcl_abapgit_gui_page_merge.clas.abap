@@ -22,7 +22,7 @@ CLASS zcl_abapgit_gui_page_merge DEFINITION
   PRIVATE SECTION.
 
     DATA mo_repo TYPE REF TO zcl_abapgit_repo_online .
-    DATA mo_merge TYPE REF TO zcl_abapgit_merge .
+    DATA mi_merge TYPE REF TO zif_abapgit_merge .
     CONSTANTS:
       BEGIN OF c_actions,
         merge         TYPE string VALUE 'merge' ##NO_TEXT,
@@ -49,7 +49,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_MERGE IMPLEMENTATION.
 
   METHOD build_menu.
 
-    CREATE OBJECT ro_menu.
+    ro_menu = NEW #( ).
 
     ro_menu->add( iv_txt = 'Merge'
                   iv_act = c_actions-merge
@@ -71,30 +71,30 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_MERGE IMPLEMENTATION.
 
     io_repo->select_branch( |{ zif_abapgit_definitions=>c_git_branch-heads_prefix }{ iv_target }| ).
 
-    CREATE OBJECT mo_merge EXPORTING io_repo = io_repo
-                                     iv_source_branch = iv_source.
-    mo_merge->run( ).
+    mi_merge = NEW zcl_abapgit_merge( io_repo = io_repo
+                                      iv_source_branch = iv_source ).
+    mi_merge->run( ).
 
     ms_control-page_title = 'Merge'.
-    ms_control-page_menu  = build_menu( mo_merge->has_conflicts( ) ).
+    ms_control-page_menu  = build_menu( mi_merge->has_conflicts( ) ).
 
   ENDMETHOD.
 
 
   METHOD render_content.
 
-    DATA: ls_merge  TYPE zif_abapgit_definitions=>ty_merge,
+    DATA: ls_merge  TYPE zif_abapgit_merge=>ty_merge,
           lt_files  LIKE ls_merge-stree,
           ls_result LIKE LINE OF ls_merge-result.
 
     FIELD-SYMBOLS: <ls_file> LIKE LINE OF lt_files.
 
-    ls_merge = mo_merge->get_result( ).
+    ls_merge = mi_merge->get_result( ).
 
     "If now exists no conflicts anymore, conflicts button should disappear
-    ms_control-page_menu = build_menu( mo_merge->has_conflicts( ) ).
+    ms_control-page_menu = build_menu( mi_merge->has_conflicts( ) ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div id="toc">' ).
     ri_html->add( zcl_abapgit_gui_chunk_lib=>render_repo_top(
@@ -199,23 +199,23 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_MERGE IMPLEMENTATION.
 
     CASE ii_event->mv_action.
       WHEN c_actions-merge.
-        IF mo_merge->has_conflicts( ) = abap_true.
+        IF mi_merge->has_conflicts( ) = abap_true.
           zcx_abapgit_exception=>raise( 'conflicts exists' ).
         ENDIF.
 
-        IF mo_merge->get_result( )-stage->count( ) = 0.
+        IF mi_merge->get_result( )-stage->count( ) = 0.
           zcx_abapgit_exception=>raise( 'nothing to merge' ).
         ENDIF.
 
         IF mo_repo->get_local_settings( )-code_inspector_check_variant IS NOT INITIAL.
 
-          CREATE OBJECT rs_handled-page TYPE zcl_abapgit_gui_page_code_insp EXPORTING io_repo = mo_repo
-                                                                                      io_stage = mo_merge->get_result( )-stage.
+          rs_handled-page = NEW zcl_abapgit_gui_page_code_insp( io_repo = mo_repo
+                                                                io_stage = mi_merge->get_result( )-stage ).
 
         ELSE.
 
-          CREATE OBJECT rs_handled-page TYPE zcl_abapgit_gui_page_commit EXPORTING io_repo = mo_repo
-                                                                                   io_stage = mo_merge->get_result( )-stage.
+          rs_handled-page = NEW zcl_abapgit_gui_page_commit( io_repo = mo_repo
+                                                             io_stage = mi_merge->get_result( )-stage ).
 
         ENDIF.
 
@@ -223,9 +223,9 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_MERGE IMPLEMENTATION.
 
       WHEN c_actions-res_conflicts.
 
-        CREATE OBJECT rs_handled-page TYPE zcl_abapgit_gui_page_merge_res EXPORTING io_repo = mo_repo
-                                                                                    io_merge_page = me
-                                                                                    io_merge = mo_merge.
+        rs_handled-page = NEW zcl_abapgit_gui_page_merge_res( io_repo = mo_repo
+                                                              io_merge_page = me
+                                                              io_merge = mi_merge ).
         rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page.
 
       WHEN OTHERS.
