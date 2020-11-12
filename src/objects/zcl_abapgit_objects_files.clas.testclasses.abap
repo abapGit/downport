@@ -43,7 +43,7 @@ CLASS ltcl_objects_files IMPLEMENTATION.
 
     ls_item-obj_type = 'prog'.
     ls_item-obj_name = 'zlf'.
-    mo_cut = NEW #( is_item = ls_item ).
+    CREATE OBJECT mo_cut EXPORTING is_item = ls_item.
     mo_cut->set_files( lt_files ).
 
   ENDMETHOD.
