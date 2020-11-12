@@ -87,14 +87,14 @@ ENDCLASS.
 
 
 
-CLASS zcl_abapgit_object_clas IMPLEMENTATION.
+CLASS ZCL_ABAPGIT_OBJECT_CLAS IMPLEMENTATION.
 
 
   METHOD constructor.
     super->constructor( is_item     = is_item
                         iv_language = iv_language ).
 
-    CREATE OBJECT mi_object_oriented_object_fct TYPE zcl_abapgit_oo_class.
+    mi_object_oriented_object_fct = NEW zcl_abapgit_oo_class( ).
 
     mv_classpool_name = cl_oo_classname_service=>get_classpool_name( |{ is_item-obj_name }| ).
 
@@ -110,7 +110,7 @@ CLASS zcl_abapgit_object_clas IMPLEMENTATION.
           lt_local_implementations TYPE seop_source_string,
           lt_local_macros          TYPE seop_source_string,
           lt_test_classes          TYPE seop_source_string,
-          lt_descriptions          TYPE zif_abapgit_definitions=>ty_seocompotx_tt,
+          lt_descriptions          TYPE zif_abapgit_oo_object_fnc=>ty_seocompotx_tt,
           ls_class_key             TYPE seoclskey,
           lt_attributes            TYPE zif_abapgit_definitions=>ty_obj_attribute_tt.
 
@@ -325,7 +325,7 @@ CLASS zcl_abapgit_object_clas IMPLEMENTATION.
 
   METHOD serialize_descr.
 
-    DATA: lt_descriptions TYPE zif_abapgit_definitions=>ty_seocompotx_tt,
+    DATA: lt_descriptions TYPE zif_abapgit_oo_object_fnc=>ty_seocompotx_tt,
           lv_language     TYPE spras.
 
     IF ii_xml->i18n_params( )-serialize_master_lang_only = abap_true.
