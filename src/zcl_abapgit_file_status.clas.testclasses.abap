@@ -53,7 +53,7 @@ CLASS ltcl_run_checks IMPLEMENTATION.
 
   METHOD setup.
 
-    CREATE OBJECT mi_log TYPE zcl_abapgit_log.
+    mi_log = NEW zcl_abapgit_log( ).
 
     mo_dot = zcl_abapgit_dot_abapgit=>build_default( ).
     mo_dot->set_starting_folder( '/' ).
@@ -606,7 +606,7 @@ CLASS ltcl_status_helper IMPLEMENTATION.
       it_remote    = mt_remote
       it_cur_state = mt_state ).
 
-    CREATE OBJECT ro_result EXPORTING it_results = lt_results.
+    ro_result = NEW #( it_results = lt_results ).
 
   ENDMETHOD.
 
@@ -631,7 +631,8 @@ CLASS ltcl_calculate_status DEFINITION FOR TESTING RISK LEVEL HARMLESS
       diff FOR TESTING RAISING zcx_abapgit_exception,
       moved FOR TESTING RAISING zcx_abapgit_exception,
       local_outside_main FOR TESTING RAISING zcx_abapgit_exception,
-      complete FOR TESTING RAISING zcx_abapgit_exception.
+      complete FOR TESTING RAISING zcx_abapgit_exception,
+      deleted_remotely FOR TESTING RAISING zcx_abapgit_exception.
 
 ENDCLASS.
 
@@ -639,7 +640,7 @@ CLASS ltcl_calculate_status IMPLEMENTATION.
 
   METHOD setup.
 
-    CREATE OBJECT mo_helper.
+    mo_helper = NEW #( ).
 
   ENDMETHOD.
 
@@ -1009,4 +1010,31 @@ CLASS ltcl_calculate_status IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD deleted_remotely.
+
+    DATA:
+      ls_line TYPE zif_abapgit_definitions=>ty_result,
+      lv_act  TYPE c LENGTH 3,
+      lv_exp  TYPE c LENGTH 3.
+
+    mo_helper->add_local(
+      iv_path     = '/src/'
+      iv_filename = 'ztest_deleted_remotely.prog.abap'
+      iv_sha1     = '1016' ).
+
+    mo_helper->add_state(
+      iv_path     = '/src/'
+      iv_filename = 'ztest_deleted_remotely.prog.abap'
+      iv_sha1     = '2016' ). " different checksum
+
+    mo_result = mo_helper->run( ).
+
+    mo_result->assert_lines( 1 ).
+
+    " it should appear as deleted remotely
+    cl_abap_unit_assert=>assert_equals(
+      act = mo_result->get_line( 1 )-rstate
+      exp = zif_abapgit_definitions=>c_state-deleted ).
+
+  ENDMETHOD.
 ENDCLASS.
