@@ -60,8 +60,8 @@ CLASS ltc_lock IMPLEMENTATION.
     ls_item-obj_type = 'PDTS'.
     ls_item-obj_name = 'TS' && lv_taskid.
 
-    lo_cut = NEW zcl_abapgit_object_pdts( is_item = ls_item
-                                          iv_language = sy-langu ).
+    CREATE OBJECT lo_cut TYPE zcl_abapgit_object_pdts EXPORTING is_item = ls_item
+                                                                iv_language = sy-langu.
 
     cl_abap_unit_assert=>assert_equals( act = lo_cut->is_locked( )
                                         exp = abap_true ).
@@ -134,8 +134,8 @@ CLASS ltc_smoke_test IMPLEMENTATION.
     ls_item-obj_name = '99999999'.
 
     TRY.
-        mo_cut = NEW zcl_abapgit_object_pdts( is_item = ls_item
-                                              iv_language = sy-langu ).
+        CREATE OBJECT mo_cut TYPE zcl_abapgit_object_pdts EXPORTING is_item = ls_item
+                                                                    iv_language = sy-langu.
       CATCH zcx_abapgit_exception.
         cl_abap_unit_assert=>fail( ).
     ENDTRY.
