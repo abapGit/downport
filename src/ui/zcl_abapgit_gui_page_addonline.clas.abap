@@ -67,8 +67,8 @@ CLASS zcl_abapgit_gui_page_addonline IMPLEMENTATION.
 
   METHOD constructor.
     super->constructor( ).
-    mo_validation_log = NEW #( ).
-    mo_form_data = NEW #( ).
+    CREATE OBJECT mo_validation_log.
+    CREATE OBJECT mo_form_data.
     mo_form = get_form_schema( ).
   ENDMETHOD.
 
@@ -77,7 +77,7 @@ CLASS zcl_abapgit_gui_page_addonline IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_addonline.
 
-    lo_component = NEW #( ).
+    CREATE OBJECT lo_component.
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title = 'Clone online repository'
@@ -258,7 +258,7 @@ CLASS zcl_abapgit_gui_page_addonline IMPLEMENTATION.
         IF mo_validation_log->is_empty( ) = abap_true.
           mo_form_data->to_abap( CHANGING cs_container = ls_repo_params ).
           lo_new_online_repo = zcl_abapgit_services_repo=>new_online( ls_repo_params ).
-          rs_handled-page = NEW zcl_abapgit_gui_page_repo_view( iv_key = lo_new_online_repo->get_key( ) ).
+          CREATE OBJECT rs_handled-page TYPE zcl_abapgit_gui_page_repo_view EXPORTING iv_key = lo_new_online_repo->get_key( ).
           rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page_replacing.
         ELSE.
           rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render. " Display errors
@@ -273,7 +273,7 @@ CLASS zcl_abapgit_gui_page_addonline IMPLEMENTATION.
 
     gui_services( )->register_event_handler( me ).
 
-    ri_html = NEW zcl_abapgit_html( ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
 
     ri_html->add( mo_form->render(
       iv_form_class     = 'dialog w600px m-em5-sides margin-v1' " to center add wmax600px and auto-center instead
