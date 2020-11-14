@@ -61,7 +61,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_CODI_BASE IMPLEMENTATION.
     DATA:
       lo_sort_menu TYPE REF TO zcl_abapgit_html_toolbar.
 
-    CREATE OBJECT lo_sort_menu.
+    lo_sort_menu = NEW #( ).
 
     lo_sort_menu->add(
       iv_txt = 'By Object, Check, Sub-object'
@@ -73,7 +73,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_CODI_BASE IMPLEMENTATION.
       iv_txt = 'By Check, Object, Sub-object'
       iv_act = c_actions-sort_3 ).
 
-    CREATE OBJECT ro_menu.
+    ro_menu = NEW #( ).
 
     ro_menu->add( iv_txt = 'Sort'
                   io_sub = lo_sort_menu ).
@@ -198,6 +198,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_CODI_BASE IMPLEMENTATION.
     DATA: lv_class   TYPE string,
           lv_obj_txt TYPE string,
           lv_msg     TYPE string,
+          lv_line    TYPE i,
           ls_mtdkey  TYPE seocpdkey.
 
     CASE is_result-kind.
@@ -258,7 +259,8 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_CODI_BASE IMPLEMENTATION.
     IF lv_obj_txt IS INITIAL.
       lv_obj_txt = |{ is_result-objtype } { is_result-objname } &gt; { is_result-sobjtype } { is_result-sobjname }|.
     ENDIF.
-    lv_obj_txt = |{ lv_obj_txt } [ @{ zcl_abapgit_convert=>alpha_output( is_result-line ) } ]|.
+    lv_line = is_result-line. " convert from numc to integer
+    lv_obj_txt = |{ lv_obj_txt } [ @{ lv_line } ]|.
 
     ii_html->add( |<li class="{ lv_class }">| ).
     ii_html->add_a(
@@ -273,7 +275,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_CODI_BASE IMPLEMENTATION.
 
   METHOD render_variant.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div class="ci-head">' ).
     ri_html->add( |Code inspector check variant: <span class="ci-variant">{ iv_variant }</span>| ).
