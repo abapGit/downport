@@ -28,7 +28,7 @@ CLASS zcl_abapgit_repo_srv DEFINITION
 
     CLASS-DATA gi_ref TYPE REF TO zif_abapgit_repo_srv .
     DATA mv_init TYPE abap_bool VALUE abap_false ##NO_TEXT.
-    DATA mt_list TYPE zif_abapgit_definitions=>ty_repo_ref_tt .
+    DATA mt_list TYPE zif_abapgit_repo_srv=>ty_repo_list .
 
     METHODS determine_branch_name
       IMPORTING
@@ -76,7 +76,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_REPO_SRV IMPLEMENTATION.
+CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
 
 
   METHOD add.
@@ -120,7 +120,7 @@ CLASS ZCL_ABAPGIT_REPO_SRV IMPLEMENTATION.
 
   METHOD get_instance.
     IF gi_ref IS INITIAL.
-      CREATE OBJECT gi_ref TYPE zcl_abapgit_repo_srv.
+      gi_ref = NEW zcl_abapgit_repo_srv( ).
     ENDIF.
     ri_srv = gi_ref.
   ENDMETHOD.
@@ -129,9 +129,9 @@ CLASS ZCL_ABAPGIT_REPO_SRV IMPLEMENTATION.
   METHOD instantiate_and_add.
 
     IF is_repo_meta-offline = abap_false.
-      CREATE OBJECT ro_repo TYPE zcl_abapgit_repo_online EXPORTING is_data = is_repo_meta.
+      ro_repo = NEW zcl_abapgit_repo_online( is_data = is_repo_meta ).
     ELSE.
-      CREATE OBJECT ro_repo TYPE zcl_abapgit_repo_offline EXPORTING is_data = is_repo_meta.
+      ro_repo = NEW zcl_abapgit_repo_offline( is_data = is_repo_meta ).
     ENDIF.
     add( ro_repo ).
 
@@ -332,7 +332,7 @@ CLASS ZCL_ABAPGIT_REPO_SRV IMPLEMENTATION.
 
   METHOD zif_abapgit_repo_srv~is_repo_installed.
 
-    DATA: lt_repo        TYPE zif_abapgit_definitions=>ty_repo_ref_tt,
+    DATA: lt_repo        TYPE zif_abapgit_repo_srv=>ty_repo_list,
           lo_repo        TYPE REF TO zcl_abapgit_repo,
           lv_url         TYPE string,
           lv_package     TYPE devclass,
