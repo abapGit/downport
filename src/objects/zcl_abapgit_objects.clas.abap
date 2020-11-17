@@ -368,8 +368,8 @@ CLASS zcl_abapgit_objects IMPLEMENTATION.
         RETURN.
       ENDIF.
 
-      li_remote_version = NEW zcl_abapgit_xml_input( iv_xml = zcl_abapgit_convert=>xstring_to_string_utf8( ls_remote_file-data )
-                                                     iv_filename = ls_remote_file-filename ).
+      CREATE OBJECT li_remote_version TYPE zcl_abapgit_xml_input EXPORTING iv_xml = zcl_abapgit_convert=>xstring_to_string_utf8( ls_remote_file-data )
+                                                                           iv_filename = ls_remote_file-filename.
 
       ls_result = li_comparator->compare( ii_remote = li_remote_version
                                           ii_log = ii_log ).
@@ -449,7 +449,7 @@ CLASS zcl_abapgit_objects IMPLEMENTATION.
         lv_message = |Object type { is_item-obj_type } not supported, serialize|.
         IF iv_native_only = abap_false.
           TRY. " 2nd step, try looking for plugins
-              ri_obj = NEW zcl_abapgit_objects_bridge( is_item = is_item ).
+              CREATE OBJECT ri_obj TYPE zcl_abapgit_objects_bridge EXPORTING is_item = is_item.
             CATCH cx_sy_create_object_error.
               zcx_abapgit_exception=>raise( lv_message ).
           ENDTRY.
@@ -638,8 +638,8 @@ CLASS zcl_abapgit_objects IMPLEMENTATION.
             lv_path = <ls_result>-path.
           ENDIF.
 
-          lo_files = NEW #( is_item = ls_item
-                            iv_path = lv_path ).
+          CREATE OBJECT lo_files EXPORTING is_item = ls_item
+                                           iv_path = lv_path.
           lo_files->set_files( lt_remote ).
 
           "analyze XML in order to instantiate the proper serializer
@@ -1152,12 +1152,12 @@ CLASS zcl_abapgit_objects IMPLEMENTATION.
         rs_files_and_item-item-obj_name }| ).
     ENDIF.
 
-    lo_files = NEW #( is_item = rs_files_and_item-item ).
+    CREATE OBJECT lo_files EXPORTING is_item = rs_files_and_item-item.
 
     li_obj = create_object( is_item     = rs_files_and_item-item
                             iv_language = iv_language ).
     li_obj->mo_files = lo_files.
-    li_xml = NEW zcl_abapgit_xml_output( ).
+    CREATE OBJECT li_xml TYPE zcl_abapgit_xml_output.
 
     IF iv_serialize_master_lang_only = abap_true.
       li_xml->i18n_params( iv_serialize_master_lang_only = abap_true ).
