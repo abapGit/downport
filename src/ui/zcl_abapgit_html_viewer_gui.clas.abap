@@ -26,7 +26,7 @@ ENDCLASS.
 
 
 
-CLASS zcl_abapgit_html_viewer_gui IMPLEMENTATION.
+CLASS ZCL_ABAPGIT_HTML_VIEWER_GUI IMPLEMENTATION.
 
 
   METHOD constructor.
@@ -34,8 +34,8 @@ CLASS zcl_abapgit_html_viewer_gui IMPLEMENTATION.
     DATA: lt_events TYPE cntl_simple_events,
           ls_event  LIKE LINE OF lt_events.
 
-    CREATE OBJECT mo_html_viewer EXPORTING query_table_disabled = abap_true
-                                           parent = cl_gui_container=>screen0.
+    mo_html_viewer = NEW #( query_table_disabled = abap_true
+                            parent = cl_gui_container=>screen0 ).
 
     ls_event-eventid    = zif_abapgit_html_viewer=>m_id_sapevent.
     ls_event-appl_event = abap_true.
@@ -60,6 +60,13 @@ CLASS zcl_abapgit_html_viewer_gui IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD zif_abapgit_html_viewer~back.
+
+    mo_html_viewer->go_back( ).
+
+  ENDMETHOD.
+
+
   METHOD zif_abapgit_html_viewer~close_document.
 
     mo_html_viewer->close_document( ).
@@ -70,6 +77,14 @@ CLASS zcl_abapgit_html_viewer_gui IMPLEMENTATION.
   METHOD zif_abapgit_html_viewer~free.
 
     mo_html_viewer->free( ).
+
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_html_viewer~get_url.
+
+    mo_html_viewer->get_current_url( IMPORTING url = rv_url ).
+    cl_gui_cfw=>flush( ).
 
   ENDMETHOD.
 
