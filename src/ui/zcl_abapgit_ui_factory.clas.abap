@@ -57,8 +57,8 @@ CLASS ZCL_ABAPGIT_UI_FACTORY IMPLEMENTATION.
     DATA lo_buf TYPE REF TO lcl_string_buffer.
     DATA lo_asset_man TYPE REF TO zcl_abapgit_gui_asset_manager.
 
-    CREATE OBJECT lo_buf.
-    CREATE OBJECT lo_asset_man.
+    lo_buf = NEW #( ).
+    lo_asset_man = NEW #( ).
 
     " @@abapmerge include zabapgit_css_common.w3mi.data.css > lo_buf->add( '$$' ).
     lo_asset_man->register_asset(
@@ -120,7 +120,7 @@ CLASS ZCL_ABAPGIT_UI_FACTORY IMPLEMENTATION.
   METHOD get_frontend_services.
 
     IF gi_fe_services IS INITIAL.
-      CREATE OBJECT gi_fe_services TYPE zcl_abapgit_frontend_services.
+      gi_fe_services = NEW zcl_abapgit_frontend_services( ).
     ENDIF.
 
     ri_fe_serv = gi_fe_services.
@@ -140,17 +140,17 @@ CLASS ZCL_ABAPGIT_UI_FACTORY IMPLEMENTATION.
     IF go_gui IS INITIAL.
       li_asset_man = get_asset_manager( ).
 
-      CREATE OBJECT lo_html_preprocessor EXPORTING ii_asset_man = li_asset_man.
+      lo_html_preprocessor = NEW #( ii_asset_man = li_asset_man ).
       lo_html_preprocessor->preserve_css( 'css/ag-icons.css' ).
       lo_html_preprocessor->preserve_css( 'css/common.css' ).
 
-      CREATE OBJECT li_router TYPE zcl_abapgit_gui_router.
-      CREATE OBJECT li_hotkey_ctl TYPE zcl_abapgit_hotkeys.
+      li_router = NEW zcl_abapgit_gui_router( ).
+      li_hotkey_ctl = NEW zcl_abapgit_hotkeys( ).
 
-      CREATE OBJECT go_gui EXPORTING io_component = li_router
-                                     ii_hotkey_ctl = li_hotkey_ctl
-                                     ii_html_processor = lo_html_preprocessor
-                                     ii_asset_man = li_asset_man.
+      go_gui = NEW #( io_component = li_router
+                      ii_hotkey_ctl = li_hotkey_ctl
+                      ii_html_processor = lo_html_preprocessor
+                      ii_asset_man = li_asset_man ).
     ENDIF.
     ro_gui = go_gui.
 
@@ -160,7 +160,7 @@ CLASS ZCL_ABAPGIT_UI_FACTORY IMPLEMENTATION.
   METHOD get_gui_functions.
 
     IF gi_gui_functions IS INITIAL.
-      CREATE OBJECT gi_gui_functions TYPE zcl_abapgit_gui_functions.
+      gi_gui_functions = NEW zcl_abapgit_gui_functions( ).
     ENDIF.
 
     ri_gui_functions = gi_gui_functions.
@@ -178,12 +178,11 @@ CLASS ZCL_ABAPGIT_UI_FACTORY IMPLEMENTATION.
 
   METHOD get_html_viewer.
 
-    IF gi_html_viewer IS BOUND.
-      ri_viewer = gi_html_viewer.
-      RETURN.
+    IF gi_html_viewer IS NOT BOUND.
+      gi_html_viewer = NEW zcl_abapgit_html_viewer_gui( ).
     ENDIF.
 
-    CREATE OBJECT ri_viewer TYPE zcl_abapgit_html_viewer_gui.
+    ri_viewer = gi_html_viewer.
 
   ENDMETHOD.
 
@@ -191,7 +190,7 @@ CLASS ZCL_ABAPGIT_UI_FACTORY IMPLEMENTATION.
   METHOD get_popups.
 
     IF gi_popups IS INITIAL.
-      CREATE OBJECT gi_popups TYPE zcl_abapgit_popups.
+      gi_popups = NEW zcl_abapgit_popups( ).
     ENDIF.
 
     ri_popups = gi_popups.
@@ -202,7 +201,7 @@ CLASS ZCL_ABAPGIT_UI_FACTORY IMPLEMENTATION.
   METHOD get_tag_popups.
 
     IF gi_tag_popups IS INITIAL.
-      CREATE OBJECT gi_tag_popups TYPE zcl_abapgit_tag_popups.
+      gi_tag_popups = NEW zcl_abapgit_tag_popups( ).
     ENDIF.
 
     ri_tag_popups = gi_tag_popups.

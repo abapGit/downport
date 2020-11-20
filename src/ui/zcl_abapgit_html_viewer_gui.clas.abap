@@ -13,20 +13,20 @@ CLASS zcl_abapgit_html_viewer_gui DEFINITION
     DATA mo_html_viewer TYPE REF TO cl_gui_html_viewer .
 
     METHODS on_event
-          FOR EVENT sapevent OF cl_gui_html_viewer
+        FOR EVENT sapevent OF cl_gui_html_viewer
       IMPORTING
-          !action
-          !frame
-          !getdata
-          !postdata
-          !query_table .
+        !action
+        !frame
+        !getdata
+        !postdata
+        !query_table .
 
   PRIVATE SECTION.
 ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_HTML_VIEWER_GUI IMPLEMENTATION.
+CLASS zcl_abapgit_html_viewer_gui IMPLEMENTATION.
 
 
   METHOD constructor.
@@ -34,8 +34,8 @@ CLASS ZCL_ABAPGIT_HTML_VIEWER_GUI IMPLEMENTATION.
     DATA: lt_events TYPE cntl_simple_events,
           ls_event  LIKE LINE OF lt_events.
 
-    CREATE OBJECT mo_html_viewer EXPORTING query_table_disabled = abap_true
-                                           parent = cl_gui_container=>screen0.
+    mo_html_viewer = NEW #( query_table_disabled = abap_true
+                            parent = cl_gui_container=>screen0 ).
 
     ls_event-eventid    = zif_abapgit_html_viewer=>m_id_sapevent.
     ls_event-appl_event = abap_true.
@@ -116,5 +116,17 @@ CLASS ZCL_ABAPGIT_HTML_VIEWER_GUI IMPLEMENTATION.
 
     mo_html_viewer->show_url( iv_url ).
 
+  ENDMETHOD.
+
+  METHOD zif_abapgit_html_viewer~set_visiblity.
+    DATA: lv_visible TYPE c LENGTH 1.
+
+    IF iv_visible = abap_true.
+      lv_visible = cl_gui_container=>visible_true.
+    ELSE.
+      lv_visible = cl_gui_container=>visible_false.
+    ENDIF.
+
+    mo_html_viewer->set_visible( lv_visible ).
   ENDMETHOD.
 ENDCLASS.
