@@ -218,7 +218,7 @@ CLASS zcl_abapgit_html_form IMPLEMENTATION.
 
     DATA lv_ts TYPE timestampl.
 
-    ro_form = NEW #( ).
+    CREATE OBJECT ro_form.
     ro_form->mv_form_id = iv_form_id.
     ro_form->mv_help_page = iv_help_page.
 
@@ -235,7 +235,7 @@ CLASS zcl_abapgit_html_form IMPLEMENTATION.
     DATA lv_value TYPE string.
     FIELD-SYMBOLS <ls_field> LIKE LINE OF mt_fields.
 
-    ro_form_data = NEW #( ).
+    CREATE OBJECT ro_form_data.
 
     LOOP AT mt_fields ASSIGNING <ls_field>.
       CLEAR lv_value.
@@ -340,7 +340,7 @@ CLASS zcl_abapgit_html_form IMPLEMENTATION.
       ls_form_id = | id="{ mv_form_id }"|.
     ENDIF.
 
-    ri_html = NEW zcl_abapgit_html( ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
 
     ri_html->add( |<div class="{ iv_form_class }">| ).
     ri_html->add( |<form method="post"{ ls_form_id }>| ).
@@ -642,7 +642,7 @@ CLASS zcl_abapgit_html_form IMPLEMENTATION.
     DATA lv_number TYPE i.
     FIELD-SYMBOLS <ls_field> LIKE LINE OF mt_fields.
 
-    ro_validation_log = NEW #( ).
+    CREATE OBJECT ro_validation_log.
 
     LOOP AT mt_fields ASSIGNING <ls_field>.
       lv_value = io_form_data->get( <ls_field>-name ).
