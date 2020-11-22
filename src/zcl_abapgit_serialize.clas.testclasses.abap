@@ -18,7 +18,7 @@ ENDCLASS.
 CLASS ltcl_determine_max_threads IMPLEMENTATION.
 
   METHOD setup.
-    CREATE OBJECT mo_cut.
+    mo_cut = NEW #( ).
   ENDMETHOD.
 
   METHOD determine_max_threads.
@@ -64,7 +64,7 @@ ENDCLASS.
 CLASS ltcl_serialize IMPLEMENTATION.
 
   METHOD setup.
-    CREATE OBJECT mo_cut.
+    mo_cut = NEW #( ).
   ENDMETHOD.
 
   METHOD test.
@@ -109,13 +109,13 @@ CLASS ltcl_serialize IMPLEMENTATION.
     <ls_tadir>-object   = 'ABCD'.
     <ls_tadir>-obj_name = 'OBJECT'.
 
-    CREATE OBJECT li_log1 TYPE zcl_abapgit_log.
+    li_log1 = NEW zcl_abapgit_log( ).
     mo_cut->serialize(
       it_tadir            = lt_tadir
       ii_log              = li_log1
       iv_force_sequential = abap_true ).
 
-    CREATE OBJECT li_log2 TYPE zcl_abapgit_log.
+    li_log2 = NEW zcl_abapgit_log( ).
     mo_cut->serialize(
       it_tadir            = lt_tadir
       ii_log              = li_log2
