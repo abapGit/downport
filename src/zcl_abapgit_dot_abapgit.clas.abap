@@ -120,7 +120,7 @@ CLASS ZCL_ABAPGIT_DOT_ABAPGIT IMPLEMENTATION.
     ls_data-starting_folder = '/src/'.
     ls_data-folder_logic    = zif_abapgit_dot_abapgit=>c_folder_logic-prefix.
 
-    CREATE OBJECT ro_dot_abapgit EXPORTING is_data = ls_data.
+    ro_dot_abapgit = NEW #( is_data = ls_data ).
 
   ENDMETHOD.
 
@@ -140,7 +140,7 @@ CLASS ZCL_ABAPGIT_DOT_ABAPGIT IMPLEMENTATION.
 
     ls_data = from_xml( lv_xml ).
 
-    CREATE OBJECT ro_dot_abapgit EXPORTING is_data = ls_data.
+    ro_dot_abapgit = NEW #( is_data = ls_data ).
 
   ENDMETHOD.
 
@@ -188,8 +188,7 @@ CLASS ZCL_ABAPGIT_DOT_ABAPGIT IMPLEMENTATION.
 
     rs_signature-path     = zif_abapgit_definitions=>c_root_dir.
     rs_signature-filename = zif_abapgit_definitions=>c_dot_abapgit.
-    rs_signature-sha1     = zcl_abapgit_hash=>sha1( iv_type = zif_abapgit_definitions=>c_type-blob
-                                                    iv_data = serialize( ) ).
+    rs_signature-sha1     = zcl_abapgit_hash=>sha1_blob( serialize( ) ).
 
   ENDMETHOD.
 

@@ -210,7 +210,7 @@ ENDCLASS.
 
 
 
-CLASS zcl_abapgit_repo IMPLEMENTATION.
+CLASS ZCL_ABAPGIT_REPO IMPLEMENTATION.
 
 
   METHOD bind_listener.
@@ -230,8 +230,7 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
       rs_file-path     = zif_abapgit_definitions=>c_root_dir.
       rs_file-filename = zif_abapgit_apack_definitions=>c_dot_apack_manifest.
       rs_file-data     = zcl_abapgit_convert=>string_to_xstring_utf8( lo_manifest_writer->serialize( ) ).
-      rs_file-sha1     = zcl_abapgit_hash=>sha1( iv_type = zif_abapgit_definitions=>c_type-blob
-                                                 iv_data = rs_file-data ).
+      rs_file-sha1     = zcl_abapgit_hash=>sha1_blob( rs_file-data ).
     ENDIF.
   ENDMETHOD.
 
@@ -241,8 +240,7 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
     rs_file-path     = zif_abapgit_definitions=>c_root_dir.
     rs_file-filename = zif_abapgit_definitions=>c_dot_abapgit.
     rs_file-data     = get_dot_abapgit( )->serialize( ).
-    rs_file-sha1     = zcl_abapgit_hash=>sha1( iv_type = zif_abapgit_definitions=>c_type-blob
-                                               iv_data = rs_file-data ).
+    rs_file-sha1     = zcl_abapgit_hash=>sha1_blob( rs_file-data ).
 
   ENDMETHOD.
 
@@ -309,7 +307,7 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
 
   METHOD create_new_log.
 
-    CREATE OBJECT mi_log TYPE zcl_abapgit_log.
+    mi_log = NEW zcl_abapgit_log( ).
     mi_log->set_title( iv_title ).
 
     ri_log = mi_log.
@@ -438,7 +436,7 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
 
 
   METHOD get_dot_abapgit.
-    CREATE OBJECT ro_dot_abapgit EXPORTING is_data = ms_data-dot_abapgit.
+    ro_dot_abapgit = NEW #( is_data = ms_data-dot_abapgit ).
   ENDMETHOD.
 
 
@@ -486,12 +484,12 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
       io_dot                = get_dot_abapgit( )
       ii_log                = ii_log ).
 
-    CREATE OBJECT lo_filter.
+    lo_filter = NEW #( ).
 
     lo_filter->apply( EXPORTING it_filter = it_filter
                       CHANGING  ct_tadir  = lt_tadir ).
 
-    CREATE OBJECT lo_serialize EXPORTING iv_serialize_master_lang_only = ms_data-local_settings-serialize_master_lang_only.
+    lo_serialize = NEW #( iv_serialize_master_lang_only = ms_data-local_settings-serialize_master_lang_only ).
 
 * if there are less than 10 objects run in single thread
 * this helps a lot when debugging, plus performance gain
@@ -659,7 +657,7 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
     CLEAR lt_tadir.
     INSERT ls_tadir INTO TABLE lt_tadir.
 
-    CREATE OBJECT lo_serialize.
+    lo_serialize = NEW #( ).
     lt_new_local_files = lo_serialize->serialize( lt_tadir ).
 
     INSERT LINES OF lt_new_local_files INTO TABLE mt_local.
