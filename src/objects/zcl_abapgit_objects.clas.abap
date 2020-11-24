@@ -369,8 +369,8 @@ CLASS ZCL_ABAPGIT_OBJECTS IMPLEMENTATION.
         RETURN.
       ENDIF.
 
-      CREATE OBJECT li_remote_version TYPE zcl_abapgit_xml_input EXPORTING iv_xml = zcl_abapgit_convert=>xstring_to_string_utf8( ls_remote_file-data )
-                                                                           iv_filename = ls_remote_file-filename.
+      li_remote_version = NEW zcl_abapgit_xml_input( iv_xml = zcl_abapgit_convert=>xstring_to_string_utf8( ls_remote_file-data )
+                                                     iv_filename = ls_remote_file-filename ).
 
       ls_result = li_comparator->compare( ii_remote = li_remote_version
                                           ii_log = ii_log ).
@@ -450,7 +450,7 @@ CLASS ZCL_ABAPGIT_OBJECTS IMPLEMENTATION.
         lv_message = |Object type { is_item-obj_type } not supported, serialize|.
         IF iv_native_only = abap_false.
           TRY. " 2nd step, try looking for plugins
-              CREATE OBJECT ri_obj TYPE zcl_abapgit_objects_bridge EXPORTING is_item = is_item.
+              ri_obj = NEW zcl_abapgit_objects_bridge( is_item = is_item ).
             CATCH cx_sy_create_object_error.
               zcx_abapgit_exception=>raise( lv_message ).
           ENDTRY.
@@ -652,8 +652,8 @@ CLASS ZCL_ABAPGIT_OBJECTS IMPLEMENTATION.
             lv_path = <ls_result>-path.
           ENDIF.
 
-          CREATE OBJECT lo_files EXPORTING is_item = ls_item
-                                           iv_path = lv_path.
+          lo_files = NEW #( is_item = ls_item
+                            iv_path = lv_path ).
           lo_files->set_files( lt_remote ).
 
           "analyze XML in order to instantiate the proper serializer
@@ -1166,12 +1166,12 @@ CLASS ZCL_ABAPGIT_OBJECTS IMPLEMENTATION.
         rs_files_and_item-item-obj_name }| ).
     ENDIF.
 
-    CREATE OBJECT lo_files EXPORTING is_item = rs_files_and_item-item.
+    lo_files = NEW #( is_item = rs_files_and_item-item ).
 
     li_obj = create_object( is_item     = rs_files_and_item-item
                             iv_language = iv_language ).
     li_obj->mo_files = lo_files.
-    CREATE OBJECT li_xml TYPE zcl_abapgit_xml_output.
+    li_xml = NEW zcl_abapgit_xml_output( ).
 
     IF iv_serialize_master_lang_only = abap_true.
       li_xml->i18n_params( iv_serialize_master_lang_only = abap_true ).
@@ -1342,11 +1342,11 @@ CLASS ZCL_ABAPGIT_OBJECTS IMPLEMENTATION.
 
   METHOD warning_package_find.
 
-    DATA: lv_package         TYPE devclass,
-          lt_overwrite_uniqe TYPE HASHED TABLE OF zif_abapgit_definitions=>ty_overwrite
+    DATA: lv_package          TYPE devclass,
+          lt_overwrite_unique TYPE HASHED TABLE OF zif_abapgit_definitions=>ty_overwrite
                                   WITH UNIQUE KEY obj_type obj_name devclass,
-          ls_overwrite       LIKE LINE OF rt_overwrite,
-          ls_tadir           TYPE zif_abapgit_definitions=>ty_tadir.
+          ls_overwrite        LIKE LINE OF rt_overwrite,
+          ls_tadir            TYPE zif_abapgit_definitions=>ty_tadir.
 
     DATA: lo_folder_logic TYPE REF TO zcl_abapgit_folder_logic.
 
@@ -1370,12 +1370,12 @@ CLASS ZCL_ABAPGIT_OBJECTS IMPLEMENTATION.
         ls_overwrite-obj_type = <ls_result>-obj_type.
         ls_overwrite-obj_name = <ls_result>-obj_name.
         ls_overwrite-devclass = ls_tadir-devclass.
-        INSERT ls_overwrite INTO TABLE lt_overwrite_uniqe.
+        INSERT ls_overwrite INTO TABLE lt_overwrite_unique.
       ENDIF.
 
     ENDLOOP.
 
-    rt_overwrite = lt_overwrite_uniqe.
+    rt_overwrite = lt_overwrite_unique.
 
   ENDMETHOD.
 ENDCLASS.
