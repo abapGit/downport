@@ -219,11 +219,17 @@ CLASS zcl_abapgit_objects DEFINITION
     CLASS-METHODS get_deserialize_steps
       RETURNING
         VALUE(rt_steps) TYPE zif_abapgit_objects=>ty_step_data_tt .
+    CLASS-METHODS check_main_package
+      IMPORTING
+        !iv_package  TYPE devclass
+        !iv_obj_type TYPE tadir-object
+      RAISING
+        zcx_abapgit_exception .
 ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_OBJECTS IMPLEMENTATION.
+CLASS zcl_abapgit_objects IMPLEMENTATION.
 
 
   METHOD adjust_namespaces.
@@ -304,6 +310,33 @@ CLASS ZCL_ABAPGIT_OBJECTS IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD check_main_package.
+
+    " check package restrictions, closed package, descriptive or
+    " functional package
+    cl_pak_object_types=>check_object_type(
+      EXPORTING
+        i_working_mode         = 'I'
+        i_package_name         = iv_package
+        i_pgmid                = 'R3TR'
+        i_object_type          = iv_obj_type
+      EXCEPTIONS
+        wrong_object_type      = 1
+        package_not_extensible = 2
+        package_not_loaded     = 3
+        OTHERS                 = 4 ).
+    CASE sy-subrc.
+      WHEN 0.
+        RETURN.
+      WHEN 2.
+        zcx_abapgit_exception=>raise( |Object type { iv_obj_type } not allowed for package { iv_package }| ).
+      WHEN OTHERS.
+        zcx_abapgit_exception=>raise_t100(  ).
+    ENDCASE.
+
+  ENDMETHOD.
+
+
   METHOD check_objects_locked.
 
     DATA: li_obj TYPE REF TO zif_abapgit_object.
@@ -369,8 +402,8 @@ CLASS ZCL_ABAPGIT_OBJECTS IMPLEMENTATION.
         RETURN.
       ENDIF.
 
-      CREATE OBJECT li_remote_version TYPE zcl_abapgit_xml_input EXPORTING iv_xml = zcl_abapgit_convert=>xstring_to_string_utf8( ls_remote_file-data )
-                                                                           iv_filename = ls_remote_file-filename.
+      li_remote_version = NEW zcl_abapgit_xml_input( iv_xml = zcl_abapgit_convert=>xstring_to_string_utf8( ls_remote_file-data )
+                                                     iv_filename = ls_remote_file-filename ).
 
       ls_result = li_comparator->compare( ii_remote = li_remote_version
                                           ii_log = ii_log ).
@@ -450,7 +483,7 @@ CLASS ZCL_ABAPGIT_OBJECTS IMPLEMENTATION.
         lv_message = |Object type { is_item-obj_type } not supported, serialize|.
         IF iv_native_only = abap_false.
           TRY. " 2nd step, try looking for plugins
-              CREATE OBJECT ri_obj TYPE zcl_abapgit_objects_bridge EXPORTING is_item = is_item.
+              ri_obj = NEW zcl_abapgit_objects_bridge( is_item = is_item ).
             CATCH cx_sy_create_object_error.
               zcx_abapgit_exception=>raise( lv_message ).
           ENDTRY.
@@ -646,14 +679,18 @@ CLASS ZCL_ABAPGIT_OBJECTS IMPLEMENTATION.
             io_dot  = io_repo->get_dot_abapgit( )
             iv_path = <ls_result>-path ).
 
+          check_main_package(
+            iv_package  = lv_package
+            iv_obj_type = ls_item-obj_type ).
+
           IF ls_item-obj_type = 'DEVC'.
             " Packages have the same filename across different folders. The path needs to be supplied
             " to find the correct file.
             lv_path = <ls_result>-path.
           ENDIF.
 
-          CREATE OBJECT lo_files EXPORTING is_item = ls_item
-                                           iv_path = lv_path.
+          lo_files = NEW #( is_item = ls_item
+                            iv_path = lv_path ).
           lo_files->set_files( lt_remote ).
 
           "analyze XML in order to instantiate the proper serializer
@@ -1166,12 +1203,12 @@ CLASS ZCL_ABAPGIT_OBJECTS IMPLEMENTATION.
         rs_files_and_item-item-obj_name }| ).
     ENDIF.
 
-    CREATE OBJECT lo_files EXPORTING is_item = rs_files_and_item-item.
+    lo_files = NEW #( is_item = rs_files_and_item-item ).
 
     li_obj = create_object( is_item     = rs_files_and_item-item
                             iv_language = iv_language ).
     li_obj->mo_files = lo_files.
-    CREATE OBJECT li_xml TYPE zcl_abapgit_xml_output.
+    li_xml = NEW zcl_abapgit_xml_output( ).
 
     IF iv_serialize_master_lang_only = abap_true.
       li_xml->i18n_params( iv_serialize_master_lang_only = abap_true ).
