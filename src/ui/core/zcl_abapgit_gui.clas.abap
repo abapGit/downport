@@ -109,7 +109,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_GUI IMPLEMENTATION.
+CLASS zcl_abapgit_gui IMPLEMENTATION.
 
 
   METHOD back.
@@ -189,7 +189,7 @@ CLASS ZCL_ABAPGIT_GUI IMPLEMENTATION.
       ENDIF.
     ENDIF.
 
-    CREATE OBJECT mo_html_parts.
+    mo_html_parts = NEW #( ).
 
     mv_rollback_on_error = iv_rollback_on_error.
     mi_asset_man      = ii_asset_man.
@@ -257,10 +257,10 @@ CLASS ZCL_ABAPGIT_GUI IMPLEMENTATION.
       li_event     TYPE REF TO zif_abapgit_gui_event,
       ls_handled   TYPE zif_abapgit_gui_event_handler=>ty_handling_result.
 
-    CREATE OBJECT li_event TYPE zcl_abapgit_gui_event EXPORTING ii_gui_services = me
-                                                                iv_action = iv_action
-                                                                iv_getdata = iv_getdata
-                                                                it_postdata = it_postdata.
+    li_event = NEW zcl_abapgit_gui_event( ii_gui_services = me
+                                          iv_action = iv_action
+                                          iv_getdata = iv_getdata
+                                          it_postdata = it_postdata ).
 
     TRY.
         LOOP AT mt_event_handlers INTO li_handler.
@@ -466,8 +466,19 @@ CLASS ZCL_ABAPGIT_GUI IMPLEMENTATION.
 
   METHOD zif_abapgit_gui_services~get_current_page_name.
 
+    DATA li_page_hoc TYPE REF TO zcl_abapgit_gui_page_hoc.
+
     IF mi_cur_page IS BOUND.
       rv_page_name = cl_abap_classdescr=>describe_by_object_ref( mi_cur_page )->get_relative_name( ).
+
+      " For HOC components return name of child component instead
+      IF rv_page_name = 'ZCL_ABAPGIT_GUI_PAGE_HOC'.
+        li_page_hoc ?= mi_cur_page.
+        IF li_page_hoc->get_child( ) IS BOUND.
+          rv_page_name = cl_abap_classdescr=>describe_by_object_ref(
+                           li_page_hoc->get_child( ) )->get_relative_name( ).
+        ENDIF.
+      ENDIF.
     ENDIF." ELSE - return is empty => initial page
 
   ENDMETHOD.

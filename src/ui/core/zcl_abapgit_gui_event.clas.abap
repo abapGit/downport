@@ -30,7 +30,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_GUI_EVENT IMPLEMENTATION.
+CLASS zcl_abapgit_gui_event IMPLEMENTATION.
 
 
   METHOD constructor.
@@ -40,13 +40,17 @@ CLASS ZCL_ABAPGIT_GUI_EVENT IMPLEMENTATION.
     zif_abapgit_gui_event~mv_getdata      = iv_getdata.
     zif_abapgit_gui_event~mt_postdata     = it_postdata.
 
+    IF ii_gui_services IS BOUND.
+      zif_abapgit_gui_event~mv_current_page_name = ii_gui_services->get_current_page_name( ).
+    ENDIF.
+
   ENDMETHOD.
 
 
   METHOD fields_to_map.
     FIELD-SYMBOLS <ls_field> LIKE LINE OF it_fields.
 
-    CREATE OBJECT ro_string_map EXPORTING iv_case_insensitive = abap_true.
+    ro_string_map = NEW #( iv_case_insensitive = abap_true ).
     LOOP AT it_fields ASSIGNING <ls_field>.
       ro_string_map->set(
         iv_key = <ls_field>-name

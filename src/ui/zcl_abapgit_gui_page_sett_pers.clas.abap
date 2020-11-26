@@ -71,14 +71,14 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_PERS IMPLEMENTATION.
+CLASS zcl_abapgit_gui_page_sett_pers IMPLEMENTATION.
 
 
   METHOD constructor.
 
     super->constructor( ).
-    CREATE OBJECT mo_validation_log.
-    CREATE OBJECT mo_form_data.
+    mo_validation_log = NEW #( ).
+    mo_form_data = NEW #( ).
     mo_form = get_form_schema( ).
 
   ENDMETHOD.
@@ -88,7 +88,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_PERS IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_sett_pers.
 
-    CREATE OBJECT lo_component.
+    lo_component = NEW #( ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Personal Settings'
@@ -263,6 +263,8 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_PERS IMPLEMENTATION.
     lo_persistence = zcl_abapgit_persist_settings=>get_instance( ).
     lo_persistence->modify( mo_settings ).
 
+    COMMIT WORK AND WAIT.
+
     MESSAGE 'Settings succesfully saved' TYPE 'S'.
 
   ENDMETHOD.
@@ -281,7 +283,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_PERS IMPLEMENTATION.
 
     CASE ii_event->mv_action.
       WHEN c_event-go_back.
-        rs_handled-state = zcl_abapgit_gui=>c_event_state-go_back.
+        rs_handled-state = zcl_abapgit_gui=>c_event_state-go_back_to_bookmark.
 
       WHEN c_event-save.
         " Validate all form entries
@@ -289,11 +291,9 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_PERS IMPLEMENTATION.
 
         IF mo_validation_log->is_empty( ) = abap_true.
           save_settings( ).
-
-          rs_handled-state = zcl_abapgit_gui=>c_event_state-go_back.
-        ELSE.
-          rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render. " Display errors
         ENDIF.
+
+        rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
 
     ENDCASE.
 
@@ -306,7 +306,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_PERS IMPLEMENTATION.
 
     read_settings( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( mo_form->render(
       iv_form_class     = 'dialog w600px m-em5-sides margin-v1'
