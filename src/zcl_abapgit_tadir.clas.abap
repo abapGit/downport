@@ -38,7 +38,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_TADIR IMPLEMENTATION.
+CLASS zcl_abapgit_tadir IMPLEMENTATION.
 
 
   METHOD build.
@@ -96,7 +96,7 @@ CLASS ZCL_ABAPGIT_TADIR IMPLEMENTATION.
 
     SORT rt_tadir BY devclass pgmid object obj_name.
 
-    CREATE OBJECT lo_skip_objects.
+    lo_skip_objects = NEW #( ).
     rt_tadir = lo_skip_objects->skip_sadl_generated_objects(
       it_tadir = rt_tadir
       ii_log   = ii_log ).
@@ -177,6 +177,8 @@ CLASS ZCL_ABAPGIT_TADIR IMPLEMENTATION.
         APPEND <ls_tadir> TO rt_tadir.
       ENDIF.
     ENDLOOP.
+
+    li_progress->off( ).
 
   ENDMETHOD.
 

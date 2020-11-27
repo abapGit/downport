@@ -33,7 +33,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_PROGRESS IMPLEMENTATION.
+CLASS zcl_abapgit_progress IMPLEMENTATION.
 
 
   METHOD calc_pct.
@@ -57,7 +57,7 @@ CLASS ZCL_ABAPGIT_PROGRESS IMPLEMENTATION.
 * max one progress indicator at a time is supported
 
     IF gi_progress IS INITIAL.
-      CREATE OBJECT gi_progress TYPE zcl_abapgit_progress.
+      gi_progress = NEW zcl_abapgit_progress( ).
     ENDIF.
 
     gi_progress->set_total( iv_total ).
@@ -70,6 +70,14 @@ CLASS ZCL_ABAPGIT_PROGRESS IMPLEMENTATION.
   METHOD set_instance.
 
     gi_progress = ii_progress.
+
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_progress~off.
+
+    " Clear the status bar
+    CALL FUNCTION 'SAPGUI_PROGRESS_INDICATOR'.
 
   ENDMETHOD.
 
