@@ -327,7 +327,7 @@ CLASS ZCL_ABAPGIT_TRANSPORT IMPLEMENTATION.
       ls_data-dot_abapgit-folder_logic = zcl_abapgit_ui_factory=>get_popups( )->popup_folder_logic( ).
     ENDIF.
 
-    CREATE OBJECT lo_repo EXPORTING is_data = ls_data.
+    lo_repo = NEW #( is_data = ls_data ).
 
     rv_xstr = zcl_abapgit_zip=>export(
       io_repo     = lo_repo
