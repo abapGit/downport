@@ -34,7 +34,6 @@ CLASS zcl_abapgit_repo DEFINITION
     METHODS get_files_local
       IMPORTING
         !ii_log         TYPE REF TO zif_abapgit_log OPTIONAL
-        !it_filter      TYPE zif_abapgit_definitions=>ty_tadir_tt OPTIONAL
       RETURNING
         VALUE(rt_files) TYPE zif_abapgit_definitions=>ty_files_item_tt
       RAISING
@@ -279,7 +278,7 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
 
   METHOD create_new_log.
 
-    CREATE OBJECT mi_log TYPE zcl_abapgit_log.
+    mi_log = NEW zcl_abapgit_log( ).
     mi_log->set_title( iv_title ).
 
     ri_log = mi_log.
@@ -408,7 +407,7 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
 
 
   METHOD get_dot_abapgit.
-    CREATE OBJECT ro_dot_abapgit EXPORTING is_data = ms_data-dot_abapgit.
+    ro_dot_abapgit = NEW #( is_data = ms_data-dot_abapgit ).
   ENDMETHOD.
 
 
@@ -424,7 +423,6 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
 
   METHOD get_files_local.
 
-* todo, after refactoring is done, I think the IT_FILTER parameter can be removed
 
     DATA: lo_serialize TYPE REF TO zcl_abapgit_serialize.
 
@@ -434,14 +432,13 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    CREATE OBJECT lo_serialize EXPORTING iv_serialize_master_lang_only = ms_data-local_settings-serialize_master_lang_only.
+    lo_serialize = NEW #( iv_serialize_master_lang_only = ms_data-local_settings-serialize_master_lang_only ).
 
     rt_files = lo_serialize->files_local(
       iv_package        = get_package( )
       io_dot_abapgit    = get_dot_abapgit( )
       is_local_settings = get_local_settings( )
-      ii_log            = ii_log
-      it_filter         = it_filter ).
+      ii_log            = ii_log ).
 
     mt_local                 = rt_files.
     mv_request_local_refresh = abap_false. " Fulfill refresh
@@ -632,7 +629,7 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
     CLEAR lt_tadir.
     INSERT ls_tadir INTO TABLE lt_tadir.
 
-    CREATE OBJECT lo_serialize.
+    lo_serialize = NEW #( ).
     lt_new_local_files = lo_serialize->serialize( lt_tadir ).
 
     INSERT LINES OF lt_new_local_files INTO TABLE mt_local.
