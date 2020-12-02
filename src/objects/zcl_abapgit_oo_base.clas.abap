@@ -113,7 +113,7 @@ CLASS zcl_abapgit_oo_base IMPLEMENTATION.
         class_not_existing = 1
         OTHERS             = 2.
     IF sy-subrc <> 0.
-      zcx_abapgit_exception=>raise( |Error from CL_OO_SOURCE. Subrc = { sy-subrc }| ).
+      zcx_abapgit_exception=>raise_t100( ).
     ENDIF.
 
     TRY.
@@ -153,7 +153,7 @@ CLASS zcl_abapgit_oo_base IMPLEMENTATION.
         ret_code      = 1
         OTHERS        = 2.
     IF sy-subrc <> 0.
-      zcx_abapgit_exception=>raise( |Error from DOCU_UPD. Subrc = { sy-subrc }| ).
+      zcx_abapgit_exception=>raise_t100( ).
     ENDIF.
   ENDMETHOD.
 
@@ -303,7 +303,7 @@ CLASS zcl_abapgit_oo_base IMPLEMENTATION.
 
   METHOD zif_abapgit_oo_object_fnc~serialize_abap.
     DATA lo_oo_serializer TYPE REF TO zcl_abapgit_oo_serializer.
-    CREATE OBJECT lo_oo_serializer.
+    lo_oo_serializer = NEW #( ).
     CASE iv_type.
       WHEN seop_ext_class_locals_def.
         rt_source = lo_oo_serializer->serialize_locals_def( is_class_key ).
