@@ -84,7 +84,7 @@ CLASS ZCL_ABAPGIT_ZIP IMPLEMENTATION.
     FIELD-SYMBOLS: <ls_file> LIKE LINE OF it_files.
 
 
-    CREATE OBJECT lo_zip.
+    lo_zip = NEW #( ).
 
     LOOP AT it_files ASSIGNING <ls_file>.
       CONCATENATE <ls_file>-file-path+1 <ls_file>-file-filename INTO lv_filename.
@@ -104,14 +104,14 @@ CLASS ZCL_ABAPGIT_ZIP IMPLEMENTATION.
     DATA lo_serialize TYPE REF TO zcl_abapgit_serialize.
 
 
-    CREATE OBJECT li_log TYPE zcl_abapgit_log.
+    li_log = NEW zcl_abapgit_log( ).
     li_log->set_title( 'Zip Export Log' ).
 
     IF zcl_abapgit_factory=>get_sap_package( iv_package )->exists( ) = abap_false.
       zcx_abapgit_exception=>raise( |Package { iv_package } doesn't exist| ).
     ENDIF.
 
-    CREATE OBJECT lo_serialize EXPORTING iv_serialize_master_lang_only = is_local_settings-serialize_master_lang_only.
+    lo_serialize = NEW #( iv_serialize_master_lang_only = is_local_settings-serialize_master_lang_only ).
 
     lt_zip = lo_serialize->files_local(
       iv_package        = iv_package
@@ -344,7 +344,7 @@ CLASS ZCL_ABAPGIT_ZIP IMPLEMENTATION.
                    <ls_file>    LIKE LINE OF rt_files.
 
 
-    CREATE OBJECT lo_zip.
+    lo_zip = NEW #( ).
     lo_zip->load( EXPORTING
                     zip             = iv_xstr
                   EXCEPTIONS
