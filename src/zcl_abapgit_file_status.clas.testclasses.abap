@@ -53,10 +53,10 @@ CLASS ltcl_run_checks IMPLEMENTATION.
 
   METHOD setup.
 
-    CREATE OBJECT mi_log TYPE zcl_abapgit_log.
+    mi_log = NEW zcl_abapgit_log( ).
 
     mo_dot = zcl_abapgit_dot_abapgit=>build_default( ).
-    mo_dot->set_starting_folder( '/' ).
+    mo_dot->set_starting_folder( '/' ).  " assumed by unit tests
 
   ENDMETHOD.
 
@@ -598,6 +598,7 @@ CLASS ltcl_status_helper IMPLEMENTATION.
 
 
     lo_dot = zcl_abapgit_dot_abapgit=>build_default( ).
+    lo_dot->set_starting_folder( '/' ). " assumed by unit tests
 
     lt_results = zcl_abapgit_file_status=>calculate_status(
       iv_devclass  = iv_devclass
@@ -606,7 +607,7 @@ CLASS ltcl_status_helper IMPLEMENTATION.
       it_remote    = mt_remote
       it_cur_state = mt_state ).
 
-    CREATE OBJECT ro_result EXPORTING it_results = lt_results.
+    ro_result = NEW #( it_results = lt_results ).
 
   ENDMETHOD.
 
@@ -640,7 +641,7 @@ CLASS ltcl_calculate_status IMPLEMENTATION.
 
   METHOD setup.
 
-    CREATE OBJECT mo_helper.
+    mo_helper = NEW #( ).
 
   ENDMETHOD.
 
