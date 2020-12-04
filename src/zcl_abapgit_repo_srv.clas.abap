@@ -120,7 +120,7 @@ CLASS ZCL_ABAPGIT_REPO_SRV IMPLEMENTATION.
 
   METHOD get_instance.
     IF gi_ref IS INITIAL.
-      CREATE OBJECT gi_ref TYPE zcl_abapgit_repo_srv.
+      gi_ref = NEW zcl_abapgit_repo_srv( ).
     ENDIF.
     ri_srv = gi_ref.
   ENDMETHOD.
@@ -129,9 +129,9 @@ CLASS ZCL_ABAPGIT_REPO_SRV IMPLEMENTATION.
   METHOD instantiate_and_add.
 
     IF is_repo_meta-offline = abap_false.
-      CREATE OBJECT ro_repo TYPE zcl_abapgit_repo_online EXPORTING is_data = is_repo_meta.
+      ro_repo = NEW zcl_abapgit_repo_online( is_data = is_repo_meta ).
     ELSE.
-      CREATE OBJECT ro_repo TYPE zcl_abapgit_repo_offline EXPORTING is_data = is_repo_meta.
+      ro_repo = NEW zcl_abapgit_repo_offline( is_data = is_repo_meta ).
     ENDIF.
     add( ro_repo ).
 
@@ -421,11 +421,14 @@ CLASS ZCL_ABAPGIT_REPO_SRV IMPLEMENTATION.
     DATA: ls_repo        TYPE zif_abapgit_persistence=>ty_repo,
           lv_branch_name LIKE iv_branch_name,
           lv_key         TYPE zif_abapgit_persistence=>ty_repo-key,
-          ls_dot_abapgit TYPE zif_abapgit_dot_abapgit=>ty_dot_abapgit.
+          ls_dot_abapgit TYPE zif_abapgit_dot_abapgit=>ty_dot_abapgit,
+          lv_url         TYPE string.
 
 
     ASSERT NOT iv_url IS INITIAL
       AND NOT iv_package IS INITIAL.
+
+    lv_url = condense( iv_url ).
 
     IF zcl_abapgit_auth=>is_allowed( zif_abapgit_auth=>gc_authorization-create_repo ) = abap_false.
       zcx_abapgit_exception=>raise( 'Not authorized' ).
@@ -434,17 +437,17 @@ CLASS ZCL_ABAPGIT_REPO_SRV IMPLEMENTATION.
     validate_package( iv_package    = iv_package
                       iv_ign_subpkg = iv_ign_subpkg ).
 
-    zcl_abapgit_url=>validate( iv_url ).
+    zcl_abapgit_url=>validate( lv_url ).
 
     lv_branch_name = determine_branch_name(
       iv_name = iv_branch_name
-      iv_url  = iv_url ).
+      iv_url  = lv_url ).
 
     ls_dot_abapgit = zcl_abapgit_dot_abapgit=>build_default( )->get_data( ).
     ls_dot_abapgit-folder_logic = iv_folder_logic.
 
     lv_key = zcl_abapgit_persist_factory=>get_repo( )->add(
-      iv_url          = iv_url
+      iv_url          = lv_url
       iv_branch_name  = lv_branch_name " local !
       iv_display_name = iv_display_name
       iv_package      = iv_package
@@ -478,7 +481,7 @@ CLASS ZCL_ABAPGIT_REPO_SRV IMPLEMENTATION.
 
     DATA: lt_tadir TYPE zif_abapgit_definitions=>ty_tadir_tt.
 
-    CREATE OBJECT ri_log TYPE zcl_abapgit_log.
+    ri_log = NEW zcl_abapgit_log( ).
     ri_log->set_title( 'Uninstall Log' ).
 
     IF io_repo->get_local_settings( )-write_protected = abap_true.
