@@ -18,7 +18,7 @@ CLASS lcl_http_response IMPLEMENTATION.
 
   METHOD create.
     DATA lo_response TYPE REF TO lcl_http_response.
-    CREATE OBJECT lo_response.
+    lo_response = NEW #( ).
     lo_response->mi_client   = ii_client.
     lo_response->mi_response = ii_client->response.
     ri_response ?= lo_response.
@@ -65,7 +65,7 @@ CLASS lcl_http_response IMPLEMENTATION.
     DATA lt_headers TYPE tihttpnvp.
     FIELD-SYMBOLS <ls_h> LIKE LINE OF lt_headers.
 
-    CREATE OBJECT ro_headers.
+    ro_headers = NEW #( ).
 
     mi_response->get_header_fields( CHANGING fields = lt_headers ).
     LOOP AT lt_headers ASSIGNING <ls_h>.
