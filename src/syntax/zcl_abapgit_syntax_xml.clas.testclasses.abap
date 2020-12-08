@@ -22,7 +22,7 @@ CLASS ltcl_abapgit_syntax_xml IMPLEMENTATION.
 
   METHOD setup.
 
-    mo_cut = NEW #( ).
+    CREATE OBJECT mo_cut.
 
   ENDMETHOD.
 
