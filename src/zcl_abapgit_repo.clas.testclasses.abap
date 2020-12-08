@@ -7,7 +7,6 @@ CLASS ltcl_find_remote_dot_abapgit DEFINITION FINAL FOR TESTING
     CONSTANTS: c_dummy_repo_key TYPE zif_abapgit_persistence=>ty_value VALUE '000000001'.
     METHODS:
       positive FOR TESTING RAISING cx_static_check,
-      bigger_repo_needs_dot_abapgit FOR TESTING RAISING cx_static_check,
       new_repo_needs_no_dot_abapgit FOR TESTING RAISING cx_static_check,
 
       given_any_repo,
@@ -17,7 +16,6 @@ CLASS ltcl_find_remote_dot_abapgit DEFINITION FINAL FOR TESTING
       given_dot_abapgit_file,
       given_no_dot_abapgit_file,
       then_dot_abapgit_is_not_bound,
-      then_exception_is_raised,
       given_repo_has_files
         IMPORTING
           iv_number_of_files TYPE i.
@@ -47,27 +45,13 @@ CLASS ltcl_find_remote_dot_abapgit IMPLEMENTATION.
   METHOD new_repo_needs_no_dot_abapgit.
 
     given_any_repo( ).
-    given_repo_has_files( zcl_abapgit_repo=>c_new_repo_size ).
+    given_repo_has_files( 3 ). " a few random files
     given_no_dot_abapgit_file( ).
 
     when_find_remote_dot_abapgit( ).
 
     then_dot_abapgit_is_not_bound( ).
     then_no_exception_is_raised( ).
-
-  ENDMETHOD.
-
-
-  METHOD bigger_repo_needs_dot_abapgit.
-
-    given_any_repo( ).
-    given_repo_has_files( zcl_abapgit_repo=>c_new_repo_size + 1 ).
-    given_no_dot_abapgit_file( ).
-
-    when_find_remote_dot_abapgit( ).
-
-    then_dot_abapgit_is_not_bound( ).
-    then_exception_is_raised( ).
 
   ENDMETHOD.
 
@@ -79,7 +63,7 @@ CLASS ltcl_find_remote_dot_abapgit IMPLEMENTATION.
     ls_data-key = c_dummy_repo_key.
 
     " online/offline doesn't matter...
-    CREATE OBJECT mo_repo TYPE zcl_abapgit_repo_offline EXPORTING is_data = ls_data.
+    mo_repo = NEW zcl_abapgit_repo_offline( is_data = ls_data ).
 
   ENDMETHOD.
 
@@ -144,11 +128,6 @@ CLASS ltcl_find_remote_dot_abapgit IMPLEMENTATION.
 
   METHOD then_dot_abapgit_is_not_bound.
     cl_abap_unit_assert=>assert_not_bound( mo_dot_abapgit ).
-  ENDMETHOD.
-
-
-  METHOD then_exception_is_raised.
-    cl_abap_unit_assert=>assert_bound( mx_error ).
   ENDMETHOD.
 
 

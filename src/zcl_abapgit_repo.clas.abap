@@ -5,8 +5,6 @@ CLASS zcl_abapgit_repo DEFINITION
 
   PUBLIC SECTION.
 
-    CONSTANTS c_new_repo_size TYPE i VALUE 3.
-
     METHODS bind_listener
       IMPORTING
         !ii_listener TYPE REF TO zif_abapgit_repo_listener .
@@ -266,6 +264,29 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD compare_with_remote_checksum.
+    FIELD-SYMBOLS: <ls_remote_file> LIKE LINE OF it_remote_files,
+                   <ls_file_sig>    LIKE LINE OF cs_checksum-files.
+    READ TABLE it_remote_files ASSIGNING <ls_remote_file>
+        WITH KEY path = is_local_file-path filename = is_local_file-filename
+        BINARY SEARCH.
+    IF sy-subrc <> 0.  " Ignore new local ones
+      RETURN.
+    ENDIF.
+
+    APPEND INITIAL LINE TO cs_checksum-files ASSIGNING <ls_file_sig>.
+    MOVE-CORRESPONDING is_local_file TO <ls_file_sig>.
+
+    " If hashes are equal -> local sha1 is OK
+    " Else if R-branch is ahead  -> assume changes were remote, state - local sha1
+    "      Else (branches equal) -> assume changes were local, state - remote sha1
+    IF is_local_file-sha1 <> <ls_remote_file>-sha1.
+      <ls_file_sig>-sha1 = <ls_remote_file>-sha1.
+    ENDIF.
+
+  ENDMETHOD.
+
+
   METHOD constructor.
 
     ASSERT NOT is_data-key IS INITIAL.
@@ -278,7 +299,7 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
 
   METHOD create_new_log.
 
-    CREATE OBJECT mi_log TYPE zcl_abapgit_log.
+    mi_log = NEW zcl_abapgit_log( ).
     mi_log->set_title( iv_title ).
 
     ri_log = mi_log.
@@ -380,9 +401,6 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
       ro_dot = zcl_abapgit_dot_abapgit=>deserialize( <ls_remote>-data ).
       set_dot_abapgit( ro_dot ).
       COMMIT WORK AND WAIT. " to release lock
-    ELSEIF lines( mt_remote ) > c_new_repo_size.
-      " Less files means it's a new repo (with just readme and license, for example) which is ok
-      zcx_abapgit_exception=>raise( |Cannot find .abapgit.xml - Is this an abapGit repo?| ).
     ENDIF.
 
   ENDMETHOD.
@@ -407,7 +425,7 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
 
 
   METHOD get_dot_abapgit.
-    CREATE OBJECT ro_dot_abapgit EXPORTING is_data = ms_data-dot_abapgit.
+    ro_dot_abapgit = NEW #( is_data = ms_data-dot_abapgit ).
   ENDMETHOD.
 
 
@@ -432,7 +450,7 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    CREATE OBJECT lo_serialize EXPORTING iv_serialize_master_lang_only = ms_data-local_settings-serialize_master_lang_only.
+    lo_serialize = NEW #( iv_serialize_master_lang_only = ms_data-local_settings-serialize_master_lang_only ).
 
     rt_files = lo_serialize->files_local(
       iv_package        = get_package( )
@@ -557,37 +575,6 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD remove_non_code_related_files.
-
-    DELETE ct_local_files
-          WHERE item IS INITIAL
-          AND NOT ( file-path = zif_abapgit_definitions=>c_root_dir
-          AND file-filename = zif_abapgit_definitions=>c_dot_abapgit ).
-    SORT ct_local_files BY item.
-
-  ENDMETHOD.
-
-  METHOD compare_with_remote_checksum.
-    FIELD-SYMBOLS: <ls_remote_file> LIKE LINE OF it_remote_files,
-                   <ls_file_sig>    LIKE LINE OF cs_checksum-files.
-    READ TABLE it_remote_files ASSIGNING <ls_remote_file>
-        WITH KEY path = is_local_file-path filename = is_local_file-filename
-        BINARY SEARCH.
-    IF sy-subrc <> 0.  " Ignore new local ones
-      RETURN.
-    ENDIF.
-
-    APPEND INITIAL LINE TO cs_checksum-files ASSIGNING <ls_file_sig>.
-    MOVE-CORRESPONDING is_local_file TO <ls_file_sig>.
-
-    " If hashes are equal -> local sha1 is OK
-    " Else if R-branch is ahead  -> assume changes were remote, state - local sha1
-    "      Else (branches equal) -> assume changes were local, state - remote sha1
-    IF is_local_file-sha1 <> <ls_remote_file>-sha1.
-      <ls_file_sig>-sha1 = <ls_remote_file>-sha1.
-    ENDIF.
-
-  ENDMETHOD.
 
   METHOD refresh.
 
@@ -629,7 +616,7 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
     CLEAR lt_tadir.
     INSERT ls_tadir INTO TABLE lt_tadir.
 
-    CREATE OBJECT lo_serialize.
+    lo_serialize = NEW #( ).
     lt_new_local_files = lo_serialize->serialize( lt_tadir ).
 
     INSERT LINES OF lt_new_local_files INTO TABLE mt_local.
@@ -641,6 +628,17 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
 
     mv_request_local_refresh = abap_true.
     get_files_local( ).
+
+  ENDMETHOD.
+
+
+  METHOD remove_non_code_related_files.
+
+    DELETE ct_local_files
+          WHERE item IS INITIAL
+          AND NOT ( file-path = zif_abapgit_definitions=>c_root_dir
+          AND file-filename = zif_abapgit_definitions=>c_dot_abapgit ).
+    SORT ct_local_files BY item.
 
   ENDMETHOD.
 
@@ -888,5 +886,4 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
     set( it_checksums = lt_checksums ).
 
   ENDMETHOD.
-
 ENDCLASS.
