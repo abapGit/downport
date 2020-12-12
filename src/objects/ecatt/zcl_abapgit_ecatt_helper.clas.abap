@@ -27,7 +27,7 @@ CLASS zcl_abapgit_ecatt_helper DEFINITION
         RETURNING
           VALUE(ri_template_over_all) TYPE REF TO if_ixml_document
         RAISING
-          cx_ecatt_apl_xml.
+          cx_ecatt_apl.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -53,7 +53,7 @@ CLASS zcl_abapgit_ecatt_helper IMPLEMENTATION.
     "download method will create the xml stream
     "note: it's the redefined download( ) of each object type specific download, which is called
     TRY.
-        CREATE OBJECT lo_load_help_dummy EXPORTING im_maintain_function = ''.
+        lo_load_help_dummy = NEW #( im_maintain_function = '' ).
 
         io_download->download( im_object_name    = iv_object_name
                                im_object_version = iv_object_version
