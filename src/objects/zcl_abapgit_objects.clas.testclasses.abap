@@ -460,7 +460,7 @@ CLASS ltcl_filter_files_to_deser IMPLEMENTATION.
 
   METHOD setup.
 
-    mo_objects = NEW #( ).
+    CREATE OBJECT mo_objects.
 
   ENDMETHOD.
 
@@ -645,7 +645,7 @@ CLASS ltcl_adjust_namespaces IMPLEMENTATION.
 
   METHOD setup.
 
-    mo_objects = NEW #( ).
+    CREATE OBJECT mo_objects.
 
   ENDMETHOD.
 
@@ -709,7 +709,7 @@ CLASS ltcl_prio_deserialization IMPLEMENTATION.
 
   METHOD setup.
 
-    mo_objects = NEW #( ).
+    CREATE OBJECT mo_objects.
     mv_exp_output_tabix = 0.
 
   ENDMETHOD.
@@ -795,7 +795,7 @@ CLASS ltcl_warning_overwrite_find IMPLEMENTATION.
 
   METHOD setup.
 
-    mo_objects = NEW #( ).
+    CREATE OBJECT mo_objects.
 
   ENDMETHOD.
 
