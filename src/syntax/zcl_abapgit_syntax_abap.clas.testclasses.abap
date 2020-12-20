@@ -17,15 +17,19 @@ CLASS ltcl_abapgit_syntax_abap IMPLEMENTATION.
 
   METHOD setup.
 
-    CREATE OBJECT mo_cut.
+    mo_cut = NEW #( ).
 
   ENDMETHOD.
 
   METHOD report_header.
 
+    DATA lv_act TYPE string.
+
+    lv_act = mo_cut->process_line( |REPORT zfoo.| ).
+
     cl_abap_unit_assert=>assert_equals(
       exp = |<span class="keyword">REPORT</span> zfoo.|
-      act = mo_cut->process_line( |REPORT zfoo.| ) ).
+      act = lv_act ).
 
   ENDMETHOD.
 
@@ -60,7 +64,7 @@ ENDCLASS.
 CLASS ltcl_syntax_basic_logic IMPLEMENTATION.
 
   METHOD setup.
-    CREATE OBJECT mo_syntax_highlighter.
+    mo_syntax_highlighter = NEW #( ).
   ENDMETHOD.
 
   METHOD format_line.
@@ -82,7 +86,7 @@ CLASS ltcl_syntax_basic_logic IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals( exp = lv_line_exp
                                         act = lv_line_act
-                                        msg = | Error during formating: { lv_line }| ).
+                                        msg = |Error during formating: { lv_line }| ).
 
   ENDMETHOD.
 
@@ -179,7 +183,7 @@ CLASS ltcl_syntax_cases IMPLEMENTATION.
           lo_syntax      TYPE REF TO zcl_abapgit_syntax_abap.
 
 
-    CREATE OBJECT lo_syntax.
+    lo_syntax = NEW #( ).
     lt_matches_act = lo_syntax->parse_line( iv_line ).
 
     SORT lt_matches_act BY offset.
