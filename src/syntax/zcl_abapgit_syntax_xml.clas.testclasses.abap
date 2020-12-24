@@ -22,7 +22,7 @@ CLASS ltcl_abapgit_syntax_xml IMPLEMENTATION.
 
   METHOD setup.
 
-    mo_cut = NEW #( ).
+    CREATE OBJECT mo_cut.
 
   ENDMETHOD.
 
@@ -155,7 +155,7 @@ CLASS ltcl_syntax_cases IMPLEMENTATION.
           lo_syntax      TYPE REF TO zcl_abapgit_syntax_xml.
 
 
-    lo_syntax = NEW #( ).
+    CREATE OBJECT lo_syntax.
     lt_matches_act = lo_syntax->parse_line( iv_line ).
 
     SORT lt_matches_act BY offset.
