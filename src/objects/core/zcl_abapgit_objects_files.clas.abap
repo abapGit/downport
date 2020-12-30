@@ -84,7 +84,10 @@ CLASS zcl_abapgit_objects_files DEFINITION
         !iv_extra         TYPE clike OPTIONAL
         !iv_ext           TYPE string
       RETURNING
-        VALUE(rv_present) TYPE abap_bool.
+        VALUE(rv_present) TYPE abap_bool .
+    METHODS get_file_pattern
+      RETURNING
+        VALUE(rv_pattern) TYPE string .
   PROTECTED SECTION.
 
     METHODS read_file
@@ -273,6 +276,11 @@ CLASS zcl_abapgit_objects_files IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD get_file_pattern.
+    rv_pattern = filename( iv_ext = '*' ).
+  ENDMETHOD.
+
+
   METHOD read_abap.
 
     DATA: lv_filename TYPE string,
@@ -371,13 +379,27 @@ CLASS zcl_abapgit_objects_files IMPLEMENTATION.
 
     lv_xml = zcl_abapgit_convert=>xstring_to_string_utf8( lv_data ).
 
-    CREATE OBJECT ri_xml TYPE zcl_abapgit_xml_input EXPORTING iv_xml = lv_xml
-                                                              iv_filename = lv_filename.
+    ri_xml = NEW zcl_abapgit_xml_input( iv_xml = lv_xml
+                                        iv_filename = lv_filename ).
 
   ENDMETHOD.
 
 
   METHOD set_files.
-    mt_files = it_files.
+
+    FIELD-SYMBOLS: <ls_file> LIKE LINE OF it_files.
+
+    CLEAR mt_files.
+
+    " Set only files matching the pattern for this object
+    " If a path has been defined in the constructor, then the path has to match, too
+    LOOP AT it_files ASSIGNING <ls_file> WHERE filename CP get_file_pattern( ).
+      IF mv_path IS INITIAL.
+        INSERT <ls_file> INTO TABLE mt_files.
+      ELSEIF mv_path = <ls_file>-path.
+        INSERT <ls_file> INTO TABLE mt_files.
+      ENDIF.
+    ENDLOOP.
+
   ENDMETHOD.
 ENDCLASS.
