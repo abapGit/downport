@@ -117,7 +117,7 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
 
 
   METHOD create_empty.
-    CREATE OBJECT ro_instance.
+    ro_instance = NEW #( ).
   ENDMETHOD.
 
 
@@ -187,8 +187,8 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
 
     DATA lo_parser TYPE REF TO lcl_json_parser.
 
-    CREATE OBJECT ro_instance.
-    CREATE OBJECT lo_parser.
+    ro_instance = NEW #( ).
+    lo_parser = NEW #( ).
     ro_instance->mt_json_tree = lo_parser->parse( iv_json ).
 
     IF iv_freeze = abap_true.
@@ -414,7 +414,7 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
     DATA ls_path_parts      TYPE ty_path_name.
     DATA lv_path_len        TYPE i.
 
-    CREATE OBJECT lo_section.
+    lo_section = NEW #( ).
     lv_normalized_path = lcl_utils=>normalize_path( iv_path ).
     lv_path_len        = strlen( lv_normalized_path ).
     ls_path_parts      = lcl_utils=>split_path( lv_normalized_path ).
