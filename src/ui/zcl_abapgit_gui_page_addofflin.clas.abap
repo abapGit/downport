@@ -38,9 +38,10 @@ CLASS zcl_abapgit_gui_page_addofflin DEFINITION
         add_offline_repo TYPE string VALUE 'add-repo-offline',
       END OF c_event .
 
-    DATA mo_validation_log TYPE REF TO zcl_abapgit_string_map .
-    DATA mo_form_data TYPE REF TO zcl_abapgit_string_map .
     DATA mo_form TYPE REF TO zcl_abapgit_html_form .
+    DATA mo_form_data TYPE REF TO zcl_abapgit_string_map .
+    DATA mo_form_util TYPE REF TO zcl_abapgit_html_form_utils.
+    DATA mo_validation_log TYPE REF TO zcl_abapgit_string_map .
 
     METHODS validate_form
       IMPORTING
@@ -57,14 +58,15 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_GUI_PAGE_ADDOFFLIN IMPLEMENTATION.
+CLASS zcl_abapgit_gui_page_addofflin IMPLEMENTATION.
 
 
   METHOD constructor.
     super->constructor( ).
-    CREATE OBJECT mo_validation_log.
-    CREATE OBJECT mo_form_data.
+    mo_validation_log = NEW #( ).
+    mo_form_data = NEW #( ).
     mo_form = get_form_schema( ).
+    mo_form_util = zcl_abapgit_html_form_utils=>create( mo_form ).
   ENDMETHOD.
 
 
@@ -72,7 +74,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_ADDOFFLIN IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_addofflin.
 
-    CREATE OBJECT lo_component.
+    lo_component = NEW #( ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'New Offline Repository'
@@ -117,7 +119,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_ADDOFFLIN IMPLEMENTATION.
       iv_hint        = 'Ignore translations, serialize just main language'
     )->command(
       iv_label       = 'Create Offline Repo'
-      iv_is_main     = abap_true
+      iv_cmd_type    = zif_abapgit_html_form=>c_cmd_type-input_main
       iv_action      = c_event-add_offline_repo
     )->command(
       iv_label       = 'Create Package'
@@ -133,7 +135,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_ADDOFFLIN IMPLEMENTATION.
 
     DATA lx_err TYPE REF TO zcx_abapgit_exception.
 
-    ro_validation_log = mo_form->validate_required_fields( io_form_data ).
+    ro_validation_log = mo_form_util->validate( io_form_data ).
 
     IF io_form_data->get( c_id-package ) IS NOT INITIAL.
       TRY.
@@ -163,7 +165,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_ADDOFFLIN IMPLEMENTATION.
     DATA: ls_repo_params      TYPE zif_abapgit_services_repo=>ty_repo_params,
           lo_new_offline_repo TYPE REF TO zcl_abapgit_repo_offline.
 
-    mo_form_data = mo_form->normalize_form_data( ii_event->form_data( ) ).
+    mo_form_data = mo_form_util->normalize( ii_event->form_data( ) ).
 
     CASE ii_event->mv_action.
       WHEN c_event-go_back.
@@ -201,7 +203,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_ADDOFFLIN IMPLEMENTATION.
         IF mo_validation_log->is_empty( ) = abap_true.
           mo_form_data->to_abap( CHANGING cs_container = ls_repo_params ).
           lo_new_offline_repo = zcl_abapgit_services_repo=>new_offline( ls_repo_params ).
-          CREATE OBJECT rs_handled-page TYPE zcl_abapgit_gui_page_repo_view EXPORTING iv_key = lo_new_offline_repo->get_key( ).
+          rs_handled-page = NEW zcl_abapgit_gui_page_repo_view( iv_key = lo_new_offline_repo->get_key( ) ).
           rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page_replacing.
         ELSE.
           rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render. " Display errors
@@ -216,7 +218,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_ADDOFFLIN IMPLEMENTATION.
 
     gui_services( )->register_event_handler( me ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( mo_form->render(
       iv_form_class     = 'dialog w600px m-em5-sides margin-v1' " to center add wmax600px and auto-center instead
