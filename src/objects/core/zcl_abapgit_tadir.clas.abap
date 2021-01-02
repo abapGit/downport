@@ -96,7 +96,7 @@ CLASS zcl_abapgit_tadir IMPLEMENTATION.
 
     SORT rt_tadir BY devclass pgmid object obj_name.
 
-    CREATE OBJECT lo_skip_objects.
+    lo_skip_objects = NEW #( ).
     rt_tadir = lo_skip_objects->skip_sadl_generated_objects(
       it_tadir = rt_tadir
       ii_log   = ii_log ).
