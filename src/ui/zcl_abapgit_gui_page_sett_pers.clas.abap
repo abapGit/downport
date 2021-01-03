@@ -73,14 +73,14 @@ ENDCLASS.
 
 
 
-CLASS zcl_abapgit_gui_page_sett_pers IMPLEMENTATION.
+CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_PERS IMPLEMENTATION.
 
 
   METHOD constructor.
 
     super->constructor( ).
-    CREATE OBJECT mo_validation_log.
-    CREATE OBJECT mo_form_data.
+    mo_validation_log = NEW #( ).
+    mo_form_data = NEW #( ).
     mo_form = get_form_schema( ).
     mo_form_util = zcl_abapgit_html_form_utils=>create( mo_form ).
 
@@ -93,7 +93,7 @@ CLASS zcl_abapgit_gui_page_sett_pers IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_sett_pers.
 
-    CREATE OBJECT lo_component.
+    lo_component = NEW #( ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Personal Settings'
@@ -222,13 +222,13 @@ CLASS zcl_abapgit_gui_page_sett_pers IMPLEMENTATION.
     " Interaction
     mo_form_data->set(
       iv_key = c_id-activate_wo_popup
-      iv_val = boolc( ms_settings-activate_wo_popup = abap_true ) ).
+      iv_val = boolc( ms_settings-activate_wo_popup = abap_true ) ) ##TYPE.
     mo_form_data->set(
       iv_key = c_id-adt_jump_enabled
-      iv_val = boolc( ms_settings-adt_jump_enabled = abap_true ) ).
+      iv_val = boolc( ms_settings-adt_jump_enabled = abap_true ) ) ##TYPE.
     mo_form_data->set(
       iv_key = c_id-link_hints_enabled
-      iv_val = boolc( ms_settings-link_hints_enabled = abap_true ) ).
+      iv_val = boolc( ms_settings-link_hints_enabled = abap_true ) ) ##TYPE.
     mo_form_data->set(
       iv_key = c_id-link_hint_key
       iv_val = |{ ms_settings-link_hint_key }| ).
@@ -236,7 +236,7 @@ CLASS zcl_abapgit_gui_page_sett_pers IMPLEMENTATION.
     " Resources
     mo_form_data->set(
       iv_key = c_id-parallel_proc_disabled
-      iv_val = boolc( ms_settings-parallel_proc_disabled = abap_true ) ).
+      iv_val = boolc( ms_settings-parallel_proc_disabled = abap_true ) ) ##TYPE.
 
     " Set for is_dirty check
     mo_form_util->set_data( mo_form_data ).
@@ -318,7 +318,7 @@ CLASS zcl_abapgit_gui_page_sett_pers IMPLEMENTATION.
       read_settings( ).
     ENDIF.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( mo_form->render(
       iv_form_class     = 'dialog w600px m-em5-sides margin-v1'
