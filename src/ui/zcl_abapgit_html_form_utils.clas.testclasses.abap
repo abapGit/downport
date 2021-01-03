@@ -136,7 +136,7 @@ CLASS ltcl_test_form IMPLEMENTATION.
 
   METHOD setup.
 
-    mo_popups_mock = NEW ltcl_popups_mock( ).
+    CREATE OBJECT mo_popups_mock TYPE ltcl_popups_mock.
     zcl_abapgit_ui_injector=>set_popups( mo_popups_mock ).
 
   ENDMETHOD.
