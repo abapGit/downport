@@ -68,7 +68,7 @@ CLASS zcl_abapgit_html_form_utils IMPLEMENTATION.
 
 
   METHOD create.
-    CREATE OBJECT ro_form_util EXPORTING io_form = io_form.
+    ro_form_util = NEW #( io_form = io_form ).
   ENDMETHOD.
 
 
@@ -157,7 +157,7 @@ CLASS zcl_abapgit_html_form_utils IMPLEMENTATION.
 
     FIELD-SYMBOLS <ls_field> LIKE LINE OF lt_fields.
 
-    CREATE OBJECT ro_form_data.
+    ro_form_data = NEW #( ).
 
     IF io_form_data->is_empty( ) = abap_true.
       RETURN.
@@ -234,7 +234,7 @@ CLASS zcl_abapgit_html_form_utils IMPLEMENTATION.
 
     FIELD-SYMBOLS <ls_field> LIKE LINE OF lt_fields.
 
-    CREATE OBJECT ro_validation_log.
+    ro_validation_log = NEW #( ).
 
     lt_fields = mo_form->get_fields( ).
     LOOP AT lt_fields ASSIGNING <ls_field>.
