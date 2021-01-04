@@ -63,7 +63,7 @@ ENDCLASS.
 CLASS ltcl_transport_objects IMPLEMENTATION.
 
   METHOD setup.
-    CREATE OBJECT mo_stage.
+    mo_stage = NEW #( ).
   ENDMETHOD.
 
   METHOD add_new_to_local_files.
@@ -184,7 +184,7 @@ CLASS ltcl_transport_objects IMPLEMENTATION.
       iv_filename = 'CL_FOO.abap'
       iv_path     = '/path'
       iv_data     = 'data' ).
-    then_it_should_raise_exception( iv_with_text = 'Object CL_FOO not found in the local repository files' ).
+    then_it_should_raise_exception( 'Object CL_FOO not found in the local repository files' ).
   ENDMETHOD.
 
   METHOD cant_be_added_with_del_flag.
@@ -198,8 +198,7 @@ CLASS ltcl_transport_objects IMPLEMENTATION.
       iv_obj_type   = 'CLAS'
       iv_lstate     = zif_abapgit_definitions=>c_state-added ).
 
-    then_it_should_raise_exception(
-      iv_with_text = 'Object CL_FOO should be added/modified, but has deletion flag in transport' ).
+    then_it_should_raise_exception( 'Object CL_FOO should be added/modified, but has deletion flag in transport' ).
   ENDMETHOD.
 
   METHOD cant_be_modified_with_del_flag.
@@ -213,9 +212,9 @@ CLASS ltcl_transport_objects IMPLEMENTATION.
       iv_obj_type   = 'CLAS'
       iv_lstate     = zif_abapgit_definitions=>c_state-modified ).
 
-    then_it_should_raise_exception(
-      iv_with_text = 'Object CL_FOO should be added/modified, but has deletion flag in transport' ).
+    then_it_should_raise_exception( 'Object CL_FOO should be added/modified, but has deletion flag in transport' ).
   ENDMETHOD.
+
   METHOD deleted_to_removed_files.
     given_the_transport_object(
       iv_obj_name   = 'CL_FOO'
@@ -361,8 +360,7 @@ CLASS ltcl_transport_objects IMPLEMENTATION.
       iv_path       = '/a_path'
       iv_lstate     = zif_abapgit_definitions=>c_state-deleted ).
 
-    then_it_should_raise_exception(
-         iv_with_text = 'Object CL_FOO should be removed, but has NO deletion flag in transport' ).
+    then_it_should_raise_exception( 'Object CL_FOO should be removed, but has NO deletion flag in transport' ).
   ENDMETHOD.
 
   METHOD given_the_transport_object.
@@ -393,7 +391,7 @@ CLASS ltcl_transport_objects IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD when_staging.
-    CREATE OBJECT mo_transport_objects EXPORTING it_transport_objects = mt_transport_objects.
+    mo_transport_objects = NEW #( it_transport_objects = mt_transport_objects ).
     mo_transport_objects->to_stage(
       io_stage           = mo_stage
       is_stage_objects   = ms_stage_objects

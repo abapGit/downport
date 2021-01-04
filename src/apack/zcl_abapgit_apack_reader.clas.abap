@@ -70,7 +70,7 @@ ENDCLASS.
 
 
 
-CLASS zcl_abapgit_apack_reader IMPLEMENTATION.
+CLASS ZCL_ABAPGIT_APACK_READER IMPLEMENTATION.
 
 
   METHOD constructor.
@@ -112,7 +112,7 @@ CLASS zcl_abapgit_apack_reader IMPLEMENTATION.
 
 
   METHOD create_instance.
-    CREATE OBJECT ro_manifest_reader EXPORTING iv_package_name = iv_package_name.
+    ro_manifest_reader = NEW #( iv_package_name = iv_package_name ).
   ENDMETHOD.
 
 
@@ -192,7 +192,7 @@ CLASS zcl_abapgit_apack_reader IMPLEMENTATION.
             CLEAR: rs_manifest_descriptor.
         ENDTRY.
         IF lo_manifest_provider IS BOUND.
-          copy_manifest_descriptor( io_manifest_provider = lo_manifest_provider ).
+          copy_manifest_descriptor( lo_manifest_provider ).
         ENDIF.
       ENDIF.
 
