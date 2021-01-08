@@ -47,7 +47,7 @@ CLASS ltcl_objects_files IMPLEMENTATION.
 
     ls_item-obj_type = 'prog'.
     ls_item-obj_name = 'zlf'.
-    CREATE OBJECT mo_cut EXPORTING is_item = ls_item.
+    mo_cut = NEW #( is_item = ls_item ).
     mo_cut->set_files( lt_files ).
 
   ENDMETHOD.
@@ -123,8 +123,19 @@ CLASS ltcl_objects_files IMPLEMENTATION.
 
   METHOD get_file_pattern.
 
+    DATA ls_item TYPE zif_abapgit_definitions=>ty_item.
+
     cl_abap_unit_assert=>assert_equals(
       exp = 'zlf.prog.*'
+      act = mo_cut->get_file_pattern( ) ).
+
+    ls_item-obj_type = 'prog'.
+    ls_item-obj_name = '/test/zlf'.
+
+    mo_cut = NEW #( is_item = ls_item ).
+
+    cl_abap_unit_assert=>assert_equals(
+      exp = '##test##zlf.prog.*'
       act = mo_cut->get_file_pattern( ) ).
 
   ENDMETHOD.

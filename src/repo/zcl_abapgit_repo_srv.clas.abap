@@ -46,9 +46,6 @@ CLASS zcl_abapgit_repo_srv DEFINITION
     METHODS refresh
       RAISING
         zcx_abapgit_exception .
-    METHODS is_sap_object_allowed
-      RETURNING
-        VALUE(rv_allowed) TYPE abap_bool .
     METHODS instantiate_and_add
       IMPORTING
         !is_repo_meta  TYPE zif_abapgit_persistence=>ty_repo
@@ -125,7 +122,7 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
 
   METHOD get_instance.
     IF gi_ref IS INITIAL.
-      CREATE OBJECT gi_ref TYPE zcl_abapgit_repo_srv.
+      gi_ref = NEW zcl_abapgit_repo_srv( ).
     ENDIF.
     ri_srv = gi_ref.
   ENDMETHOD.
@@ -134,23 +131,11 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
   METHOD instantiate_and_add.
 
     IF is_repo_meta-offline = abap_false.
-      CREATE OBJECT ro_repo TYPE zcl_abapgit_repo_online EXPORTING is_data = is_repo_meta.
+      ro_repo = NEW zcl_abapgit_repo_online( is_data = is_repo_meta ).
     ELSE.
-      CREATE OBJECT ro_repo TYPE zcl_abapgit_repo_offline EXPORTING is_data = is_repo_meta.
+      ro_repo = NEW zcl_abapgit_repo_offline( is_data = is_repo_meta ).
     ENDIF.
     add( ro_repo ).
-
-  ENDMETHOD.
-
-
-  METHOD is_sap_object_allowed.
-
-    rv_allowed = cl_enh_badi_def_utility=>is_sap_system( ).
-    IF rv_allowed = abap_true.
-      RETURN.
-    ENDIF.
-
-    rv_allowed = zcl_abapgit_exit=>get_instance( )->allow_sap_objects( ).
 
   ENDMETHOD.
 
@@ -525,7 +510,7 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
     DATA: lt_tadir TYPE zif_abapgit_definitions=>ty_tadir_tt.
     DATA: lx_error TYPE REF TO zcx_abapgit_exception.
 
-    CREATE OBJECT ri_log TYPE zcl_abapgit_log.
+    ri_log = NEW zcl_abapgit_log( ).
     ri_log->set_title( 'Uninstall Log' ).
 
     IF io_repo->get_local_settings( )-write_protected = abap_true.
@@ -572,7 +557,7 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
       zcx_abapgit_exception=>raise( |Package { iv_package } not found| ).
     ENDIF.
 
-    IF is_sap_object_allowed( ) = abap_false AND lv_as4user = 'SAP'.
+    IF zcl_abapgit_factory=>get_environment( )->is_sap_object_allowed( ) = abap_false AND lv_as4user = 'SAP'.
       zcx_abapgit_exception=>raise( |Package { iv_package } not allowed, responsible user = 'SAP'| ).
     ENDIF.
 
@@ -614,6 +599,4 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
     ENDIF.
 
   ENDMETHOD.
-
-
 ENDCLASS.
