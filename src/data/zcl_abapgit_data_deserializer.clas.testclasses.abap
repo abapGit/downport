@@ -1,3 +1,6 @@
+CLASS ltcl_test DEFINITION DEFERRED.
+CLASS zcl_abapgit_data_deserializer DEFINITION LOCAL FRIENDS ltcl_test.
+
 CLASS ltcl_test DEFINITION FOR TESTING DURATION SHORT RISK LEVEL HARMLESS FINAL.
 
   PRIVATE SECTION.
@@ -15,8 +18,8 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lt_files TYPE zif_abapgit_definitions=>ty_files_tt.
     DATA ls_config TYPE zif_abapgit_data_config=>ty_config.
 
-    CREATE OBJECT li_cut TYPE zcl_abapgit_data_deserializer.
-    CREATE OBJECT li_config TYPE zcl_abapgit_data_config.
+    li_cut = NEW zcl_abapgit_data_deserializer( ).
+    li_config = NEW zcl_abapgit_data_config( ).
 
     ls_config-type = zif_abapgit_data_config=>c_data_type-tabu.
     ls_config-name = 'SFLIGHT'.

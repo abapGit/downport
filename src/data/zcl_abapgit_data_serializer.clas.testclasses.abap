@@ -1,3 +1,5 @@
+CLASS ltcl_test DEFINITION DEFERRED.
+CLASS zcl_abapgit_data_serializer DEFINITION LOCAL FRIENDS ltcl_test.
 
 CLASS ltcl_test DEFINITION FOR TESTING DURATION SHORT RISK LEVEL HARMLESS FINAL.
 
@@ -14,8 +16,8 @@ ENDCLASS.
 CLASS ltcl_test IMPLEMENTATION.
 
   METHOD setup.
-    CREATE OBJECT mi_cut TYPE zcl_abapgit_data_serializer.
-    CREATE OBJECT mi_config TYPE zcl_abapgit_data_config.
+    mi_cut = NEW zcl_abapgit_data_serializer( ).
+    mi_config = NEW zcl_abapgit_data_config( ).
   ENDMETHOD.
 
   METHOD serialize.

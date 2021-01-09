@@ -7,6 +7,8 @@ CLASS zcl_abapgit_gui_page_data DEFINITION
   PUBLIC SECTION.
 
     METHODS constructor
+      IMPORTING
+        !iv_key TYPE zif_abapgit_persistence=>ty_repo-key
       RAISING
         zcx_abapgit_exception .
 
@@ -33,6 +35,13 @@ CLASS zcl_abapgit_gui_page_data DEFINITION
         REDEFINITION .
   PRIVATE SECTION.
 
+    DATA mo_repo TYPE REF TO zcl_abapgit_repo .
+
+    METHODS build_where
+      IMPORTING
+        !io_map         TYPE REF TO zcl_abapgit_string_map
+      RETURNING
+        VALUE(rt_where) TYPE string_table .
     METHODS render_add
       RETURNING
         VALUE(ri_html) TYPE REF TO zif_abapgit_html .
@@ -63,13 +72,31 @@ ENDCLASS.
 CLASS zcl_abapgit_gui_page_data IMPLEMENTATION.
 
 
+  METHOD build_where.
+
+    DATA lv_where LIKE LINE OF rt_where.
+
+    SPLIT io_map->get( c_id-where ) AT |\n| INTO TABLE rt_where.
+
+    DELETE rt_where WHERE table_line IS INITIAL.
+
+    LOOP AT rt_where INTO lv_where.
+      IF strlen( lv_where ) <= 2.
+        DELETE rt_where INDEX sy-tabix.
+      ENDIF.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
   METHOD constructor.
 
     super->constructor( ).
 
     ms_control-page_title = 'Data'.
 
-    CREATE OBJECT mi_config TYPE zcl_abapgit_data_config.
+    mo_repo = zcl_abapgit_repo_srv=>get_instance( )->get( iv_key ).
+    mi_config = mo_repo->get_data_config( ).
 
   ENDMETHOD.
 
@@ -83,7 +110,7 @@ CLASS zcl_abapgit_gui_page_data IMPLEMENTATION.
 
     ls_config-type = zif_abapgit_data_config=>c_data_type-tabu.
     ls_config-name = to_upper( lo_map->get( c_id-table ) ).
-    SPLIT lo_map->get( c_id-where ) AT |\n| INTO TABLE ls_config-where.
+    ls_config-where = build_where( lo_map ).
 
     mi_config->add_config( ls_config ).
 
@@ -114,7 +141,7 @@ CLASS zcl_abapgit_gui_page_data IMPLEMENTATION.
 
     ls_config-type = zif_abapgit_data_config=>c_data_type-tabu.
     ls_config-name = to_upper( lo_map->get( c_id-table ) ).
-    SPLIT lo_map->get( c_id-where ) AT |\n| INTO TABLE ls_config-where.
+    ls_config-where = build_where( lo_map ).
 
     mi_config->update_config( ls_config ).
 
@@ -126,8 +153,8 @@ CLASS zcl_abapgit_gui_page_data IMPLEMENTATION.
     DATA lo_form TYPE REF TO zcl_abapgit_html_form.
     DATA lo_form_data TYPE REF TO zcl_abapgit_string_map.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
-    CREATE OBJECT lo_form_data.
+    ri_html = NEW zcl_abapgit_html( ).
+    lo_form_data = NEW #( ).
 
     lo_form = zcl_abapgit_html_form=>create( ).
     lo_form->text(
@@ -149,7 +176,7 @@ CLASS zcl_abapgit_gui_page_data IMPLEMENTATION.
 
   METHOD render_content.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( render_add( ) ).
     ri_html->add( render_existing( ) ).
@@ -164,14 +191,14 @@ CLASS zcl_abapgit_gui_page_data IMPLEMENTATION.
     DATA lt_configs TYPE zif_abapgit_data_config=>ty_config_tt.
     DATA ls_config LIKE LINE OF lt_configs.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
-    CREATE OBJECT lo_form_data.
+    ri_html = NEW zcl_abapgit_html( ).
+    lo_form_data = NEW #( ).
 
     lt_configs = mi_config->get_configs( ).
 
     LOOP AT lt_configs INTO ls_config.
       lo_form = zcl_abapgit_html_form=>create(  ).
-      CREATE OBJECT lo_form_data.
+      lo_form_data = NEW #( ).
 
       lo_form_data->set(
         iv_key = c_id-table
