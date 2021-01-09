@@ -16,18 +16,20 @@ ENDCLASS.
 CLASS ltcl_test IMPLEMENTATION.
 
   METHOD setup.
-    CREATE OBJECT mi_cut TYPE zcl_abapgit_data_serializer.
-    CREATE OBJECT mi_config TYPE zcl_abapgit_data_config.
+    mi_cut = NEW zcl_abapgit_data_serializer( ).
+    mi_config = NEW zcl_abapgit_data_config( ).
   ENDMETHOD.
 
   METHOD serialize.
 
     DATA ls_config TYPE zif_abapgit_data_config=>ty_config.
     DATA lt_files TYPE zif_abapgit_definitions=>ty_files_tt.
+    DATA lv_where LIKE LINE OF ls_config-where.
 
     ls_config-type = 'TABU'.
     ls_config-name = 'T000'.
-    APPEND |MANDT = '{ sy-mandt }'| TO ls_config-where.
+    lv_where = |MANDT = '{ sy-mandt }'|.
+    APPEND lv_where TO ls_config-where.
 
     mi_config->add_config( ls_config ).
 
