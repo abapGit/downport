@@ -109,7 +109,7 @@ ENDCLASS.
 
 
 
-CLASS zcl_abapgit_gui IMPLEMENTATION.
+CLASS ZCL_ABAPGIT_GUI IMPLEMENTATION.
 
 
   METHOD back.
@@ -189,7 +189,7 @@ CLASS zcl_abapgit_gui IMPLEMENTATION.
       ENDIF.
     ENDIF.
 
-    CREATE OBJECT mo_html_parts.
+    mo_html_parts = NEW #( ).
 
     mv_rollback_on_error = iv_rollback_on_error.
     mi_asset_man      = ii_asset_man.
@@ -257,10 +257,10 @@ CLASS zcl_abapgit_gui IMPLEMENTATION.
       li_event     TYPE REF TO zif_abapgit_gui_event,
       ls_handled   TYPE zif_abapgit_gui_event_handler=>ty_handling_result.
 
-    CREATE OBJECT li_event TYPE zcl_abapgit_gui_event EXPORTING ii_gui_services = me
-                                                                iv_action = iv_action
-                                                                iv_getdata = iv_getdata
-                                                                it_postdata = it_postdata.
+    li_event = NEW zcl_abapgit_gui_event( ii_gui_services = me
+                                          iv_action = iv_action
+                                          iv_getdata = iv_getdata
+                                          it_postdata = it_postdata ).
 
     TRY.
         LOOP AT mt_event_handlers INTO li_handler.
@@ -425,18 +425,20 @@ CLASS zcl_abapgit_gui IMPLEMENTATION.
            ev_size = lv_size
            et_tab  = lt_html ).
 
-      mi_html_viewer->load_data(
-        EXPORTING
-          iv_type         = iv_type
-          iv_subtype      = iv_subtype
-          iv_size         = lv_size
-          iv_url          = iv_url
-        IMPORTING
-          ev_assigned_url = rv_url
-        CHANGING
-          ct_data_table   = lt_html
-        EXCEPTIONS
-          OTHERS          = 1 ).
+      TRY.
+          mi_html_viewer->load_data(
+            EXPORTING
+              iv_type         = iv_type
+              iv_subtype      = iv_subtype
+              iv_size         = lv_size
+              iv_url          = iv_url
+            IMPORTING
+              ev_assigned_url = rv_url
+            CHANGING
+              ct_data_table   = lt_html ).
+        CATCH zcx_abapgit_exception.
+          ASSERT 1 = 2.
+      ENDTRY.
     ELSE. " Raw input
       zcl_abapgit_convert=>xstring_to_bintab(
         EXPORTING
@@ -445,18 +447,20 @@ CLASS zcl_abapgit_gui IMPLEMENTATION.
           ev_size   = lv_size
           et_bintab = lt_xdata ).
 
-      mi_html_viewer->load_data(
-        EXPORTING
-          iv_type         = iv_type
-          iv_subtype      = iv_subtype
-          iv_size         = lv_size
-          iv_url          = iv_url
-        IMPORTING
-          ev_assigned_url = rv_url
-        CHANGING
-          ct_data_table   = lt_xdata
-        EXCEPTIONS
-          OTHERS          = 1 ).
+      TRY.
+          mi_html_viewer->load_data(
+            EXPORTING
+              iv_type         = iv_type
+              iv_subtype      = iv_subtype
+              iv_size         = lv_size
+              iv_url          = iv_url
+            IMPORTING
+              ev_assigned_url = rv_url
+            CHANGING
+              ct_data_table   = lt_xdata ).
+        CATCH zcx_abapgit_exception.
+          ASSERT 1 = 2.
+      ENDTRY.
     ENDIF.
 
     ASSERT sy-subrc = 0. " Image data error
