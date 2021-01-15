@@ -29,8 +29,7 @@ CLASS ltcl_popups_mock DEFINITION FINAL FOR TESTING
       BEGIN OF ms_called,
         popup_to_confirm TYPE abap_bool,
       END OF ms_called,
-      mv_user_decision TYPE ty_user_decision,
-      mv_package       TYPE devclass.
+      mv_user_decision TYPE ty_user_decision.
 
 ENDCLASS.
 
@@ -136,7 +135,7 @@ CLASS ltcl_test_form IMPLEMENTATION.
 
   METHOD setup.
 
-    CREATE OBJECT mo_popups_mock TYPE ltcl_popups_mock.
+    mo_popups_mock = NEW ltcl_popups_mock( ).
     zcl_abapgit_ui_injector=>set_popups( mo_popups_mock ).
 
   ENDMETHOD.
