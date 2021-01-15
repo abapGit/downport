@@ -302,7 +302,7 @@ CLASS ZCL_ABAPGIT_REPO IMPLEMENTATION.
 
   METHOD create_new_log.
 
-    CREATE OBJECT mi_log TYPE zcl_abapgit_log.
+    mi_log = NEW zcl_abapgit_log( ).
     mi_log->set_title( iv_title ).
 
     ri_log = mi_log.
@@ -438,7 +438,7 @@ CLASS ZCL_ABAPGIT_REPO IMPLEMENTATION.
 
     get_files_remote( ).
 
-    CREATE OBJECT ri_config TYPE zcl_abapgit_data_config.
+    ri_config = NEW zcl_abapgit_data_config( ).
     mi_data_config = ri_config.
 
     READ TABLE mt_remote ASSIGNING <ls_remote>
@@ -451,7 +451,7 @@ CLASS ZCL_ABAPGIT_REPO IMPLEMENTATION.
 
 
   METHOD get_dot_abapgit.
-    CREATE OBJECT ro_dot_abapgit EXPORTING is_data = ms_data-dot_abapgit.
+    ro_dot_abapgit = NEW #( is_data = ms_data-dot_abapgit ).
   ENDMETHOD.
 
 
@@ -475,7 +475,7 @@ CLASS ZCL_ABAPGIT_REPO IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    CREATE OBJECT lo_serialize EXPORTING iv_serialize_master_lang_only = ms_data-local_settings-serialize_master_lang_only.
+    lo_serialize = NEW #( iv_serialize_master_lang_only = ms_data-local_settings-serialize_master_lang_only ).
 
     rt_files = lo_serialize->files_local(
       iv_package        = get_package( )
@@ -570,8 +570,6 @@ CLASS ZCL_ABAPGIT_REPO IMPLEMENTATION.
 
     FIELD-SYMBOLS:
       <ls_checksum> LIKE LINE OF lt_checksums,
-      <ls_file_sig> LIKE LINE OF <ls_checksum>-files,
-      <ls_remote>   LIKE LINE OF lt_remote,
       <ls_local>    LIKE LINE OF lt_local.
 
     lt_local  = get_files_local( ).
@@ -593,7 +591,6 @@ CLASS ZCL_ABAPGIT_REPO IMPLEMENTATION.
                                       is_local_file = <ls_local>-file
                                     CHANGING
                                       cs_checksum = <ls_checksum> ).
-
 
     ENDLOOP.
     set( it_checksums = lt_checksums ).
@@ -642,7 +639,7 @@ CLASS ZCL_ABAPGIT_REPO IMPLEMENTATION.
     CLEAR lt_tadir.
     INSERT ls_tadir INTO TABLE lt_tadir.
 
-    CREATE OBJECT lo_serialize.
+    lo_serialize = NEW #( ).
     lt_new_local_files = lo_serialize->serialize( lt_tadir ).
 
     INSERT LINES OF lt_new_local_files INTO TABLE mt_local.

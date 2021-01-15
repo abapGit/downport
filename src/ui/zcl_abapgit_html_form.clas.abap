@@ -242,7 +242,7 @@ CLASS zcl_abapgit_html_form IMPLEMENTATION.
 
     DATA lv_ts TYPE timestampl.
 
-    CREATE OBJECT ro_form.
+    ro_form = NEW #( ).
     ro_form->mv_form_id = iv_form_id.
     ro_form->mv_help_page = iv_help_page.
 
@@ -343,7 +343,7 @@ CLASS zcl_abapgit_html_form IMPLEMENTATION.
       ls_form_id = | id="{ mv_form_id }"|.
     ENDIF.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( |<div class="dialog { iv_form_class }">| ). " to center use 'dialog-form-center'
     ri_html->add( |<form method="post"{ ls_form_id }>| ).
@@ -592,7 +592,6 @@ CLASS zcl_abapgit_html_form IMPLEMENTATION.
   METHOD render_field_radio.
 
     DATA:
-      lv_value     TYPE string,
       lv_checked   TYPE string,
       lv_opt_id    TYPE string,
       lv_opt_value TYPE string.
@@ -633,8 +632,7 @@ CLASS zcl_abapgit_html_form IMPLEMENTATION.
       lv_value     TYPE string,
       lv_readonly  TYPE string,
       lv_rows      TYPE i,
-      lv_cell_id   TYPE string,
-      lv_opt_value TYPE string.
+      lv_cell_id   TYPE string.
 
     FIELD-SYMBOLS <ls_subitem> LIKE LINE OF is_field-subitems.
 

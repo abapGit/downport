@@ -53,7 +53,6 @@ CLASS zcl_abapgit_gui_page_sett_info DEFINITION
 
     DATA mo_repo TYPE REF TO zcl_abapgit_repo.
     DATA mt_stats TYPE STANDARD TABLE OF ty_stats WITH KEY measure.
-    DATA ms_dot TYPE zif_abapgit_dot_abapgit=>ty_dot_abapgit.
 
     METHODS get_form_schema
       RETURNING
@@ -91,7 +90,7 @@ CLASS zcl_abapgit_gui_page_sett_info IMPLEMENTATION.
   METHOD constructor.
 
     super->constructor( ).
-    CREATE OBJECT mo_form_data.
+    mo_form_data = NEW #( ).
     mo_repo = io_repo.
     mo_form = get_form_schema( ).
 
@@ -102,7 +101,7 @@ CLASS zcl_abapgit_gui_page_sett_info IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_sett_info.
 
-    CREATE OBJECT lo_component EXPORTING io_repo = io_repo.
+    lo_component = NEW #( io_repo = io_repo ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Repository Stats'
@@ -432,7 +431,7 @@ CLASS zcl_abapgit_gui_page_sett_info IMPLEMENTATION.
 
     read_settings( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( `<div class="repo">` ).
     ri_html->add( zcl_abapgit_gui_chunk_lib=>render_repo_top(
