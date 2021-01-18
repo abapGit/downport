@@ -41,14 +41,17 @@ CLASS zcl_abapgit_ajson DEFINITION
 
     CLASS-METHODS parse
       IMPORTING
-        !iv_json TYPE string
-        !iv_freeze TYPE abap_bool DEFAULT abap_false
+        !iv_json           TYPE string
+        !iv_freeze         TYPE abap_bool DEFAULT abap_false
+        !ii_custom_mapping TYPE REF TO zif_abapgit_ajson_mapping OPTIONAL
       RETURNING
         VALUE(ro_instance) TYPE REF TO zcl_abapgit_ajson
       RAISING
         zcx_abapgit_ajson_error .
 
     CLASS-METHODS create_empty
+      IMPORTING
+        !ii_custom_mapping TYPE REF TO zif_abapgit_ajson_mapping OPTIONAL
       RETURNING
         VALUE(ro_instance) TYPE REF TO zcl_abapgit_ajson.
 
@@ -60,24 +63,25 @@ CLASS zcl_abapgit_ajson DEFINITION
       tty_node_stack TYPE STANDARD TABLE OF REF TO zif_abapgit_ajson=>ty_node WITH DEFAULT KEY.
 
     DATA mv_read_only TYPE abap_bool.
+    DATA mi_custom_mapping TYPE REF TO zif_abapgit_ajson_mapping.
     DATA mv_keep_item_order TYPE abap_bool.
 
     METHODS get_item
       IMPORTING
-        iv_path TYPE string
+        iv_path        TYPE string
       RETURNING
         VALUE(rv_item) TYPE REF TO zif_abapgit_ajson=>ty_node.
     METHODS prove_path_exists
       IMPORTING
-        iv_path TYPE string
+        iv_path              TYPE string
       RETURNING
         VALUE(rt_node_stack) TYPE tty_node_stack
       RAISING
         zcx_abapgit_ajson_error.
     METHODS delete_subtree
       IMPORTING
-        iv_path TYPE string
-        iv_name TYPE string
+        iv_path           TYPE string
+        iv_name           TYPE string
       RETURNING
         VALUE(rv_deleted) TYPE abap_bool.
 
@@ -89,7 +93,8 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
 
 
   METHOD create_empty.
-    CREATE OBJECT ro_instance.
+    ro_instance = NEW #( ).
+    ro_instance->mi_custom_mapping = ii_custom_mapping.
   ENDMETHOD.
 
 
@@ -154,9 +159,10 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
 
     DATA lo_parser TYPE REF TO lcl_json_parser.
 
-    CREATE OBJECT ro_instance.
-    CREATE OBJECT lo_parser.
+    ro_instance = NEW #( ).
+    lo_parser = NEW #( ).
     ro_instance->mt_json_tree = lo_parser->parse( iv_json ).
+    ro_instance->mi_custom_mapping = ii_custom_mapping.
 
     IF iv_freeze = abap_true.
       ro_instance->freeze( ).
@@ -372,7 +378,7 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
     DATA ls_path_parts      TYPE zif_abapgit_ajson=>ty_path_name.
     DATA lv_path_len        TYPE i.
 
-    CREATE OBJECT lo_section.
+    lo_section = NEW #( ).
     lv_normalized_path = lcl_utils=>normalize_path( iv_path ).
     lv_path_len        = strlen( lv_normalized_path ).
     ls_path_parts      = lcl_utils=>split_path( lv_normalized_path ).
@@ -402,9 +408,11 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
 
     CLEAR ev_container.
     lcl_json_to_abap=>bind(
+      EXPORTING
+        ii_custom_mapping = mi_custom_mapping
       CHANGING
-        c_obj = ev_container
-        co_instance = lo_to_abap ).
+        c_obj             = ev_container
+        co_instance       = lo_to_abap ).
     lo_to_abap->to_abap( mt_json_tree ).
 
   ENDMETHOD.
@@ -479,11 +487,9 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
 
   METHOD zif_abapgit_ajson_writer~set.
 
-    DATA lt_path TYPE string_table.
     DATA ls_split_path TYPE zif_abapgit_ajson=>ty_path_name.
     DATA lr_parent TYPE REF TO zif_abapgit_ajson=>ty_node.
     DATA lt_node_stack TYPE tty_node_stack.
-    FIELD-SYMBOLS <topnode> TYPE zif_abapgit_ajson=>ty_node.
 
     IF mv_read_only = abap_true.
       zcx_abapgit_ajson_error=>raise( 'This json instance is read only' ).
@@ -504,14 +510,16 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
       IF iv_node_type IS NOT INITIAL.
         mt_json_tree = lcl_abap_to_json=>insert_with_type(
           iv_keep_item_order = mv_keep_item_order
-          iv_data   = iv_val
-          iv_type   = iv_node_type
-          is_prefix = ls_split_path ).
+          iv_data            = iv_val
+          iv_type            = iv_node_type
+          is_prefix          = ls_split_path
+          ii_custom_mapping  = mi_custom_mapping ).
       ELSE.
         mt_json_tree = lcl_abap_to_json=>convert(
           iv_keep_item_order = mv_keep_item_order
-          iv_data   = iv_val
-          is_prefix = ls_split_path ).
+          iv_data            = iv_val
+          is_prefix          = ls_split_path
+          ii_custom_mapping  = mi_custom_mapping ).
       ENDIF.
       RETURN.
     ENDIF.
@@ -539,16 +547,18 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
     IF iv_node_type IS NOT INITIAL.
       lt_new_nodes = lcl_abap_to_json=>insert_with_type(
         iv_keep_item_order = mv_keep_item_order
-        iv_data        = iv_val
-        iv_type        = iv_node_type
-        iv_array_index = lv_array_index
-        is_prefix      = ls_split_path ).
+        iv_data            = iv_val
+        iv_type            = iv_node_type
+        iv_array_index     = lv_array_index
+        is_prefix          = ls_split_path
+        ii_custom_mapping  = mi_custom_mapping ).
     ELSE.
       lt_new_nodes = lcl_abap_to_json=>convert(
         iv_keep_item_order = mv_keep_item_order
-        iv_data        = iv_val
-        iv_array_index = lv_array_index
-        is_prefix      = ls_split_path ).
+        iv_data            = iv_val
+        iv_array_index     = lv_array_index
+        is_prefix          = ls_split_path
+        ii_custom_mapping  = mi_custom_mapping ).
     ENDIF.
 
     " update data
