@@ -17,6 +17,7 @@ CLASS zcl_abapgit_objects DEFINITION
         !is_item                       TYPE zif_abapgit_definitions=>ty_item
         !iv_language                   TYPE spras
         !iv_serialize_master_lang_only TYPE abap_bool DEFAULT abap_false
+        !it_translation_langs          TYPE zif_abapgit_definitions=>ty_languages OPTIONAL
       RETURNING
         VALUE(rs_files_and_item)       TYPE ty_serialization
       RAISING
@@ -90,8 +91,7 @@ CLASS zcl_abapgit_objects DEFINITION
         metadata TYPE zif_abapgit_definitions=>ty_metadata,
       END OF ty_obj_serializer_item .
     TYPES:
-      ty_obj_serializer_map
-            TYPE SORTED TABLE OF ty_obj_serializer_item WITH UNIQUE KEY item .
+      ty_obj_serializer_map TYPE SORTED TABLE OF ty_obj_serializer_item WITH UNIQUE KEY item .
 
     CLASS-DATA gt_obj_serializer_map TYPE ty_obj_serializer_map .
 
@@ -157,7 +157,7 @@ CLASS zcl_abapgit_objects DEFINITION
     CLASS-METHODS update_package_tree
       IMPORTING
         !iv_package TYPE devclass .
-    CLASS-METHODS delete_obj
+    CLASS-METHODS delete_object
       IMPORTING
         !iv_package TYPE devclass
         !is_item    TYPE zif_abapgit_definitions=>ty_item
@@ -402,8 +402,8 @@ CLASS zcl_abapgit_objects IMPLEMENTATION.
         RETURN.
       ENDIF.
 
-      CREATE OBJECT li_remote_version TYPE zcl_abapgit_xml_input EXPORTING iv_xml = zcl_abapgit_convert=>xstring_to_string_utf8( ls_remote_file-data )
-                                                                           iv_filename = ls_remote_file-filename.
+      li_remote_version = NEW zcl_abapgit_xml_input( iv_xml = zcl_abapgit_convert=>xstring_to_string_utf8( ls_remote_file-data )
+                                                     iv_filename = ls_remote_file-filename ).
 
       ls_result = li_comparator->compare( ii_remote = li_remote_version
                                           ii_log = ii_log ).
@@ -483,7 +483,7 @@ CLASS zcl_abapgit_objects IMPLEMENTATION.
         lv_message = |Object type { is_item-obj_type } not supported, serialize|.
         IF iv_native_only = abap_false.
           TRY. " 2nd step, try looking for plugins
-              CREATE OBJECT ri_obj TYPE zcl_abapgit_objects_bridge EXPORTING is_item = is_item.
+              ri_obj = NEW zcl_abapgit_objects_bridge( is_item = is_item ).
             CATCH cx_sy_create_object_error.
               zcx_abapgit_exception=>raise( lv_message ).
           ENDTRY.
@@ -540,7 +540,7 @@ CLASS zcl_abapgit_objects IMPLEMENTATION.
         ls_item-obj_name = <ls_tadir>-obj_name.
 
         TRY.
-            delete_obj(
+            delete_object(
               iv_package = <ls_tadir>-devclass
               is_item    = ls_item ).
 
@@ -578,7 +578,7 @@ CLASS zcl_abapgit_objects IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD delete_obj.
+  METHOD delete_object.
 
     DATA: li_obj TYPE REF TO zif_abapgit_object.
 
@@ -675,7 +675,7 @@ CLASS zcl_abapgit_objects IMPLEMENTATION.
 
       "error handling & logging added
       TRY.
-
+          " If package does not exist yet, it will be created with this call
           lv_package = lo_folder_logic->path_to_package(
             iv_top  = io_repo->get_package( )
             io_dot  = io_repo->get_dot_abapgit( )
@@ -691,8 +691,8 @@ CLASS zcl_abapgit_objects IMPLEMENTATION.
             lv_path = <ls_result>-path.
           ENDIF.
 
-          CREATE OBJECT lo_files EXPORTING is_item = ls_item
-                                           iv_path = lv_path.
+          lo_files = NEW #( is_item = ls_item
+                            iv_path = lv_path ).
           lo_files->set_files( lt_remote ).
 
           "analyze XML in order to instantiate the proper serializer
@@ -1197,9 +1197,10 @@ CLASS zcl_abapgit_objects IMPLEMENTATION.
 
   METHOD serialize.
 
-    DATA: li_obj   TYPE REF TO zif_abapgit_object,
-          li_xml   TYPE REF TO zif_abapgit_xml_output,
-          lo_files TYPE REF TO zcl_abapgit_objects_files.
+    DATA: li_obj         TYPE REF TO zif_abapgit_object,
+          li_xml         TYPE REF TO zif_abapgit_xml_output,
+          lo_files       TYPE REF TO zcl_abapgit_objects_files,
+          ls_i18n_params TYPE zif_abapgit_definitions=>ty_i18n_params.
 
     FIELD-SYMBOLS: <ls_file> LIKE LINE OF rs_files_and_item-files.
 
@@ -1211,16 +1212,18 @@ CLASS zcl_abapgit_objects IMPLEMENTATION.
         rs_files_and_item-item-obj_name }| ).
     ENDIF.
 
-    CREATE OBJECT lo_files EXPORTING is_item = rs_files_and_item-item.
+    lo_files = NEW #( is_item = rs_files_and_item-item ).
 
     li_obj = create_object( is_item     = rs_files_and_item-item
                             iv_language = iv_language ).
     li_obj->mo_files = lo_files.
-    CREATE OBJECT li_xml TYPE zcl_abapgit_xml_output.
+    li_xml = NEW zcl_abapgit_xml_output( ).
 
-    IF iv_serialize_master_lang_only = abap_true.
-      li_xml->i18n_params( iv_serialize_master_lang_only = abap_true ).
-    ENDIF.
+    ls_i18n_params-main_language         = iv_language.
+    ls_i18n_params-main_language_only    = iv_serialize_master_lang_only.
+    ls_i18n_params-translation_languages = it_translation_langs.
+
+    li_xml->i18n_params( ls_i18n_params ).
 
     li_obj->serialize( li_xml ).
     lo_files->add_xml( ii_xml      = li_xml
