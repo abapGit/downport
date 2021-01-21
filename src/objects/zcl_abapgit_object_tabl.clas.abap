@@ -661,7 +661,8 @@ CLASS zcl_abapgit_object_tabl IMPLEMENTATION.
           lv_refs      TYPE abap_bool,
           ls_extras    TYPE ty_tabl_extras.
 
-    FIELD-SYMBOLS: <ls_dd03p> TYPE dd03p.
+    FIELD-SYMBOLS: <ls_dd03p> TYPE dd03p,
+                   <lg_roworcolst> TYPE any.
 
     IF deserialize_idoc_segment( io_xml     = io_xml
                                  iv_package = iv_package ) = abap_false.
@@ -672,6 +673,10 @@ CLASS zcl_abapgit_object_tabl IMPLEMENTATION.
                     CHANGING cg_data = ls_dd09l ).
       io_xml->read( EXPORTING iv_name  = 'DD03P_TABLE'
                     CHANGING cg_data = lt_dd03p ).
+      ASSIGN COMPONENT 'ROWORCOLST' OF STRUCTURE ls_dd09l TO <lg_roworcolst>.
+      IF sy-subrc = 0 AND <lg_roworcolst> IS INITIAL.
+        <lg_roworcolst> = 'C'. "Reverse fix from serialize
+      ENDIF.
 
       " DDIC Step: Replace REF TO class/interface with generic reference to avoid cyclic dependency
       LOOP AT lt_dd03p ASSIGNING <ls_dd03p> WHERE datatype = 'REF'.
@@ -820,13 +825,13 @@ CLASS zcl_abapgit_object_tabl IMPLEMENTATION.
           li_local_version_input  TYPE REF TO zif_abapgit_xml_input.
 
 
-    CREATE OBJECT li_local_version_output TYPE zcl_abapgit_xml_output.
+    li_local_version_output = NEW zcl_abapgit_xml_output( ).
 
     zif_abapgit_object~serialize( li_local_version_output ).
 
-    CREATE OBJECT li_local_version_input TYPE zcl_abapgit_xml_input EXPORTING iv_xml = li_local_version_output->render( ).
+    li_local_version_input = NEW zcl_abapgit_xml_input( iv_xml = li_local_version_output->render( ) ).
 
-    CREATE OBJECT ri_comparator TYPE zcl_abapgit_object_tabl_compar EXPORTING ii_local = li_local_version_input.
+    ri_comparator = NEW zcl_abapgit_object_tabl_compar( ii_local = li_local_version_input ).
 
   ENDMETHOD.
 

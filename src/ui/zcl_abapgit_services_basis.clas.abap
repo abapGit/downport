@@ -154,9 +154,9 @@ CLASS ZCL_ABAPGIT_SERVICES_BASIS IMPLEMENTATION.
         cv_include_sub_packages       = lv_include_sub_packages
         cv_serialize_master_lang_only = lv_serialize_master_lang_only ).
 
-    CREATE OBJECT lo_performance EXPORTING iv_package = lv_package
-                                           iv_include_sub_packages = lv_include_sub_packages
-                                           iv_serialize_master_lang_only = lv_serialize_master_lang_only.
+    lo_performance = NEW #( iv_package = lv_package
+                            iv_include_sub_packages = lv_include_sub_packages
+                            iv_serialize_master_lang_only = lv_serialize_master_lang_only ).
 
 
     lo_performance->set_object_type_filter( lt_object_type_filter ).
