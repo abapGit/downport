@@ -27,7 +27,7 @@ CLASS zcl_abapgit_gui_page_addofflin DEFINITION
         url            TYPE string VALUE 'url',
         package        TYPE string VALUE 'package',
         folder_logic   TYPE string VALUE 'folder_logic',
-        master_lang_only TYPE string VALUE 'master_lang_only',
+        main_lang_only TYPE string VALUE 'main_lang_only',
       END OF c_id .
 
     CONSTANTS:
@@ -58,13 +58,13 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_GUI_PAGE_ADDOFFLIN IMPLEMENTATION.
+CLASS zcl_abapgit_gui_page_addofflin IMPLEMENTATION.
 
 
   METHOD constructor.
     super->constructor( ).
-    CREATE OBJECT mo_validation_log.
-    CREATE OBJECT mo_form_data.
+    mo_validation_log = NEW #( ).
+    mo_form_data = NEW #( ).
     mo_form = get_form_schema( ).
     mo_form_util = zcl_abapgit_html_form_utils=>create( mo_form ).
   ENDMETHOD.
@@ -74,7 +74,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_ADDOFFLIN IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_addofflin.
 
-    CREATE OBJECT lo_component.
+    lo_component = NEW #( ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'New Offline Repository'
@@ -114,7 +114,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_ADDOFFLIN IMPLEMENTATION.
       iv_label       = 'Full'
       iv_value       = zif_abapgit_dot_abapgit=>c_folder_logic-full
     )->checkbox(
-      iv_name        = c_id-master_lang_only
+      iv_name        = c_id-main_lang_only
       iv_label       = 'Serialize Main Language Only'
       iv_hint        = 'Ignore translations, serialize just main language'
     )->command(
@@ -202,7 +202,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_ADDOFFLIN IMPLEMENTATION.
         IF mo_validation_log->is_empty( ) = abap_true.
           mo_form_data->to_abap( CHANGING cs_container = ls_repo_params ).
           lo_new_offline_repo = zcl_abapgit_services_repo=>new_offline( ls_repo_params ).
-          CREATE OBJECT rs_handled-page TYPE zcl_abapgit_gui_page_repo_view EXPORTING iv_key = lo_new_offline_repo->get_key( ).
+          rs_handled-page = NEW zcl_abapgit_gui_page_repo_view( iv_key = lo_new_offline_repo->get_key( ) ).
           rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page_replacing.
         ELSE.
           rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render. " Display errors
@@ -217,7 +217,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_ADDOFFLIN IMPLEMENTATION.
 
     gui_services( )->register_event_handler( me ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( mo_form->render(
       io_values         = mo_form_data
