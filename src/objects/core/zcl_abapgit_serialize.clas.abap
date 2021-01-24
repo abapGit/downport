@@ -175,7 +175,7 @@ CLASS ZCL_ABAPGIT_SERIALIZE IMPLEMENTATION.
       io_dot                = io_dot_abapgit
       ii_log                = ii_log ).
 
-    lo_filter = NEW #( ).
+    CREATE OBJECT lo_filter.
 
     lo_filter->apply( EXPORTING it_filter = it_filter
                       CHANGING  ct_tadir  = lt_tadir ).
