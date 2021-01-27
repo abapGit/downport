@@ -37,7 +37,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_GUI_PAGE_DEBUGINFO IMPLEMENTATION.
+CLASS zcl_abapgit_gui_page_debuginfo IMPLEMENTATION.
 
 
   METHOD constructor.
@@ -51,7 +51,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DEBUGINFO IMPLEMENTATION.
     DATA lv_encode TYPE string.
     DATA li_html TYPE REF TO zif_abapgit_html.
 
-    CREATE OBJECT li_html TYPE zcl_abapgit_html.
+    li_html = NEW zcl_abapgit_html( ).
 
     lv_encode = zcl_abapgit_html_action_utils=>jump_encode( iv_obj_type = 'CLAS'
                                                             iv_obj_name = |{ iv_class }| ).
@@ -65,7 +65,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DEBUGINFO IMPLEMENTATION.
 
   METHOD render_content.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div id="debug_info" class="debug_container">' ).
     ri_html->add( render_debug_info( ) ).
@@ -98,7 +98,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DEBUGINFO IMPLEMENTATION.
     READ TABLE lt_ver_tab INTO ls_version INDEX 3. " gui patch
     lv_gui_version = |{ lv_gui_version }.{ ls_version-filename }|.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( |<table>| ).
     ri_html->add( |<tr><td>abapGit version:</td><td>{ zif_abapgit_version=>gc_abap_version }</td></tr>| ).
@@ -116,20 +116,20 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DEBUGINFO IMPLEMENTATION.
       ri_html->add( 'abapGit installed in package&nbsp;' ).
       ri_html->add( lv_devclass ).
     ELSE.
-      ri_html->add_a( iv_txt = 'install abapGit repo'
+      ri_html->add_a( iv_txt = 'Install abapGit repository'
                       iv_act = zif_abapgit_definitions=>c_action-abapgit_install ).
       ri_html->add( ' - To keep abapGit up-to-date (or also to contribute) you need to' ).
       ri_html->add( 'install it as a repository.' ).
     ENDIF.
 
-    ri_html->add( |<br>| ).
+    ri_html->add( |<br><br>| ).
 
   ENDMETHOD.
 
 
   METHOD render_scripts.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
     ri_html->add( 'debugOutput("<table><tr><td>Browser:</td><td>" + navigator.userAgent + ' &&
@@ -141,6 +141,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DEBUGINFO IMPLEMENTATION.
   METHOD render_supported_object_types.
 
     DATA: lv_list     TYPE string,
+          li_html     TYPE REF TO zif_abapgit_html,
           lt_types    TYPE zcl_abapgit_objects=>ty_types_tt,
           lv_type     LIKE LINE OF lt_types,
           lt_obj      TYPE STANDARD TABLE OF ko100 WITH DEFAULT KEY,
@@ -159,7 +160,14 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DEBUGINFO IMPLEMENTATION.
 
     lt_types = zcl_abapgit_objects=>supported_list( ).
 
-    rv_html = |<p>Supported objects: { lv_list }</p>|.
+    li_html = NEW zcl_abapgit_html( ).
+
+    rv_html = li_html->a(
+      iv_txt = 'Complete list of object types supported by abapGit'
+      iv_act = 'https://docs.abapgit.org/ref-supported.html'
+      iv_typ = zif_abapgit_html=>c_action_type-url ).
+
+    rv_html = rv_html && |<br><br>Supported object types in <strong>this</strong> system:<br><br>|.
 
     rv_html = rv_html && |<table border="1px"><thead><tr>|.
     rv_html = rv_html && |<td>Object</td><td>Description</td><td>Class</td><td>Version</td><td>DDIC</td>|.
@@ -194,7 +202,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DEBUGINFO IMPLEMENTATION.
 
         CATCH cx_sy_create_object_error.
           TRY. " 2nd step, try looking for plugins
-              CREATE OBJECT li_object TYPE zcl_abapgit_objects_bridge EXPORTING is_item = ls_item.
+              li_object = NEW zcl_abapgit_objects_bridge( is_item = ls_item ).
             CATCH cx_sy_create_object_error.
               rv_html = rv_html && |<td class="error" colspan="5">{ lv_class } - error instantiating class</td>|.
               CONTINUE.
