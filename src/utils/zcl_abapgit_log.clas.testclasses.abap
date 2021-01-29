@@ -15,7 +15,7 @@ ENDCLASS.
 CLASS ltcl_test IMPLEMENTATION.
 
   METHOD setup.
-    CREATE OBJECT mi_cut TYPE zcl_abapgit_log.
+    mi_cut = NEW zcl_abapgit_log( ).
   ENDMETHOD.
 
   METHOD empty.
