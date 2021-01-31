@@ -927,8 +927,8 @@ CLASS zcl_abapgit_object_fugr IMPLEMENTATION.
 
     LOOP AT it_includes INTO lv_include.
 
-      CREATE OBJECT lo_cross EXPORTING p_name = lv_include
-                                       p_include = lv_include.
+      lo_cross = NEW #( p_name = lv_include
+                        p_include = lv_include ).
 
       lo_cross->index_actualize( ).
 
@@ -1070,6 +1070,8 @@ CLASS zcl_abapgit_object_fugr IMPLEMENTATION.
     deserialize_texts( iv_prog_name = lv_program_name
                        ii_xml       = io_xml ).
 
+    deserialize_lxe_texts( io_xml ).
+
     io_xml->read( EXPORTING iv_name = 'DYNPROS'
                   CHANGING cg_data = lt_dynpros ).
     deserialize_dynpros( lt_dynpros ).
@@ -1177,8 +1179,14 @@ CLASS zcl_abapgit_object_fugr IMPLEMENTATION.
     lv_program_name = main_name( ).
     ls_progdir = read_progdir( lv_program_name ).
 
-    serialize_texts( iv_prog_name = lv_program_name
-                     ii_xml       = io_xml ).
+    IF io_xml->i18n_params( )-translation_languages IS INITIAL.
+      " Old I18N option
+      serialize_texts( iv_prog_name = lv_program_name
+                       ii_xml       = io_xml ).
+    ELSE.
+      " New LXE option
+      serialize_lxe_texts( io_xml ).
+    ENDIF.
 
     IF ls_progdir-subc = 'F'.
       lt_dynpros = serialize_dynpros( lv_program_name ).
