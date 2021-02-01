@@ -115,7 +115,7 @@ CLASS zcl_abapgit_default_transport IMPLEMENTATION.
   METHOD get_instance.
 
     IF go_instance IS NOT BOUND.
-      CREATE OBJECT go_instance.
+      go_instance = NEW #( ).
     ENDIF.
 
     ro_instance = go_instance.
