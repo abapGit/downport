@@ -395,8 +395,8 @@ CLASS zcl_abapgit_popups IMPLEMENTATION.
   METHOD popup_get_from_free_selections.
     DATA: lo_free_sel_dialog TYPE REF TO zcl_abapgit_free_sel_dialog.
 
-    CREATE OBJECT lo_free_sel_dialog EXPORTING iv_title = iv_title
-                                               iv_frame_text = iv_frame_text.
+    lo_free_sel_dialog = NEW #( iv_title = iv_title
+                                iv_frame_text = iv_frame_text ).
 
     lo_free_sel_dialog->set_fields( CHANGING ct_fields = ct_fields ).
     lo_free_sel_dialog->show( ).
@@ -1088,7 +1088,7 @@ CLASS zcl_abapgit_popups IMPLEMENTATION.
         ENDIF.
 
         IF iv_header_text CN ' _0'.
-          CREATE OBJECT lo_table_header EXPORTING text = iv_header_text.
+          lo_table_header = NEW #( text = iv_header_text ).
           mo_select_list_popup->set_top_of_list( lo_table_header ).
         ENDIF.
 
@@ -1202,7 +1202,7 @@ CLASS zcl_abapgit_popups IMPLEMENTATION.
     IF sy-subrc = 1.
       RAISE EXCEPTION TYPE zcx_abapgit_cancel.
     ELSEIF sy-subrc > 1.
-      zcx_abapgit_exception=>raise( |Error from TRINT_ORDER_CHOICE { sy-subrc }| ).
+      zcx_abapgit_exception=>raise_t100( ).
     ENDIF.
 
   ENDMETHOD.

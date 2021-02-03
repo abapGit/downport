@@ -319,7 +319,7 @@ CLASS zcl_abapgit_object_tabl IMPLEMENTATION.
       EXCEPTIONS
         OTHERS              = 1.
     IF sy-subrc <> 0.
-      zcx_abapgit_exception=>raise( 'error from TR_TADIR_INTERFACE' ).
+      zcx_abapgit_exception=>raise_t100( ).
     ENDIF.
   ENDMETHOD.
 
@@ -366,7 +366,7 @@ CLASS zcl_abapgit_object_tabl IMPLEMENTATION.
           put_refused       = 5
           OTHERS            = 6.
       IF sy-subrc <> 0.
-        zcx_abapgit_exception=>raise( |error from DDIF_TABL_PUT @TEXTS, { sy-subrc }| ).
+        zcx_abapgit_exception=>raise_t100( ).
       ENDIF.
     ENDLOOP.
 
@@ -734,7 +734,7 @@ CLASS zcl_abapgit_object_tabl IMPLEMENTATION.
           put_refused       = 5
           OTHERS            = 6.
       IF sy-subrc <> 0.
-        zcx_abapgit_exception=>raise( 'error from DDIF_TABL_PUT' ).
+        zcx_abapgit_exception=>raise_t100( ).
       ENDIF.
 
       zcl_abapgit_objects_activation=>add_item( ms_item ).
@@ -765,7 +765,7 @@ CLASS zcl_abapgit_object_tabl IMPLEMENTATION.
             put_refused       = 5
             OTHERS            = 6.
         IF sy-subrc <> 0.
-          zcx_abapgit_exception=>raise( 'error from DDIF_INDX_PUT' ).
+          zcx_abapgit_exception=>raise_t100( ).
         ENDIF.
 
         CALL FUNCTION 'DD_DD_TO_E071'
@@ -825,13 +825,13 @@ CLASS zcl_abapgit_object_tabl IMPLEMENTATION.
           li_local_version_input  TYPE REF TO zif_abapgit_xml_input.
 
 
-    CREATE OBJECT li_local_version_output TYPE zcl_abapgit_xml_output.
+    li_local_version_output = NEW zcl_abapgit_xml_output( ).
 
     zif_abapgit_object~serialize( li_local_version_output ).
 
-    CREATE OBJECT li_local_version_input TYPE zcl_abapgit_xml_input EXPORTING iv_xml = li_local_version_output->render( ).
+    li_local_version_input = NEW zcl_abapgit_xml_input( iv_xml = li_local_version_output->render( ) ).
 
-    CREATE OBJECT ri_comparator TYPE zcl_abapgit_object_tabl_compar EXPORTING ii_local = li_local_version_input.
+    ri_comparator = NEW zcl_abapgit_object_tabl_compar( ii_local = li_local_version_input ).
 
   ENDMETHOD.
 

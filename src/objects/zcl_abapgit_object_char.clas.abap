@@ -31,7 +31,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_OBJECT_CHAR IMPLEMENTATION.
+CLASS zcl_abapgit_object_char IMPLEMENTATION.
 
 
   METHOD instantiate_char_and_lock.
@@ -45,10 +45,10 @@ CLASS ZCL_ABAPGIT_OBJECT_CHAR IMPLEMENTATION.
     lv_name = ms_item-obj_name.
 
     TRY.
-        CREATE OBJECT ro_char EXPORTING im_name = lv_name
-                                        im_type_group = iv_type_group
-                                        im_new = lv_new
-                                        im_activation_state = iv_activation_state.
+        ro_char = NEW #( im_name = lv_name
+                         im_type_group = iv_type_group
+                         im_new = lv_new
+                         im_activation_state = iv_activation_state ).
       CATCH cx_pak_invalid_data
           cx_pak_not_authorized
           cx_pak_invalid_state
@@ -264,7 +264,7 @@ CLASS ZCL_ABAPGIT_OBJECT_CHAR IMPLEMENTATION.
         OTHERS              = 3.
 
     IF sy-subrc <> 0.
-      zcx_abapgit_exception=>raise( |Error from RS_TOOL_ACCESS, CHAR| ).
+      zcx_abapgit_exception=>raise_t100( ).
     ENDIF.
 
   ENDMETHOD.

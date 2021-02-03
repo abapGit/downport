@@ -61,7 +61,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_OBJECTS_ACTIVATION IMPLEMENTATION.
+CLASS zcl_abapgit_objects_activation IMPLEMENTATION.
 
 
   METHOD activate.
@@ -138,7 +138,7 @@ CLASS ZCL_ABAPGIT_OBJECTS_ACTIVATION IMPLEMENTATION.
           OTHERS         = 5.
 
       IF sy-subrc <> 0.
-        zcx_abapgit_exception=>raise( 'error from DD_MASS_ACT_C3' ).
+        zcx_abapgit_exception=>raise_t100( ).
       ENDIF.
 
       IF lv_rc > 0.
@@ -327,12 +327,12 @@ CLASS ZCL_ABAPGIT_OBJECTS_ACTIVATION IMPLEMENTATION.
         OTHERS        = 3.
 
     IF sy-subrc <> 0.
-      zcx_abapgit_exception=>raise( 'error from TR_READ_LOG' ).
+      zcx_abapgit_exception=>raise_t100( ).
     ENDIF.
 
     DELETE lt_lines WHERE severity <> 'E'.
 
-    CREATE OBJECT li_log TYPE zcl_abapgit_log.
+    li_log = NEW zcl_abapgit_log( ).
     li_log->set_title( 'Activation Errors' ).
 
     LOOP AT lt_lines ASSIGNING <ls_line>.
@@ -365,8 +365,8 @@ CLASS ZCL_ABAPGIT_OBJECTS_ACTIVATION IMPLEMENTATION.
 
       lv_include = cl_oo_classname_service=>get_classpool_name( lv_class ).
 
-      CREATE OBJECT lo_cross EXPORTING p_name = lv_include
-                                       p_include = lv_include.
+      lo_cross = NEW #( p_name = lv_include
+                        p_include = lv_include ).
 
       lo_cross->index_actualize( ).
     ENDLOOP.
