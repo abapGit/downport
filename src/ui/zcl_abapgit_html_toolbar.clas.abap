@@ -49,8 +49,8 @@ CLASS zcl_abapgit_html_toolbar DEFINITION
         act   TYPE string,
         ico   TYPE string,
         sub   TYPE REF TO zcl_abapgit_html_toolbar,
-        opt   TYPE char1,
-        typ   TYPE char1,
+        opt   TYPE c LENGTH 1,
+        typ   TYPE c LENGTH 1,
         cur   TYPE abap_bool,
         chk   TYPE abap_bool,
         aux   TYPE string,
@@ -119,7 +119,7 @@ CLASS ZCL_ABAPGIT_HTML_TOOLBAR IMPLEMENTATION.
 
     DATA: lv_class TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     lv_class = 'nav-container'.
     IF iv_right = abap_true.
@@ -137,7 +137,7 @@ CLASS ZCL_ABAPGIT_HTML_TOOLBAR IMPLEMENTATION.
 
     DATA: lv_class TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     lv_class = 'nav-container'.
     IF iv_right = abap_true.
@@ -172,7 +172,7 @@ CLASS ZCL_ABAPGIT_HTML_TOOLBAR IMPLEMENTATION.
     FIELD-SYMBOLS <ls_item> LIKE LINE OF mt_items.
 
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     IF iv_sort = abap_true.
       SORT mt_items BY txt ASCENDING AS TEXT.
