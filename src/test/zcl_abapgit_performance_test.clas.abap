@@ -84,13 +84,13 @@ CLASS zcl_abapgit_performance_test IMPLEMENTATION.
     CLEAR mt_result.
 
     li_actual_progress = zcl_abapgit_progress=>get_instance( 1 ).
-    CREATE OBJECT lo_dummy_progress.
+    lo_dummy_progress = NEW #( ).
     zcl_abapgit_progress=>set_instance( lo_dummy_progress ).
 
     TRY.
         lt_tadir = select_tadir_entries( ).
 
-        CREATE OBJECT lo_serializer EXPORTING iv_serialize_master_lang_only = mv_main_language_only.
+        lo_serializer = NEW #( iv_serialize_master_lang_only = mv_main_language_only ).
 
         LOOP AT lt_tadir ASSIGNING <ls_tadir>.
           INSERT <ls_tadir> INTO TABLE lt_tadir_single.
