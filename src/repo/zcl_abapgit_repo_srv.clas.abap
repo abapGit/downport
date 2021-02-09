@@ -122,7 +122,7 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
 
   METHOD get_instance.
     IF gi_ref IS INITIAL.
-      CREATE OBJECT gi_ref TYPE zcl_abapgit_repo_srv.
+      gi_ref = NEW zcl_abapgit_repo_srv( ).
     ENDIF.
     ri_srv = gi_ref.
   ENDMETHOD.
@@ -131,9 +131,9 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
   METHOD instantiate_and_add.
 
     IF is_repo_meta-offline = abap_false.
-      CREATE OBJECT ro_repo TYPE zcl_abapgit_repo_online EXPORTING is_data = is_repo_meta.
+      ro_repo = NEW zcl_abapgit_repo_online( is_data = is_repo_meta ).
     ELSE.
-      CREATE OBJECT ro_repo TYPE zcl_abapgit_repo_offline EXPORTING is_data = is_repo_meta.
+      ro_repo = NEW zcl_abapgit_repo_offline( is_data = is_repo_meta ).
     ENDIF.
     add( ro_repo ).
 
@@ -510,8 +510,7 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
     DATA: lt_tadir TYPE zif_abapgit_definitions=>ty_tadir_tt.
     DATA: lx_error TYPE REF TO zcx_abapgit_exception.
 
-    CREATE OBJECT ri_log TYPE zcl_abapgit_log.
-    ri_log->set_title( 'Uninstall Log' ).
+    ri_log = io_repo->create_new_log( 'Uninstall Log' ).
 
     IF io_repo->get_local_settings( )-write_protected = abap_true.
       zcx_abapgit_exception=>raise( 'Cannot purge. Local code is write-protected by repo config' ).
@@ -527,7 +526,7 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
                                      ii_log    = ri_log ).
       CATCH zcx_abapgit_exception INTO lx_error.
         " If uninstall fails, repo needs a refresh to show which objects where deleted and which not
-        io_repo->refresh( ).
+        io_repo->refresh( iv_drop_log = abap_false ).
         RAISE EXCEPTION lx_error.
     ENDTRY.
 

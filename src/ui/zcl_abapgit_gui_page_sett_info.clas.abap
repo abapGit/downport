@@ -90,7 +90,7 @@ CLASS zcl_abapgit_gui_page_sett_info IMPLEMENTATION.
   METHOD constructor.
 
     super->constructor( ).
-    CREATE OBJECT mo_form_data.
+    mo_form_data = NEW #( ).
     mo_repo = io_repo.
     mo_form = get_form_schema( ).
 
@@ -101,7 +101,7 @@ CLASS zcl_abapgit_gui_page_sett_info IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_sett_info.
 
-    CREATE OBJECT lo_component EXPORTING io_repo = io_repo.
+    lo_component = NEW #( io_repo = io_repo ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Repository Stats'
@@ -189,9 +189,17 @@ CLASS zcl_abapgit_gui_page_sett_info IMPLEMENTATION.
 
   METHOD get_form_schema.
 
+    DATA lv_label TYPE string.
+
     ro_form = zcl_abapgit_html_form=>create(
                 iv_form_id   = 'repo-infos-form'
                 iv_help_page = 'https://docs.abapgit.org/guide-repo-infos.html' ).
+
+    IF mo_repo->is_offline( ) = abap_true.
+      lv_label = 'ZIP File'.
+    ELSE.
+      lv_label = 'Remote'.
+    ENDIF.
 
     ro_form->start_group(
       iv_name        = c_id-info
@@ -224,10 +232,10 @@ CLASS zcl_abapgit_gui_page_sett_info IMPLEMENTATION.
       iv_width       = '25%'
       iv_readonly    = abap_true
     )->column(
-      iv_label       = 'Remote'
+      iv_label       = lv_label
       iv_width       = '25%'
       iv_readonly    = abap_true
-   )->command(
+    )->command(
       iv_label       = 'Back'
       iv_action      = c_event-go_back ).
 
@@ -330,7 +338,10 @@ CLASS zcl_abapgit_gui_page_sett_info IMPLEMENTATION.
 
     IF lt_remote IS NOT INITIAL.
       ls_stats-measure = 'Number of Ignored Files'.
-      ls_stats-local  = ls_stats-remote - ls_stats-local. " should be >= 0
+      ls_stats-local  = ls_stats-remote - ls_stats-local.
+      IF ls_stats-local < 0.
+        ls_stats-local = 0.
+      ENDIF.
       ls_stats-remote = 0.
       APPEND ls_stats TO mt_stats.
     ENDIF.
@@ -356,7 +367,7 @@ CLASS zcl_abapgit_gui_page_sett_info IMPLEMENTATION.
         IF <ls_result>-lstate = lv_state.
           ls_stats-local = ls_stats-local + 1.
         ENDIF.
-        IF <ls_result>-rstate = lv_state.
+        IF <ls_result>-rstate = lv_state AND mo_repo->has_remote_source( ) = abap_true.
           ls_stats-remote = ls_stats-remote + 1.
         ENDIF.
       ENDLOOP.
@@ -431,7 +442,7 @@ CLASS zcl_abapgit_gui_page_sett_info IMPLEMENTATION.
 
     read_settings( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( `<div class="repo">` ).
     ri_html->add( zcl_abapgit_gui_chunk_lib=>render_repo_top(
