@@ -103,7 +103,7 @@ CLASS zcl_abapgit_gui DEFINITION
       IMPORTING
         !iv_action   TYPE c
         !iv_getdata  TYPE c OPTIONAL
-        !it_postdata TYPE cnht_post_data_tab OPTIONAL .
+        !it_postdata TYPE zif_abapgit_html_viewer=>ty_post_data OPTIONAL .
     METHODS handle_error
       IMPORTING
         !ix_exception TYPE REF TO zcx_abapgit_exception .
@@ -191,7 +191,7 @@ CLASS zcl_abapgit_gui IMPLEMENTATION.
       ENDIF.
     ENDIF.
 
-    CREATE OBJECT mo_html_parts.
+    mo_html_parts = NEW #( ).
 
     mv_rollback_on_error = iv_rollback_on_error.
     mi_asset_man      = ii_asset_man.
@@ -259,10 +259,10 @@ CLASS zcl_abapgit_gui IMPLEMENTATION.
       li_event     TYPE REF TO zif_abapgit_gui_event,
       ls_handled   TYPE zif_abapgit_gui_event_handler=>ty_handling_result.
 
-    CREATE OBJECT li_event TYPE zcl_abapgit_gui_event EXPORTING ii_gui_services = me
-                                                                iv_action = iv_action
-                                                                iv_getdata = iv_getdata
-                                                                it_postdata = it_postdata.
+    li_event = NEW zcl_abapgit_gui_event( ii_gui_services = me
+                                          iv_action = iv_action
+                                          iv_getdata = iv_getdata
+                                          it_postdata = it_postdata ).
 
     TRY.
         LOOP AT mt_event_handlers INTO li_handler.
