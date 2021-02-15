@@ -920,7 +920,7 @@ CLASS zcl_abapgit_objects_program IMPLEMENTATION.
     IF io_xml IS BOUND.
       li_xml = io_xml.
     ELSE.
-      li_xml = NEW zcl_abapgit_xml_output( ).
+      CREATE OBJECT li_xml TYPE zcl_abapgit_xml_output.
     ENDIF.
 
     li_xml->add( iv_name = 'PROGDIR'
