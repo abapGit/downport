@@ -242,7 +242,7 @@ CLASS zcl_abapgit_html_form IMPLEMENTATION.
 
     DATA lv_ts TYPE timestampl.
 
-    ro_form = NEW #( ).
+    CREATE OBJECT ro_form.
     ro_form->mv_form_id = iv_form_id.
     ro_form->mv_help_page = iv_help_page.
 
@@ -345,7 +345,7 @@ CLASS zcl_abapgit_html_form IMPLEMENTATION.
       ls_form_id = | id="{ mv_form_id }"|.
     ENDIF.
 
-    ri_html = NEW zcl_abapgit_html( ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
 
     ri_html->add( |<div class="dialog { iv_form_class }">| ). " to center use 'dialog-form-center'
     ri_html->add( |<form method="post"{ ls_form_id }>| ).
