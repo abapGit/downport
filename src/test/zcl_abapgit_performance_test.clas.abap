@@ -90,7 +90,9 @@ CLASS zcl_abapgit_performance_test IMPLEMENTATION.
     TRY.
         lt_tadir = select_tadir_entries( ).
 
-        CREATE OBJECT lo_serializer EXPORTING iv_serialize_master_lang_only = mv_main_language_only.
+        CREATE OBJECT lo_serializer
+          EXPORTING
+            iv_serialize_master_lang_only = mv_main_language_only.
 
         LOOP AT lt_tadir ASSIGNING <ls_tadir>.
           INSERT <ls_tadir> INTO TABLE lt_tadir_single.

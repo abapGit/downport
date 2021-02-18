@@ -415,8 +415,10 @@ CLASS zcl_abapgit_gui_page_stage IMPLEMENTATION.
     DELETE lt_files WHERE method <> zif_abapgit_definitions=>c_method-add
                     AND   method <> zif_abapgit_definitions=>c_method-rm.
 
-    CREATE OBJECT lo_page EXPORTING iv_key = lv_key
-                                    it_files = lt_files.
+    CREATE OBJECT lo_page
+      EXPORTING
+        iv_key   = lv_key
+        it_files = lt_files.
 
     ri_page = lo_page.
 
@@ -841,8 +843,10 @@ CLASS zcl_abapgit_gui_page_stage IMPLEMENTATION.
 
         lo_stage = stage_all( ).
 
-        CREATE OBJECT rs_handled-page TYPE zcl_abapgit_gui_page_commit EXPORTING io_repo = mo_repo
-                                                                                 io_stage = lo_stage.
+        CREATE OBJECT rs_handled-page TYPE zcl_abapgit_gui_page_commit
+          EXPORTING
+            io_repo  = mo_repo
+            io_stage = lo_stage.
 
         rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page.
 
@@ -850,8 +854,10 @@ CLASS zcl_abapgit_gui_page_stage IMPLEMENTATION.
 
         lo_stage = stage_selected( ii_event ).
 
-        CREATE OBJECT rs_handled-page TYPE zcl_abapgit_gui_page_commit EXPORTING io_repo = mo_repo
-                                                                                 io_stage = lo_stage.
+        CREATE OBJECT rs_handled-page TYPE zcl_abapgit_gui_page_commit
+          EXPORTING
+            io_repo  = mo_repo
+            io_stage = lo_stage.
 
         rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page.
 

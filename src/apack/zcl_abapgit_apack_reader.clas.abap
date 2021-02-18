@@ -112,7 +112,9 @@ CLASS ZCL_ABAPGIT_APACK_READER IMPLEMENTATION.
 
 
   METHOD create_instance.
-    CREATE OBJECT ro_manifest_reader EXPORTING iv_package_name = iv_package_name.
+    CREATE OBJECT ro_manifest_reader
+      EXPORTING
+        iv_package_name = iv_package_name.
   ENDMETHOD.
 
 

@@ -45,9 +45,11 @@ CLASS ltcl_test IMPLEMENTATION.
           lx_previous TYPE REF TO cx_root.
 
     TRY.
-        CREATE OBJECT lx_previous TYPE cx_sy_dyn_call_illegal_method EXPORTING textid = cx_sy_dyn_call_illegal_method=>private_method
-                                                                               classname = 'CLASS'
-                                                                               methodname = 'METHOD'.
+        CREATE OBJECT lx_previous TYPE cx_sy_dyn_call_illegal_method
+          EXPORTING
+            textid     = cx_sy_dyn_call_illegal_method=>private_method
+            classname  = 'CLASS'
+            methodname = 'METHOD'.
 
         zcx_abapgit_exception=>raise( iv_text     = lx_previous->get_text( )
                                       ix_previous = lx_previous ).

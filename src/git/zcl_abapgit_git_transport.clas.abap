@@ -140,7 +140,9 @@ CLASS ZCL_ABAPGIT_GIT_TRANSPORT IMPLEMENTATION.
 
     lv_data = eo_client->get_cdata( ).
 
-    CREATE OBJECT eo_branch_list EXPORTING iv_data = lv_data.
+    CREATE OBJECT eo_branch_list
+      EXPORTING
+        iv_data = lv_data.
 
   ENDMETHOD.
 

@@ -154,9 +154,11 @@ CLASS zcl_abapgit_services_basis IMPLEMENTATION.
         cv_include_sub_packages = lv_include_sub_packages
         cv_main_language_only   = lv_main_language_only ).
 
-    CREATE OBJECT lo_performance EXPORTING iv_package = lv_package
-                                           iv_include_sub_packages = lv_include_sub_packages
-                                           iv_main_language_only = lv_main_language_only.
+    CREATE OBJECT lo_performance
+      EXPORTING
+        iv_package              = lv_package
+        iv_include_sub_packages = lv_include_sub_packages
+        iv_main_language_only   = lv_main_language_only.
 
 
     lo_performance->set_object_type_filter( lt_object_type_filter ).

@@ -259,10 +259,12 @@ CLASS zcl_abapgit_gui IMPLEMENTATION.
       li_event     TYPE REF TO zif_abapgit_gui_event,
       ls_handled   TYPE zif_abapgit_gui_event_handler=>ty_handling_result.
 
-    CREATE OBJECT li_event TYPE zcl_abapgit_gui_event EXPORTING ii_gui_services = me
-                                                                iv_action = iv_action
-                                                                iv_getdata = iv_getdata
-                                                                it_postdata = it_postdata.
+    CREATE OBJECT li_event TYPE zcl_abapgit_gui_event
+      EXPORTING
+        ii_gui_services = me
+        iv_action       = iv_action
+        iv_getdata      = iv_getdata
+        it_postdata     = it_postdata.
 
     TRY.
         LOOP AT mt_event_handlers INTO li_handler.
