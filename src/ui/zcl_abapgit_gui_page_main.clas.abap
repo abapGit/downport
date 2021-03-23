@@ -117,7 +117,7 @@ CLASS zcl_abapgit_gui_page_main IMPLEMENTATION.
       WHEN zif_abapgit_definitions=>c_action-direction.
 
         mo_repo_overview->set_order_direction(
-          xsdbool( ii_event->query( )->get( 'DIRECTION' ) = 'DESCENDING' ) ).
+          boolc( ii_event->query( )->get( 'DIRECTION' ) = 'DESCENDING' ) ).
         rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
 
       WHEN c_actions-apply_filter.

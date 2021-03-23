@@ -41,7 +41,7 @@ CLASS ZCL_ABAPGIT_OBJECT_CHAR IMPLEMENTATION.
 
 
     SELECT SINGLE name FROM cls_attribute INTO lv_name WHERE name = ms_item-obj_name.
-    lv_new = xsdbool( sy-subrc <> 0 ).
+    lv_new = boolc( sy-subrc <> 0 ).
     lv_name = ms_item-obj_name.
 
     TRY.

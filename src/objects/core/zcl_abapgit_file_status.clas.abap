@@ -147,14 +147,14 @@ CLASS ZCL_ABAPGIT_FILE_STATUS IMPLEMENTATION.
       IF ls_file_sig-sha1 <> is_remote-sha1.
         rs_result-rstate = zif_abapgit_definitions=>c_state-modified.
       ENDIF.
-      rs_result-match = xsdbool( rs_result-lstate IS INITIAL
+      rs_result-match = boolc( rs_result-lstate IS INITIAL
         AND rs_result-rstate IS INITIAL ).
     ELSE.
       " This is a strange situation. As both local and remote exist
       " the state should also be present. Maybe this is a first run of the code.
       " In this case just compare hashes directly and mark both changed
       " the user will presumably decide what to do after checking the actual diff
-      rs_result-match = xsdbool( is_local-file-sha1 = is_remote-sha1 ).
+      rs_result-match = boolc( is_local-file-sha1 = is_remote-sha1 ).
       IF rs_result-match = abap_false.
         rs_result-lstate = zif_abapgit_definitions=>c_state-modified.
         rs_result-rstate = zif_abapgit_definitions=>c_state-modified.
@@ -628,7 +628,7 @@ CLASS ZCL_ABAPGIT_FILE_STATUS IMPLEMENTATION.
     CLEAR es_item.
     es_item-obj_type = lv_type.
     es_item-obj_name = lv_name.
-    ev_is_xml        = xsdbool( lv_ext = 'XML' AND strlen( lv_type ) = 4 ).
+    ev_is_xml        = boolc( lv_ext = 'XML' AND strlen( lv_type ) = 4 ).
 
   ENDMETHOD.
 

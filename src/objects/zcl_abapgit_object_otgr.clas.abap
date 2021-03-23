@@ -35,7 +35,7 @@ CLASS zcl_abapgit_object_otgr IMPLEMENTATION.
           lv_name TYPE cls_attribute_name.
 
     SELECT SINGLE name FROM cls_type_group INTO lv_name WHERE name = ms_item-obj_name.
-    lv_new = xsdbool( sy-subrc <> 0 ).
+    lv_new = boolc( sy-subrc <> 0 ).
     lv_name = ms_item-obj_name.
 
     TRY.

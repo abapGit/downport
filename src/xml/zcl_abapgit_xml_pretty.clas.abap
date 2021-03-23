@@ -60,7 +60,7 @@ CLASS ZCL_ABAPGIT_XML_PRETTY IMPLEMENTATION.
     li_renderer = li_ixml->create_renderer( ostream  = li_ostream
                                             document = li_xml_doc ).
 
-    li_renderer->set_normalizing( xsdbool( iv_unpretty = abap_false ) ).
+    li_renderer->set_normalizing( boolc( iv_unpretty = abap_false ) ).
 
     li_renderer->render( ).
 

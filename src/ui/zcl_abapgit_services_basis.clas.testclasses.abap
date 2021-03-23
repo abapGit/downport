@@ -292,7 +292,7 @@ CLASS ltcl_sap_package_mock IMPLEMENTATION.
 
   METHOD zif_abapgit_sap_package~exists.
 
-    rv_bool = xsdbool( c_package-existing = mv_package ).
+    rv_bool = boolc( c_package-existing = mv_package ).
 
   ENDMETHOD.
 

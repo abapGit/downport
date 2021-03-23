@@ -285,7 +285,7 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
     IF lv_item IS INITIAL OR lv_item->type = zif_abapgit_ajson=>node_type-null.
       RETURN.
     ELSEIF lv_item->type = zif_abapgit_ajson=>node_type-boolean.
-      rv_value = xsdbool( lv_item->value = 'true' ).
+      rv_value = boolc( lv_item->value = 'true' ).
     ELSEIF lv_item->value IS NOT INITIAL.
       rv_value = abap_true.
     ENDIF.
@@ -571,7 +571,7 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
   METHOD zif_abapgit_ajson_writer~set_boolean.
 
     DATA lv_bool TYPE abap_bool.
-    lv_bool = xsdbool( iv_val IS NOT INITIAL ).
+    lv_bool = boolc( iv_val IS NOT INITIAL ).
     zif_abapgit_ajson_writer~set(
       iv_ignore_empty = abap_false
       iv_path = iv_path

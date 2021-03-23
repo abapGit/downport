@@ -429,7 +429,7 @@ CLASS zcl_abapgit_objects_program IMPLEMENTATION.
     SELECT SINGLE progname FROM reposrc INTO lv_progname
       WHERE progname = is_progdir-name
       AND r3state = 'A'.
-    lv_exists = xsdbool( sy-subrc = 0 ).
+    lv_exists = boolc( sy-subrc = 0 ).
 
     IF lv_exists = abap_true.
       zcl_abapgit_language=>set_current_language( mv_language ).

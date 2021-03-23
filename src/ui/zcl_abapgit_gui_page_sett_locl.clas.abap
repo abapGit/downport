@@ -170,22 +170,22 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_LOCL IMPLEMENTATION.
       iv_val = ms_settings-display_name ).
     mo_form_data->set(
       iv_key = c_id-ignore_subpackages
-      iv_val = xsdbool( ms_settings-ignore_subpackages = abap_true ) ) ##TYPE.
+      iv_val = boolc( ms_settings-ignore_subpackages = abap_true ) ) ##TYPE.
     mo_form_data->set(
       iv_key = c_id-main_language_only
-      iv_val = xsdbool( ms_settings-serialize_master_lang_only = abap_true ) ) ##TYPE.
+      iv_val = boolc( ms_settings-serialize_master_lang_only = abap_true ) ) ##TYPE.
     mo_form_data->set(
       iv_key = c_id-write_protected
-      iv_val = xsdbool( ms_settings-write_protected = abap_true ) ) ##TYPE.
+      iv_val = boolc( ms_settings-write_protected = abap_true ) ) ##TYPE.
     mo_form_data->set(
       iv_key = c_id-only_local_objects
-      iv_val = xsdbool( ms_settings-only_local_objects = abap_true ) ) ##TYPE.
+      iv_val = boolc( ms_settings-only_local_objects = abap_true ) ) ##TYPE.
     mo_form_data->set(
       iv_key = c_id-code_inspector_check_variant
       iv_val = |{ ms_settings-code_inspector_check_variant }| ).
     mo_form_data->set(
       iv_key = c_id-block_commit
-      iv_val = xsdbool( ms_settings-block_commit = abap_true ) ) ##TYPE.
+      iv_val = boolc( ms_settings-block_commit = abap_true ) ) ##TYPE.
 
     " Set for is_dirty check
     mo_form_util->set_data( mo_form_data ).

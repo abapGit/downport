@@ -158,14 +158,14 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_CODE_INSP IMPLEMENTATION.
 
     READ TABLE mt_result TRANSPORTING NO FIELDS
                          WITH KEY kind = 'E'.
-    rv_has_inspection_errors = xsdbool( sy-subrc = 0 ).
+    rv_has_inspection_errors = boolc( sy-subrc = 0 ).
 
   ENDMETHOD.
 
 
   METHOD is_stage_allowed.
 
-    rv_is_stage_allowed = xsdbool( NOT ( mo_repo->get_local_settings( )-block_commit = abap_true
+    rv_is_stage_allowed = boolc( NOT ( mo_repo->get_local_settings( )-block_commit = abap_true
                                            AND has_inspection_errors( ) = abap_true ) ).
 
   ENDMETHOD.

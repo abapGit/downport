@@ -111,7 +111,7 @@ CLASS ZCL_ABAPGIT_OBJECT_AUTH IMPLEMENTATION.
     SELECT SINGLE fieldname FROM authx
       INTO mv_fieldname
       WHERE fieldname = ms_item-obj_name.               "#EC CI_GENBUFF
-    rv_bool = xsdbool( sy-subrc = 0 ).
+    rv_bool = boolc( sy-subrc = 0 ).
 
   ENDMETHOD.
 

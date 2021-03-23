@@ -1095,7 +1095,7 @@ CLASS zcl_abapgit_object_fugr IMPLEMENTATION.
         function_pool   = lv_pool
       EXCEPTIONS
         pool_not_exists = 1.
-    rv_bool = xsdbool( sy-subrc <> 1 ).
+    rv_bool = boolc( sy-subrc <> 1 ).
 
   ENDMETHOD.
 

@@ -206,7 +206,7 @@ CLASS ZCL_ABAPGIT_OBJECTS_ACTIVATION IMPLEMENTATION.
         lv_popup = abap_false.
       ENDIF.
 
-      lv_no_ui = xsdbool( lv_popup = abap_false ).
+      lv_no_ui = boolc( lv_popup = abap_false ).
 
       TRY.
           CALL FUNCTION 'RS_WORKING_OBJECTS_ACTIVATE'

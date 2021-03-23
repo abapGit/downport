@@ -781,7 +781,7 @@ CLASS ZCL_ABAPGIT_POPUPS IMPLEMENTATION.
         p_object_data    = es_package_data
       EXCEPTIONS
         action_cancelled = 1.
-    ev_create = xsdbool( sy-subrc = 0 ).
+    ev_create = boolc( sy-subrc = 0 ).
   ENDMETHOD.
 
 

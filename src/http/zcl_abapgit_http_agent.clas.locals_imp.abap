@@ -31,7 +31,7 @@ CLASS lcl_http_response IMPLEMENTATION.
   METHOD zif_abapgit_http_response~is_ok.
     DATA lv_code TYPE i.
     lv_code = zif_abapgit_http_response~code( ).
-    rv_yes = xsdbool( lv_code >= 200 AND lv_code < 300 ).
+    rv_yes = boolc( lv_code >= 200 AND lv_code < 300 ).
   ENDMETHOD.
 
   METHOD zif_abapgit_http_response~data.

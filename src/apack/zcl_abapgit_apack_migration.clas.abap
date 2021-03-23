@@ -194,7 +194,7 @@ CLASS zcl_abapgit_apack_migration IMPLEMENTATION.
     DATA: lv_interface_name TYPE seoclsname.
 
     SELECT SINGLE clsname FROM seoclass INTO lv_interface_name WHERE clsname = c_interface_name.
-    rv_interface_exists = xsdbool( sy-subrc = 0 ).
+    rv_interface_exists = boolc( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -224,7 +224,7 @@ CLASS zcl_abapgit_apack_migration IMPLEMENTATION.
     FIELD-SYMBOLS: <lv_interface_version> TYPE i.
 
     ASSIGN ('ZIF_APACK_MANIFEST')=>('CO_INTERFACE_VERSION') TO <lv_interface_version>.
-    rv_interface_valid = xsdbool( <lv_interface_version> IS ASSIGNED
+    rv_interface_valid = boolc( <lv_interface_version> IS ASSIGNED
       AND <lv_interface_version> >= c_apack_interface_version ).
 
   ENDMETHOD.

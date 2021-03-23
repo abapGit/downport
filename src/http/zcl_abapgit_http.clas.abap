@@ -248,7 +248,7 @@ CLASS ZCL_ABAPGIT_HTTP IMPLEMENTATION.
       SUBMATCHES lv_host.
 
     READ TABLE lt_list WITH KEY hostname = lv_host TRANSPORTING NO FIELDS.
-    rv_bool = xsdbool( sy-subrc = 0 ).
+    rv_bool = boolc( sy-subrc = 0 ).
 
   ENDMETHOD.
 ENDCLASS.

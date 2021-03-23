@@ -62,7 +62,7 @@ CLASS ZCL_ABAPGIT_GUI_HTML_PROCESSOR IMPLEMENTATION.
 
   METHOD is_preserved.
     READ TABLE mt_preserve_css TRANSPORTING NO FIELDS WITH KEY table_line = iv_css_url.
-    rv_yes = xsdbool( sy-subrc = 0 ).
+    rv_yes = boolc( sy-subrc = 0 ).
   ENDMETHOD.
 
 

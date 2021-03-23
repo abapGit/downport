@@ -996,7 +996,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DIFF IMPLEMENTATION.
 
       WHEN c_actions-toggle_hidden_chars. " Toggle display of hidden characters
 
-        mv_hidden_chars = xsdbool( mv_hidden_chars = abap_false ).
+        mv_hidden_chars = boolc( mv_hidden_chars = abap_false ).
         rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
 
       WHEN OTHERS.
@@ -1018,7 +1018,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DIFF IMPLEMENTATION.
     READ TABLE it_files WITH KEY file-path     = is_status-path
                                  file-filename = is_status-filename
                         TRANSPORTING NO FIELDS.
-    rv_is_file_requested = xsdbool( sy-subrc = 0 ).
+    rv_is_file_requested = boolc( sy-subrc = 0 ).
 
   ENDMETHOD.
 

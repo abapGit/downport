@@ -586,7 +586,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_REPO_VIEW IMPLEMENTATION.
 
       ro_toolbar->add(
         iv_txt = 'File Paths'
-        iv_chk = xsdbool( NOT mv_hide_files = abap_true )
+        iv_chk = boolc( NOT mv_hide_files = abap_true )
         iv_act = c_actions-toggle_hide_files ).
 
     ENDIF.
@@ -696,7 +696,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_REPO_VIEW IMPLEMENTATION.
 
 
   METHOD is_repo_lang_logon_lang.
-    rv_repo_lang_is_logon_lang = xsdbool( mo_repo->get_dot_abapgit( )->get_master_language( ) = sy-langu ).
+    rv_repo_lang_is_logon_lang = boolc( mo_repo->get_dot_abapgit( )->get_master_language( ) = sy-langu ).
   ENDMETHOD.
 
 
@@ -1227,7 +1227,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_REPO_VIEW IMPLEMENTATION.
         rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
 
       WHEN c_actions-toggle_folders.    " Toggle folder view
-        mv_show_folders = xsdbool( mv_show_folders <> abap_true ).
+        mv_show_folders = boolc( mv_show_folders <> abap_true ).
         mv_cur_dir      = '/'. " Root
         rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
 
@@ -1236,7 +1236,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_REPO_VIEW IMPLEMENTATION.
         rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
 
       WHEN c_actions-toggle_diff_first.
-        mv_diff_first = xsdbool( mv_diff_first = abap_false ).
+        mv_diff_first = boolc( mv_diff_first = abap_false ).
         rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
 
       WHEN c_actions-display_more.      " Increase MAX lines limit
@@ -1248,7 +1248,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_REPO_VIEW IMPLEMENTATION.
         rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
 
       WHEN zif_abapgit_definitions=>c_action-direction.
-        mv_order_descending = xsdbool( ii_event->query( )->get( 'DIRECTION' ) = 'DESCENDING' ).
+        mv_order_descending = boolc( ii_event->query( )->get( 'DIRECTION' ) = 'DESCENDING' ).
         rs_handled-state    = zcl_abapgit_gui=>c_event_state-re_render.
 
       WHEN zif_abapgit_definitions=>c_action-repo_open_in_master_lang.

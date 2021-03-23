@@ -192,7 +192,7 @@ CLASS zcl_abapgit_oo_base IMPLEMENTATION.
         no_text       = 4
         inconsistent  = 5
         OTHERS        = 6.
-    rv_exists = xsdbool( sy-subrc <> 2 ).
+    rv_exists = boolc( sy-subrc <> 2 ).
   ENDMETHOD.
 
 

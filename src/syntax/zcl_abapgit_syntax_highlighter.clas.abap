@@ -192,7 +192,7 @@ CLASS zcl_abapgit_syntax_highlighter IMPLEMENTATION.
     "/^\s+$/
     lv_whitespace = ` ` && cl_abap_char_utilities=>horizontal_tab && cl_abap_char_utilities=>cr_lf.
 
-    rv_result = xsdbool( iv_string CO lv_whitespace ).
+    rv_result = boolc( iv_string CO lv_whitespace ).
 
   ENDMETHOD.
 

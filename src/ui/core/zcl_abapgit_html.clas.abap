@@ -400,7 +400,7 @@ CLASS ZCL_ABAPGIT_HTML IMPLEMENTATION.
 
 
   METHOD zif_abapgit_html~is_empty.
-    rv_yes = xsdbool( lines( mt_buffer ) = 0 ).
+    rv_yes = boolc( lines( mt_buffer ) = 0 ).
   ENDMETHOD.
 
 

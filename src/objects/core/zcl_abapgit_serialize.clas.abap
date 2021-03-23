@@ -194,7 +194,7 @@ CLASS ZCL_ABAPGIT_SERIALIZE IMPLEMENTATION.
 * if there are less than 10 objects run in single thread
 * this helps a lot when debugging, plus performance gain
 * with low number of objects does not matter much
-    lv_force = xsdbool( lines( lt_tadir ) < 10 ).
+    lv_force = boolc( lines( lt_tadir ) < 10 ).
 
     lt_found = serialize(
       it_tadir            = lt_tadir
