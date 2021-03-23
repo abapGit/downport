@@ -236,7 +236,7 @@ CLASS ZCL_ABAPGIT_LOG IMPLEMENTATION.
 * todo, this method is only used in unit tests
 
     READ TABLE mt_log WITH KEY rc = iv_rc TRANSPORTING NO FIELDS.
-    rv_yes = boolc( sy-subrc = 0 ).
+    rv_yes = xsdbool( sy-subrc = 0 ).
   ENDMETHOD.
 
 

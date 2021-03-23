@@ -126,7 +126,7 @@ CLASS ZCL_ABAPGIT_REPO_CONTENT_LIST IMPLEMENTATION.
       <ls_repo_item>-obj_name = <ls_tadir>-obj_name.
       <ls_repo_item>-path     = <ls_tadir>-path.
       MOVE-CORRESPONDING <ls_repo_item> TO ls_item.
-      <ls_repo_item>-inactive = boolc( zcl_abapgit_objects=>is_active( ls_item ) = abap_false ).
+      <ls_repo_item>-inactive = xsdbool( zcl_abapgit_objects=>is_active( ls_item ) = abap_false ).
       IF <ls_repo_item>-inactive = abap_true.
         <ls_repo_item>-sortkey = c_sortkey-inactive.
       ELSE.
@@ -163,7 +163,7 @@ CLASS ZCL_ABAPGIT_REPO_CONTENT_LIST IMPLEMENTATION.
       IF <ls_status>-filename IS NOT INITIAL.
         ls_file-path       = <ls_status>-path.
         ls_file-filename   = <ls_status>-filename.
-        ls_file-is_changed = boolc( <ls_status>-match = abap_false ). " TODO refactor
+        ls_file-is_changed = xsdbool( <ls_status>-match = abap_false ). " TODO refactor
         ls_file-rstate     = <ls_status>-rstate.
         ls_file-lstate     = <ls_status>-lstate.
         APPEND ls_file TO <ls_repo_item>-files.
@@ -217,7 +217,7 @@ CLASS ZCL_ABAPGIT_REPO_CONTENT_LIST IMPLEMENTATION.
 
   METHOD constructor.
     mo_repo = io_repo.
-    CREATE OBJECT mi_log TYPE zcl_abapgit_log.
+    mi_log = NEW zcl_abapgit_log( ).
   ENDMETHOD.
 
 

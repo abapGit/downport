@@ -32,7 +32,7 @@ CLASS ZCL_ABAPGIT_REPO_OFFLINE IMPLEMENTATION.
 
 
   METHOD has_remote_source.
-    rv_yes = boolc( lines( mt_remote ) > 0 ).
+    rv_yes = xsdbool( lines( mt_remote ) > 0 ).
   ENDMETHOD.
 
 

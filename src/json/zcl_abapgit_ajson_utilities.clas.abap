@@ -86,10 +86,10 @@ CLASS zcl_abapgit_ajson_utilities IMPLEMENTATION.
 
   METHOD diff.
 
-    IF boolc( iv_json_a IS SUPPLIED ) = boolc( io_json_a IS SUPPLIED ).
+    IF xsdbool( iv_json_a IS SUPPLIED ) = xsdbool( io_json_a IS SUPPLIED ).
       zcx_abapgit_ajson_error=>raise( 'Either supply JSON string or instance, but not both' ).
     ENDIF.
-    IF boolc( iv_json_b IS SUPPLIED ) = boolc( io_json_b IS SUPPLIED ).
+    IF xsdbool( iv_json_b IS SUPPLIED ) = xsdbool( io_json_b IS SUPPLIED ).
       zcx_abapgit_ajson_error=>raise( 'Either supply JSON string or instance, but not both' ).
     ENDIF.
 
@@ -247,7 +247,7 @@ CLASS zcl_abapgit_ajson_utilities IMPLEMENTATION.
 
     DATA lo_json TYPE REF TO zif_abapgit_ajson.
 
-    IF boolc( iv_json IS SUPPLIED ) = boolc( io_json IS SUPPLIED ).
+    IF xsdbool( iv_json IS SUPPLIED ) = xsdbool( io_json IS SUPPLIED ).
       zcx_abapgit_ajson_error=>raise( 'Either supply JSON string or instance, but not both' ).
     ENDIF.
 

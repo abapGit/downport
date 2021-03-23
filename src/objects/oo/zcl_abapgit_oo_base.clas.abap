@@ -192,7 +192,7 @@ CLASS zcl_abapgit_oo_base IMPLEMENTATION.
         no_text       = 4
         inconsistent  = 5
         OTHERS        = 6.
-    rv_exists = boolc( sy-subrc <> 2 ).
+    rv_exists = xsdbool( sy-subrc <> 2 ).
   ENDMETHOD.
 
 
@@ -303,7 +303,7 @@ CLASS zcl_abapgit_oo_base IMPLEMENTATION.
 
   METHOD zif_abapgit_oo_object_fnc~serialize_abap.
     DATA lo_oo_serializer TYPE REF TO zcl_abapgit_oo_serializer.
-    CREATE OBJECT lo_oo_serializer.
+    lo_oo_serializer = NEW #( ).
     CASE iv_type.
       WHEN seop_ext_class_locals_def.
         rt_source = lo_oo_serializer->serialize_locals_def( is_class_key ).

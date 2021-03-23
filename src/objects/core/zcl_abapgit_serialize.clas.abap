@@ -186,7 +186,7 @@ CLASS ZCL_ABAPGIT_SERIALIZE IMPLEMENTATION.
       io_dot                = io_dot_abapgit
       ii_log                = ii_log ).
 
-    CREATE OBJECT lo_filter.
+    lo_filter = NEW #( ).
 
     lo_filter->apply( EXPORTING it_filter = it_filter
                       CHANGING  ct_tadir  = lt_tadir ).
@@ -194,7 +194,7 @@ CLASS ZCL_ABAPGIT_SERIALIZE IMPLEMENTATION.
 * if there are less than 10 objects run in single thread
 * this helps a lot when debugging, plus performance gain
 * with low number of objects does not matter much
-    lv_force = boolc( lines( lt_tadir ) < 10 ).
+    lv_force = xsdbool( lines( lt_tadir ) < 10 ).
 
     lt_found = serialize(
       it_tadir            = lt_tadir
