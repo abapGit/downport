@@ -26,7 +26,6 @@ CLASS zcl_abapgit_gui_page_ch_remote DEFINITION
         go_back TYPE string VALUE 'go_back',
         save    TYPE string VALUE 'save',
       END OF c_event .
-    DATA mv_key TYPE zif_abapgit_persistence=>ty_repo-key .
     DATA mo_repo TYPE REF TO zcl_abapgit_repo_online .
 ENDCLASS.
 
@@ -49,8 +48,8 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_CH_REMOTE IMPLEMENTATION.
     DATA lo_form TYPE REF TO zcl_abapgit_html_form.
     DATA lo_map TYPE REF TO zcl_abapgit_string_map.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
-    CREATE OBJECT lo_map.
+    ri_html = NEW zcl_abapgit_html( ).
+    lo_map = NEW #( ).
 
     lo_form = zcl_abapgit_html_form=>create( ).
 
@@ -86,7 +85,6 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_CH_REMOTE IMPLEMENTATION.
 
       WHEN c_event-save.
         lv_url = condense( ii_event->form_data( )->get( c_remote_field ) ).
-        ASSERT NOT lv_url IS INITIAL.
 
         zcl_abapgit_repo_srv=>get_instance( )->validate_url( lv_url ).
 
