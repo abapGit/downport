@@ -48,8 +48,8 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_CH_REMOTE IMPLEMENTATION.
     DATA lo_form TYPE REF TO zcl_abapgit_html_form.
     DATA lo_map TYPE REF TO zcl_abapgit_string_map.
 
-    ri_html = NEW zcl_abapgit_html( ).
-    lo_map = NEW #( ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    CREATE OBJECT lo_map.
 
     lo_form = zcl_abapgit_html_form=>create( ).
 
