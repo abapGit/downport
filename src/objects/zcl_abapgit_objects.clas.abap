@@ -5,7 +5,7 @@ CLASS zcl_abapgit_objects DEFINITION
   PUBLIC SECTION.
 
     TYPES:
-      ty_types_tt TYPE SORTED TABLE OF tadir-object WITH UNIQUE KEY table_line.
+      ty_types_tt TYPE SORTED TABLE OF tadir-object WITH UNIQUE KEY table_line .
     TYPES:
       BEGIN OF ty_serialization,
         files TYPE zif_abapgit_definitions=>ty_files_tt,
@@ -96,65 +96,16 @@ CLASS zcl_abapgit_objects DEFINITION
     CLASS-DATA gt_obj_serializer_map TYPE ty_obj_serializer_map .
     CLASS-DATA gt_supported_obj_types TYPE ty_types_tt .
 
-    CLASS-METHODS files_to_deserialize
-      IMPORTING
-        !io_repo          TYPE REF TO zcl_abapgit_repo
-        !ii_log           TYPE REF TO zif_abapgit_log OPTIONAL
-      RETURNING
-        VALUE(rt_results) TYPE zif_abapgit_definitions=>ty_results_tt
-      RAISING
-        zcx_abapgit_exception .
     CLASS-METHODS check_duplicates
       IMPORTING
         !it_files TYPE zif_abapgit_definitions=>ty_files_tt
       RAISING
         zcx_abapgit_exception .
-    CLASS-METHODS prioritize_deser
-      IMPORTING
-        !it_results       TYPE zif_abapgit_definitions=>ty_results_tt
-      RETURNING
-        VALUE(rt_results) TYPE zif_abapgit_definitions=>ty_results_tt .
     CLASS-METHODS class_name
       IMPORTING
         !is_item             TYPE zif_abapgit_definitions=>ty_item
       RETURNING
         VALUE(rv_class_name) TYPE string .
-    CLASS-METHODS warning_overwrite_adjust
-      IMPORTING
-        !it_overwrite TYPE zif_abapgit_definitions=>ty_overwrite_tt
-      CHANGING
-        !ct_results   TYPE zif_abapgit_definitions=>ty_results_tt
-      RAISING
-        zcx_abapgit_exception .
-    CLASS-METHODS checks_adjust
-      IMPORTING
-        !io_repo    TYPE REF TO zcl_abapgit_repo
-        !is_checks  TYPE zif_abapgit_definitions=>ty_deserialize_checks
-      CHANGING
-        !ct_results TYPE zif_abapgit_definitions=>ty_results_tt
-      RAISING
-        zcx_abapgit_exception .
-    CLASS-METHODS warning_overwrite_find
-      IMPORTING
-        !it_results         TYPE zif_abapgit_definitions=>ty_results_tt
-      RETURNING
-        VALUE(rt_overwrite) TYPE zif_abapgit_definitions=>ty_overwrite_tt .
-    CLASS-METHODS warning_package_adjust
-      IMPORTING
-        !io_repo      TYPE REF TO zcl_abapgit_repo
-        !it_overwrite TYPE zif_abapgit_definitions=>ty_overwrite_tt
-      CHANGING
-        !ct_results   TYPE zif_abapgit_definitions=>ty_results_tt
-      RAISING
-        zcx_abapgit_exception .
-    CLASS-METHODS warning_package_find
-      IMPORTING
-        !it_results         TYPE zif_abapgit_definitions=>ty_results_tt
-        !io_repo            TYPE REF TO zcl_abapgit_repo
-      RETURNING
-        VALUE(rt_overwrite) TYPE zif_abapgit_definitions=>ty_overwrite_tt
-      RAISING
-        zcx_abapgit_exception .
     CLASS-METHODS update_package_tree
       IMPORTING
         !iv_package TYPE devclass .
@@ -206,17 +157,6 @@ CLASS zcl_abapgit_objects DEFINITION
         !it_results     TYPE zif_abapgit_definitions=>ty_results_tt
       RETURNING
         VALUE(rt_items) TYPE zif_abapgit_definitions=>ty_items_tt .
-    CLASS-METHODS filter_files_to_deserialize
-      IMPORTING
-        !it_results       TYPE zif_abapgit_definitions=>ty_results_tt
-        !ii_log           TYPE REF TO zif_abapgit_log OPTIONAL
-      RETURNING
-        VALUE(rt_results) TYPE zif_abapgit_definitions=>ty_results_tt .
-    CLASS-METHODS adjust_namespaces
-      IMPORTING
-        !it_results       TYPE zif_abapgit_definitions=>ty_results_tt
-      RETURNING
-        VALUE(rt_results) TYPE zif_abapgit_definitions=>ty_results_tt .
     CLASS-METHODS get_deserialize_steps
       RETURNING
         VALUE(rt_steps) TYPE zif_abapgit_objects=>ty_step_data_tt .
@@ -230,20 +170,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_OBJECTS IMPLEMENTATION.
-
-
-  METHOD adjust_namespaces.
-
-    FIELD-SYMBOLS: <ls_result> LIKE LINE OF rt_results.
-
-    rt_results = it_results.
-
-    LOOP AT rt_results ASSIGNING <ls_result>.
-      REPLACE ALL OCCURRENCES OF '#' IN <ls_result>-obj_name WITH '/'.
-    ENDLOOP.
-
-  ENDMETHOD.
+CLASS zcl_abapgit_objects IMPLEMENTATION.
 
 
   METHOD changed_by.
@@ -260,22 +187,6 @@ CLASS ZCL_ABAPGIT_OBJECTS IMPLEMENTATION.
 * eg. ".abapgit.xml" file
       rv_user = zcl_abapgit_objects_super=>c_user_unknown.
     ENDIF.
-
-  ENDMETHOD.
-
-
-  METHOD checks_adjust.
-
-    warning_overwrite_adjust(
-      EXPORTING it_overwrite = is_checks-overwrite
-      CHANGING ct_results = ct_results ).
-
-    warning_package_adjust(
-      EXPORTING
-        io_repo = io_repo
-        it_overwrite = is_checks-warning_package
-      CHANGING
-        ct_results = ct_results ).
 
   ENDMETHOD.
 
@@ -403,8 +314,8 @@ CLASS ZCL_ABAPGIT_OBJECTS IMPLEMENTATION.
         RETURN.
       ENDIF.
 
-      CREATE OBJECT li_remote_version TYPE zcl_abapgit_xml_input EXPORTING iv_xml = zcl_abapgit_convert=>xstring_to_string_utf8( ls_remote_file-data )
-                                                                           iv_filename = ls_remote_file-filename.
+      li_remote_version = NEW zcl_abapgit_xml_input( iv_xml = zcl_abapgit_convert=>xstring_to_string_utf8( ls_remote_file-data )
+                                                     iv_filename = ls_remote_file-filename ).
 
       ls_result = li_comparator->compare( ii_remote = li_remote_version
                                           ii_log = ii_log ).
@@ -484,7 +395,7 @@ CLASS ZCL_ABAPGIT_OBJECTS IMPLEMENTATION.
         lv_message = |Object type { is_item-obj_type } not supported, serialize|.
         IF iv_native_only = abap_false.
           TRY. " 2nd step, try looking for plugins
-              CREATE OBJECT ri_obj TYPE zcl_abapgit_objects_bridge EXPORTING is_item = is_item.
+              ri_obj = NEW zcl_abapgit_objects_bridge( is_item = is_item ).
             CATCH cx_sy_create_object_error.
               zcx_abapgit_exception=>raise( lv_message ).
           ENDTRY.
@@ -648,10 +559,11 @@ CLASS ZCL_ABAPGIT_OBJECTS IMPLEMENTATION.
 
     lt_remote = io_repo->get_files_remote( ).
 
-    lt_results = files_to_deserialize( io_repo = io_repo
-                                       ii_log = ii_log ).
+    lt_results = zcl_abapgit_file_deserialize=>get_results(
+      io_repo = io_repo
+      ii_log = ii_log ).
 
-    checks_adjust(
+    zcl_abapgit_objects_check=>checks_adjust(
       EXPORTING
         io_repo    = io_repo
         is_checks  = is_checks
@@ -692,8 +604,8 @@ CLASS ZCL_ABAPGIT_OBJECTS IMPLEMENTATION.
             lv_path = <ls_result>-path.
           ENDIF.
 
-          CREATE OBJECT lo_files EXPORTING is_item = ls_item
-                                           iv_path = lv_path.
+          lo_files = NEW #( is_item = ls_item
+                            iv_path = lv_path ).
           lo_files->set_files( lt_remote ).
 
           "analyze XML in order to instantiate the proper serializer
@@ -763,25 +675,7 @@ CLASS ZCL_ABAPGIT_OBJECTS IMPLEMENTATION.
 
   METHOD deserialize_checks.
 
-    DATA: lt_results TYPE zif_abapgit_definitions=>ty_results_tt,
-          li_package TYPE REF TO zif_abapgit_sap_package.
-
-
-    lt_results = files_to_deserialize( io_repo ).
-
-    rs_checks-overwrite = warning_overwrite_find( lt_results ).
-
-    rs_checks-warning_package = warning_package_find(
-      io_repo    = io_repo
-      it_results = lt_results ).
-
-    IF lines( lt_results ) > 0.
-      li_package = zcl_abapgit_factory=>get_sap_package( io_repo->get_package( ) ).
-      rs_checks-transport-required = li_package->are_changes_recorded_in_tr_req( ).
-      IF NOT rs_checks-transport-required IS INITIAL.
-        rs_checks-transport-type = li_package->get_transport_type( ).
-      ENDIF.
-    ENDIF.
+    rs_checks = zcl_abapgit_objects_check=>deserialize_checks( io_repo ).
 
   ENDMETHOD.
 
@@ -856,106 +750,6 @@ CLASS ZCL_ABAPGIT_OBJECTS IMPLEMENTATION.
 * ignore all errors and assume the object exists
         rv_bool = abap_true.
     ENDTRY.
-
-  ENDMETHOD.
-
-
-  METHOD files_to_deserialize.
-
-    rt_results = adjust_namespaces(
-                   prioritize_deser(
-                     filter_files_to_deserialize(
-                       it_results = zcl_abapgit_file_status=>status( io_repo )
-                       ii_log     = ii_log ) ) ).
-
-  ENDMETHOD.
-
-
-  METHOD filter_files_to_deserialize.
-
-    DATA lt_objects LIKE rt_results.
-    DATA lr_object  TYPE REF TO zif_abapgit_definitions=>ty_result.
-    DATA ls_item    TYPE zif_abapgit_definitions=>ty_item.
-    DATA lv_tabix   TYPE sy-tabix.
-
-    rt_results = it_results.
-
-    "preparation for object logging, sort all file entries by objects
-    IF ii_log IS BOUND.
-      lt_objects = rt_results.
-      SORT lt_objects
-        BY obj_type
-           obj_name.
-      DELETE ADJACENT DUPLICATES FROM lt_objects COMPARING obj_type obj_name.
-      DELETE lt_objects WHERE obj_type IS INITIAL AND obj_name IS INITIAL.
-    ENDIF.
-
-    "ignore objects w/o changes
-    DELETE rt_results WHERE match = abap_true.     " Full match
-    "log objects w/o changes
-    IF sy-subrc = 0 AND ii_log IS BOUND.
-      SORT rt_results BY obj_type obj_name.
-      LOOP AT lt_objects REFERENCE INTO lr_object.
-        lv_tabix = sy-tabix.
-        READ TABLE rt_results WITH KEY obj_type = lr_object->obj_type
-                                       obj_name = lr_object->obj_name
-                              BINARY SEARCH TRANSPORTING NO FIELDS.
-        IF sy-subrc <> 0.
-          "all parts of the objects have not changed
-          ls_item-devclass = lr_object->package.
-          ls_item-obj_type = lr_object->obj_type.
-          ls_item-obj_name = lr_object->obj_name.
-          ii_log->add_success(
-            iv_msg  = |Object { ls_item-obj_name } (type { ls_item-obj_type }) not changed; no import required|
-            is_item = ls_item ).
-          "ignore object for further messages
-          DELETE lt_objects INDEX lv_tabix.
-        ENDIF.
-      ENDLOOP.
-    ENDIF.
-
-    "ignore objects w/o object type
-    DELETE rt_results WHERE obj_type IS INITIAL.
-    "log objects w/o object type
-    IF sy-subrc = 0 AND ii_log IS BOUND.
-      LOOP AT lt_objects REFERENCE INTO lr_object WHERE obj_type IS INITIAL.
-        CHECK lr_object->obj_name IS NOT INITIAL.
-        ls_item-devclass = lr_object->package.
-        ls_item-obj_type = lr_object->obj_type.
-        ls_item-obj_name = lr_object->obj_name.
-        ii_log->add_warning(
-          iv_msg  = |Object type for { ls_item-obj_name } not defined - will be ignored by abapGit|
-          is_item = ls_item ).
-      ENDLOOP.
-      DELETE lt_objects WHERE obj_type IS INITIAL.
-    ENDIF.
-
-    "ignore objects that exists only local
-    DELETE rt_results WHERE lstate = zif_abapgit_definitions=>c_state-added AND rstate IS INITIAL.
-    "ignore objects that where deleted remotely
-    DELETE rt_results WHERE rstate = zif_abapgit_definitions=>c_state-deleted.
-    "log objects that exists only local or where deleted remotely
-    IF sy-subrc = 0 AND ii_log IS BOUND.
-      SORT rt_results BY obj_type obj_name.
-      LOOP AT lt_objects REFERENCE INTO lr_object.
-        lv_tabix = sy-tabix.
-        READ TABLE rt_results WITH KEY obj_type = lr_object->obj_type
-                                       obj_name = lr_object->obj_name
-                              BINARY SEARCH TRANSPORTING NO FIELDS.
-        IF sy-subrc <> 0.
-          "all parts exists only local
-          "no log message; ignore object for further messages
-          DELETE lt_objects INDEX lv_tabix.
-        ENDIF.
-      ENDLOOP.
-    ENDIF.
-
-    SORT rt_results
-      BY obj_type ASCENDING
-         obj_name ASCENDING
-         rstate   DESCENDING  " ensures that non-empty rstate is kept
-         lstate   DESCENDING. " ensures that non-empty lstate is kept
-    DELETE ADJACENT DUPLICATES FROM rt_results COMPARING obj_type obj_name.
 
   ENDMETHOD.
 
@@ -1109,91 +903,6 @@ CLASS ZCL_ABAPGIT_OBJECTS IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD prioritize_deser.
-
-* todo, refactor this method
-
-    FIELD-SYMBOLS: <ls_result> LIKE LINE OF it_results.
-
-* WEBI has to be handled before SPRX.
-    LOOP AT it_results ASSIGNING <ls_result> WHERE obj_type = 'WEBI'.
-      APPEND <ls_result> TO rt_results.
-    ENDLOOP.
-
-* SPRX has to be handled before depended objects CLAS/INFT/TABL etc.
-    LOOP AT it_results ASSIGNING <ls_result> WHERE obj_type = 'SPRX'.
-      APPEND <ls_result> TO rt_results.
-    ENDLOOP.
-
-* XSLT has to be handled before CLAS/PROG
-    LOOP AT it_results ASSIGNING <ls_result> WHERE obj_type = 'XSLT'.
-      APPEND <ls_result> TO rt_results.
-    ENDLOOP.
-
-* PROG before internet services, as the services might use the screens
-    LOOP AT it_results ASSIGNING <ls_result> WHERE obj_type = 'PROG'.
-      APPEND <ls_result> TO rt_results.
-    ENDLOOP.
-
-* ISAP has to be handled before ISRP
-    LOOP AT it_results ASSIGNING <ls_result> WHERE obj_type = 'IASP'.
-      APPEND <ls_result> TO rt_results.
-    ENDLOOP.
-
-* ENHS has to be handled before ENHO
-    LOOP AT it_results ASSIGNING <ls_result> WHERE obj_type = 'ENHS'.
-      APPEND <ls_result> TO rt_results.
-    ENDLOOP.
-
-* DDLS has to be handled before DCLS
-    LOOP AT it_results ASSIGNING <ls_result> WHERE obj_type = 'DDLS'.
-      APPEND <ls_result> TO rt_results.
-    ENDLOOP.
-
-* IOBJ has to be handled before ODSO
-    LOOP AT it_results ASSIGNING <ls_result> WHERE obj_type = 'IOBJ'.
-      APPEND <ls_result> TO rt_results.
-    ENDLOOP.
-
-* TOBJ has to be handled before SCP1
-    LOOP AT it_results ASSIGNING <ls_result> WHERE obj_type = 'TOBJ'.
-      APPEND <ls_result> TO rt_results.
-    ENDLOOP.
-
-* OTGR has to be handled before CHAR
-    LOOP AT it_results ASSIGNING <ls_result> WHERE obj_type = 'OTGR'.
-      APPEND <ls_result> TO rt_results.
-    ENDLOOP.
-
-    LOOP AT it_results ASSIGNING <ls_result>
-        WHERE obj_type <> 'IASP'
-        AND obj_type <> 'PROG'
-        AND obj_type <> 'XSLT'
-        AND obj_type <> 'PINF'
-        AND obj_type <> 'DEVC'
-        AND obj_type <> 'ENHS'
-        AND obj_type <> 'DDLS'
-        AND obj_type <> 'SPRX'
-        AND obj_type <> 'WEBI'
-        AND obj_type <> 'IOBJ'
-        AND obj_type <> 'TOBJ'
-        AND obj_type <> 'OTGR'.
-      APPEND <ls_result> TO rt_results.
-    ENDLOOP.
-
-* PINF after everything as it can expose objects
-    LOOP AT it_results ASSIGNING <ls_result> WHERE obj_type = 'PINF'.
-      APPEND <ls_result> TO rt_results.
-    ENDLOOP.
-
-* DEVC after PINF, as it can refer for package interface usage
-    LOOP AT it_results ASSIGNING <ls_result> WHERE obj_type = 'DEVC'.
-      APPEND <ls_result> TO rt_results.
-    ENDLOOP.
-
-  ENDMETHOD.
-
-
   METHOD serialize.
 
     DATA: li_obj         TYPE REF TO zif_abapgit_object,
@@ -1211,12 +920,12 @@ CLASS ZCL_ABAPGIT_OBJECTS IMPLEMENTATION.
         rs_files_and_item-item-obj_name }| ).
     ENDIF.
 
-    CREATE OBJECT lo_files EXPORTING is_item = rs_files_and_item-item.
+    lo_files = NEW #( is_item = rs_files_and_item-item ).
 
     li_obj = create_object( is_item     = rs_files_and_item-item
                             iv_language = iv_language ).
     li_obj->mo_files = lo_files.
-    CREATE OBJECT li_xml TYPE zcl_abapgit_xml_output.
+    li_xml = NEW zcl_abapgit_xml_output( ).
 
     ls_i18n_params-main_language         = iv_language.
     ls_i18n_params-main_language_only    = iv_serialize_master_lang_only.
@@ -1243,8 +952,8 @@ CLASS ZCL_ABAPGIT_OBJECTS IMPLEMENTATION.
 
   METHOD supported_list.
 
-    DATA: lt_objects   TYPE STANDARD TABLE OF ko100,
-          ls_item      TYPE zif_abapgit_definitions=>ty_item.
+    DATA: lt_objects TYPE STANDARD TABLE OF ko100,
+          ls_item    TYPE zif_abapgit_definitions=>ty_item.
 
     FIELD-SYMBOLS <ls_object> LIKE LINE OF lt_objects.
 
@@ -1290,142 +999,6 @@ CLASS ZCL_ABAPGIT_OBJECTS IMPLEMENTATION.
           without_crossreference = abap_true
           with_tcode_index       = abap_true.
     ENDLOOP.
-
-  ENDMETHOD.
-
-
-  METHOD warning_overwrite_adjust.
-
-    DATA: lt_overwrite LIKE it_overwrite,
-          ls_overwrite LIKE LINE OF lt_overwrite.
-
-    FIELD-SYMBOLS: <ls_overwrite> LIKE LINE OF lt_overwrite.
-
-
-* make sure to get the current status, as something might have changed in the meanwhile
-    lt_overwrite = warning_overwrite_find( ct_results ).
-
-    LOOP AT lt_overwrite ASSIGNING <ls_overwrite>.
-
-      READ TABLE it_overwrite INTO ls_overwrite
-                              WITH TABLE KEY object_type_and_name
-                              COMPONENTS obj_type = <ls_overwrite>-obj_type
-                                         obj_name = <ls_overwrite>-obj_name.
-      IF sy-subrc <> 0 OR ls_overwrite-decision IS INITIAL.
-        zcx_abapgit_exception=>raise( |Overwrite { <ls_overwrite>-obj_type } {
-          <ls_overwrite>-obj_name } undecided| ).
-      ENDIF.
-
-      IF ls_overwrite-decision = 'N'.
-        DELETE ct_results WHERE
-          obj_type = <ls_overwrite>-obj_type AND
-          obj_name = <ls_overwrite>-obj_name.
-        ASSERT sy-subrc = 0.
-      ENDIF.
-
-    ENDLOOP.
-
-  ENDMETHOD.
-
-
-  METHOD warning_overwrite_find.
-
-    DATA: ls_overwrite LIKE LINE OF rt_overwrite.
-
-    FIELD-SYMBOLS: <ls_result> LIKE LINE OF it_results.
-
-    LOOP AT it_results ASSIGNING <ls_result> WHERE NOT obj_type IS INITIAL.
-      IF <ls_result>-lstate IS NOT INITIAL
-        AND NOT ( <ls_result>-lstate = zif_abapgit_definitions=>c_state-added
-        AND <ls_result>-rstate IS INITIAL )
-        OR ( <ls_result>-lstate IS INITIAL
-        AND <ls_result>-rstate = zif_abapgit_definitions=>c_state-deleted ).
-        " current object has been modified or deleted locally, add to table
-        CLEAR ls_overwrite.
-        MOVE-CORRESPONDING <ls_result> TO ls_overwrite.
-        APPEND ls_overwrite TO rt_overwrite.
-      ENDIF.
-    ENDLOOP.
-
-    SORT rt_overwrite.
-    DELETE ADJACENT DUPLICATES FROM rt_overwrite.
-
-  ENDMETHOD.
-
-
-  METHOD warning_package_adjust.
-
-    DATA: lt_overwrite LIKE it_overwrite,
-          ls_overwrite LIKE LINE OF lt_overwrite.
-
-    FIELD-SYMBOLS: <ls_overwrite> LIKE LINE OF lt_overwrite.
-
-
-* make sure to get the current status, as something might have changed in the meanwhile
-    lt_overwrite = warning_package_find(
-      it_results   = ct_results
-      io_repo      = io_repo ).
-
-    LOOP AT lt_overwrite ASSIGNING <ls_overwrite>.
-
-      READ TABLE it_overwrite INTO ls_overwrite
-                              WITH TABLE KEY object_type_and_name
-                              COMPONENTS obj_type = <ls_overwrite>-obj_type
-                                         obj_name = <ls_overwrite>-obj_name.
-      IF sy-subrc <> 0 OR ls_overwrite-decision IS INITIAL.
-        zcx_abapgit_exception=>raise( |Overwrite of package { <ls_overwrite>-obj_type } {
-          <ls_overwrite>-obj_name } undecided| ).
-      ENDIF.
-
-      IF ls_overwrite-decision = 'N'.
-        DELETE ct_results WHERE
-          obj_type = <ls_overwrite>-obj_type AND
-          obj_name = <ls_overwrite>-obj_name.
-        ASSERT sy-subrc = 0.
-      ENDIF.
-
-    ENDLOOP.
-
-  ENDMETHOD.
-
-
-  METHOD warning_package_find.
-
-    DATA: lv_package          TYPE devclass,
-          lt_overwrite_unique TYPE HASHED TABLE OF zif_abapgit_definitions=>ty_overwrite
-                                  WITH UNIQUE KEY obj_type obj_name devclass,
-          ls_overwrite        LIKE LINE OF rt_overwrite,
-          ls_tadir            TYPE zif_abapgit_definitions=>ty_tadir.
-
-    DATA: lo_folder_logic TYPE REF TO zcl_abapgit_folder_logic.
-
-    FIELD-SYMBOLS: <ls_result> LIKE LINE OF it_results.
-
-    lo_folder_logic = zcl_abapgit_folder_logic=>get_instance( ).
-    LOOP AT it_results ASSIGNING <ls_result>.
-
-      lv_package = lo_folder_logic->path_to_package(
-        iv_top  = io_repo->get_package( )
-        io_dot  = io_repo->get_dot_abapgit( )
-        iv_path = <ls_result>-path
-        iv_create_if_not_exists = abap_false ).
-
-      ls_tadir = zcl_abapgit_factory=>get_tadir( )->read_single(
-        iv_object   = <ls_result>-obj_type
-        iv_obj_name = <ls_result>-obj_name ).
-
-      IF NOT ls_tadir IS INITIAL AND ls_tadir-devclass <> lv_package.
-* overwriting object from different package than expected
-        CLEAR ls_overwrite.
-        ls_overwrite-obj_type = <ls_result>-obj_type.
-        ls_overwrite-obj_name = <ls_result>-obj_name.
-        ls_overwrite-devclass = ls_tadir-devclass.
-        INSERT ls_overwrite INTO TABLE lt_overwrite_unique.
-      ENDIF.
-
-    ENDLOOP.
-
-    rt_overwrite = lt_overwrite_unique.
 
   ENDMETHOD.
 ENDCLASS.
