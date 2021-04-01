@@ -67,8 +67,8 @@ CLASS zcl_abapgit_gui_page_addonline IMPLEMENTATION.
 
   METHOD constructor.
     super->constructor( ).
-    CREATE OBJECT mo_validation_log.
-    CREATE OBJECT mo_form_data.
+    mo_validation_log = NEW #( ).
+    mo_form_data = NEW #( ).
     mo_form = get_form_schema( ).
     mo_form_util = zcl_abapgit_html_form_utils=>create( mo_form ).
   ENDMETHOD.
@@ -78,7 +78,7 @@ CLASS zcl_abapgit_gui_page_addonline IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_addonline.
 
-    CREATE OBJECT lo_component.
+    lo_component = NEW #( ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'New Online Repository'
@@ -97,7 +97,7 @@ CLASS zcl_abapgit_gui_page_addonline IMPLEMENTATION.
       iv_name        = c_id-url
       iv_required    = abap_true
       iv_label       = 'Git Repository URL'
-      iv_hint        = 'HTTPS address of the repository to clone'
+      iv_hint        = 'HTTPS address of the repository'
       iv_placeholder = 'https://github.com/...git'
     )->text(
       iv_name        = c_id-package
@@ -111,7 +111,7 @@ CLASS zcl_abapgit_gui_page_addonline IMPLEMENTATION.
       iv_name        = c_id-branch_name
       iv_side_action = c_event-choose_branch
       iv_label       = 'Branch'
-      iv_hint        = 'Switch to a specific branch on clone (default: autodetect)'
+      iv_hint        = 'Switch to a specific branch (default: autodetect)'
       iv_placeholder = 'Autodetect default branch'
     )->radio(
       iv_name        = c_id-folder_logic
@@ -137,7 +137,7 @@ CLASS zcl_abapgit_gui_page_addonline IMPLEMENTATION.
       iv_label       = 'Serialize Main Language Only'
       iv_hint        = 'Ignore translations, serialize just main language'
     )->command(
-      iv_label       = 'Clone Online Repo'
+      iv_label       = 'Create Online Repo'
       iv_cmd_type    = zif_abapgit_html_form=>c_cmd_type-input_main
       iv_action      = c_event-add_online_repo
     )->command(
@@ -259,7 +259,7 @@ CLASS zcl_abapgit_gui_page_addonline IMPLEMENTATION.
         IF mo_validation_log->is_empty( ) = abap_true.
           mo_form_data->to_abap( CHANGING cs_container = ls_repo_params ).
           lo_new_online_repo = zcl_abapgit_services_repo=>new_online( ls_repo_params ).
-          CREATE OBJECT rs_handled-page TYPE zcl_abapgit_gui_page_repo_view EXPORTING iv_key = lo_new_online_repo->get_key( ).
+          rs_handled-page = NEW zcl_abapgit_gui_page_repo_view( iv_key = lo_new_online_repo->get_key( ) ).
           rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page_replacing.
         ELSE.
           rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render. " Display errors
@@ -274,7 +274,7 @@ CLASS zcl_abapgit_gui_page_addonline IMPLEMENTATION.
 
     gui_services( )->register_event_handler( me ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( mo_form->render(
       io_values         = mo_form_data
