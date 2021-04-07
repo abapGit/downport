@@ -27,26 +27,26 @@ CLASS zcl_abapgit_object_enho IMPLEMENTATION.
 
     CASE iv_tool.
       WHEN cl_enh_tool_badi_impl=>tooltype.
-        CREATE OBJECT ri_enho TYPE zcl_abapgit_object_enho_badi EXPORTING is_item = ms_item
-                                                                          io_files = mo_files.
+        ri_enho = NEW zcl_abapgit_object_enho_badi( is_item = ms_item
+                                                    io_files = mo_files ).
       WHEN cl_enh_tool_hook_impl=>tooltype.
-        CREATE OBJECT ri_enho TYPE zcl_abapgit_object_enho_hook EXPORTING is_item = ms_item
-                                                                          io_files = mo_files.
+        ri_enho = NEW zcl_abapgit_object_enho_hook( is_item = ms_item
+                                                    io_files = mo_files ).
       WHEN cl_enh_tool_class=>tooltype.
-        CREATE OBJECT ri_enho TYPE zcl_abapgit_object_enho_class EXPORTING is_item = ms_item
-                                                                           io_files = mo_files.
+        ri_enho = NEW zcl_abapgit_object_enho_class( is_item = ms_item
+                                                     io_files = mo_files ).
       WHEN cl_enh_tool_intf=>tooltype.
-        CREATE OBJECT ri_enho TYPE zcl_abapgit_object_enho_intf EXPORTING is_item = ms_item
-                                                                          io_files = mo_files.
+        ri_enho = NEW zcl_abapgit_object_enho_intf( is_item = ms_item
+                                                    io_files = mo_files ).
       WHEN cl_wdr_cfg_enhancement=>tooltype.
-        CREATE OBJECT ri_enho TYPE zcl_abapgit_object_enho_wdyc EXPORTING is_item = ms_item
-                                                                          io_files = mo_files.
+        ri_enho = NEW zcl_abapgit_object_enho_wdyc( is_item = ms_item
+                                                    io_files = mo_files ).
       WHEN 'FUGRENH'.
-        CREATE OBJECT ri_enho TYPE zcl_abapgit_object_enho_fugr EXPORTING is_item = ms_item
-                                                                          io_files = mo_files.
+        ri_enho = NEW zcl_abapgit_object_enho_fugr( is_item = ms_item
+                                                    io_files = mo_files ).
       WHEN 'WDYENH'.
-        CREATE OBJECT ri_enho TYPE zcl_abapgit_object_enho_wdyn EXPORTING is_item = ms_item
-                                                                          io_files = mo_files.
+        ri_enho = NEW zcl_abapgit_object_enho_wdyn( is_item = ms_item
+                                                    io_files = mo_files ).
       WHEN OTHERS.
         zcx_abapgit_exception=>raise( |Unsupported ENHO type { iv_tool }| ).
     ENDCASE.
@@ -96,7 +96,8 @@ CLASS zcl_abapgit_object_enho IMPLEMENTATION.
   METHOD zif_abapgit_object~delete.
 
     DATA: lv_enh_id     TYPE enhname,
-          li_enh_object TYPE REF TO if_enh_object.
+          li_enh_object TYPE REF TO if_enh_object,
+          lx_enh_root   TYPE REF TO cx_enh_root.
 
     IF zif_abapgit_object~exists( ) = abap_false.
       RETURN.
@@ -110,8 +111,8 @@ CLASS zcl_abapgit_object_enho IMPLEMENTATION.
         li_enh_object->delete( nevertheless_delete = abap_true
                                run_dark            = abap_true ).
         li_enh_object->unlock( ).
-      CATCH cx_enh_root.
-        zcx_abapgit_exception=>raise( 'Error deleting ENHO' ).
+      CATCH cx_enh_root INTO lx_enh_root.
+        zcx_abapgit_exception=>raise_with_text( lx_enh_root ).
     ENDTRY.
 
   ENDMETHOD.
@@ -211,7 +212,8 @@ CLASS zcl_abapgit_object_enho IMPLEMENTATION.
 
     DATA: lv_enh_id   TYPE enhname,
           li_enho     TYPE REF TO zif_abapgit_object_enho,
-          li_enh_tool TYPE REF TO if_enh_tool.
+          li_enh_tool TYPE REF TO if_enh_tool,
+          lx_enh_root  TYPE REF TO cx_enh_root.
 
     IF zif_abapgit_object~exists( ) = abap_false.
       RETURN.
@@ -222,8 +224,8 @@ CLASS zcl_abapgit_object_enho IMPLEMENTATION.
         li_enh_tool = cl_enh_factory=>get_enhancement(
           enhancement_id   = lv_enh_id
           bypassing_buffer = abap_true ).
-      CATCH cx_enh_root.
-        zcx_abapgit_exception=>raise( 'Error from CL_ENH_FACTORY' ).
+      CATCH cx_enh_root INTO lx_enh_root.
+        zcx_abapgit_exception=>raise_with_text( lx_enh_root ).
     ENDTRY.
 
     li_enho = factory( li_enh_tool->get_tool( ) ).
