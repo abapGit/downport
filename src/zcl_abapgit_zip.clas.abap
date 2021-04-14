@@ -30,7 +30,7 @@ CLASS zcl_abapgit_zip DEFINITION
         zcx_abapgit_exception.
     CLASS-METHODS export_package
       IMPORTING
-        VALUE(iv_package) TYPE devclass
+        iv_package        TYPE devclass
         iv_folder_logic   TYPE string
         iv_main_lang_only TYPE abap_bool
       RAISING
@@ -88,7 +88,7 @@ CLASS zcl_abapgit_zip IMPLEMENTATION.
     FIELD-SYMBOLS: <ls_file> LIKE LINE OF it_files.
 
 
-    CREATE OBJECT lo_zip.
+    lo_zip = NEW #( ).
 
     LOOP AT it_files ASSIGNING <ls_file>.
       CONCATENATE <ls_file>-file-path+1 <ls_file>-file-filename INTO lv_filename.
@@ -108,7 +108,7 @@ CLASS zcl_abapgit_zip IMPLEMENTATION.
     DATA lo_serialize TYPE REF TO zcl_abapgit_serialize.
     DATA lt_languages TYPE zif_abapgit_definitions=>ty_languages.
 
-    CREATE OBJECT li_log TYPE zcl_abapgit_log.
+    li_log = NEW zcl_abapgit_log( ).
     li_log->set_title( 'Zip Export Log' ).
 
     IF zcl_abapgit_factory=>get_sap_package( iv_package )->exists( ) = abap_false.
@@ -119,8 +119,8 @@ CLASS zcl_abapgit_zip IMPLEMENTATION.
       iv_main_language  = io_dot_abapgit->get_main_language( )
       it_i18n_languages = io_dot_abapgit->get_i18n_languages( ) ).
 
-    CREATE OBJECT lo_serialize EXPORTING iv_serialize_master_lang_only = is_local_settings-serialize_master_lang_only
-                                         it_translation_langs = lt_languages.
+    lo_serialize = NEW #( iv_serialize_master_lang_only = is_local_settings-serialize_master_lang_only
+                          it_translation_langs = lt_languages ).
 
     lt_zip = lo_serialize->files_local(
       iv_package        = iv_package
@@ -190,12 +190,13 @@ CLASS zcl_abapgit_zip IMPLEMENTATION.
 
   METHOD export_package.
 
-    DATA: ls_local_settings TYPE zif_abapgit_persistence=>ty_repo-local_settings,
-          lo_dot_abapgit    TYPE REF TO zcl_abapgit_dot_abapgit,
-          lo_frontend_serv  TYPE REF TO zif_abapgit_frontend_services,
-          lv_default        TYPE string,
-          lv_path           TYPE string,
-          lv_zip_xstring    TYPE xstring.
+    DATA: ls_local_settings  TYPE zif_abapgit_persistence=>ty_repo-local_settings,
+          lo_dot_abapgit     TYPE REF TO zcl_abapgit_dot_abapgit,
+          lo_frontend_serv   TYPE REF TO zif_abapgit_frontend_services,
+          lv_default         TYPE string,
+          lv_package_escaped TYPE string,
+          lv_path            TYPE string,
+          lv_zip_xstring     TYPE xstring.
 
     ls_local_settings-serialize_master_lang_only = iv_main_lang_only.
 
@@ -204,8 +205,9 @@ CLASS zcl_abapgit_zip IMPLEMENTATION.
 
     lo_frontend_serv = zcl_abapgit_ui_factory=>get_frontend_services( ).
 
-    REPLACE ALL OCCURRENCES OF '/' IN iv_package WITH '#'.
-    lv_default = |{ iv_package }_{ sy-datlo }_{ sy-timlo }|.
+    lv_package_escaped = iv_package.
+    REPLACE ALL OCCURRENCES OF '/' IN lv_package_escaped WITH '#'.
+    lv_default = |{ lv_package_escaped }_{ sy-datlo }_{ sy-timlo }|.
 
     lv_zip_xstring = export(
      is_local_settings = ls_local_settings
@@ -313,7 +315,7 @@ CLASS zcl_abapgit_zip IMPLEMENTATION.
                    <ls_file>    LIKE LINE OF rt_files.
 
 
-    CREATE OBJECT lo_zip.
+    lo_zip = NEW #( ).
     lo_zip->load( EXPORTING
                     zip             = iv_xstr
                   EXCEPTIONS
