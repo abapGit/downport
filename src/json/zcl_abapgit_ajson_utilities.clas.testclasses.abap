@@ -189,7 +189,7 @@ CLASS ltcl_json_utils IMPLEMENTATION.
 
     REPLACE ALL OCCURRENCES OF '\n' IN lv_json WITH cl_abap_char_utilities=>newline.
 
-    CREATE OBJECT lo_insert_exp.
+    lo_insert_exp = NEW #( ).
     lo_insert_exp->add( '                |        |object |        |0|3' ).
     lo_insert_exp->add( '/               |boolean |str    |true    |0|0' ). " changed type (insert new)
     lo_insert_exp->add( '/               |issues  |array  |        |0|1' ).
@@ -198,7 +198,7 @@ CLASS ltcl_json_utils IMPLEMENTATION.
     lo_insert_exp->add( '/issues/1/      |end     |object |        |0|1' ).
     lo_insert_exp->add( '/issues/1/end/  |new     |num    |1       |0|0' ). " array insert
 
-    CREATE OBJECT lo_delete_exp.
+    lo_delete_exp = NEW #( ).
     lo_delete_exp->add( '                |        |object |        |0|3' ).
     lo_delete_exp->add( '/               |boolean |bool   |true    |0|0' ). " changed type (delete old)
     lo_delete_exp->add( '/               |false   |bool   |false   |0|0' ). " delete
@@ -207,7 +207,7 @@ CLASS ltcl_json_utils IMPLEMENTATION.
     lo_delete_exp->add( '/issues/1/      |end     |object |        |0|1' ).
     lo_delete_exp->add( '/issues/1/end/  |row     |num    |4       |0|0' ). " array delete
 
-    CREATE OBJECT lo_change_exp.
+    lo_change_exp = NEW #( ).
     lo_change_exp->add( '                |        |object |        |0|2' ).
     lo_change_exp->add( '/               |issues  |array  |        |0|1' ).
     lo_change_exp->add( '/               |number  |num    |789     |0|0' ). " changed value
@@ -215,7 +215,7 @@ CLASS ltcl_json_utils IMPLEMENTATION.
     lo_change_exp->add( '/issues/1/      |start   |object |        |0|1' ).
     lo_change_exp->add( '/issues/1/start/|row     |num    |5       |0|0' ). " array change
 
-    CREATE OBJECT lo_util.
+    lo_util = NEW #( ).
 
     lo_util->diff(
       EXPORTING
@@ -272,18 +272,18 @@ CLASS ltcl_json_utils IMPLEMENTATION.
     REPLACE ALL OCCURRENCES OF '\n' IN lv_json_a WITH cl_abap_char_utilities=>newline.
     REPLACE ALL OCCURRENCES OF '\n' IN lv_json_b WITH cl_abap_char_utilities=>newline.
 
-    CREATE OBJECT lo_insert_exp.
+    lo_insert_exp = NEW #( ).
     lo_insert_exp->add( '                |        |object |        |0|1' ).
     lo_insert_exp->add( '/               |string  |array  |        |0|3' ).
     lo_insert_exp->add( '/string/        |1       |str    |a       |1|0' ).
     lo_insert_exp->add( '/string/        |2       |str    |b       |2|0' ).
     lo_insert_exp->add( '/string/        |3       |str    |c       |3|0' ).
 
-    CREATE OBJECT lo_delete_exp.
+    lo_delete_exp = NEW #( ).
     lo_delete_exp->add( '                |        |object |        |0|1' ).
     lo_delete_exp->add( '/               |string  |str    |abc     |0|0' ).
 
-    CREATE OBJECT lo_util.
+    lo_util = NEW #( ).
 
     lo_util->diff(
       EXPORTING
@@ -366,7 +366,7 @@ CLASS ltcl_json_utils IMPLEMENTATION.
 
     REPLACE ALL OCCURRENCES OF '\n' IN lv_sorted_exp WITH cl_abap_char_utilities=>newline.
 
-    CREATE OBJECT lo_util.
+    lo_util = NEW #( ).
 
     lv_sorted = lo_util->sort( iv_json = lv_json ).
 
