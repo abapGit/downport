@@ -72,14 +72,14 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_REPO IMPLEMENTATION.
+CLASS zcl_abapgit_gui_page_sett_repo IMPLEMENTATION.
 
 
   METHOD constructor.
 
     super->constructor( ).
-    CREATE OBJECT mo_validation_log.
-    CREATE OBJECT mo_form_data.
+    mo_validation_log = NEW #( ).
+    mo_form_data = NEW #( ).
     mo_repo = io_repo.
     mo_form = get_form_schema( ).
     mo_form_util = zcl_abapgit_html_form_utils=>create( mo_form ).
@@ -93,7 +93,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_REPO IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_sett_repo.
 
-    CREATE OBJECT lo_component EXPORTING io_repo = io_repo.
+    lo_component = NEW #( io_repo = io_repo ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Repository Settings'
@@ -172,6 +172,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_REPO IMPLEMENTATION.
     DATA:
       lo_dot          TYPE REF TO zcl_abapgit_dot_abapgit,
       ls_dot          TYPE zif_abapgit_dot_abapgit=>ty_dot_abapgit,
+      lv_main_lang    TYPE spras,
       lv_language     TYPE t002t-sptxt,
       lv_ignore       TYPE string,
       ls_requirements LIKE LINE OF ls_dot-requirements,
@@ -184,17 +185,18 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_REPO IMPLEMENTATION.
     " Get settings from DB
     lo_dot = mo_repo->get_dot_abapgit( ).
     ls_dot = lo_dot->get_data( ).
+    lv_main_lang = lo_dot->get_main_language( ).
 
     " Repository Settings
     SELECT SINGLE sptxt INTO lv_language FROM t002t
-      WHERE spras = sy-langu AND sprsl = ls_dot-master_language.
+      WHERE spras = sy-langu AND sprsl = lv_main_lang.
     IF sy-subrc <> 0.
       lv_language = 'Unknown language; Check your .abapgit.xml file'.
     ENDIF.
 
     mo_form_data->set(
       iv_key = c_id-main_language
-      iv_val = |{ ls_dot-master_language } ({ lv_language })| ).
+      iv_val = |{ lv_main_lang } ({ lv_language })| ).
     mo_form_data->set(
       iv_key = c_id-i18n_langs
       iv_val = zcl_abapgit_lxe_texts=>convert_table_to_lang_string( lo_dot->get_i18n_languages( ) ) ).
@@ -390,7 +392,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_REPO IMPLEMENTATION.
       read_settings( ).
     ENDIF.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( `<div class="repo">` ).
     ri_html->add( zcl_abapgit_gui_chunk_lib=>render_repo_top(

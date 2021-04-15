@@ -209,7 +209,7 @@ CLASS zcl_abapgit_serialize IMPLEMENTATION.
       io_dot                = io_dot_abapgit
       ii_log                = ii_log ).
 
-    CREATE OBJECT lo_filter.
+    lo_filter = NEW #( ).
 
     lo_filter->apply( EXPORTING it_filter = it_filter
                       CHANGING  ct_tadir  = lt_tadir ).
@@ -221,7 +221,7 @@ CLASS zcl_abapgit_serialize IMPLEMENTATION.
 
     lt_found = serialize(
       it_tadir            = lt_tadir
-      iv_language         = io_dot_abapgit->get_master_language( )
+      iv_language         = io_dot_abapgit->get_main_language( )
       ii_log              = ii_log
       iv_force_sequential = lv_force ).
     APPEND LINES OF lt_found TO ct_files.

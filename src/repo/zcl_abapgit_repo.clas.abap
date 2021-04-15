@@ -250,16 +250,16 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
 
   METHOD check_language.
 
-    DATA lv_master_language TYPE spras.
+    DATA lv_main_language TYPE spras.
 
     " assumes find_remote_dot_abapgit has been called before
-    lv_master_language = get_dot_abapgit( )->get_master_language( ).
+    lv_main_language = get_dot_abapgit( )->get_main_language( ).
 
-    IF lv_master_language <> sy-langu.
+    IF lv_main_language <> sy-langu.
       zcx_abapgit_exception=>raise( |Current login language |
                                  && |'{ zcl_abapgit_convert=>conversion_exit_isola_output( sy-langu ) }'|
                                  && | does not match main language |
-                                 && |'{ zcl_abapgit_convert=>conversion_exit_isola_output( lv_master_language ) }'.|
+                                 && |'{ zcl_abapgit_convert=>conversion_exit_isola_output( lv_main_language ) }'.|
                                  && | Select 'Advanced' > 'Open in Main Language'| ).
     ENDIF.
 
@@ -310,7 +310,7 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
 
   METHOD create_new_log.
 
-    CREATE OBJECT mi_log TYPE zcl_abapgit_log.
+    mi_log = NEW zcl_abapgit_log( ).
     mi_log->set_title( iv_title ).
 
     ri_log = mi_log.
@@ -454,7 +454,7 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
 
     get_files_remote( ).
 
-    CREATE OBJECT ri_config TYPE zcl_abapgit_data_config.
+    ri_config = NEW zcl_abapgit_data_config( ).
     mi_data_config = ri_config.
 
     READ TABLE mt_remote ASSIGNING <ls_remote>
@@ -467,7 +467,7 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
 
 
   METHOD get_dot_abapgit.
-    CREATE OBJECT ro_dot_abapgit EXPORTING is_data = ms_data-dot_abapgit.
+    ro_dot_abapgit = NEW #( is_data = ms_data-dot_abapgit ).
   ENDMETHOD.
 
 
@@ -496,8 +496,8 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
       iv_main_language  = get_dot_abapgit( )->get_main_language( )
       it_i18n_languages = get_dot_abapgit( )->get_i18n_languages( ) ).
 
-    CREATE OBJECT lo_serialize EXPORTING iv_serialize_master_lang_only = ms_data-local_settings-serialize_master_lang_only
-                                         it_translation_langs = lt_languages.
+    lo_serialize = NEW #( iv_serialize_master_lang_only = ms_data-local_settings-serialize_master_lang_only
+                          it_translation_langs = lt_languages ).
 
     rt_files = lo_serialize->files_local(
       iv_package        = get_package( )
@@ -690,7 +690,7 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
     CLEAR lt_tadir.
     INSERT ls_tadir INTO TABLE lt_tadir.
 
-    CREATE OBJECT lo_serialize.
+    lo_serialize = NEW #( ).
     lt_new_local_files = lo_serialize->serialize( lt_tadir ).
 
     INSERT LINES OF lt_new_local_files INTO TABLE mt_local.
