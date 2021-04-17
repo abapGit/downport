@@ -96,7 +96,7 @@ CLASS ZCL_ABAPGIT_EXCEPTION_VIEWER IMPLEMENTATION.
 
     DATA: lo_grid TYPE REF TO cl_salv_form_layout_grid.
 
-    lo_grid = NEW #( columns = 2 ).
+    CREATE OBJECT lo_grid EXPORTING columns = 2.
 
     add_row( io_grid  = lo_grid
              iv_col_1 = 'Main program:'
