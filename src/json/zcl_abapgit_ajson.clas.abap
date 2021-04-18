@@ -16,6 +16,7 @@ CLASS zcl_abapgit_ajson DEFINITION
       get_integer FOR zif_abapgit_ajson_reader~get_integer,
       get_number FOR zif_abapgit_ajson_reader~get_number,
       get_date FOR zif_abapgit_ajson_reader~get_date,
+      get_timestamp FOR zif_abapgit_ajson_reader~get_timestamp,
       get_string FOR zif_abapgit_ajson_reader~get_string,
       slice FOR zif_abapgit_ajson_reader~slice,
       to_abap FOR zif_abapgit_ajson_reader~to_abap,
@@ -93,7 +94,7 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
 
 
   METHOD create_empty.
-    CREATE OBJECT ro_instance.
+    ro_instance = NEW #( ).
     ro_instance->mi_custom_mapping = ii_custom_mapping.
   ENDMETHOD.
 
@@ -159,8 +160,8 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
 
     DATA lo_parser TYPE REF TO lcl_json_parser.
 
-    CREATE OBJECT ro_instance.
-    CREATE OBJECT lo_parser.
+    ro_instance = NEW #( ).
+    lo_parser = NEW #( ).
     ro_instance->mt_json_tree = lo_parser->parse( iv_json ).
     ro_instance->mi_custom_mapping = ii_custom_mapping.
 
@@ -356,6 +357,28 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD zif_abapgit_ajson_reader~get_timestamp.
+
+    DATA lo_to_abap TYPE REF TO lcl_json_to_abap.
+    DATA lr_item TYPE REF TO zif_abapgit_ajson=>ty_node.
+
+    lr_item = get_item( iv_path ).
+
+    IF lr_item IS INITIAL.
+      RETURN.
+    ENDIF.
+
+    lo_to_abap = NEW #( ).
+
+    TRY.
+        rv_value = lo_to_abap->to_timestamp( is_path = lr_item->* ).
+      CATCH zcx_abapgit_ajson_error.
+        RETURN.
+    ENDTRY.
+
+  ENDMETHOD.
+
+
   METHOD zif_abapgit_ajson_reader~members.
 
     DATA lv_normalized_path TYPE string.
@@ -378,7 +401,7 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
     DATA ls_path_parts      TYPE zif_abapgit_ajson=>ty_path_name.
     DATA lv_path_len        TYPE i.
 
-    CREATE OBJECT lo_section.
+    lo_section = NEW #( ).
     lv_normalized_path = lcl_utils=>normalize_path( iv_path ).
     lv_path_len        = strlen( lv_normalized_path ).
     ls_path_parts      = lcl_utils=>split_path( lv_normalized_path ).
