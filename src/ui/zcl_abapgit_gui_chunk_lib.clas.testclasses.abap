@@ -20,7 +20,7 @@ CLASS ltcl_normalize_program_name IMPLEMENTATION.
 
   METHOD setup.
 
-    mo_chunk_lib = NEW #( ).
+    CREATE OBJECT mo_chunk_lib.
 
   ENDMETHOD.
 
