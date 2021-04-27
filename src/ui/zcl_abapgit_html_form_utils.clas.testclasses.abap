@@ -83,9 +83,6 @@ CLASS ltcl_popups_mock IMPLEMENTATION.
   METHOD zif_abapgit_popups~popup_transport_request.
   ENDMETHOD.
 
-  METHOD zif_abapgit_popups~repo_popup.
-  ENDMETHOD.
-
   METHOD was_confirm_popup_shown.
     rv_popup_shown = ms_called-popup_to_confirm.
   ENDMETHOD.
@@ -120,7 +117,7 @@ CLASS ltcl_test_form IMPLEMENTATION.
 
   METHOD setup.
 
-    CREATE OBJECT mo_popups_mock TYPE ltcl_popups_mock.
+    mo_popups_mock = NEW ltcl_popups_mock( ).
     zcl_abapgit_ui_injector=>set_popups( mo_popups_mock ).
 
   ENDMETHOD.

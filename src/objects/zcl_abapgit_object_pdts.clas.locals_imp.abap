@@ -73,7 +73,7 @@ CLASS lcl_task_definition IMPLEMENTATION.
 
     DATA lo_taskdef TYPE REF TO lcl_task_definition.
 
-    CREATE OBJECT lo_taskdef.
+    lo_taskdef = NEW #( ).
     lo_taskdef->mv_objid = iv_objid.
     lo_taskdef->supply_instance( ).
 
@@ -185,7 +185,7 @@ CLASS lcl_task_definition IMPLEMENTATION.
   METHOD create.
     DATA lo_task TYPE REF TO lcl_task_definition.
 
-    CREATE OBJECT lo_task TYPE lcl_task_definition.
+    lo_task = NEW lcl_task_definition( ).
     lo_task->mv_objid = iv_objid.
     lo_task->ms_task = is_task_data.
     ri_result = lo_task.
@@ -339,7 +339,7 @@ CLASS lcl_task_definition IMPLEMENTATION.
         no_changes_allowed = 1
         OTHERS             = 2 ).                         "#EC SUBRC_OK
 
-    check_subrc_for( `CHANGE_TEXT` ).
+    check_subrc_for( `CHANGE_TERM_EVENTS_COMPLETE` ).
 
     mo_taskdef->change_term_evt_bind_complete(
       EXPORTING
@@ -348,7 +348,7 @@ CLASS lcl_task_definition IMPLEMENTATION.
         no_changes_allowed = 1
         OTHERS             = 2 ).                         "#EC SUBRC_OK
 
-    check_subrc_for( `CHANGE_TERM_EVENTS_COMPLETE` ).
+    check_subrc_for( `CHANGE_TERM_EVT_BIND_COMPLETE` ).
 
   ENDMETHOD.
 
