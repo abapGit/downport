@@ -400,8 +400,8 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
   METHOD constructor.
 
     super->constructor( ).
-    mo_validation_log = NEW #( ).
-    mo_form_data = NEW #( ).
+    CREATE OBJECT mo_validation_log.
+    CREATE OBJECT mo_form_data.
 
     init( io_repo ).
     mv_original_url = ms_repo_current-url.
@@ -418,7 +418,7 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_sett_remo.
 
-    lo_component = NEW #( io_repo = io_repo ).
+    CREATE OBJECT lo_component EXPORTING io_repo = io_repo.
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Remote Settings'
@@ -918,7 +918,7 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
       read_settings( ).
     ENDIF.
 
-    ri_html = NEW zcl_abapgit_html( ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
 
     ri_html->add( `<div class="repo">` ).
     ri_html->add( zcl_abapgit_gui_chunk_lib=>render_repo_top(
