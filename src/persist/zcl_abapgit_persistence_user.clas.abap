@@ -113,11 +113,11 @@ CLASS ZCL_ABAPGIT_PERSISTENCE_USER IMPLEMENTATION.
 
     IF iv_user = sy-uname ##USER_OK.
       IF gi_current_user IS NOT BOUND.
-        CREATE OBJECT gi_current_user TYPE zcl_abapgit_persistence_user.
+        gi_current_user = NEW zcl_abapgit_persistence_user( ).
       ENDIF.
       ri_user = gi_current_user.
     ELSE.
-      CREATE OBJECT ri_user TYPE zcl_abapgit_persistence_user EXPORTING iv_user = iv_user.
+      ri_user = NEW zcl_abapgit_persistence_user( iv_user = iv_user ).
     ENDIF.
 
   ENDMETHOD.
@@ -261,8 +261,6 @@ CLASS ZCL_ABAPGIT_PERSISTENCE_USER IMPLEMENTATION.
 
 
   METHOD zif_abapgit_persist_user~get_repo_show.
-
-    DATA lo_repo TYPE REF TO zcl_abapgit_repo.
 
     rv_key = ms_user-repo_show.
 
