@@ -101,7 +101,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_GIT_TRANSPORT IMPLEMENTATION.
+CLASS zcl_abapgit_git_transport IMPLEMENTATION.
 
 
   METHOD branches.
@@ -140,7 +140,7 @@ CLASS ZCL_ABAPGIT_GIT_TRANSPORT IMPLEMENTATION.
 
     lv_data = eo_client->get_cdata( ).
 
-    CREATE OBJECT eo_branch_list EXPORTING iv_data = lv_data.
+    eo_branch_list = NEW #( iv_data = lv_data ).
 
   ENDMETHOD.
 
@@ -324,8 +324,8 @@ CLASS ZCL_ABAPGIT_GIT_TRANSPORT IMPLEMENTATION.
 
   METHOD upload_pack_by_branch.
 
-    DATA: lo_client  TYPE REF TO zcl_abapgit_http_client,
-          lt_hashes  TYPE zif_abapgit_definitions=>ty_sha1_tt.
+    DATA: lo_client TYPE REF TO zcl_abapgit_http_client,
+          lt_hashes TYPE zif_abapgit_definitions=>ty_sha1_tt.
 
     FIELD-SYMBOLS: <ls_branch> LIKE LINE OF it_branches.
 

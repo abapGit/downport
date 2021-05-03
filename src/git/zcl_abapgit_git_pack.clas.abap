@@ -244,7 +244,7 @@ CLASS ZCL_ABAPGIT_GIT_PACK IMPLEMENTATION.
         ENDIF.
 
       ELSEIF lv_zlib = c_zlib_hmm.
-* cl_abap_gzip copmression works for header '789C', but does not work for
+* cl_abap_gzip compression works for header '789C', but does not work for
 * '7801', call custom implementation of DEFLATE algorithm.
 * The custom implementation could handle both, but most likely the kernel
 * implementation runs faster than the custom ABAP.
@@ -516,7 +516,7 @@ CLASS ZCL_ABAPGIT_GIT_PACK IMPLEMENTATION.
     FIELD-SYMBOLS: <ls_object> LIKE LINE OF ct_objects.
 
 
-    CREATE OBJECT lo_stream EXPORTING iv_data = is_object-data.
+    lo_stream = NEW #( iv_data = is_object-data ).
 
 * find base
     READ TABLE ct_objects ASSIGNING <ls_object>
