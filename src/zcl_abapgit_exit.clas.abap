@@ -27,7 +27,7 @@ CLASS ZCL_ABAPGIT_EXIT IMPLEMENTATION.
       ENDTRY.
     ENDIF.
 
-    CREATE OBJECT ri_exit TYPE zcl_abapgit_exit.
+    ri_exit = NEW zcl_abapgit_exit( ).
 
   ENDMETHOD.
 
