@@ -20,9 +20,9 @@ CLASS ltcl_test IMPLEMENTATION.
     ls_item-obj_type = 'ASFC'.
     ls_item-obj_name = 'SAP_AS_TEST_001'.
 
-    CREATE OBJECT lo_cut EXPORTING is_item = ls_item.
+    lo_cut = NEW #( is_item = ls_item ).
 
-    CREATE OBJECT li_xml TYPE zcl_abapgit_xml_output.
+    li_xml = NEW zcl_abapgit_xml_output( ).
 
     lo_cut->serialize( li_xml ).
 * checks that it does not dump
