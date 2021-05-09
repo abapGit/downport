@@ -1,6 +1,35 @@
 CLASS ltcl_run_checks DEFINITION DEFERRED.
 CLASS zcl_abapgit_file_status DEFINITION LOCAL FRIENDS ltcl_run_checks.
 
+CLASS ltcl_util DEFINITION FOR TESTING RISK LEVEL HARMLESS DURATION SHORT FINAL.
+  PUBLIC SECTION.
+    CLASS-METHODS check_contains
+      IMPORTING
+        ii_log     TYPE REF TO zif_abapgit_log
+        iv_pattern TYPE string.
+ENDCLASS.
+
+CLASS ltcl_util IMPLEMENTATION.
+  METHOD check_contains.
+    DATA lt_messages TYPE zif_abapgit_log=>ty_log_outs.
+    DATA ls_message LIKE LINE OF lt_messages.
+    DATA lv_contains TYPE abap_bool.
+
+    lt_messages = ii_log->get_messages( ).
+    LOOP AT lt_messages INTO ls_message.
+      IF ls_message-text CP iv_pattern.
+        lv_contains = abap_true.
+        EXIT.
+      ENDIF.
+    ENDLOOP.
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lv_contains
+      exp = abap_true ).
+
+  ENDMETHOD.
+ENDCLASS.
+
 CLASS ltcl_run_checks DEFINITION FOR TESTING RISK LEVEL HARMLESS
   DURATION SHORT FINAL.
 
@@ -54,7 +83,7 @@ CLASS ltcl_run_checks IMPLEMENTATION.
 
   METHOD setup.
 
-    CREATE OBJECT mi_log TYPE zcl_abapgit_log.
+    mi_log = NEW zcl_abapgit_log( ).
 
     mo_dot = zcl_abapgit_dot_abapgit=>build_default( ).
     mo_dot->set_starting_folder( '/' ).  " assumed by unit tests
@@ -163,9 +192,9 @@ CLASS ltcl_run_checks IMPLEMENTATION.
       act = mi_log->count( )
       exp = 2 ).
 
-    cl_abap_unit_assert=>assert_equals(
-      act = mi_log->has_rc( '1' )
-      exp = abap_true ).
+    ltcl_util=>check_contains(
+      ii_log     = mi_log
+      iv_pattern = |Files for object *| ).
 
   ENDMETHOD.
 
@@ -218,9 +247,9 @@ CLASS ltcl_run_checks IMPLEMENTATION.
       act = mi_log->count( )
       exp = 1 ).
 
-    cl_abap_unit_assert=>assert_equals(
-      act = mi_log->has_rc( '2' )
-      exp = abap_true ).
+    ltcl_util=>check_contains(
+      ii_log     = mi_log
+      iv_pattern = |Package and path does not match for object, *| ).
 
   ENDMETHOD.
 
@@ -273,9 +302,9 @@ CLASS ltcl_run_checks IMPLEMENTATION.
       act = mi_log->count( )
       exp = 1 ).
 
-    cl_abap_unit_assert=>assert_equals(
-      act = mi_log->has_rc( '3' )
-      exp = abap_true ).
+    ltcl_util=>check_contains(
+      ii_log     = mi_log
+      iv_pattern = |Multiple files with same filename, *| ).
 
   ENDMETHOD.
 
@@ -319,9 +348,9 @@ CLASS ltcl_run_checks IMPLEMENTATION.
       act = mi_log->count( )
       exp = 1 ).
 
-    cl_abap_unit_assert=>assert_equals(
-      act = mi_log->has_rc( '4' )
-      exp = abap_true ).
+    ltcl_util=>check_contains(
+      ii_log     = mi_log
+      iv_pattern = |Filename is empty for object *| ).
 
   ENDMETHOD.
 
@@ -399,9 +428,9 @@ CLASS ltcl_run_checks IMPLEMENTATION.
       act = mi_log->count( )
       exp = 2 ).
 
-    cl_abap_unit_assert=>assert_equals(
-      act = mi_log->has_rc( '5' )
-      exp = abap_true ).
+    ltcl_util=>check_contains(
+      ii_log     = mi_log
+      iv_pattern = |Changed package assignment for object*| ).
 
   ENDMETHOD.
 
@@ -427,9 +456,9 @@ CLASS ltcl_run_checks IMPLEMENTATION.
       act = mi_log->count( )
       exp = 1 ).
 
-    cl_abap_unit_assert=>assert_equals(
-      act = mi_log->has_rc( '6' )
-      exp = abap_true ).
+    ltcl_util=>check_contains(
+      ii_log     = mi_log
+      iv_pattern = |Namespace *| ).
 
   ENDMETHOD.
 
@@ -636,7 +665,7 @@ CLASS ltcl_status_helper IMPLEMENTATION.
       it_remote    = mt_remote
       it_cur_state = mt_state ).
 
-    CREATE OBJECT ro_result EXPORTING it_results = lt_results.
+    ro_result = NEW #( it_results = lt_results ).
 
   ENDMETHOD.
 
@@ -673,7 +702,7 @@ CLASS ltcl_calculate_status IMPLEMENTATION.
 
   METHOD setup.
 
-    CREATE OBJECT mo_helper.
+    mo_helper = NEW #( ).
 
   ENDMETHOD.
 
