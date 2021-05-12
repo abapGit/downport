@@ -94,7 +94,9 @@ CLASS ZCL_ABAPGIT_STRING_MAP IMPLEMENTATION.
 
 
   METHOD create.
-    CREATE OBJECT ro_instance EXPORTING iv_case_insensitive = iv_case_insensitive.
+    CREATE OBJECT ro_instance
+      EXPORTING
+        iv_case_insensitive = iv_case_insensitive.
   ENDMETHOD.
 
 

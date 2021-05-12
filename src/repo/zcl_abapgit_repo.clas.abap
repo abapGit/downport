@@ -467,7 +467,9 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
 
 
   METHOD get_dot_abapgit.
-    CREATE OBJECT ro_dot_abapgit EXPORTING is_data = ms_data-dot_abapgit.
+    CREATE OBJECT ro_dot_abapgit
+      EXPORTING
+        is_data = ms_data-dot_abapgit.
   ENDMETHOD.
 
 
@@ -496,8 +498,10 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
       iv_main_language  = get_dot_abapgit( )->get_main_language( )
       it_i18n_languages = get_dot_abapgit( )->get_i18n_languages( ) ).
 
-    CREATE OBJECT lo_serialize EXPORTING iv_serialize_master_lang_only = ms_data-local_settings-serialize_master_lang_only
-                                         it_translation_langs = lt_languages.
+    CREATE OBJECT lo_serialize
+      EXPORTING
+        iv_serialize_master_lang_only = ms_data-local_settings-serialize_master_lang_only
+        it_translation_langs          = lt_languages.
 
     rt_files = lo_serialize->files_local(
       iv_package        = get_package( )

@@ -85,8 +85,10 @@ CLASS ZCL_ABAPGIT_HTML IMPLEMENTATION.
 
 
   METHOD class_constructor.
-    CREATE OBJECT go_single_tags_re EXPORTING pattern = '<(AREA|BASE|BR|COL|COMMAND|EMBED|HR|IMG|INPUT|LINK|META|PARAM|SOURCE|!)'
-                                              ignore_case = abap_false.
+    CREATE OBJECT go_single_tags_re
+      EXPORTING
+        pattern     = '<(AREA|BASE|BR|COL|COMMAND|EMBED|HR|IMG|INPUT|LINK|META|PARAM|SOURCE|!)'
+        ignore_case = abap_false.
 
     gv_spaces = repeat( val = ` `
                         occ = 200 ).

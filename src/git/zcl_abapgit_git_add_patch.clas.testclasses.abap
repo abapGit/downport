@@ -648,7 +648,9 @@ CLASS ltcl_calculate_patch IMPLEMENTATION.
 
     DATA: lo_git_add_patch TYPE REF TO zcl_abapgit_git_add_patch.
 
-    CREATE OBJECT lo_git_add_patch EXPORTING it_diff = mt_diff.
+    CREATE OBJECT lo_git_add_patch
+      EXPORTING
+        it_diff = mt_diff.
 
     TRY.
         mt_patch = lo_git_add_patch->get_patch( ).
