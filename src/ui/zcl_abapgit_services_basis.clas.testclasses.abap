@@ -116,7 +116,7 @@ CLASS ltcl_create_package IMPLEMENTATION.
 
   METHOD setup.
 
-    CREATE OBJECT mo_popups_mock TYPE ltcl_popups_mock.
+    mo_popups_mock = NEW ltcl_popups_mock( ).
     zcl_abapgit_ui_injector=>set_popups( mo_popups_mock ).
 
   ENDMETHOD.
@@ -168,9 +168,7 @@ CLASS ltcl_create_package IMPLEMENTATION.
 
   METHOD when_create_package.
 
-    CREATE OBJECT mo_sap_package_mock
-      EXPORTING
-        iv_package = mv_package.
+    mo_sap_package_mock = NEW #( iv_package = mv_package ).
 
     zcl_abapgit_injector=>set_sap_package(
         iv_package     = mv_package
