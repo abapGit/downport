@@ -150,10 +150,12 @@ CLASS zcl_abapgit_ui_factory IMPLEMENTATION.
       CREATE OBJECT li_router TYPE zcl_abapgit_gui_router.
       CREATE OBJECT li_hotkey_ctl TYPE zcl_abapgit_hotkeys.
 
-      CREATE OBJECT go_gui EXPORTING io_component = li_router
-                                     ii_hotkey_ctl = li_hotkey_ctl
-                                     ii_html_processor = lo_html_preprocessor
-                                     ii_asset_man = li_asset_man.
+      CREATE OBJECT go_gui
+        EXPORTING
+          io_component      = li_router
+          ii_hotkey_ctl     = li_hotkey_ctl
+          ii_html_processor = lo_html_preprocessor
+          ii_asset_man      = li_asset_man.
     ENDIF.
     ro_gui = go_gui.
 
@@ -182,8 +184,10 @@ CLASS zcl_abapgit_ui_factory IMPLEMENTATION.
   METHOD get_html_viewer.
 
     IF gi_html_viewer IS NOT BOUND.
-      CREATE OBJECT gi_html_viewer TYPE zcl_abapgit_html_viewer_gui EXPORTING io_container = io_container
-                                                                              iv_disable_query_table = iv_disable_query_table.
+      CREATE OBJECT gi_html_viewer TYPE zcl_abapgit_html_viewer_gui
+        EXPORTING
+          io_container           = io_container
+          iv_disable_query_table = iv_disable_query_table.
     ENDIF.
 
     ri_viewer = gi_html_viewer.

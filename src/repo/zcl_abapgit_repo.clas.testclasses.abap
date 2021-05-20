@@ -63,7 +63,9 @@ CLASS ltcl_find_remote_dot_abapgit IMPLEMENTATION.
     ls_data-key = c_dummy_repo_key.
 
     " online/offline doesn't matter...
-    CREATE OBJECT mo_repo TYPE zcl_abapgit_repo_offline EXPORTING is_data = ls_data.
+    CREATE OBJECT mo_repo TYPE zcl_abapgit_repo_offline
+      EXPORTING
+        is_data = ls_data.
 
   ENDMETHOD.
 

@@ -79,8 +79,10 @@ CLASS ZCL_ABAPGIT_PR_ENUMERATOR IMPLEMENTATION.
         val = lv_repo
         regex = '\.git$'
         with = '' ).
-      CREATE OBJECT ri_provider TYPE zcl_abapgit_pr_enum_github EXPORTING iv_user_and_repo = |{ lv_user }/{ lv_repo }|
-                                                                          ii_http_agent = li_agent.
+      CREATE OBJECT ri_provider TYPE zcl_abapgit_pr_enum_github
+        EXPORTING
+          iv_user_and_repo  = |{ lv_user }/{ lv_repo }|
+          ii_http_agent     = li_agent.
     ELSE.
       zcx_abapgit_exception=>raise( |PR enumeration is not supported for { iv_repo_url }| ).
     ENDIF.

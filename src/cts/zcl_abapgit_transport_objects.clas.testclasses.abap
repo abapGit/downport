@@ -391,7 +391,9 @@ CLASS ltcl_transport_objects IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD when_staging.
-    CREATE OBJECT mo_transport_objects EXPORTING it_transport_objects = mt_transport_objects.
+    CREATE OBJECT mo_transport_objects
+      EXPORTING
+        it_transport_objects = mt_transport_objects.
     mo_transport_objects->to_stage(
       io_stage           = mo_stage
       is_stage_objects   = ms_stage_objects

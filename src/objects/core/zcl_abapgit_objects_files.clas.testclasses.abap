@@ -47,7 +47,9 @@ CLASS ltcl_objects_files IMPLEMENTATION.
 
     ls_item-obj_type = 'prog'.
     ls_item-obj_name = 'zlf'.
-    CREATE OBJECT mo_cut EXPORTING is_item = ls_item.
+    CREATE OBJECT mo_cut
+      EXPORTING
+        is_item = ls_item.
     mo_cut->set_files( lt_files ).
 
   ENDMETHOD.
@@ -132,7 +134,9 @@ CLASS ltcl_objects_files IMPLEMENTATION.
     ls_item-obj_type = 'prog'.
     ls_item-obj_name = '/test/zlf'.
 
-    CREATE OBJECT mo_cut EXPORTING is_item = ls_item.
+    CREATE OBJECT mo_cut
+      EXPORTING
+        is_item = ls_item.
 
     cl_abap_unit_assert=>assert_equals(
       exp = '##test##zlf.prog.*'

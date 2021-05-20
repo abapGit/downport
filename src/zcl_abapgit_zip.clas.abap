@@ -119,8 +119,10 @@ CLASS zcl_abapgit_zip IMPLEMENTATION.
       iv_main_language  = io_dot_abapgit->get_main_language( )
       it_i18n_languages = io_dot_abapgit->get_i18n_languages( ) ).
 
-    CREATE OBJECT lo_serialize EXPORTING iv_serialize_master_lang_only = is_local_settings-serialize_master_lang_only
-                                         it_translation_langs = lt_languages.
+    CREATE OBJECT lo_serialize
+      EXPORTING
+        iv_serialize_master_lang_only = is_local_settings-serialize_master_lang_only
+        it_translation_langs          = lt_languages.
 
     lt_zip = lo_serialize->files_local(
       iv_package        = iv_package

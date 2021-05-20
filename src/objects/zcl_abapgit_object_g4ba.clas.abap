@@ -24,7 +24,9 @@ CLASS ZCL_ABAPGIT_OBJECT_G4BA IMPLEMENTATION.
 
     DATA: lo_generic TYPE REF TO zcl_abapgit_objects_generic.
 
-    CREATE OBJECT lo_generic EXPORTING is_item = ms_item.
+    CREATE OBJECT lo_generic
+      EXPORTING
+        is_item = ms_item.
 
     lo_generic->delete( ).
 
@@ -35,7 +37,9 @@ CLASS ZCL_ABAPGIT_OBJECT_G4BA IMPLEMENTATION.
 
     DATA: lo_generic TYPE REF TO zcl_abapgit_objects_generic.
 
-    CREATE OBJECT lo_generic EXPORTING is_item = ms_item.
+    CREATE OBJECT lo_generic
+      EXPORTING
+        is_item = ms_item.
 
     lo_generic->deserialize(
       iv_package = iv_package
@@ -48,7 +52,9 @@ CLASS ZCL_ABAPGIT_OBJECT_G4BA IMPLEMENTATION.
 
     DATA: lo_generic TYPE REF TO zcl_abapgit_objects_generic.
 
-    CREATE OBJECT lo_generic EXPORTING is_item = ms_item.
+    CREATE OBJECT lo_generic
+      EXPORTING
+        is_item = ms_item.
 
     rv_bool = lo_generic->exists( ).
 
@@ -96,7 +102,9 @@ CLASS ZCL_ABAPGIT_OBJECT_G4BA IMPLEMENTATION.
 
     DATA: lo_generic TYPE REF TO zcl_abapgit_objects_generic.
 
-    CREATE OBJECT lo_generic EXPORTING is_item = ms_item.
+    CREATE OBJECT lo_generic
+      EXPORTING
+        is_item = ms_item.
 
     lo_generic->serialize( io_xml ).
 

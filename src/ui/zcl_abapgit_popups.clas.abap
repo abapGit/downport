@@ -816,7 +816,9 @@ CLASS zcl_abapgit_popups IMPLEMENTATION.
         ENDIF.
 
         IF iv_header_text CN ' _0'.
-          CREATE OBJECT lo_table_header EXPORTING text = iv_header_text.
+          CREATE OBJECT lo_table_header
+            EXPORTING
+              text = iv_header_text.
           mo_select_list_popup->set_top_of_list( lo_table_header ).
         ENDIF.
 
@@ -855,6 +857,10 @@ CLASS zcl_abapgit_popups IMPLEMENTATION.
 
               IF <ls_column_to_display>-length > 0.
                 lo_column->set_output_length( <ls_column_to_display>-length ).
+              ENDIF.
+
+              IF <ls_column_to_display>-show_icon = abap_true.
+                lo_column->set_icon( abap_true ).
               ENDIF.
 
             WHEN OTHERS.

@@ -390,11 +390,15 @@ CLASS zcl_abapgit_gui_page_diff IMPLEMENTATION.
     " Diff data
     IF <ls_diff>-type <> 'binary'.
       IF <ls_diff>-fstate = c_fstate-remote. " Remote file leading changes
-        CREATE OBJECT <ls_diff>-o_diff EXPORTING iv_new = <ls_remote>-data
-                                                 iv_old = <ls_local>-file-data.
+        CREATE OBJECT <ls_diff>-o_diff
+          EXPORTING
+            iv_new = <ls_remote>-data
+            iv_old = <ls_local>-file-data.
       ELSE.             " Local leading changes or both were modified
-        CREATE OBJECT <ls_diff>-o_diff EXPORTING iv_new = <ls_local>-file-data
-                                                 iv_old = <ls_remote>-data.
+        CREATE OBJECT <ls_diff>-o_diff
+          EXPORTING
+            iv_new = <ls_local>-file-data
+            iv_old = <ls_remote>-data.
       ENDIF.
     ENDIF.
 

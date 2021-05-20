@@ -68,7 +68,9 @@ CLASS ZCL_ABAPGIT_HTML_FORM_UTILS IMPLEMENTATION.
 
 
   METHOD create.
-    CREATE OBJECT ro_form_util EXPORTING io_form = io_form.
+    CREATE OBJECT ro_form_util
+      EXPORTING
+        io_form = io_form.
   ENDMETHOD.
 
 
