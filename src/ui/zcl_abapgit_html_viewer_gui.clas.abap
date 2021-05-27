@@ -37,10 +37,8 @@ CLASS zcl_abapgit_html_viewer_gui IMPLEMENTATION.
     DATA: lt_events TYPE cntl_simple_events,
           ls_event  LIKE LINE OF lt_events.
 
-    CREATE OBJECT mo_html_viewer
-      EXPORTING
-        query_table_disabled = iv_disable_query_table
-        parent               = io_container.
+    mo_html_viewer = NEW #( query_table_disabled = iv_disable_query_table
+                            parent = io_container ).
 
     ls_event-eventid    = zif_abapgit_html_viewer=>m_id_sapevent.
     ls_event-appl_event = abap_true.
