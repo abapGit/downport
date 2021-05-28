@@ -67,7 +67,7 @@ CLASS zcl_abapgit_gui_page_db IMPLEMENTATION.
 
     lt_data = zcl_abapgit_persistence_db=>get_instance( )->list( ).
 
-    CREATE OBJECT lo_zip.
+    lo_zip = NEW #( ).
 
     LOOP AT lt_data ASSIGNING <ls_data>.
       CONCATENATE <ls_data>-type '_' <ls_data>-value '.xml' INTO lv_filename.
@@ -97,7 +97,7 @@ CLASS zcl_abapgit_gui_page_db IMPLEMENTATION.
 
   METHOD build_menu.
 
-    CREATE OBJECT ro_menu.
+    ro_menu = NEW #( ).
 
     ro_menu->add( iv_txt = 'Backup'
                   iv_act = c_action-backup ).
@@ -152,7 +152,7 @@ CLASS zcl_abapgit_gui_page_db IMPLEMENTATION.
 
 
     CASE is_data-type.
-      WHEN 'REPO'.
+      WHEN zcl_abapgit_persistence_db=>c_type_repo.
         FIND FIRST OCCURRENCE OF REGEX '<url>(.*)</url>'
           IN is_data-data_str IGNORING CASE RESULTS ls_result.
         READ TABLE ls_result-submatches INTO ls_match INDEX 1.
@@ -169,7 +169,7 @@ CLASS zcl_abapgit_gui_page_db IMPLEMENTATION.
           rv_text = |Off-line, Name: <strong>{ rv_text }</strong>|.
         ENDIF.
 
-      WHEN 'BACKGROUND'.
+      WHEN zcl_abapgit_persistence_db=>c_type_background.
         FIND FIRST OCCURRENCE OF REGEX '<method>(.*)</method>'
           IN is_data-data_str IGNORING CASE RESULTS ls_result.
         READ TABLE ls_result-submatches INTO ls_match INDEX 1.
@@ -179,10 +179,10 @@ CLASS zcl_abapgit_gui_page_db IMPLEMENTATION.
         rv_text = |Method: { is_data-data_str+ls_match-offset(ls_match-length) }, |
                && |Repository: { zcl_abapgit_repo_srv=>get_instance( )->get( is_data-value )->get_name( ) }|.
 
-      WHEN 'USER'.
-        rv_text = '-'. " No additional explanation for user
-      WHEN 'SETTINGS'.
-        rv_text = '-'.
+      WHEN zcl_abapgit_persistence_db=>c_type_user
+        OR zcl_abapgit_persistence_db=>c_type_settings
+        OR zcl_abapgit_persistence_db=>c_type_packages.
+        rv_text = '-'. " No additional explanation
       WHEN OTHERS.
         IF strlen( is_data-data_str ) >= 250.
           rv_text = is_data-data_str(250).
@@ -208,7 +208,7 @@ CLASS zcl_abapgit_gui_page_db IMPLEMENTATION.
 
     lt_data = zcl_abapgit_persistence_db=>get_instance( )->list( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div class="db_list">' ).
     ri_html->add( '<table class="db_tab">' ).
@@ -233,7 +233,7 @@ CLASS zcl_abapgit_gui_page_db IMPLEMENTATION.
 
       lv_action  = zcl_abapgit_html_action_utils=>dbkey_encode( <ls_data> ).
 
-      CREATE OBJECT lo_toolbar.
+      lo_toolbar = NEW #( ).
       lo_toolbar->add( iv_txt = 'Display'
                        iv_act = |{ zif_abapgit_definitions=>c_action-db_display }?{ lv_action }| ).
       lo_toolbar->add( iv_txt = 'Edit'
@@ -284,7 +284,7 @@ CLASS zcl_abapgit_gui_page_db IMPLEMENTATION.
 
     lv_zip = li_fe_serv->file_upload( lv_path ).
 
-    CREATE OBJECT lo_zip.
+    lo_zip = NEW #( ).
 
     lo_zip->load(
       EXPORTING
@@ -303,8 +303,11 @@ CLASS zcl_abapgit_gui_page_db IMPLEMENTATION.
       SPLIT lv_filename AT '_' INTO ls_data-type ls_data-value.
 
       " Validate DB key
-      IF ls_data-type <> 'REPO' AND ls_data-type <> 'USER' AND
-          ls_data-type <> 'SETTINGS' AND ls_data-type <> 'BACKGROUND'.
+      IF ls_data-type <> zcl_abapgit_persistence_db=>c_type_repo AND
+         ls_data-type <> zcl_abapgit_persistence_db=>c_type_user AND
+         ls_data-type <> zcl_abapgit_persistence_db=>c_type_settings AND
+         ls_data-type <> zcl_abapgit_persistence_db=>c_type_background AND
+         ls_data-type <> zcl_abapgit_persistence_db=>c_type_packages.
         zcx_abapgit_exception=>raise( |Invalid DB key. This is not an abapGit Backup| ).
       ENDIF.
 
