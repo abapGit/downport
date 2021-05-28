@@ -122,7 +122,7 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
 
   METHOD get_instance.
     IF gi_ref IS INITIAL.
-      CREATE OBJECT gi_ref TYPE zcl_abapgit_repo_srv.
+      gi_ref = NEW zcl_abapgit_repo_srv( ).
     ENDIF.
     ri_srv = gi_ref.
   ENDMETHOD.
@@ -131,9 +131,9 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
   METHOD instantiate_and_add.
 
     IF is_repo_meta-offline = abap_false.
-      CREATE OBJECT ro_repo TYPE zcl_abapgit_repo_online EXPORTING is_data = is_repo_meta.
+      ro_repo = NEW zcl_abapgit_repo_online( is_data = is_repo_meta ).
     ELSE.
-      CREATE OBJECT ro_repo TYPE zcl_abapgit_repo_offline EXPORTING is_data = is_repo_meta.
+      ro_repo = NEW zcl_abapgit_repo_offline( is_data = is_repo_meta ).
     ENDIF.
     add( ro_repo ).
 
@@ -438,7 +438,7 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
 
     ro_repo ?= instantiate_and_add( ls_repo ).
 
-    ls_repo-local_settings-serialize_master_lang_only = iv_master_lang_only.
+    ls_repo-local_settings-main_language_only = iv_main_lang_only.
     ro_repo->set_local_settings( ls_repo-local_settings ).
 
   ENDMETHOD.
@@ -492,7 +492,7 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
     IF ls_repo-local_settings-ignore_subpackages <> iv_ign_subpkg.
       ls_repo-local_settings-ignore_subpackages = iv_ign_subpkg.
     ENDIF.
-    ls_repo-local_settings-serialize_master_lang_only = iv_master_lang_only.
+    ls_repo-local_settings-main_language_only = iv_main_lang_only.
     ro_repo->set_local_settings( ls_repo-local_settings ).
 
     ro_repo->refresh( ).

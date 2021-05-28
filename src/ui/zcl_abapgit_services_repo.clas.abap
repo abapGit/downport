@@ -205,10 +205,10 @@ CLASS zcl_abapgit_services_repo IMPLEMENTATION.
 
     " create new repo and add to favorites
     ro_repo = zcl_abapgit_repo_srv=>get_instance( )->new_offline(
-      iv_url              = is_repo_params-url
-      iv_package          = is_repo_params-package
-      iv_folder_logic     = is_repo_params-folder_logic
-      iv_master_lang_only = is_repo_params-main_lang_only ).
+      iv_url            = is_repo_params-url
+      iv_package        = is_repo_params-package
+      iv_folder_logic   = is_repo_params-folder_logic
+      iv_main_lang_only = is_repo_params-main_lang_only ).
 
     " Make sure there're no leftovers from previous repos
     ro_repo->rebuild_local_checksums( ).
@@ -229,13 +229,13 @@ CLASS zcl_abapgit_services_repo IMPLEMENTATION.
     check_package( is_repo_params ).
 
     ro_repo = zcl_abapgit_repo_srv=>get_instance( )->new_online(
-      iv_url              = is_repo_params-url
-      iv_branch_name      = is_repo_params-branch_name
-      iv_package          = is_repo_params-package
-      iv_display_name     = is_repo_params-display_name
-      iv_folder_logic     = is_repo_params-folder_logic
-      iv_ign_subpkg       = is_repo_params-ignore_subpackages
-      iv_master_lang_only = is_repo_params-main_lang_only ).
+      iv_url            = is_repo_params-url
+      iv_branch_name    = is_repo_params-branch_name
+      iv_package        = is_repo_params-package
+      iv_display_name   = is_repo_params-display_name
+      iv_folder_logic   = is_repo_params-folder_logic
+      iv_ign_subpkg     = is_repo_params-ignore_subpackages
+      iv_main_lang_only = is_repo_params-main_lang_only ).
 
     " Make sure there're no leftovers from previous repos
     ro_repo->rebuild_local_checksums( ).
@@ -604,7 +604,7 @@ CLASS zcl_abapgit_services_repo IMPLEMENTATION.
     ls_transport_to_branch = zcl_abapgit_ui_factory=>get_popups( )->popup_to_create_transp_branch(
       lt_transport_headers ).
 
-    CREATE OBJECT lo_transport_to_branch.
+    lo_transport_to_branch = NEW #( ).
     lo_transport_to_branch->create(
       io_repository          = lo_repository
       is_transport_to_branch = ls_transport_to_branch
