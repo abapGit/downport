@@ -98,12 +98,11 @@ CLASS zcl_abapgit_object_form DEFINITION PUBLIC INHERITING FROM zcl_abapgit_obje
     METHODS order_check_and_insert
       RAISING
         zcx_abapgit_exception.
-
 ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_OBJECT_FORM IMPLEMENTATION.
+CLASS zcl_abapgit_object_form IMPLEMENTATION.
 
 
   METHOD build_extra_from_header.
@@ -131,7 +130,7 @@ CLASS ZCL_ABAPGIT_OBJECT_FORM IMPLEMENTATION.
     DATA lv_string TYPE string.
     DATA li_xml TYPE REF TO zif_abapgit_xml_output.
 
-    CREATE OBJECT li_xml TYPE zcl_abapgit_xml_output.
+    li_xml = NEW zcl_abapgit_xml_output( ).
     li_xml->add( iv_name = c_objectname_tdlines
                  ig_data = it_lines ).
     lv_string = li_xml->render( ).
@@ -172,7 +171,7 @@ CLASS ZCL_ABAPGIT_OBJECT_FORM IMPLEMENTATION.
 
     ENDTRY.
 
-    CREATE OBJECT li_xml TYPE zcl_abapgit_xml_input EXPORTING iv_xml = lv_string.
+    li_xml = NEW zcl_abapgit_xml_input( iv_xml = lv_string ).
     li_xml->read( EXPORTING iv_name = c_objectname_tdlines
                   CHANGING  cg_data = rt_lines ).
 
