@@ -100,7 +100,7 @@ CLASS zcl_abapgit_object_clas IMPLEMENTATION.
     super->constructor( is_item     = is_item
                         iv_language = iv_language ).
 
-    CREATE OBJECT mi_object_oriented_object_fct TYPE zcl_abapgit_oo_class.
+    mi_object_oriented_object_fct = NEW zcl_abapgit_oo_class( ).
 
     mv_classpool_name = cl_oo_classname_service=>get_classpool_name( |{ is_item-obj_name }| ).
 
@@ -360,7 +360,7 @@ CLASS zcl_abapgit_object_clas IMPLEMENTATION.
   METHOD serialize_docu.
 
     DATA: lt_lines      TYPE tlinetab,
-          lv_langu      TYPE langu,
+          lv_langu      TYPE sy-langu,
           lt_i18n_lines TYPE zif_abapgit_lang_definitions=>ty_i18n_lines,
           ls_i18n_lines TYPE zif_abapgit_lang_definitions=>ty_i18n_line.
 
@@ -407,7 +407,7 @@ CLASS zcl_abapgit_object_clas IMPLEMENTATION.
   METHOD serialize_tpool.
 
     DATA: lt_tpool      TYPE textpool_table,
-          lv_langu      TYPE langu,
+          lv_langu      TYPE sy-langu,
           lt_i18n_tpool TYPE zif_abapgit_lang_definitions=>ty_i18n_tpools,
           ls_i18n_tpool TYPE zif_abapgit_lang_definitions=>ty_i18n_tpool.
 

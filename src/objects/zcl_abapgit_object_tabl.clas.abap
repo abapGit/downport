@@ -399,7 +399,7 @@ CLASS zcl_abapgit_object_tabl IMPLEMENTATION.
 
     DATA: lv_name       TYPE ddobjname,
           ls_dd02v_tmp  TYPE dd02v,
-          lt_i18n_langs TYPE TABLE OF langu,
+          lt_i18n_langs TYPE TABLE OF sy-langu,
           lt_dd02_texts TYPE ty_dd02_texts.
 
     FIELD-SYMBOLS: <lv_lang>      LIKE LINE OF lt_i18n_langs,
@@ -546,7 +546,7 @@ CLASS zcl_abapgit_object_tabl IMPLEMENTATION.
           lv_index      TYPE i,
           ls_dd02v      TYPE dd02v,
           lt_dd02_texts TYPE ty_dd02_texts,
-          lt_i18n_langs TYPE TABLE OF langu.
+          lt_i18n_langs TYPE TABLE OF sy-langu.
 
     FIELD-SYMBOLS: <lv_lang>      LIKE LINE OF lt_i18n_langs,
                    <ls_dd02_text> LIKE LINE OF lt_dd02_texts.
@@ -871,13 +871,13 @@ CLASS zcl_abapgit_object_tabl IMPLEMENTATION.
           li_local_version_input  TYPE REF TO zif_abapgit_xml_input.
 
 
-    CREATE OBJECT li_local_version_output TYPE zcl_abapgit_xml_output.
+    li_local_version_output = NEW zcl_abapgit_xml_output( ).
 
     zif_abapgit_object~serialize( li_local_version_output ).
 
-    CREATE OBJECT li_local_version_input TYPE zcl_abapgit_xml_input EXPORTING iv_xml = li_local_version_output->render( ).
+    li_local_version_input = NEW zcl_abapgit_xml_input( iv_xml = li_local_version_output->render( ) ).
 
-    CREATE OBJECT ri_comparator TYPE zcl_abapgit_object_tabl_compar EXPORTING ii_local = li_local_version_input.
+    ri_comparator = NEW zcl_abapgit_object_tabl_compar( ii_local = li_local_version_input ).
 
   ENDMETHOD.
 

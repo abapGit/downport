@@ -106,7 +106,7 @@ CLASS zcl_abapgit_objects_program DEFINITION PUBLIC INHERITING FROM zcl_abapgit_
       IMPORTING
         !iv_program    TYPE programm
         !it_tpool      TYPE textpool_table
-        !iv_language   TYPE langu OPTIONAL
+        !iv_language   TYPE sy-langu OPTIONAL
         !iv_is_include TYPE abap_bool DEFAULT abap_false
       RAISING
         zcx_abapgit_exception .
@@ -472,7 +472,7 @@ CLASS zcl_abapgit_objects_program IMPLEMENTATION.
 
   METHOD deserialize_textpool.
 
-    DATA lv_language TYPE langu.
+    DATA lv_language TYPE sy-langu.
     DATA lv_state    TYPE c.
     DATA lv_delete   TYPE abap_bool.
 
@@ -902,7 +902,7 @@ CLASS zcl_abapgit_objects_program IMPLEMENTATION.
     IF io_xml IS BOUND.
       li_xml = io_xml.
     ELSE.
-      CREATE OBJECT li_xml TYPE zcl_abapgit_xml_output.
+      li_xml = NEW zcl_abapgit_xml_output( ).
     ENDIF.
 
     li_xml->add( iv_name = 'PROGDIR'
