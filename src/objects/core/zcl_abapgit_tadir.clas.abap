@@ -86,7 +86,7 @@ ENDCLASS.
 
 
 
-CLASS zcl_abapgit_tadir IMPLEMENTATION.
+CLASS ZCL_ABAPGIT_TADIR IMPLEMENTATION.
 
 
   METHOD add_local_packages.
@@ -174,6 +174,7 @@ CLASS zcl_abapgit_tadir IMPLEMENTATION.
         ENDTRY.
       ENDIF.
 
+      CLEAR <ls_tadir>-korrnum.
     ENDLOOP.
 
   ENDMETHOD.
@@ -365,7 +366,7 @@ CLASS zcl_abapgit_tadir IMPLEMENTATION.
 
     DATA lo_skip_objects TYPE REF TO zcl_abapgit_skip_objects.
 
-    CREATE OBJECT lo_skip_objects.
+    lo_skip_objects = NEW #( ).
 
     ct_tadir = lo_skip_objects->skip_sadl_generated_objects(
       it_tadir = ct_tadir
@@ -432,6 +433,7 @@ CLASS zcl_abapgit_tadir IMPLEMENTATION.
       WHERE pgmid = iv_pgmid
       AND object = iv_object
       AND obj_name = iv_obj_name.                         "#EC CI_SUBRC
+    CLEAR rs_tadir-korrnum.
 
   ENDMETHOD.
 ENDCLASS.
