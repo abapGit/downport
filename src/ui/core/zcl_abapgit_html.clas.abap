@@ -17,6 +17,12 @@ CLASS zcl_abapgit_html DEFINITION
         !iv_onclick   TYPE string OPTIONAL
       RETURNING
         VALUE(rv_str) TYPE string .
+    CLASS-METHODS checkbox
+      IMPORTING
+         iv_id         TYPE string OPTIONAL
+         iv_checked    TYPE abap_bool OPTIONAL
+      RETURNING
+        VALUE(rv_html) TYPE string .
   PROTECTED SECTION.
   PRIVATE SECTION.
 
@@ -58,17 +64,11 @@ CLASS zcl_abapgit_html DEFINITION
         !is_context      TYPE ty_indent_context
       RETURNING
         VALUE(rs_result) TYPE ty_study_result .
-    METHODS checkbox
-      IMPORTING
-        !iv_id         TYPE string
-        !iv_checked    TYPE abap_bool OPTIONAL
-      RETURNING
-        VALUE(rv_html) TYPE string .
 ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_HTML IMPLEMENTATION.
+CLASS zcl_abapgit_html IMPLEMENTATION.
 
 
   METHOD checkbox.
@@ -79,14 +79,18 @@ CLASS ZCL_ABAPGIT_HTML IMPLEMENTATION.
       lv_checked = |checked|.
     ENDIF.
 
-    rv_html = |<input type="checkbox" id="{ iv_id }" { lv_checked }>|.
+    rv_html = |<input type="checkbox" { lv_checked } |.
+    IF iv_id IS NOT INITIAL.
+      rv_html = rv_html && |id="{ iv_id }"|.
+    ENDIF.
 
+    rv_html = rv_html && `/>`.
   ENDMETHOD.
 
 
   METHOD class_constructor.
-    CREATE OBJECT go_single_tags_re EXPORTING pattern = '<(AREA|BASE|BR|COL|COMMAND|EMBED|HR|IMG|INPUT|LINK|META|PARAM|SOURCE|!)'
-                                              ignore_case = abap_false.
+    go_single_tags_re = NEW #( pattern = '<(AREA|BASE|BR|COL|COMMAND|EMBED|HR|IMG|INPUT|LINK|META|PARAM|SOURCE|!)'
+                               ignore_case = abap_false ).
 
     gv_spaces = repeat( val = ` `
                         occ = 200 ).
