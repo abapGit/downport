@@ -42,29 +42,29 @@ CLASS zcl_abapgit_ajson_mapping IMPLEMENTATION.
 
   METHOD create_camel_case.
 
-    ri_mapping = NEW lcl_mapping_camel( it_mapping_fields = it_mapping_fields
-                                        iv_first_json_upper = iv_first_json_upper ).
+    CREATE OBJECT ri_mapping TYPE lcl_mapping_camel EXPORTING it_mapping_fields = it_mapping_fields
+                                                              iv_first_json_upper = iv_first_json_upper.
 
   ENDMETHOD.
 
 
   METHOD create_upper_case.
 
-    ri_mapping = NEW lcl_mapping_to_upper( it_mapping_fields = it_mapping_fields ).
+    CREATE OBJECT ri_mapping TYPE lcl_mapping_to_upper EXPORTING it_mapping_fields = it_mapping_fields.
 
   ENDMETHOD.
 
 
   METHOD create_lower_case.
 
-    ri_mapping = NEW lcl_mapping_to_lower( it_mapping_fields = it_mapping_fields ).
+    CREATE OBJECT ri_mapping TYPE lcl_mapping_to_lower EXPORTING it_mapping_fields = it_mapping_fields.
 
   ENDMETHOD.
 
 
   METHOD create_field_mapping.
 
-    ri_mapping = NEW lcl_mapping_fields( it_mapping_fields = it_mapping_fields ).
+    CREATE OBJECT ri_mapping TYPE lcl_mapping_fields EXPORTING it_mapping_fields = it_mapping_fields.
 
   ENDMETHOD.
 
