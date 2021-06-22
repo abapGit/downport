@@ -67,8 +67,8 @@ CLASS ZCL_ABAPGIT_OBJECT_WDCA IMPLEMENTATION.
     ls_key = ms_item-obj_name.
 
     TRY.
-        CREATE OBJECT lo_cfg EXPORTING config_key = ls_key
-                                       object_name = lv_name.
+        lo_cfg = NEW #( config_key = ls_key
+                        object_name = lv_name ).
 
         MOVE-CORRESPONDING ls_key TO ls_outline.
 
@@ -119,13 +119,17 @@ CLASS ZCL_ABAPGIT_OBJECT_WDCA IMPLEMENTATION.
       lx_err    TYPE REF TO cx_wd_configuration,
       lv_name   TYPE wdy_md_object_name.
 
+    FIELD-SYMBOLS:
+      <ls_data>        LIKE LINE OF et_data,
+      <ls_appl_params> LIKE LINE OF <ls_data>-appl_params.
+
     CLEAR: es_outline, et_data.
 
     ls_key = ms_item-obj_name.
 
     TRY.
-        CREATE OBJECT lo_cfg EXPORTING config_key = ls_key
-                                       object_name = lv_name.
+        lo_cfg = NEW #( config_key = ls_key
+                        object_name = lv_name ).
 
         MOVE-CORRESPONDING ls_key TO es_outline.
 
@@ -151,6 +155,13 @@ CLASS ZCL_ABAPGIT_OBJECT_WDCA IMPLEMENTATION.
 
         et_data = lo_cfg->read_data( ).
 
+        " Clear descriptions since they are release and language-specific
+        LOOP AT et_data ASSIGNING <ls_data>.
+          LOOP AT <ls_data>-appl_params ASSIGNING <ls_appl_params>.
+            CLEAR <ls_appl_params>-description.
+          ENDLOOP.
+        ENDLOOP.
+
       CATCH cx_wd_configuration INTO lx_err.
         zcx_abapgit_exception=>raise( 'WDCA, read error:' && lx_err->get_text( ) ).
     ENDTRY.
@@ -174,8 +185,8 @@ CLASS ZCL_ABAPGIT_OBJECT_WDCA IMPLEMENTATION.
     MOVE-CORRESPONDING is_outline TO ls_key.
 
     TRY.
-        CREATE OBJECT lo_cfg EXPORTING config_key = ls_key
-                                       object_name = lv_name.
+        lo_cfg = NEW #( config_key = ls_key
+                        object_name = lv_name ).
 
         READ TABLE it_data INDEX 1 INTO ls_data.
         ASSERT sy-subrc = 0.
