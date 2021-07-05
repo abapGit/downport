@@ -277,12 +277,12 @@ CLASS ZCL_ABAPGIT_OBJECT_FDT0 IMPLEMENTATION.
     DATA lo_local_version_output TYPE REF TO zcl_abapgit_xml_output.
     DATA lo_local_version_input  TYPE REF TO zcl_abapgit_xml_input.
 
-    lo_local_version_output = NEW #( ).
+    CREATE OBJECT lo_local_version_output.
     zif_abapgit_object~serialize( lo_local_version_output ).
 
-    lo_local_version_input = NEW #( iv_xml = lo_local_version_output->zif_abapgit_xml_output~render( ) ).
+    CREATE OBJECT lo_local_version_input EXPORTING iv_xml = lo_local_version_output->zif_abapgit_xml_output~render( ).
 
-    ri_comparator = NEW zcl_abapgit_object_tabl_compar( ii_local = lo_local_version_input ).
+    CREATE OBJECT ri_comparator TYPE zcl_abapgit_object_tabl_compar EXPORTING ii_local = lo_local_version_input.
 
   ENDMETHOD.
 
