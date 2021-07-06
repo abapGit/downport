@@ -25,7 +25,7 @@ CLASS zcl_abapgit_gui_page_commit DEFINITION
 
     CLASS-METHODS parse_commit_request
       IMPORTING
-        !ii_event TYPE REF TO zif_abapgit_gui_event
+        !ii_event        TYPE REF TO zif_abapgit_gui_event
       RETURNING
         VALUE(rs_commit) TYPE zif_abapgit_services_git=>ty_commit_fields
       RAISING
@@ -58,6 +58,7 @@ CLASS zcl_abapgit_gui_page_commit DEFINITION
         !iv_label      TYPE string
         !iv_value      TYPE string OPTIONAL
         !iv_max_length TYPE string OPTIONAL
+        !iv_autofocus  TYPE abap_bool DEFAULT abap_false
       RETURNING
         VALUE(ri_html) TYPE REF TO zif_abapgit_html .
     METHODS get_comment_default
@@ -193,7 +194,7 @@ CLASS zcl_abapgit_gui_page_commit IMPLEMENTATION.
 
   METHOD render_content.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div class="repo">' ).
     ri_html->add( zcl_abapgit_gui_chunk_lib=>render_repo_top(
@@ -262,7 +263,7 @@ CLASS zcl_abapgit_gui_page_commit IMPLEMENTATION.
       lv_comment = get_comment_default( ).
     ENDIF.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div class="form-container">' ).
     ri_html->add( '<form id="commit_form" class="aligned-form"'
@@ -283,7 +284,8 @@ CLASS zcl_abapgit_gui_page_commit IMPLEMENTATION.
     ri_html->add( render_text_input( iv_name       = 'comment'
                                      iv_label      = 'Comment'
                                      iv_value      = lv_comment
-                                     iv_max_length = lv_s_param ) ).
+                                     iv_max_length = lv_s_param
+                                     iv_autofocus  = abap_true ) ).
 
     ri_html->add( '<div class="row">' ).
     ri_html->add( '<label for="c-body">Body</label>' ).
@@ -322,8 +324,8 @@ CLASS zcl_abapgit_gui_page_commit IMPLEMENTATION.
 
     DATA lo_toolbar TYPE REF TO zcl_abapgit_html_toolbar.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
-    CREATE OBJECT lo_toolbar.
+    ri_html = NEW zcl_abapgit_html( ).
+    lo_toolbar = NEW #( ).
 
     lo_toolbar->add( iv_act = 'submitFormById(''commit_form'');'
                      iv_txt = 'Commit'
@@ -343,7 +345,7 @@ CLASS zcl_abapgit_gui_page_commit IMPLEMENTATION.
 
   METHOD render_scripts.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
     ri_html->add( 'setInitialFocus("comment");' ).
@@ -358,7 +360,7 @@ CLASS zcl_abapgit_gui_page_commit IMPLEMENTATION.
     FIELD-SYMBOLS: <ls_stage> LIKE LINE OF lt_stage.
 
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     lt_stage = mo_stage->get_all( ).
 
@@ -396,7 +398,7 @@ CLASS zcl_abapgit_gui_page_commit IMPLEMENTATION.
 
     DATA lv_attrs TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     IF iv_value IS NOT INITIAL AND
        iv_max_length IS NOT INITIAL.
@@ -406,6 +408,10 @@ CLASS zcl_abapgit_gui_page_commit IMPLEMENTATION.
 
     ELSEIF iv_max_length IS NOT INITIAL.
       lv_attrs = | maxlength="{ iv_max_length }"|.
+    ENDIF.
+
+    IF iv_autofocus = abap_true.
+      lv_attrs = lv_attrs && ' autofocus'.
     ENDIF.
 
     ri_html->add( '<div class="row">' ).
