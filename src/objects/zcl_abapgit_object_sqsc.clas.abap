@@ -157,8 +157,8 @@ CLASS ZCL_ABAPGIT_OBJECT_SQSC IMPLEMENTATION.
 
     IF zcl_abapgit_objects=>exists( ls_item ) = abap_true.
 
-      CREATE OBJECT lo_interface EXPORTING is_item = ls_item
-                                           iv_language = mv_language.
+      lo_interface = NEW #( is_item = ls_item
+                            iv_language = mv_language ).
 
       lo_interface->zif_abapgit_object~delete( iv_package ).
 
@@ -182,8 +182,7 @@ CLASS ZCL_ABAPGIT_OBJECT_SQSC IMPLEMENTATION.
             if_transport_req = mv_transport.
 
       CATCH cx_root INTO lx_error.
-        zcx_abapgit_exception=>raise( iv_text     = lx_error->get_text( )
-                                      ix_previous = lx_error ).
+        zcx_abapgit_exception=>raise_with_text( lx_error ).
     ENDTRY.
 
   ENDMETHOD.
@@ -233,8 +232,7 @@ CLASS ZCL_ABAPGIT_OBJECT_SQSC IMPLEMENTATION.
         tadir_insert( iv_package ).
 
       CATCH cx_root INTO lx_error.
-        zcx_abapgit_exception=>raise( iv_text     = lx_error->get_text( )
-                                      ix_previous = lx_error ).
+        zcx_abapgit_exception=>raise_with_text( lx_error ).
     ENDTRY.
 
   ENDMETHOD.
@@ -307,8 +305,7 @@ CLASS ZCL_ABAPGIT_OBJECT_SQSC IMPLEMENTATION.
             ef_descr   = ls_proxy-description.
 
       CATCH cx_root INTO lx_error.
-        zcx_abapgit_exception=>raise( iv_text     = lx_error->get_text( )
-                                      ix_previous = lx_error ).
+        zcx_abapgit_exception=>raise_with_text( lx_error ).
     ENDTRY.
 
     io_xml->add( iv_name = 'SQSC'

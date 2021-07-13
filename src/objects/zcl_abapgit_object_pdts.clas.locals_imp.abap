@@ -73,7 +73,7 @@ CLASS lcl_task_definition IMPLEMENTATION.
 
     DATA lo_taskdef TYPE REF TO lcl_task_definition.
 
-    CREATE OBJECT lo_taskdef.
+    lo_taskdef = NEW #( ).
     lo_taskdef->mv_objid = iv_objid.
     lo_taskdef->supply_instance( ).
 
@@ -185,7 +185,7 @@ CLASS lcl_task_definition IMPLEMENTATION.
   METHOD create.
     DATA lo_task TYPE REF TO lcl_task_definition.
 
-    CREATE OBJECT lo_task TYPE lcl_task_definition.
+    lo_task = NEW lcl_task_definition( ).
     lo_task->mv_objid = iv_objid.
     lo_task->ms_task = is_task_data.
     ri_result = lo_task.
@@ -196,16 +196,15 @@ CLASS lcl_task_definition IMPLEMENTATION.
   METHOD lif_task_definition~import_container.
 
     DATA lt_exception_list TYPE swf_cx_tab.
-    DATA: lo_exception TYPE REF TO cx_swf_ifs_exception.
+    DATA lx_exception TYPE REF TO cx_swf_ifs_exception.
 
     mo_taskdef->container->import_from_xml(
             EXPORTING xml_stream     = iv_xml_string
             IMPORTING exception_list = lt_exception_list ).
 
     IF lt_exception_list IS NOT INITIAL.
-      READ TABLE lt_exception_list INDEX 1 INTO lo_exception.
-      zcx_abapgit_exception=>raise( iv_text     = lo_exception->get_text( )
-                                    ix_previous = lo_exception ).
+      READ TABLE lt_exception_list INDEX 1 INTO lx_exception.
+      zcx_abapgit_exception=>raise_with_text( lx_exception ).
     ENDIF.
 
   ENDMETHOD.
