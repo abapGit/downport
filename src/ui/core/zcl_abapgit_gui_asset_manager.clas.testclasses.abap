@@ -19,7 +19,7 @@ CLASS ltcl_abapgit_gui_asset_manager IMPLEMENTATION.
     DATA lo_assetman TYPE REF TO zcl_abapgit_gui_asset_manager.
     DATA ls_asset TYPE zif_abapgit_gui_asset_manager=>ty_web_asset.
 
-    CREATE OBJECT lo_assetman.
+    lo_assetman = NEW #( ).
 
     lo_assetman->register_asset(
       iv_url       = 'css/common.css'
@@ -41,7 +41,7 @@ CLASS ltcl_abapgit_gui_asset_manager IMPLEMENTATION.
   METHOD get_text_asset.
 
     DATA lo_assetman TYPE REF TO zcl_abapgit_gui_asset_manager.
-    CREATE OBJECT lo_assetman.
+    lo_assetman = NEW #( ).
 
     lo_assetman->register_asset(
       iv_url       = 'css/common.css'
@@ -84,7 +84,7 @@ CLASS ltcl_abapgit_gui_asset_manager IMPLEMENTATION.
   METHOD get_mime_asset.
 
     DATA lo_assetman TYPE REF TO zcl_abapgit_gui_asset_manager.
-    CREATE OBJECT lo_assetman.
+    lo_assetman = NEW #( ).
 
     lo_assetman->register_asset(
       iv_url       = 'css/common.css'
@@ -100,7 +100,7 @@ CLASS ltcl_abapgit_gui_asset_manager IMPLEMENTATION.
   METHOD get_base64_asset.
 
     DATA lo_assetman TYPE REF TO zcl_abapgit_gui_asset_manager.
-    CREATE OBJECT lo_assetman.
+    lo_assetman = NEW #( ).
 
     lo_assetman->register_asset(
       iv_url    = 'css/common.css'
@@ -116,7 +116,7 @@ CLASS ltcl_abapgit_gui_asset_manager IMPLEMENTATION.
   METHOD get_all.
 
     DATA lo_assetman TYPE REF TO zcl_abapgit_gui_asset_manager.
-    CREATE OBJECT lo_assetman.
+    lo_assetman = NEW #( ).
 
     lo_assetman->register_asset(
       iv_url    = 'css/common.css'
