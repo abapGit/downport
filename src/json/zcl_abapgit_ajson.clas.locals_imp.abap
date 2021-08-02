@@ -142,7 +142,9 @@ CLASS lcl_json_parser IMPLEMENTATION.
     TRY.
         rt_json_tree = _parse( iv_json ).
       CATCH cx_sxml_error INTO lx_sxml.
-        zcx_abapgit_ajson_error=>raise( `SXML: ` && lx_sxml->get_text( ) ).
+        zcx_abapgit_ajson_error=>raise(
+        iv_msg      = |Json parsing error (SXML): { lx_sxml->get_text( ) }|
+        iv_location = '@PARSER' ).
     ENDTRY.
   ENDMETHOD.
 
@@ -312,7 +314,7 @@ CLASS lcl_json_serializer IMPLEMENTATION.
   METHOD stringify.
 
     DATA lo TYPE REF TO lcl_json_serializer.
-    CREATE OBJECT lo.
+    lo = NEW #( ).
     lo->mt_json_tree = it_json_tree.
     lo->mv_indent_step = iv_indent.
     lo->mv_keep_item_order = iv_keep_item_order.
@@ -533,7 +535,7 @@ ENDCLASS.
 CLASS lcl_json_to_abap IMPLEMENTATION.
 
   METHOD bind.
-    CREATE OBJECT co_instance.
+    co_instance = NEW #( ).
     GET REFERENCE OF c_obj INTO co_instance->mr_obj.
     co_instance->mi_custom_mapping = ii_custom_mapping.
   ENDMETHOD.
@@ -915,7 +917,7 @@ CLASS lcl_abap_to_json IMPLEMENTATION.
 
     lo_type = cl_abap_typedescr=>describe_by_data( iv_data ).
 
-    CREATE OBJECT lo_converter.
+    lo_converter = NEW #( ).
     lo_converter->mi_custom_mapping = ii_custom_mapping.
     lo_converter->mv_keep_item_order = iv_keep_item_order.
 
@@ -1223,7 +1225,7 @@ CLASS lcl_abap_to_json IMPLEMENTATION.
 
     lo_type = cl_abap_typedescr=>describe_by_data( iv_data ).
 
-    CREATE OBJECT lo_converter.
+    lo_converter = NEW #( ).
     lo_converter->mi_custom_mapping = ii_custom_mapping.
     lo_converter->mv_keep_item_order = iv_keep_item_order.
 
