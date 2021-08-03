@@ -73,14 +73,14 @@ ENDCLASS.
 
 
 
-CLASS zcl_abapgit_gui_page_sett_pers IMPLEMENTATION.
+CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_PERS IMPLEMENTATION.
 
 
   METHOD constructor.
 
     super->constructor( ).
-    CREATE OBJECT mo_validation_log.
-    CREATE OBJECT mo_form_data.
+    mo_validation_log = NEW #( ).
+    mo_form_data = NEW #( ).
     mo_form = get_form_schema( ).
     mo_form_util = zcl_abapgit_html_form_utils=>create( mo_form ).
 
@@ -93,7 +93,7 @@ CLASS zcl_abapgit_gui_page_sett_pers IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_sett_pers.
 
-    CREATE OBJECT lo_component.
+    lo_component = NEW #( ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Personal Settings'
@@ -200,7 +200,7 @@ CLASS zcl_abapgit_gui_page_sett_pers IMPLEMENTATION.
   METHOD read_settings.
 
     " Get settings from DB
-    mo_settings = zcl_abapgit_persist_settings=>get_instance( )->read( ).
+    mo_settings = zcl_abapgit_persist_factory=>get_settings( )->read( ).
     ms_settings = mo_settings->get_user_settings( ).
 
     " Startup
@@ -246,7 +246,7 @@ CLASS zcl_abapgit_gui_page_sett_pers IMPLEMENTATION.
 
   METHOD save_settings.
 
-    DATA lo_persistence TYPE REF TO zcl_abapgit_persist_settings.
+    DATA li_persistence TYPE REF TO zif_abapgit_persist_settings.
 
     " Startup
     ms_settings-show_default_repo = mo_form_data->get( c_id-show_default_repo ).
@@ -268,8 +268,8 @@ CLASS zcl_abapgit_gui_page_sett_pers IMPLEMENTATION.
     " Store in DB
     mo_settings->set_user_settings( ms_settings ).
 
-    lo_persistence = zcl_abapgit_persist_settings=>get_instance( ).
-    lo_persistence->modify( mo_settings ).
+    li_persistence = zcl_abapgit_persist_factory=>get_settings( ).
+    li_persistence->modify( mo_settings ).
 
     COMMIT WORK AND WAIT.
 
@@ -318,7 +318,7 @@ CLASS zcl_abapgit_gui_page_sett_pers IMPLEMENTATION.
       read_settings( ).
     ENDIF.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( mo_form->render(
       io_values         = mo_form_data

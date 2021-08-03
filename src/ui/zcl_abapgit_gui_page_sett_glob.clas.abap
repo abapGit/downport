@@ -77,14 +77,14 @@ ENDCLASS.
 
 
 
-CLASS zcl_abapgit_gui_page_sett_glob IMPLEMENTATION.
+CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_GLOB IMPLEMENTATION.
 
 
   METHOD constructor.
 
     super->constructor( ).
-    CREATE OBJECT mo_validation_log.
-    CREATE OBJECT mo_form_data.
+    mo_validation_log = NEW #( ).
+    mo_form_data = NEW #( ).
     mo_form = get_form_schema( ).
     mo_form_util = zcl_abapgit_html_form_utils=>create( mo_form ).
 
@@ -97,7 +97,7 @@ CLASS zcl_abapgit_gui_page_sett_glob IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_sett_glob.
 
-    CREATE OBJECT lo_component.
+    lo_component = NEW #( ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Global Settings'
@@ -201,7 +201,7 @@ CLASS zcl_abapgit_gui_page_sett_glob IMPLEMENTATION.
   METHOD read_settings.
 
     " Get settings from DB
-    mo_settings = zcl_abapgit_persist_settings=>get_instance( )->read( ).
+    mo_settings = zcl_abapgit_persist_factory=>get_settings( )->read( ).
 
     " Proxy
     mo_form_data->set(
@@ -270,7 +270,7 @@ CLASS zcl_abapgit_gui_page_sett_glob IMPLEMENTATION.
   METHOD save_settings.
 
     DATA:
-      lo_persistence TYPE REF TO zcl_abapgit_persist_settings,
+      li_persistence TYPE REF TO zif_abapgit_persist_settings,
       lv_value       TYPE i.
 
     " Proxy
@@ -294,8 +294,8 @@ CLASS zcl_abapgit_gui_page_sett_glob IMPLEMENTATION.
     ENDIF.
 
     " Store in DB
-    lo_persistence = zcl_abapgit_persist_settings=>get_instance( ).
-    lo_persistence->modify( mo_settings ).
+    li_persistence = zcl_abapgit_persist_factory=>get_settings( ).
+    li_persistence->modify( mo_settings ).
 
     COMMIT WORK AND WAIT.
 
@@ -358,7 +358,7 @@ CLASS zcl_abapgit_gui_page_sett_glob IMPLEMENTATION.
       read_settings( ).
     ENDIF.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( mo_form->render(
       io_values         = mo_form_data

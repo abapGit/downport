@@ -13,7 +13,7 @@ CLASS ltc_ci IMPLEMENTATION.
 
     DATA lv_repo_url TYPE string.
 
-    IF zcl_abapgit_persist_settings=>get_instance( )->read( )->get_experimental_features( ) = abap_false.
+    IF zcl_abapgit_persist_factory=>get_settings( )->read( )->get_experimental_features( ) = abap_false.
       RETURN.
     ENDIF.
 
@@ -53,7 +53,7 @@ CLASS ltc_smoke_test IMPLEMENTATION.
 
     DATA  ls_item   TYPE zif_abapgit_definitions=>ty_item.
 
-    IF zcl_abapgit_persist_settings=>get_instance( )->read( )->get_experimental_features( ) = abap_false.
+    IF zcl_abapgit_persist_factory=>get_settings( )->read( )->get_experimental_features( ) = abap_false.
       RETURN.
     ENDIF.
 
@@ -61,8 +61,8 @@ CLASS ltc_smoke_test IMPLEMENTATION.
     ls_item-obj_name = '99999999'.
 
     TRY.
-        CREATE OBJECT mo_cut TYPE zcl_abapgit_object_pdts EXPORTING is_item = ls_item
-                                                                    iv_language = sy-langu.
+        mo_cut = NEW zcl_abapgit_object_pdts( is_item = ls_item
+                                              iv_language = sy-langu ).
       CATCH zcx_abapgit_exception.
         cl_abap_unit_assert=>fail( ).
     ENDTRY.
@@ -71,7 +71,7 @@ CLASS ltc_smoke_test IMPLEMENTATION.
 
   METHOD run_simple_methods.
 
-    IF zcl_abapgit_persist_settings=>get_instance( )->read( )->get_experimental_features( ) = abap_false.
+    IF zcl_abapgit_persist_factory=>get_settings( )->read( )->get_experimental_features( ) = abap_false.
       RETURN.
     ENDIF.
 

@@ -61,7 +61,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_CODI_BASE IMPLEMENTATION.
     DATA:
       lo_sort_menu TYPE REF TO zcl_abapgit_html_toolbar.
 
-    CREATE OBJECT lo_sort_menu.
+    lo_sort_menu = NEW #( ).
 
     lo_sort_menu->add(
       iv_txt = 'By Object, Check, Sub-object'
@@ -73,7 +73,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_CODI_BASE IMPLEMENTATION.
       iv_txt = 'By Check, Object, Sub-object'
       iv_act = c_actions-sort_3 ).
 
-    CREATE OBJECT ro_menu.
+    ro_menu = NEW #( ).
 
     ro_menu->add( iv_txt = 'Sort'
                   io_sub = lo_sort_menu ).
@@ -130,7 +130,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_CODI_BASE IMPLEMENTATION.
 
     " see SCI_LCL_DYNP_530 / HANDLE_DOUBLE_CLICK
 
-    lv_adt_jump_enabled = zcl_abapgit_persist_settings=>get_instance( )->read( )->get_adt_jump_enabled( ).
+    lv_adt_jump_enabled = zcl_abapgit_persist_factory=>get_settings( )->read( )->get_adt_jump_enabled( ).
 
     TRY.
         IF lv_adt_jump_enabled = abap_true.
@@ -275,7 +275,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_CODI_BASE IMPLEMENTATION.
 
   METHOD render_variant.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div class="ci-head">' ).
     ri_html->add( |Code inspector check variant: <span class="ci-variant">{ iv_variant }</span>| ).

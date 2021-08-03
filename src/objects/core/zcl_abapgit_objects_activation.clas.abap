@@ -67,7 +67,7 @@ ENDCLASS.
 
 
 
-CLASS zcl_abapgit_objects_activation IMPLEMENTATION.
+CLASS ZCL_ABAPGIT_OBJECTS_ACTIVATION IMPLEMENTATION.
 
 
   METHOD activate.
@@ -203,7 +203,7 @@ CLASS zcl_abapgit_objects_activation IMPLEMENTATION.
     IF gt_objects IS NOT INITIAL.
 
       IF zcl_abapgit_ui_factory=>get_gui_functions( )->gui_is_available( ) = abap_true.
-        IF zcl_abapgit_persist_settings=>get_instance( )->read( )->get_activate_wo_popup( ) = abap_true.
+        IF zcl_abapgit_persist_factory=>get_settings( )->read( )->get_activate_wo_popup( ) = abap_true.
           lv_popup = abap_false.
         ELSE.
           lv_popup = abap_true.
@@ -345,7 +345,7 @@ CLASS zcl_abapgit_objects_activation IMPLEMENTATION.
 
     DELETE lt_lines WHERE severity <> 'E'.
 
-    CREATE OBJECT li_log TYPE zcl_abapgit_log.
+    li_log = NEW zcl_abapgit_log( ).
     li_log->set_title( 'Activation Errors' ).
 
     LOOP AT lt_lines ASSIGNING <ls_line>.
@@ -383,8 +383,8 @@ CLASS zcl_abapgit_objects_activation IMPLEMENTATION.
           lv_include = cl_oo_classname_service=>get_interfacepool_name( ls_class-clsname ).
       ENDCASE.
 
-      CREATE OBJECT lo_cross EXPORTING p_name = lv_include
-                                       p_include = lv_include.
+      lo_cross = NEW #( p_name = lv_include
+                        p_include = lv_include ).
 
       lo_cross->index_actualize( ).
     ENDLOOP.

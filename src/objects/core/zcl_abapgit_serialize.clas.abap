@@ -119,7 +119,7 @@ ENDCLASS.
 
 
 
-CLASS zcl_abapgit_serialize IMPLEMENTATION.
+CLASS ZCL_ABAPGIT_SERIALIZE IMPLEMENTATION.
 
 
   METHOD add_apack.
@@ -208,7 +208,7 @@ CLASS zcl_abapgit_serialize IMPLEMENTATION.
       io_dot                = io_dot_abapgit
       ii_log                = ii_log ).
 
-    CREATE OBJECT lo_filter.
+    lo_filter = NEW #( ).
 
     lo_filter->apply( EXPORTING it_filter = it_filter
                       CHANGING  ct_tadir  = lt_tadir ).
@@ -248,7 +248,7 @@ CLASS zcl_abapgit_serialize IMPLEMENTATION.
 
     DATA lo_settings TYPE REF TO zcl_abapgit_settings.
 
-    lo_settings = zcl_abapgit_persist_settings=>get_instance( )->read( ).
+    lo_settings = zcl_abapgit_persist_factory=>get_settings( )->read( ).
 
     IF zcl_abapgit_factory=>get_environment( )->is_merged( ) = abap_true
         OR lo_settings->get_parallel_proc_disabled( ) = abap_true.
