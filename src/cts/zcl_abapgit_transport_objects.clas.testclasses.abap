@@ -63,7 +63,7 @@ ENDCLASS.
 CLASS ltcl_transport_objects IMPLEMENTATION.
 
   METHOD setup.
-    mo_stage = NEW #( ).
+    CREATE OBJECT mo_stage.
   ENDMETHOD.
 
   METHOD add_new_to_local_files.
@@ -391,7 +391,7 @@ CLASS ltcl_transport_objects IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD when_staging.
-    mo_transport_objects = NEW #( it_transport_objects = mt_transport_objects ).
+    CREATE OBJECT mo_transport_objects EXPORTING it_transport_objects = mt_transport_objects.
     mo_transport_objects->to_stage(
       io_stage           = mo_stage
       is_stage_objects   = ms_stage_objects
