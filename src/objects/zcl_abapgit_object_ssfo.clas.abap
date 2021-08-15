@@ -235,7 +235,7 @@ CLASS zcl_abapgit_object_ssfo IMPLEMENTATION.
           lv_text                TYPE string,
           lv_within_code_section TYPE abap_bool.
 
-    lo_sf = NEW #( ).
+    CREATE OBJECT lo_sf.
 
 * set "created by" and "changed by" to current user
     li_iterator = io_xml->get_raw( )->get_root_element( )->create_iterator( ).
@@ -415,7 +415,7 @@ CLASS zcl_abapgit_object_ssfo IMPLEMENTATION.
     li_ixml = cl_ixml=>create( ).
     li_xml_doc = li_ixml->create_document( ).
 
-    lo_sf = NEW #( ).
+    CREATE OBJECT lo_sf.
     lv_formname = ms_item-obj_name. " convert type
     TRY.
         lo_sf->load( im_formname = lv_formname
