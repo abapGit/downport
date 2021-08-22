@@ -39,7 +39,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lv_json TYPE string.
 
 
-    li_config = NEW zcl_abapgit_data_config( ).
+    CREATE OBJECT li_config TYPE zcl_abapgit_data_config.
     li_config->add_config( ms_config ).
 
     lt_files = li_config->to_json( ).
@@ -67,7 +67,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
     DATA li_config TYPE REF TO zif_abapgit_data_config.
 
-    li_config = NEW zcl_abapgit_data_config( ).
+    CREATE OBJECT li_config TYPE zcl_abapgit_data_config.
 
     li_config->from_json( it_files ).
 
