@@ -285,7 +285,7 @@ CLASS zcl_abapgit_gui_page_repo_over IMPLEMENTATION.
 
   METHOD render_scripts.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
     ri_html->add( 'setInitialFocus("filter");' ).
@@ -323,7 +323,8 @@ CLASS zcl_abapgit_gui_page_repo_over IMPLEMENTATION.
       lv_text                 TYPE string,
       lv_lock                 TYPE string,
       lv_toggle_favorite_link TYPE string,
-      lv_repo_go_link TYPE string.
+      lv_repo_go_link         TYPE string,
+      lv_remote_icon_link     TYPE string.
 
     FIELD-SYMBOLS: <ls_repo>     LIKE LINE OF it_repo_list.
 
@@ -378,8 +379,18 @@ CLASS zcl_abapgit_gui_page_repo_over IMPLEMENTATION.
                             iv_package = <ls_repo>-package
                             iv_suppress_title = abap_true )->render( ) ) ).
 
+
       IF <ls_repo>-type = abap_false.
-        lv_text = shorten_repo_url( <ls_repo>-url ).
+        lv_remote_icon_link = ii_html->a(
+          iv_txt   = ii_html->icon( iv_name  = 'edit-solid'
+                                    iv_class = 'pad-sides'
+                                    iv_hint  = 'Change remote' )
+          iv_act   = |{ zif_abapgit_definitions=>c_action-repo_remote_settings }?| &&
+                     |key={ <ls_repo>-key }|
+          iv_class = |remote_repo| ).
+
+        lv_text = shorten_repo_url( <ls_repo>-url ) && lv_remote_icon_link.
+
         ii_html->add( column( iv_content = |{ ii_html->a(
           iv_txt   = lv_text
           iv_title = <ls_repo>-url
@@ -612,7 +623,7 @@ CLASS zcl_abapgit_gui_page_repo_over IMPLEMENTATION.
 
     DATA lv_attrs TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     IF iv_value IS NOT INITIAL.
       lv_attrs = | value="{ iv_value }"|.
@@ -665,7 +676,7 @@ CLASS zcl_abapgit_gui_page_repo_over IMPLEMENTATION.
     apply_order_by( CHANGING ct_overview = mt_overview ).
     apply_filter( CHANGING ct_overview = mt_overview ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     render_header_bar( ri_html ).
 
