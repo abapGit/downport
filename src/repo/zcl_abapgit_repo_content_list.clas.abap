@@ -135,7 +135,9 @@ CLASS ZCL_ABAPGIT_REPO_CONTENT_LIST IMPLEMENTATION.
 
       IF <ls_repo_item>-obj_type IS NOT INITIAL.
         MOVE-CORRESPONDING <ls_repo_item> TO ls_item.
-* foo        <ls_repo_item>-changed_by = zcl_abapgit_objects=>changed_by( ls_item ).
+        IF zcl_abapgit_objects=>exists( ls_item ) = abap_true.
+          <ls_repo_item>-changed_by = zcl_abapgit_objects=>changed_by( ls_item ).
+        ENDIF.
         CLEAR ls_item.
       ENDIF.
     ENDLOOP.
@@ -193,7 +195,9 @@ CLASS ZCL_ABAPGIT_REPO_CONTENT_LIST IMPLEMENTATION.
 
       IF <ls_repo_item>-changes > 0 AND <ls_repo_item>-obj_type IS NOT INITIAL.
         MOVE-CORRESPONDING <ls_repo_item> TO ls_item.
-* bar        <ls_repo_item>-changed_by = zcl_abapgit_objects=>changed_by( ls_item ).
+        IF zcl_abapgit_objects=>exists( ls_item ) = abap_true.
+          <ls_repo_item>-changed_by = zcl_abapgit_objects=>changed_by( ls_item ).
+        ENDIF.
         CLEAR ls_item.
       ENDIF.
 
@@ -230,7 +234,7 @@ CLASS ZCL_ABAPGIT_REPO_CONTENT_LIST IMPLEMENTATION.
 
   METHOD constructor.
     mo_repo = io_repo.
-    CREATE OBJECT mi_log TYPE zcl_abapgit_log.
+    mi_log = NEW zcl_abapgit_log( ).
   ENDMETHOD.
 
 
