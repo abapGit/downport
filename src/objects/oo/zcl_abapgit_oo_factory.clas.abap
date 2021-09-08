@@ -23,9 +23,9 @@ CLASS zcl_abapgit_oo_factory IMPLEMENTATION.
       RETURN.
     ENDIF.
     IF iv_object_type = 'CLAS'.
-      ri_object_oriented_object = NEW zcl_abapgit_oo_class( ).
+      CREATE OBJECT ri_object_oriented_object TYPE zcl_abapgit_oo_class.
     ELSEIF iv_object_type = 'INTF'.
-      ri_object_oriented_object = NEW zcl_abapgit_oo_interface( ).
+      CREATE OBJECT ri_object_oriented_object TYPE zcl_abapgit_oo_interface.
     ENDIF.
   ENDMETHOD.
 ENDCLASS.
