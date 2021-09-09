@@ -17,7 +17,7 @@ CLASS ltcl_abapgit_syntax_abap IMPLEMENTATION.
 
   METHOD setup.
 
-    CREATE OBJECT mo_cut.
+    mo_cut = NEW #( ).
 
   ENDMETHOD.
 
@@ -64,7 +64,7 @@ ENDCLASS.
 CLASS ltcl_syntax_basic_logic IMPLEMENTATION.
 
   METHOD setup.
-    CREATE OBJECT mo_syntax_highlighter.
+    mo_syntax_highlighter = NEW #( ).
   ENDMETHOD.
 
   METHOD format_line.
@@ -183,7 +183,7 @@ CLASS ltcl_syntax_cases IMPLEMENTATION.
           lo_syntax      TYPE REF TO zcl_abapgit_syntax_abap.
 
 
-    CREATE OBJECT lo_syntax.
+    lo_syntax = NEW #( ).
     lt_matches_act = lo_syntax->parse_line( iv_line ).
 
     SORT lt_matches_act BY offset.
