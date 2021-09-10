@@ -1,4 +1,4 @@
-CLASS zcl_abapgit_object_sucu DEFINITION
+CLASS zcl_abapgit_object_sppf DEFINITION
   PUBLIC
   INHERITING FROM zcl_abapgit_objects_super
   CREATE PUBLIC .
@@ -7,18 +7,18 @@ CLASS zcl_abapgit_object_sucu DEFINITION
 
     INTERFACES zif_abapgit_object .
   PROTECTED SECTION.
+  PRIVATE SECTION.
 
     METHODS get_generic
       RETURNING
         VALUE(ro_generic) TYPE REF TO zcl_abapgit_objects_generic
       RAISING
         zcx_abapgit_exception .
-  PRIVATE SECTION.
 ENDCLASS.
 
 
 
-CLASS zcl_abapgit_object_sucu IMPLEMENTATION.
+CLASS ZCL_ABAPGIT_OBJECT_SPPF IMPLEMENTATION.
 
 
   METHOD get_generic.
