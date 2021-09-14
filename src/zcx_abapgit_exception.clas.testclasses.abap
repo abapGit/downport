@@ -45,9 +45,9 @@ CLASS ltcl_test IMPLEMENTATION.
           lx_previous TYPE REF TO cx_root.
 
     TRY.
-        CREATE OBJECT lx_previous TYPE cx_sy_dyn_call_illegal_method EXPORTING textid = cx_sy_dyn_call_illegal_method=>private_method
-                                                                               classname = 'CLASS'
-                                                                               methodname = 'METHOD'.
+        lx_previous = NEW cx_sy_dyn_call_illegal_method( textid = cx_sy_dyn_call_illegal_method=>private_method
+                                                         classname = 'CLASS'
+                                                         methodname = 'METHOD' ).
 
         zcx_abapgit_exception=>raise_with_text( lx_previous ).
         cl_abap_unit_assert=>fail( ).
@@ -77,7 +77,7 @@ CLASS ltcl_test IMPLEMENTATION.
       CATCH zcx_abapgit_exception INTO lx_ex.
         cl_abap_unit_assert=>assert_equals(
           act = get_exc_text( lx_ex )
-          exp = zcx_abapgit_exception=>gc_generic_error_msg ).
+          exp = zcx_abapgit_exception=>c_generic_error_msg ).
     ENDTRY.
 
     FREE lx_ex.
@@ -92,7 +92,7 @@ CLASS ltcl_test IMPLEMENTATION.
       CATCH zcx_abapgit_exception INTO lx_ex.
         cl_abap_unit_assert=>assert_equals(
           act = get_exc_text( lx_ex )
-          exp = zcx_abapgit_exception=>gc_generic_error_msg ).
+          exp = zcx_abapgit_exception=>c_generic_error_msg ).
     ENDTRY.
   ENDMETHOD.
 

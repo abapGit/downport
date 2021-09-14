@@ -5,7 +5,7 @@ CLASS zcl_abapgit_user_record DEFINITION
 
   PUBLIC SECTION.
 
-    CONSTANTS gc_cc_category TYPE string VALUE 'C'.
+    CONSTANTS c_cc_category TYPE string VALUE 'C'.
 
     CLASS-METHODS reset.
     CLASS-METHODS get_instance
@@ -140,7 +140,7 @@ CLASS zcl_abapgit_user_record IMPLEMENTATION.
     IF sy-subrc = 0.
       ro_user = <ls_user>-o_user.
     ELSE.
-      CREATE OBJECT ro_user EXPORTING iv_user = iv_user.
+      ro_user = NEW #( iv_user = iv_user ).
     ENDIF.
 
   ENDMETHOD.
@@ -161,7 +161,7 @@ CLASS zcl_abapgit_user_record IMPLEMENTATION.
 
     " Could not find the user Try other development clients
     SELECT mandt FROM t000 INTO TABLE lt_dev_clients
-        WHERE cccategory = gc_cc_category AND mandt <> sy-mandt
+        WHERE cccategory = c_cc_category AND mandt <> sy-mandt
         ORDER BY PRIMARY KEY.
 
     LOOP AT lt_dev_clients ASSIGNING <lv_dev_client>.

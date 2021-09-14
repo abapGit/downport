@@ -122,7 +122,7 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
 
   METHOD get_instance.
     IF gi_ref IS INITIAL.
-      CREATE OBJECT gi_ref TYPE zcl_abapgit_repo_srv.
+      gi_ref = NEW zcl_abapgit_repo_srv( ).
     ENDIF.
     ri_srv = gi_ref.
   ENDMETHOD.
@@ -131,9 +131,9 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
   METHOD instantiate_and_add.
 
     IF is_repo_meta-offline = abap_false.
-      CREATE OBJECT ro_repo TYPE zcl_abapgit_repo_online EXPORTING is_data = is_repo_meta.
+      ro_repo = NEW zcl_abapgit_repo_online( is_data = is_repo_meta ).
     ELSE.
-      CREATE OBJECT ro_repo TYPE zcl_abapgit_repo_offline EXPORTING is_data = is_repo_meta.
+      ro_repo = NEW zcl_abapgit_repo_offline( is_data = is_repo_meta ).
     ENDIF.
     add( ro_repo ).
 
@@ -410,7 +410,7 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
           lo_dot_abapgit TYPE REF TO zcl_abapgit_dot_abapgit.
 
 
-    IF zcl_abapgit_auth=>is_allowed( zif_abapgit_auth=>gc_authorization-create_repo ) = abap_false.
+    IF zcl_abapgit_auth=>is_allowed( zif_abapgit_auth=>c_authorization-create_repo ) = abap_false.
       zcx_abapgit_exception=>raise( 'Not authorized' ).
     ENDIF.
 
@@ -458,7 +458,7 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
 
     lv_url = condense( iv_url ).
 
-    IF zcl_abapgit_auth=>is_allowed( zif_abapgit_auth=>gc_authorization-create_repo ) = abap_false.
+    IF zcl_abapgit_auth=>is_allowed( zif_abapgit_auth=>c_authorization-create_repo ) = abap_false.
       zcx_abapgit_exception=>raise( 'Not authorized' ).
     ENDIF.
 
@@ -515,7 +515,7 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
 
     IF io_repo->get_local_settings( )-write_protected = abap_true.
       zcx_abapgit_exception=>raise( 'Cannot purge. Local code is write-protected by repo config' ).
-    ELSEIF zcl_abapgit_auth=>is_allowed( zif_abapgit_auth=>gc_authorization-uninstall ) = abap_false.
+    ELSEIF zcl_abapgit_auth=>is_allowed( zif_abapgit_auth=>c_authorization-uninstall ) = abap_false.
       zcx_abapgit_exception=>raise( 'Not authorized' ).
     ENDIF.
 
