@@ -100,7 +100,7 @@ CLASS zcl_abapgit_object_clas IMPLEMENTATION.
     super->constructor( is_item     = is_item
                         iv_language = iv_language ).
 
-    CREATE OBJECT mi_object_oriented_object_fct TYPE zcl_abapgit_oo_class.
+    mi_object_oriented_object_fct = NEW zcl_abapgit_oo_class( ).
 
     mv_classpool_name = cl_oo_classname_service=>get_classpool_name( |{ is_item-obj_name }| ).
 
@@ -277,6 +277,10 @@ CLASS zcl_abapgit_object_clas IMPLEMENTATION.
 
       REPLACE ALL OCCURRENCES OF iv_from_interface && '~descriptor' IN TABLE ct_source
                             WITH iv_to_interface && '~descriptor' IGNORING CASE.
+      REPLACE ALL OCCURRENCES OF iv_from_interface && '=>' IN TABLE ct_source
+                            WITH iv_to_interface && '=>' IGNORING CASE.
+      REPLACE ALL OCCURRENCES OF iv_from_interface && '->' IN TABLE ct_source
+                            WITH iv_to_interface && '->' IGNORING CASE.
     ENDIF.
 
   ENDMETHOD.
