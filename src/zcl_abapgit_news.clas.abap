@@ -124,7 +124,7 @@ CLASS zcl_abapgit_news IMPLEMENTATION.
     lv_url          = lo_repo_online->get_url( ).
 
     IF zcl_abapgit_url=>is_abapgit_repo( lv_url ) = abap_true.
-      lv_version = zif_abapgit_version=>gc_abap_version. " TODO refactor
+      lv_version = zif_abapgit_version=>c_abap_version. " TODO refactor
     ELSE.
 
       lo_apack = io_repo->get_dot_apack( ).
@@ -151,9 +151,9 @@ CLASS zcl_abapgit_news IMPLEMENTATION.
     LOOP AT lt_remote ASSIGNING <ls_file> WHERE path = lc_log_path
                                             AND ( filename CP lc_log_filename OR filename CP lc_log_filename_up ).
 
-      CREATE OBJECT ro_instance EXPORTING iv_rawdata = <ls_file>-data
-                                          iv_current_version = lv_version
-                                          iv_lastseen_version = zcl_abapgit_version=>normalize( lv_last_seen ).
+      ro_instance = NEW #( iv_rawdata = <ls_file>-data
+                           iv_current_version = lv_version
+                           iv_lastseen_version = zcl_abapgit_version=>normalize( lv_last_seen ) ).
 
       EXIT.
 
