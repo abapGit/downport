@@ -831,6 +831,11 @@ CLASS zcl_abapgit_objects_program IMPLEMENTATION.
             CLEAR <ls_field>-foreignkey.
           ENDIF.
         ENDIF.
+
+        IF <ls_field>-from_dict = abap_true AND
+           <ls_field>-modific   <> 'F'.
+          CLEAR <ls_field>-text.
+        ENDIF.
       ENDLOOP.
 
       LOOP AT lt_containers ASSIGNING <ls_container>.
@@ -902,7 +907,7 @@ CLASS zcl_abapgit_objects_program IMPLEMENTATION.
     IF io_xml IS BOUND.
       li_xml = io_xml.
     ELSE.
-      CREATE OBJECT li_xml TYPE zcl_abapgit_xml_output.
+      li_xml = NEW zcl_abapgit_xml_output( ).
     ENDIF.
 
     li_xml->add( iv_name = 'PROGDIR'
