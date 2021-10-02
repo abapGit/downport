@@ -36,6 +36,7 @@ CLASS zcl_abapgit_html_form DEFINITION
         !iv_upper_case  TYPE abap_bool DEFAULT abap_false
         !iv_readonly    TYPE abap_bool DEFAULT abap_false
         !iv_password    TYPE abap_bool DEFAULT abap_false
+        !iv_condense    TYPE abap_bool OPTIONAL
         !iv_placeholder TYPE csequence OPTIONAL
         !iv_side_action TYPE csequence OPTIONAL
         !iv_min         TYPE i DEFAULT cl_abap_math=>min_int4
@@ -243,7 +244,7 @@ CLASS zcl_abapgit_html_form IMPLEMENTATION.
 
     DATA lv_ts TYPE timestampl.
 
-    CREATE OBJECT ro_form.
+    ro_form = NEW #( ).
     ro_form->mv_form_id = iv_form_id.
     ro_form->mv_help_page = iv_help_page.
 
@@ -352,7 +353,7 @@ CLASS zcl_abapgit_html_form IMPLEMENTATION.
       EXIT.
     ENDLOOP.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( |<div class="dialog { iv_form_class }">| ). " to center use 'dialog-form-center'
     ri_html->add( |<form method="post"{ ls_form_id }{ ls_form_action }>| ).
@@ -817,6 +818,7 @@ CLASS zcl_abapgit_html_form IMPLEMENTATION.
     ls_field-min        = iv_min.
     ls_field-max        = iv_max.
     ls_field-password   = iv_password.
+    ls_field-condense   = iv_condense.
     ls_field-hint       = iv_hint.
     ls_field-required   = iv_required.
     ls_field-placeholder = iv_placeholder.
