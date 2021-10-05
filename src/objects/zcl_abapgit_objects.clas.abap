@@ -169,6 +169,10 @@ CLASS zcl_abapgit_objects DEFINITION
         !iv_obj_type TYPE tadir-object
       RAISING
         zcx_abapgit_exception .
+    CLASS-METHODS change_package_assignments
+      IMPORTING
+        !is_item TYPE zif_abapgit_definitions=>ty_item
+        !ii_log  TYPE REF TO zif_abapgit_log.
 ENDCLASS.
 
 
@@ -197,6 +201,28 @@ CLASS zcl_abapgit_objects IMPLEMENTATION.
     IF rv_user IS INITIAL.
       " Eg. ".abapgit.xml" file
       rv_user = zcl_abapgit_objects_super=>c_user_unknown.
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD change_package_assignments.
+
+    CALL FUNCTION 'TR_TADIR_INTERFACE'
+      EXPORTING
+        wi_tadir_pgmid    = 'R3TR'
+        wi_tadir_object   = is_item-obj_type
+        wi_tadir_obj_name = is_item-obj_name
+        wi_tadir_devclass = is_item-devclass
+        wi_test_modus     = abap_false
+      EXCEPTIONS
+        OTHERS            = 1.
+    IF sy-subrc = 0.
+      ii_log->add_success( iv_msg  = |Object { is_item-obj_name } assigned to package { is_item-devclass }|
+                           is_item = is_item ).
+    ELSE.
+      ii_log->add_error( iv_msg  = |Package change of object { is_item-obj_name } failed|
+                         is_item = is_item ).
     ENDIF.
 
   ENDMETHOD.
@@ -325,8 +351,8 @@ CLASS zcl_abapgit_objects IMPLEMENTATION.
         RETURN.
       ENDIF.
 
-      CREATE OBJECT li_remote_version TYPE zcl_abapgit_xml_input EXPORTING iv_xml = zcl_abapgit_convert=>xstring_to_string_utf8( ls_remote_file-data )
-                                                                           iv_filename = ls_remote_file-filename.
+      li_remote_version = NEW zcl_abapgit_xml_input( iv_xml = zcl_abapgit_convert=>xstring_to_string_utf8( ls_remote_file-data )
+                                                     iv_filename = ls_remote_file-filename ).
 
       ls_result = li_comparator->compare( ii_remote = li_remote_version
                                           ii_log = ii_log ).
@@ -406,7 +432,7 @@ CLASS zcl_abapgit_objects IMPLEMENTATION.
         lv_message = |Object type { is_item-obj_type } is not supported by this system|.
         IF iv_native_only = abap_false.
           TRY. " 2nd step, try looking for plugins
-              CREATE OBJECT ri_obj TYPE zcl_abapgit_objects_bridge EXPORTING is_item = is_item.
+              ri_obj = NEW zcl_abapgit_objects_bridge( is_item = is_item ).
             CATCH cx_sy_create_object_error.
               zcx_abapgit_exception=>raise( lv_message ).
           ENDTRY.
@@ -618,8 +644,18 @@ CLASS zcl_abapgit_objects IMPLEMENTATION.
             lv_path = <ls_result>-path.
           ENDIF.
 
-          CREATE OBJECT lo_files EXPORTING is_item = ls_item
-                                           iv_path = lv_path.
+          IF <ls_result>-packmove = abap_true.
+            " Move object to new package
+            ls_item-devclass = lv_package.
+            change_package_assignments( is_item = ls_item
+                                        ii_log  = ii_log ).
+            " No other changes required
+            CONTINUE.
+          ENDIF.
+
+          " Create or update object
+          lo_files = NEW #( is_item = ls_item
+                            iv_path = lv_path ).
           lo_files->set_files( lt_remote ).
 
           "analyze XML in order to instantiate the proper serializer
@@ -966,14 +1002,14 @@ CLASS zcl_abapgit_objects IMPLEMENTATION.
         rs_files_and_item-item-obj_name }| ).
     ENDIF.
 
-    CREATE OBJECT lo_files EXPORTING is_item = rs_files_and_item-item.
+    lo_files = NEW #( is_item = rs_files_and_item-item ).
 
     li_obj = create_object( is_item     = rs_files_and_item-item
                             iv_language = iv_language ).
 
     li_obj->mo_files = lo_files.
 
-    CREATE OBJECT li_xml TYPE zcl_abapgit_xml_output.
+    li_xml = NEW zcl_abapgit_xml_output( ).
 
     ls_i18n_params-main_language         = iv_language.
     ls_i18n_params-main_language_only    = iv_main_language_only.
