@@ -79,8 +79,8 @@ CLASS zcl_abapgit_gui_page_sett_locl IMPLEMENTATION.
   METHOD constructor.
 
     super->constructor( ).
-    CREATE OBJECT mo_validation_log.
-    CREATE OBJECT mo_form_data.
+    mo_validation_log = NEW #( ).
+    mo_form_data = NEW #( ).
     mo_repo = io_repo.
     mo_form = get_form_schema( ).
     mo_form_util = zcl_abapgit_html_form_utils=>create( mo_form ).
@@ -94,7 +94,7 @@ CLASS zcl_abapgit_gui_page_sett_locl IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_sett_locl.
 
-    CREATE OBJECT lo_component EXPORTING io_repo = io_repo.
+    lo_component = NEW #( io_repo = io_repo ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Local Settings & Checks'
@@ -110,7 +110,7 @@ CLASS zcl_abapgit_gui_page_sett_locl IMPLEMENTATION.
 
     ro_form = zcl_abapgit_html_form=>create(
                 iv_form_id   = 'repo-local-settings-form'
-                iv_help_page = 'https://docs.abapgit.org/guide-repo-local.html' ).
+                iv_help_page = 'https://docs.abapgit.org/settings-local.html' ).
 
     ro_form->start_group(
       iv_name        = c_id-local
@@ -273,7 +273,7 @@ CLASS zcl_abapgit_gui_page_sett_locl IMPLEMENTATION.
       read_settings( ).
     ENDIF.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( `<div class="repo">` ).
 
