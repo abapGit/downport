@@ -7,7 +7,8 @@ CLASS zcl_abapgit_gui_page_main DEFINITION
     INTERFACES: zif_abapgit_gui_hotkeys.
     METHODS:
       constructor
-        RAISING zcx_abapgit_exception,
+        IMPORTING iv_only_favorites TYPE abap_bool
+        RAISING   zcx_abapgit_exception,
       zif_abapgit_gui_event_handler~on_event REDEFINITION.
 
 
@@ -25,8 +26,9 @@ CLASS zcl_abapgit_gui_page_main DEFINITION
         abapgit_home TYPE string VALUE 'abapgit_home',
       END OF c_actions.
 
-    DATA: mo_repo_overview TYPE REF TO zcl_abapgit_gui_page_repo_over,
-          mv_repo_key      TYPE zif_abapgit_persistence=>ty_value.
+    DATA: mo_repo_overview  TYPE REF TO zcl_abapgit_gui_page_repo_over,
+          mv_repo_key       TYPE zif_abapgit_persistence=>ty_value,
+          mv_only_favorites TYPE abap_bool.
 
     METHODS build_main_menu
       RETURNING VALUE(ro_menu) TYPE REF TO zcl_abapgit_html_toolbar.
@@ -40,7 +42,7 @@ CLASS zcl_abapgit_gui_page_main IMPLEMENTATION.
 
   METHOD build_main_menu.
 
-    CREATE OBJECT ro_menu EXPORTING iv_id = 'toolbar-main'.
+    ro_menu = NEW #( iv_id = 'toolbar-main' ).
 
     ro_menu->add(
       iv_txt = zcl_abapgit_gui_buttons=>new_online( )
@@ -67,22 +69,25 @@ CLASS zcl_abapgit_gui_page_main IMPLEMENTATION.
     super->constructor( ).
     ms_control-page_menu  = build_main_menu( ).
     ms_control-page_title = 'Repository List'.
+    mv_only_favorites = iv_only_favorites.
   ENDMETHOD.
 
 
   METHOD render_content.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     gui_services( )->get_hotkeys_ctl( )->register_hotkeys( zif_abapgit_gui_hotkeys~get_hotkey_actions( ) ).
 
-    IF mo_repo_overview IS INITIAL.
-      CREATE OBJECT mo_repo_overview.
+    IF mo_repo_overview IS INITIAL OR mo_repo_overview->mv_only_favorites <> mv_only_favorites.
+      mo_repo_overview = NEW #( iv_only_favorites = mv_only_favorites ).
     ENDIF.
 
     ri_html->add( mo_repo_overview->zif_abapgit_gui_renderable~render( ) ).
 
-    register_deferred_script( zcl_abapgit_gui_chunk_lib=>render_repo_palette( c_actions-select ) ).
+    register_deferred_script( zcl_abapgit_gui_chunk_lib=>render_repo_palette(
+      iv_action = c_actions-select
+      iv_only_favorites = mv_only_favorites ) ).
 
   ENDMETHOD.
 
@@ -107,12 +112,17 @@ CLASS zcl_abapgit_gui_page_main IMPLEMENTATION.
         ENDTRY.
 
         mv_repo_key = lv_key.
-        CREATE OBJECT rs_handled-page TYPE zcl_abapgit_gui_page_repo_view EXPORTING iv_key = lv_key.
+        rs_handled-page = NEW zcl_abapgit_gui_page_repo_view( iv_key = lv_key ).
         rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page.
 
       WHEN zif_abapgit_definitions=>c_action-change_order_by.
 
         mo_repo_overview->set_order_by( ii_event->query( )->get( 'ORDERBY' ) ).
+        rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
+
+      WHEN zif_abapgit_definitions=>c_action-toggle_favorites.
+
+        mv_only_favorites = ii_event->query( )->get( 'FAVORITES' ).
         rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
 
       WHEN zif_abapgit_definitions=>c_action-direction.
@@ -128,7 +138,7 @@ CLASS zcl_abapgit_gui_page_main IMPLEMENTATION.
 
       WHEN zif_abapgit_definitions=>c_action-go_patch.
 
-        CREATE OBJECT rs_handled-page TYPE zcl_abapgit_gui_page_patch EXPORTING iv_key = lv_key.
+        rs_handled-page = NEW zcl_abapgit_gui_page_patch( iv_key = lv_key ).
         rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page.
 
       WHEN OTHERS.
