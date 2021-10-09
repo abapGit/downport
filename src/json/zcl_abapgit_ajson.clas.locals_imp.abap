@@ -367,7 +367,7 @@ CLASS lcl_json_serializer IMPLEMENTATION.
   METHOD stringify.
 
     DATA lo TYPE REF TO lcl_json_serializer.
-    lo = NEW #( ).
+    CREATE OBJECT lo.
     lo->mt_json_tree = it_json_tree.
     lo->mv_indent_step = iv_indent.
     lo->mv_keep_item_order = iv_keep_item_order.
@@ -588,7 +588,7 @@ ENDCLASS.
 CLASS lcl_json_to_abap IMPLEMENTATION.
 
   METHOD bind.
-    co_instance = NEW #( ).
+    CREATE OBJECT co_instance.
     GET REFERENCE OF c_obj INTO co_instance->mr_obj.
     co_instance->mi_custom_mapping = ii_custom_mapping.
   ENDMETHOD.
@@ -970,7 +970,7 @@ CLASS lcl_abap_to_json IMPLEMENTATION.
 
     lo_type = cl_abap_typedescr=>describe_by_data( iv_data ).
 
-    lo_converter = NEW #( ).
+    CREATE OBJECT lo_converter.
     lo_converter->mi_custom_mapping = ii_custom_mapping.
     lo_converter->mv_keep_item_order = iv_keep_item_order.
 
@@ -1282,7 +1282,7 @@ CLASS lcl_abap_to_json IMPLEMENTATION.
 
     lo_type = cl_abap_typedescr=>describe_by_data( iv_data ).
 
-    lo_converter = NEW #( ).
+    CREATE OBJECT lo_converter.
     lo_converter->mi_custom_mapping = ii_custom_mapping.
     lo_converter->mv_keep_item_order = iv_keep_item_order.
 
