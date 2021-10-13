@@ -95,7 +95,7 @@ ENDCLASS.
 
 
 
-CLASS zcl_abapgit_services_repo IMPLEMENTATION.
+CLASS ZCL_ABAPGIT_SERVICES_REPO IMPLEMENTATION.
 
 
   METHOD check_package.
@@ -272,9 +272,7 @@ CLASS zcl_abapgit_services_repo IMPLEMENTATION.
     IF iv_reset_all IS INITIAL.
       DELETE lt_decision
         WHERE action = zif_abapgit_objects=>c_deserialize_action-add
-           OR action = zif_abapgit_objects=>c_deserialize_action-update
-           OR action = zif_abapgit_objects=>c_deserialize_action-delete
-           OR action = zif_abapgit_objects=>c_deserialize_action-delete_add.
+           OR action = zif_abapgit_objects=>c_deserialize_action-update.
     ENDIF.
 
     " Ask user what to do
@@ -609,7 +607,7 @@ CLASS zcl_abapgit_services_repo IMPLEMENTATION.
     ls_transport_to_branch = zcl_abapgit_ui_factory=>get_popups( )->popup_to_create_transp_branch(
       lt_transport_headers ).
 
-    CREATE OBJECT lo_transport_to_branch.
+    lo_transport_to_branch = NEW #( ).
     lo_transport_to_branch->create(
       io_repository          = lo_repository
       is_transport_to_branch = ls_transport_to_branch
