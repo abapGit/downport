@@ -162,7 +162,7 @@ CLASS ZCL_ABAPGIT_LOG_VIEWER IMPLEMENTATION.
     ASSERT is_log-exception IS BOUND.
     lx_abapgit ?= is_log-exception.
 
-    CREATE OBJECT ro_exception_viewer EXPORTING ix_error = lx_abapgit.
+    ro_exception_viewer = NEW #( ix_error = lx_abapgit ).
 
   ENDMETHOD.
 
@@ -349,12 +349,45 @@ CLASS ZCL_ABAPGIT_LOG_VIEWER IMPLEMENTATION.
           lo_column->set_technical( abap_true ).
         ENDIF.
 
+        "hide empty columns
+        LOOP AT gt_log TRANSPORTING NO FIELDS WHERE t100 IS NOT INITIAL.
+          EXIT.
+        ENDLOOP.
+        IF sy-subrc <> 0.
+          lo_column = lo_columns->get_column( |T100| ).
+          lo_column->set_technical( abap_true ).
+        ENDIF.
+
+        LOOP AT gt_log TRANSPORTING NO FIELDS WHERE source IS NOT INITIAL.
+          EXIT.
+        ENDLOOP.
+        IF sy-subrc <> 0.
+          lo_column = lo_columns->get_column( |SOURCE| ).
+          lo_column->set_technical( abap_true ).
+        ENDIF.
+
+        LOOP AT gt_log TRANSPORTING NO FIELDS WHERE longtext IS NOT INITIAL.
+          EXIT.
+        ENDLOOP.
+        IF sy-subrc <> 0.
+          lo_column = lo_columns->get_column( |LONGTEXT| ).
+          lo_column->set_technical( abap_true ).
+        ENDIF.
+
+        LOOP AT gt_log TRANSPORTING NO FIELDS WHERE callstack IS NOT INITIAL.
+          EXIT.
+        ENDLOOP.
+        IF sy-subrc <> 0.
+          lo_column = lo_columns->get_column( |CALLSTACK| ).
+          lo_column->set_technical( abap_true ).
+        ENDIF.
+
         lo_alv->set_screen_popup( start_column = 10
-                                  end_column   = 180
+                                  end_column   = 140
                                   start_line   = 4
                                   end_line     = 25 ).
 
-        CREATE OBJECT lo_form_header EXPORTING text = ii_log->get_title( ).
+        lo_form_header = NEW #( text = ii_log->get_title( ) ).
 
         lo_alv->set_top_of_list( lo_form_header ).
 
@@ -429,7 +462,7 @@ CLASS ZCL_ABAPGIT_LOG_VIEWER IMPLEMENTATION.
           lv_class   TYPE string,
           lv_icon    TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     IF ii_log->count( ) = 0.
       RETURN.
