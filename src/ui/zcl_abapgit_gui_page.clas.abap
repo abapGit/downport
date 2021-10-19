@@ -36,6 +36,8 @@ CLASS zcl_abapgit_gui_page DEFINITION PUBLIC ABSTRACT
         zcx_abapgit_exception .
   PRIVATE SECTION.
 
+    TYPES: ty_time TYPE p LENGTH 10 DECIMALS 2.
+
     DATA mo_settings TYPE REF TO zcl_abapgit_settings .
     DATA mx_error TYPE REF TO zcx_abapgit_exception .
     DATA mo_exception_viewer TYPE REF TO zcl_abapgit_exception_viewer .
@@ -53,6 +55,8 @@ CLASS zcl_abapgit_gui_page DEFINITION PUBLIC ABSTRACT
       RETURNING
         VALUE(ri_html) TYPE REF TO zif_abapgit_html .
     METHODS footer
+      IMPORTING
+        !iv_time       TYPE ty_time
       RETURNING
         VALUE(ri_html) TYPE REF TO zif_abapgit_html .
     METHODS render_link_hints
@@ -98,7 +102,7 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
 
   METHOD footer.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div id="footer">' ).
     ri_html->add( '<table class="w100"><tr>' ).
@@ -108,7 +112,8 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
     ri_html->add( '<td class="center">' ).
     ri_html->add( '<div class="logo">' ).
     ri_html->add( ri_html->icon( 'git-alt' ) ).
-    ri_html->add( ri_html->icon( 'abapgit' ) ).
+    ri_html->add( ri_html->icon( iv_name = 'abapgit'
+                                 iv_hint = |{ iv_time } sec| ) ).
     ri_html->add( '</div>' ).
     ri_html->add( |<div class="version">{ zif_abapgit_version=>c_abap_version }</div>| ).
     ri_html->add( '</td>' ).
@@ -123,7 +128,7 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
 
   METHOD html_head.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<head>' ).
 
@@ -185,7 +190,7 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
     " You should remember that the we have to instantiate ro_html even
     " it's overwritten further down. Because ADD checks whether it's
     " bound.
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     " You should remember that we render the message panel only
     " if we have an error.
@@ -197,7 +202,7 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
 
     " You should remember that the exception viewer dispatches the events of
     " error message panel
-    CREATE OBJECT mo_exception_viewer EXPORTING ix_error = mx_error.
+    mo_exception_viewer = NEW #( ix_error = mx_error ).
 
     " You should remember that we render the message panel just once
     " for each exception/error text.
@@ -236,7 +241,7 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
 
   METHOD scripts.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     render_deferred_parts(
       ii_html          = ri_html
@@ -250,7 +255,7 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
 
   METHOD title.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div id="header">' ).
 
@@ -311,12 +316,18 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
 
   METHOD zif_abapgit_gui_renderable~render.
 
-    DATA: li_script TYPE REF TO zif_abapgit_html.
+    DATA:
+      li_script TYPE REF TO zif_abapgit_html,
+      lv_start  TYPE i,
+      lv_end    TYPE i,
+      lv_total  TYPE ty_time.
 
     gui_services( )->register_event_handler( me ).
 
+    GET RUN TIME FIELD lv_start.
+
     " Real page
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<!DOCTYPE html>' ).
     ri_html->add( '<html lang="en">' ).
@@ -333,7 +344,10 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
       ii_html          = ri_html
       iv_part_category = c_html_parts-hidden_forms ).
 
-    ri_html->add( footer( ) ).
+    GET RUN TIME FIELD lv_end.
+    lv_total = ( lv_end - lv_start ) / 1000 / 1000.
+
+    ri_html->add( footer( lv_total ) ).
 
     li_script = scripts( ).
 
