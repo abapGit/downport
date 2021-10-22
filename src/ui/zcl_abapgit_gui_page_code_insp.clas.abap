@@ -182,7 +182,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_CODE_INSP IMPLEMENTATION.
 
   METHOD render_content.
 
-    ri_html = NEW zcl_abapgit_html( ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
 
     ri_html->add( `<div class="repo">` ).
     ri_html->add( zcl_abapgit_gui_chunk_lib=>render_repo_top( io_repo        = mo_repo
@@ -253,8 +253,8 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_CODE_INSP IMPLEMENTATION.
             ENDIF.
           ENDIF.
 
-          rs_handled-page = NEW zcl_abapgit_gui_page_stage( io_repo = lo_repo_online
-                                                            iv_sci_result = lv_sci_result ).
+          CREATE OBJECT rs_handled-page TYPE zcl_abapgit_gui_page_stage EXPORTING io_repo = lo_repo_online
+                                                                                  iv_sci_result = lv_sci_result.
           rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page.
 
         ELSE.
@@ -269,8 +269,8 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_CODE_INSP IMPLEMENTATION.
 
         IF is_stage_allowed( ) = abap_true.
 
-          rs_handled-page = NEW zcl_abapgit_gui_page_commit( io_repo = lo_repo_online
-                                                             io_stage = mo_stage ).
+          CREATE OBJECT rs_handled-page TYPE zcl_abapgit_gui_page_commit EXPORTING io_repo = lo_repo_online
+                                                                                   io_stage = mo_stage.
           rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page.
 
         ELSE.
