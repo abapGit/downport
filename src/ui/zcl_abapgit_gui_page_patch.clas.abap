@@ -139,21 +139,22 @@ ENDCLASS.
 
 CLASS zcl_abapgit_gui_page_patch IMPLEMENTATION.
 
-  METHOD zif_abapgit_gui_hotkeys~get_hotkey_actions.
 
-    DATA: ls_hotkey_action LIKE LINE OF rt_hotkey_actions.
+  METHOD add_menu_begin.
 
-    ls_hotkey_action-ui_component = 'Patch'.
+    io_menu->add(
+        iv_txt   = c_action_texts-refresh_local
+        iv_typ   = zif_abapgit_html=>c_action_type-dummy
+        iv_act   = c_actions-refresh_local
+        iv_id    = c_actions-refresh_local
+        iv_title = c_action_titles-refresh_local ).
 
-    ls_hotkey_action-description = |Stage changes|.
-    ls_hotkey_action-action      = |stagePatch|.
-    ls_hotkey_action-hotkey      = |s|.
-    INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
-
-    ls_hotkey_action-description = |Refresh local|.
-    ls_hotkey_action-action      = |refreshLocal|.
-    ls_hotkey_action-hotkey      = |r|.
-    INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
+    io_menu->add(
+        iv_txt   = c_action_texts-refresh_all
+        iv_typ   = zif_abapgit_html=>c_action_type-dummy
+        iv_act   = c_actions-refresh_all
+        iv_id    = c_actions-refresh_all
+        iv_title = c_action_titles-refresh_all ).
 
   ENDMETHOD.
 
@@ -194,7 +195,7 @@ CLASS zcl_abapgit_gui_page_patch IMPLEMENTATION.
 
       lv_something_patched = abap_true.
 
-      CREATE OBJECT lo_git_add_patch EXPORTING it_diff = <ls_diff_file>-o_diff->get( ).
+      lo_git_add_patch = NEW #( it_diff = <ls_diff_file>-o_diff->get( ) ).
 
       lv_patch = lo_git_add_patch->get_patch_binary( ).
 
@@ -342,7 +343,7 @@ CLASS zcl_abapgit_gui_page_patch IMPLEMENTATION.
     " While patching we always want to be in split mode
     CLEAR: mv_unified.
     set_layout( ).
-    CREATE OBJECT mo_stage.
+    mo_stage = NEW #( ).
 
     ms_control-page_title = 'Patch'.
     ms_control-page_menu = build_menu( ).
@@ -417,6 +418,39 @@ CLASS zcl_abapgit_gui_page_patch IMPLEMENTATION.
     OR is_diff_line-result = zif_abapgit_definitions=>c_diff-delete.
       rv_is_patch_line_possible = abap_true.
     ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD modify_files_before_diff_calc.
+
+    DATA: ls_file LIKE LINE OF ct_files.
+
+    FIELD-SYMBOLS: <ls_diff_file_old> TYPE zcl_abapgit_gui_page_diff=>ty_file_diff.
+
+    " We need to supply files again in calculate_diff. Because
+    " we only want to refresh the visible files. Otherwise all
+    " diff files would appear.
+    " Which is not wanted when we previously only selected particular files.
+
+    LOOP AT it_diff_files_old ASSIGNING <ls_diff_file_old>.
+      CLEAR: ls_file.
+      MOVE-CORRESPONDING <ls_diff_file_old> TO ls_file-file.
+      INSERT ls_file INTO TABLE ct_files.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD refresh.
+
+    DATA: lt_diff_files_old TYPE ty_file_diffs.
+
+    lt_diff_files_old = mt_diff_files.
+
+    super->refresh( iv_action ).
+
+    restore_patch_flags( lt_diff_files_old ).
 
   ENDMETHOD.
 
@@ -537,7 +571,7 @@ CLASS zcl_abapgit_gui_page_patch IMPLEMENTATION.
 
   METHOD render_scripts.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
     ri_html->add( 'preparePatch();' ).
@@ -609,8 +643,10 @@ CLASS zcl_abapgit_gui_page_patch IMPLEMENTATION.
 
         start_staging( ii_event ).
 
-        CREATE OBJECT rs_handled-page TYPE zcl_abapgit_gui_page_commit EXPORTING io_repo = mo_repo_online
-                                                                                 io_stage = mo_stage.
+        rs_handled-page = zcl_abapgit_gui_page_commit=>create(
+          io_repo  = mo_repo_online
+          io_stage = mo_stage ).
+
         rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page.
 
       WHEN OTHERS.
@@ -632,55 +668,21 @@ CLASS zcl_abapgit_gui_page_patch IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD refresh.
+  METHOD zif_abapgit_gui_hotkeys~get_hotkey_actions.
 
-    DATA: lt_diff_files_old TYPE ty_file_diffs.
+    DATA: ls_hotkey_action LIKE LINE OF rt_hotkey_actions.
 
-    lt_diff_files_old = mt_diff_files.
+    ls_hotkey_action-ui_component = 'Patch'.
 
-    super->refresh( iv_action ).
+    ls_hotkey_action-description = |Stage changes|.
+    ls_hotkey_action-action      = |stagePatch|.
+    ls_hotkey_action-hotkey      = |s|.
+    INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
 
-    restore_patch_flags( lt_diff_files_old ).
-
-  ENDMETHOD.
-
-
-  METHOD add_menu_begin.
-
-    io_menu->add(
-        iv_txt   = c_action_texts-refresh_local
-        iv_typ   = zif_abapgit_html=>c_action_type-dummy
-        iv_act   = c_actions-refresh_local
-        iv_id    = c_actions-refresh_local
-        iv_title = c_action_titles-refresh_local ).
-
-    io_menu->add(
-        iv_txt   = c_action_texts-refresh_all
-        iv_typ   = zif_abapgit_html=>c_action_type-dummy
-        iv_act   = c_actions-refresh_all
-        iv_id    = c_actions-refresh_all
-        iv_title = c_action_titles-refresh_all ).
+    ls_hotkey_action-description = |Refresh local|.
+    ls_hotkey_action-action      = |refreshLocal|.
+    ls_hotkey_action-hotkey      = |r|.
+    INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
 
   ENDMETHOD.
-
-
-  METHOD modify_files_before_diff_calc.
-
-    DATA: ls_file LIKE LINE OF ct_files.
-
-    FIELD-SYMBOLS: <ls_diff_file_old> TYPE zcl_abapgit_gui_page_diff=>ty_file_diff.
-
-    " We need to supply files again in calculate_diff. Because
-    " we only want to refresh the visible files. Otherwise all
-    " diff files would appear.
-    " Which is not wanted when we previously only selected particular files.
-
-    LOOP AT it_diff_files_old ASSIGNING <ls_diff_file_old>.
-      CLEAR: ls_file.
-      MOVE-CORRESPONDING <ls_diff_file_old> TO ls_file-file.
-      INSERT ls_file INTO TABLE ct_files.
-    ENDLOOP.
-
-  ENDMETHOD.
-
 ENDCLASS.
