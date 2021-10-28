@@ -136,7 +136,7 @@ CLASS zcl_abapgit_gui_page_merge_res IMPLEMENTATION.
 
   METHOD build_menu.
 
-    CREATE OBJECT ro_menu.
+    ro_menu = NEW #( ).
     ro_menu->add( iv_txt = 'Toggle merge mode'
                   iv_act = c_actions-toggle_mode ).
     ro_menu->add( iv_txt = 'Cancel'
@@ -177,26 +177,7 @@ CLASS zcl_abapgit_gui_page_merge_res IMPLEMENTATION.
       ASSIGN iv_d2 TO <lv_data>.
     ENDIF.
 
-    lv_len = xstrlen( <lv_data> ).
-    IF lv_len = 0.
-      RETURN.
-    ENDIF.
-
-    IF lv_len > 100.
-      lv_len = 100.
-    ENDIF.
-
-    " Simple char range test
-    " stackoverflow.com/questions/277521/how-to-identify-the-file-content-as-ascii-or-binary
-    DO lv_len TIMES. " I'm sure there is more efficient way ...
-      lv_idx = sy-index - 1.
-      lv_x = <lv_data>+lv_idx(1).
-
-      IF NOT ( lv_x BETWEEN 9 AND 13 OR lv_x BETWEEN 32 AND 126 ).
-        rv_yes = abap_true.
-        EXIT.
-      ENDIF.
-    ENDDO.
+    rv_yes = zcl_abapgit_utils=>is_binary( <lv_data> ).
 
   ENDMETHOD.
 
@@ -206,7 +187,7 @@ CLASS zcl_abapgit_gui_page_merge_res IMPLEMENTATION.
     DATA: lv_beacon  TYPE string,
           lt_beacons TYPE zif_abapgit_definitions=>ty_string_tt.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     IF is_diff_line-beacon > 0.
       lt_beacons = is_diff-o_diff->get_beacons( ).
@@ -235,7 +216,7 @@ CLASS zcl_abapgit_gui_page_merge_res IMPLEMENTATION.
       zcx_abapgit_exception=>raise( 'no conflict found' ).
     ENDIF.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
     ri_html->add( |<div id="diff-list" data-repo-key="{ mo_repo->get_key( ) }">| ).
     ri_html->add( render_diff( ms_diff_file ) ).
     ri_html->add( '</div>' ).
@@ -248,7 +229,7 @@ CLASS zcl_abapgit_gui_page_merge_res IMPLEMENTATION.
     DATA: lv_target_content TYPE string.
     FIELD-SYMBOLS: <ls_conflict> TYPE zif_abapgit_merge=>ty_merge_conflict.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( |<div class="diff" data-type="{ is_diff-type
       }" data-changed-by="{ is_diff-changed_by
@@ -326,7 +307,7 @@ CLASS zcl_abapgit_gui_page_merge_res IMPLEMENTATION.
 
     DATA: ls_stats TYPE zif_abapgit_definitions=>ty_count.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div class="diff_head">' ).
 
@@ -352,7 +333,7 @@ CLASS zcl_abapgit_gui_page_merge_res IMPLEMENTATION.
     FIELD-SYMBOLS <ls_diff>  LIKE LINE OF lt_diffs.
 
     lo_highlighter = zcl_abapgit_syntax_factory=>create( is_diff-filename ).
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     lt_diffs = is_diff-o_diff->get( ).
 
@@ -395,7 +376,7 @@ CLASS zcl_abapgit_gui_page_merge_res IMPLEMENTATION.
           lv_mark TYPE string,
           lv_bg   TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     " New line
     lv_mark = ` `.
@@ -433,7 +414,7 @@ CLASS zcl_abapgit_gui_page_merge_res IMPLEMENTATION.
 
   METHOD render_table_head.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<thead class="header">' ).
     ri_html->add( '<tr>' ).
@@ -499,8 +480,8 @@ CLASS zcl_abapgit_gui_page_merge_res IMPLEMENTATION.
     ENDIF.
 
     IF ms_diff_file-type <> 'binary'.
-      CREATE OBJECT ms_diff_file-o_diff EXPORTING iv_new = <ls_conflict>-source_data
-                                                  iv_old = <ls_conflict>-target_data.
+      ms_diff_file-o_diff = NEW #( iv_new = <ls_conflict>-source_data
+                                   iv_old = <ls_conflict>-target_data ).
     ENDIF.
 
   ENDMETHOD.
