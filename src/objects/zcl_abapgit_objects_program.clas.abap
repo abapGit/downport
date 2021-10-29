@@ -833,7 +833,8 @@ CLASS zcl_abapgit_objects_program IMPLEMENTATION.
         ENDIF.
 
         IF <ls_field>-from_dict = abap_true AND
-           <ls_field>-modific   <> 'F'.
+           <ls_field>-modific   <> 'F' AND
+           <ls_field>-modific   <> 'X'.
           CLEAR <ls_field>-text.
         ENDIF.
       ENDLOOP.
@@ -907,7 +908,7 @@ CLASS zcl_abapgit_objects_program IMPLEMENTATION.
     IF io_xml IS BOUND.
       li_xml = io_xml.
     ELSE.
-      CREATE OBJECT li_xml TYPE zcl_abapgit_xml_output.
+      li_xml = NEW zcl_abapgit_xml_output( ).
     ENDIF.
 
     li_xml->add( iv_name = 'PROGDIR'
