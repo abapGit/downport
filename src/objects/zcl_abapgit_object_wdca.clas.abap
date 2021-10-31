@@ -69,8 +69,8 @@ CLASS ZCL_ABAPGIT_OBJECT_WDCA IMPLEMENTATION.
     ls_key = ms_item-obj_name.
 
     TRY.
-        lo_cfg = NEW #( config_key = ls_key
-                        object_name = lv_name ).
+        CREATE OBJECT lo_cfg EXPORTING config_key = ls_key
+                                       object_name = lv_name.
 
         MOVE-CORRESPONDING ls_key TO ls_outline.
 
@@ -130,8 +130,8 @@ CLASS ZCL_ABAPGIT_OBJECT_WDCA IMPLEMENTATION.
     ls_key = ms_item-obj_name.
 
     TRY.
-        lo_cfg = NEW #( config_key = ls_key
-                        object_name = lv_name ).
+        CREATE OBJECT lo_cfg EXPORTING config_key = ls_key
+                                       object_name = lv_name.
 
         MOVE-CORRESPONDING ls_key TO es_outline.
 
@@ -187,8 +187,8 @@ CLASS ZCL_ABAPGIT_OBJECT_WDCA IMPLEMENTATION.
     MOVE-CORRESPONDING is_outline TO ls_key.
 
     TRY.
-        lo_cfg = NEW #( config_key = ls_key
-                        object_name = lv_name ).
+        CREATE OBJECT lo_cfg EXPORTING config_key = ls_key
+                                       object_name = lv_name.
 
         READ TABLE it_data INDEX 1 INTO ls_data.
         ASSERT sy-subrc = 0.
