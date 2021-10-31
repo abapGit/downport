@@ -241,7 +241,7 @@ CLASS ZCL_ABAPGIT_TAG_POPUPS IMPLEMENTATION.
                                   start_line   = 1
                                   end_line     = 25 ).
 
-        CREATE OBJECT lo_table_header EXPORTING text = `Tags`.
+        lo_table_header = NEW #( text = `Tags` ).
 
         lo_alv->set_top_of_list( lo_table_header ).
 
