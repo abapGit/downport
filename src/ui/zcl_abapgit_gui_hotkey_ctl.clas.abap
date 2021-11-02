@@ -15,11 +15,15 @@ CLASS zcl_abapgit_gui_hotkey_ctl DEFINITION
     CLASS-METHODS should_show_hint
       RETURNING
         VALUE(rv_yes) TYPE abap_bool.
+    METHODS constructor
+      RAISING
+        zcx_abapgit_exception.
   PROTECTED SECTION.
   PRIVATE SECTION.
 
     DATA:
-      mt_hotkeys TYPE zif_abapgit_gui_hotkeys=>ty_hotkeys_with_descr.
+      mt_hotkeys       TYPE zif_abapgit_gui_hotkeys=>ty_hotkeys_with_descr,
+      ms_user_settings TYPE zif_abapgit_definitions=>ty_s_user_settings.
     CLASS-DATA gv_hint_was_shown TYPE abap_bool .
 
     METHODS render_scripts
@@ -32,6 +36,14 @@ ENDCLASS.
 
 
 CLASS zcl_abapgit_gui_hotkey_ctl IMPLEMENTATION.
+
+  METHOD constructor.
+
+    super->constructor( ).
+
+    ms_user_settings = zcl_abapgit_persistence_user=>get_instance( )->get_settings( ).
+
+  ENDMETHOD.
 
 
   METHOD render_scripts.
@@ -54,7 +66,7 @@ CLASS zcl_abapgit_gui_hotkey_ctl IMPLEMENTATION.
 
     lv_json = lv_json && `}`.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
     ri_html->set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
     ri_html->add( |setKeyBindings({ lv_json });| ).
 
@@ -97,6 +109,13 @@ CLASS zcl_abapgit_gui_hotkey_ctl IMPLEMENTATION.
       IF sy-subrc = 0. " If found command with same hotkey
         DELETE mt_hotkeys INDEX sy-tabix. " Later registered commands enjoys the priority
       ENDIF.
+
+      IF  ms_user_settings-link_hints_enabled = abap_true
+      AND ms_user_settings-link_hint_key      = <ls_hotkey>-hotkey.
+        " Link hint activation key is more important
+        CONTINUE.
+      ENDIF.
+
       APPEND <ls_hotkey> TO mt_hotkeys.
     ENDLOOP.
 
@@ -119,7 +138,7 @@ CLASS zcl_abapgit_gui_hotkey_ctl IMPLEMENTATION.
 
     zif_abapgit_gui_hotkey_ctl~register_hotkeys( zif_abapgit_gui_hotkeys~get_hotkey_actions( ) ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     lt_registered_hotkeys = zif_abapgit_gui_hotkey_ctl~get_registered_hotkeys( ).
     SORT lt_registered_hotkeys BY ui_component description.

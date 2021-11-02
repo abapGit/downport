@@ -8,14 +8,14 @@ CLASS zcl_abapgit_popups DEFINITION
 
     INTERFACES zif_abapgit_popups .
 
-    CONSTANTS c_default_column TYPE lvc_fname VALUE `DEFAULT_COLUMN` ##NO_TEXT.
   PROTECTED SECTION.
   PRIVATE SECTION.
+    CONSTANTS c_default_column TYPE abap_componentdescr-name VALUE `DEFAULT_COLUMN` ##NO_TEXT.
 
     TYPES:
       ty_lt_fields TYPE STANDARD TABLE OF sval WITH DEFAULT KEY .
 
-    CONSTANTS c_fieldname_selected TYPE lvc_fname VALUE `SELECTED` ##NO_TEXT.
+    CONSTANTS c_fieldname_selected TYPE abap_componentdescr-name VALUE `SELECTED` ##NO_TEXT.
     CONSTANTS c_answer_cancel      TYPE c LENGTH 1 VALUE 'A' ##NO_TEXT.
 
     DATA mo_select_list_popup TYPE REF TO cl_salv_table .
@@ -816,7 +816,7 @@ CLASS zcl_abapgit_popups IMPLEMENTATION.
         ENDIF.
 
         IF iv_header_text CN ' _0'.
-          CREATE OBJECT lo_table_header EXPORTING text = iv_header_text.
+          lo_table_header = NEW #( text = iv_header_text ).
           mo_select_list_popup->set_top_of_list( lo_table_header ).
         ENDIF.
 

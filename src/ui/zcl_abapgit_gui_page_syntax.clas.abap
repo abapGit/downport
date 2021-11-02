@@ -17,7 +17,7 @@ CLASS zcl_abapgit_gui_page_syntax DEFINITION PUBLIC FINAL CREATE PUBLIC
         REDEFINITION.
 
   PROTECTED SECTION.
-    CONSTANTS: c_variant TYPE sci_chkv VALUE 'SYNTAX_CHECK'.
+    CONSTANTS: c_variant TYPE c LENGTH 30 VALUE 'SYNTAX_CHECK'.
 
     METHODS:
       render_content REDEFINITION.
@@ -57,7 +57,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SYNTAX IMPLEMENTATION.
 
   METHOD render_content.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( `<div class="repo">` ).
     ri_html->add( zcl_abapgit_gui_chunk_lib=>render_repo_top( io_repo        = mo_repo
