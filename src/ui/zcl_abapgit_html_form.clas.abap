@@ -246,7 +246,7 @@ CLASS zcl_abapgit_html_form IMPLEMENTATION.
 
     DATA lv_ts TYPE timestampl.
 
-    CREATE OBJECT ro_form.
+    ro_form = NEW #( ).
     ro_form->mv_form_id = iv_form_id.
     ro_form->mv_help_page = iv_help_page.
 
@@ -355,7 +355,7 @@ CLASS zcl_abapgit_html_form IMPLEMENTATION.
       EXIT.
     ENDLOOP.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( |<div class="dialog { iv_form_class }">| ). " to center use 'dialog-form-center'
     ri_html->add( |<form method="post"{ ls_form_id }{ ls_form_action }>| ).
@@ -717,7 +717,10 @@ CLASS zcl_abapgit_html_form IMPLEMENTATION.
 
   METHOD render_field_text.
 
-    DATA lv_type TYPE string.
+    DATA:
+      lv_type      TYPE string,
+      lv_maxlength TYPE string.
+
 
     ii_html->add( |<label for="{ is_field-name }"{ is_attr-hint }>{ is_field-label }{ is_attr-required }</label>| ).
 
@@ -737,9 +740,13 @@ CLASS zcl_abapgit_html_form IMPLEMENTATION.
       lv_type = 'text'.
     ENDIF.
 
+    IF is_field-max > 0.
+      lv_maxlength = |maxlength={ is_field-max }|.
+    ENDIF.
+
     ii_html->add( |<input type="{ lv_type }" name="{ is_field-name }" id="{ is_field-name }"|
                && | value="{ is_attr-value }" { is_field-dblclick }{ is_attr-placeholder }|
-               && |{ is_attr-readonly }{ is_attr-autofocus }>| ).
+               && |{ is_attr-readonly }{ is_attr-autofocus } { lv_maxlength }>| ).
 
     IF is_field-side_action IS NOT INITIAL.
       ii_html->add( '</div>' ).
