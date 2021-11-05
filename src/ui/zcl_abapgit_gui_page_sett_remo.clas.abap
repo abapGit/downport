@@ -410,8 +410,8 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
   METHOD constructor.
 
     super->constructor( ).
-    CREATE OBJECT mo_validation_log.
-    CREATE OBJECT mo_form_data.
+    mo_validation_log = NEW #( ).
+    mo_form_data = NEW #( ).
 
     init( io_repo ).
     mv_original_url = ms_repo_current-url.
@@ -428,7 +428,7 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_sett_remo.
 
-    CREATE OBJECT lo_component EXPORTING io_repo = io_repo.
+    lo_component = NEW #( io_repo = io_repo ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Remote Settings'
@@ -928,27 +928,27 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
 
     ls_hotkey_action-ui_component = 'Remote'.
 
-    ls_hotkey_action-description = |Choose branch|.
+    ls_hotkey_action-description = |Choose Branch|.
     ls_hotkey_action-action      = c_event-choose_branch.
     ls_hotkey_action-hotkey      = |b|.
     INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
 
-    ls_hotkey_action-description = |Choose commit|.
+    ls_hotkey_action-description = |Choose Commit|.
     ls_hotkey_action-action      = c_event-choose_commit.
     ls_hotkey_action-hotkey      = |c|.
     INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
 
-    ls_hotkey_action-description = |Choose pull request|.
+    ls_hotkey_action-description = |Choose Pull Request|.
     ls_hotkey_action-action      = c_event-choose_pull_req.
     ls_hotkey_action-hotkey      = |p|.
     INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
 
-    ls_hotkey_action-description = |Choose tag|.
+    ls_hotkey_action-description = |Choose Tag|.
     ls_hotkey_action-action      = c_event-choose_tag.
     ls_hotkey_action-hotkey      = |t|.
     INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
 
-    ls_hotkey_action-description = |Choose url|.
+    ls_hotkey_action-description = |Choose URL|.
     ls_hotkey_action-action      = c_event-choose_url.
     ls_hotkey_action-hotkey      = |u|.
     INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
@@ -964,7 +964,7 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
       read_settings( ).
     ENDIF.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( `<div class="repo">` ).
 
