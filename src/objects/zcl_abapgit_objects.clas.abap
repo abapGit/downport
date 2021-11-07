@@ -352,8 +352,8 @@ CLASS zcl_abapgit_objects IMPLEMENTATION.
         RETURN.
       ENDIF.
 
-      CREATE OBJECT li_remote_version TYPE zcl_abapgit_xml_input EXPORTING iv_xml = zcl_abapgit_convert=>xstring_to_string_utf8( ls_remote_file-data )
-                                                                           iv_filename = ls_remote_file-filename.
+      li_remote_version = NEW zcl_abapgit_xml_input( iv_xml = zcl_abapgit_convert=>xstring_to_string_utf8( ls_remote_file-data )
+                                                     iv_filename = ls_remote_file-filename ).
 
       ls_result = li_comparator->compare( ii_remote = li_remote_version
                                           ii_log = ii_log ).
@@ -433,7 +433,7 @@ CLASS zcl_abapgit_objects IMPLEMENTATION.
         lv_message = |Object type { is_item-obj_type } is not supported by this system|.
         IF iv_native_only = abap_false.
           TRY. " 2nd step, try looking for plugins
-              CREATE OBJECT ri_obj TYPE zcl_abapgit_objects_bridge EXPORTING is_item = is_item.
+              ri_obj = NEW zcl_abapgit_objects_bridge( is_item = is_item ).
             CATCH cx_sy_create_object_error.
               zcx_abapgit_exception=>raise( lv_message ).
           ENDTRY.
@@ -655,8 +655,8 @@ CLASS zcl_abapgit_objects IMPLEMENTATION.
           ENDIF.
 
           " Create or update object
-          CREATE OBJECT lo_files EXPORTING is_item = ls_item
-                                           iv_path = lv_path.
+          lo_files = NEW #( is_item = ls_item
+                            iv_path = lv_path ).
           lo_files->set_files( lt_remote ).
 
           "analyze XML in order to instantiate the proper serializer
@@ -891,14 +891,15 @@ CLASS zcl_abapgit_objects IMPLEMENTATION.
 
   METHOD jump.
 
-    DATA: li_obj              TYPE REF TO zif_abapgit_object,
-          lv_adt_jump_enabled TYPE abap_bool.
+    DATA: li_obj  TYPE REF TO zif_abapgit_object,
+          lv_exit TYPE abap_bool.
 
     " Nothing to do for unsupported objects
     IF is_type_supported( is_item-obj_type ) = abap_false.
       zcx_abapgit_exception=>raise( |Object type { is_item-obj_type } is not supported by this system| ).
     ENDIF.
 
+    " Nothing to do if object does not exist
     li_obj = create_object( is_item     = is_item
                             iv_language = zif_abapgit_definitions=>c_english ).
 
@@ -906,46 +907,15 @@ CLASS zcl_abapgit_objects IMPLEMENTATION.
       zcx_abapgit_exception=>raise( |Object { is_item-obj_type } { is_item-obj_name } doesn't exist| ).
     ENDIF.
 
-    lv_adt_jump_enabled = zcl_abapgit_persist_factory=>get_settings( )->read( )->get_adt_jump_enabled( ).
+    " Open object in new window
+    lv_exit = zcl_abapgit_ui_factory=>get_gui_jumper( )->jump(
+      is_item         = is_item
+      iv_sub_obj_name = iv_sub_obj_name
+      iv_sub_obj_type = iv_sub_obj_type
+      iv_line_number  = iv_line_number ).
 
-    IF lv_adt_jump_enabled = abap_true.
-
-      TRY.
-          zcl_abapgit_objects_super=>jump_adt(
-            iv_obj_name     = is_item-obj_name
-            iv_obj_type     = is_item-obj_type
-            iv_sub_obj_name = iv_sub_obj_name
-            iv_sub_obj_type = iv_sub_obj_type
-            iv_line_number  = iv_line_number ).
-        CATCH zcx_abapgit_exception.
-          li_obj->jump( ).
-      ENDTRY.
-
-    ELSEIF iv_line_number IS NOT INITIAL
-        AND iv_sub_obj_type IS NOT INITIAL
-        AND iv_sub_obj_name IS NOT INITIAL.
-
-      " For the line navigation we have to supply the sub object type (i_sub_obj_type).
-      " If we use is_item-obj_type it navigates only to the object.
-
-      CALL FUNCTION 'RS_TOOL_ACCESS'
-        EXPORTING
-          operation           = 'SHOW'
-          object_name         = is_item-obj_name
-          object_type         = iv_sub_obj_type
-          include             = iv_sub_obj_name
-          position            = iv_line_number
-          in_new_window       = abap_true
-        EXCEPTIONS
-          not_executed        = 1
-          invalid_object_type = 2
-          OTHERS              = 3.
-
-      IF sy-subrc <> 0.
-        zcx_abapgit_exception=>raise_t100( ).
-      ENDIF.
-
-    ELSE.
+    " If all fails, try object-specific handler
+    IF lv_exit IS INITIAL.
       li_obj->jump( ).
     ENDIF.
 
@@ -1003,14 +973,14 @@ CLASS zcl_abapgit_objects IMPLEMENTATION.
         rs_files_and_item-item-obj_name }| ).
     ENDIF.
 
-    CREATE OBJECT lo_files EXPORTING is_item = rs_files_and_item-item.
+    lo_files = NEW #( is_item = rs_files_and_item-item ).
 
     li_obj = create_object( is_item     = rs_files_and_item-item
                             iv_language = iv_language ).
 
     li_obj->mo_files = lo_files.
 
-    CREATE OBJECT li_xml TYPE zcl_abapgit_xml_output.
+    li_xml = NEW zcl_abapgit_xml_output( ).
 
     ls_i18n_params-main_language         = iv_language.
     ls_i18n_params-main_language_only    = iv_main_language_only.
