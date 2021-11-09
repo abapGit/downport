@@ -66,7 +66,7 @@ CLASS zcl_abapgit_gui_hotkey_ctl IMPLEMENTATION.
 
     lv_json = lv_json && `}`.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
     ri_html->set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
     ri_html->add( |setKeyBindings({ lv_json });| ).
 
@@ -132,13 +132,14 @@ CLASS zcl_abapgit_gui_hotkey_ctl IMPLEMENTATION.
     DATA:
       lv_hint               TYPE string,
       lt_registered_hotkeys TYPE zif_abapgit_gui_hotkeys=>ty_hotkeys_with_descr,
-      lv_hotkey             TYPE string.
+      lv_hotkey             TYPE string,
+      ls_user_settings      TYPE zif_abapgit_definitions=>ty_s_user_settings.
 
     FIELD-SYMBOLS <ls_hotkey> LIKE LINE OF lt_registered_hotkeys.
 
     zif_abapgit_gui_hotkey_ctl~register_hotkeys( zif_abapgit_gui_hotkeys~get_hotkey_actions( ) ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     lt_registered_hotkeys = zif_abapgit_gui_hotkey_ctl~get_registered_hotkeys( ).
     SORT lt_registered_hotkeys BY ui_component description.
@@ -153,6 +154,16 @@ CLASS zcl_abapgit_gui_hotkey_ctl IMPLEMENTATION.
         && |<span class="key-descr">{ <ls_hotkey>-description }</span>|
         && |</li>| ).
     ENDLOOP.
+
+    " render link hints activation key
+    ls_user_settings = zcl_abapgit_persistence_user=>get_instance( )->get_settings( ).
+    IF ls_user_settings-link_hints_enabled = abap_true.
+      ri_html->add( |<li>|
+         && |<span class="key-id">{ ls_user_settings-link_hint_key }</span>|
+         && |<span class="key-descr">Link Hints</span>|
+         && |</li>| ).
+    ENDIF.
+
     ri_html->add( '</ul>' ).
 
     CLEAR lv_hotkey.

@@ -71,7 +71,6 @@ CLASS zcl_abapgit_gui_page_sett_remo DEFINITION
     DATA mo_repo TYPE REF TO zcl_abapgit_repo .
     DATA ms_repo_current TYPE zif_abapgit_persistence=>ty_repo .
     DATA ms_repo_new TYPE zif_abapgit_persistence=>ty_repo .
-    DATA mo_dot TYPE REF TO zcl_abapgit_dot_abapgit .
     DATA mv_pull_req TYPE string .
     DATA mv_mode TYPE i .
     DATA mv_original_url TYPE string .
@@ -403,6 +402,7 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
   METHOD choose_url.
 
     " todo, get url history from DB and show selection popup #3639
+    rv_url = ''.
 
   ENDMETHOD.
 
@@ -410,8 +410,8 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
   METHOD constructor.
 
     super->constructor( ).
-    CREATE OBJECT mo_validation_log.
-    CREATE OBJECT mo_form_data.
+    mo_validation_log = NEW #( ).
+    mo_form_data = NEW #( ).
 
     init( io_repo ).
     mv_original_url = ms_repo_current-url.
@@ -428,7 +428,7 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_sett_remo.
 
-    CREATE OBJECT lo_component EXPORTING io_repo = io_repo.
+    lo_component = NEW #( io_repo = io_repo ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Remote Settings'
@@ -964,7 +964,7 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
       read_settings( ).
     ENDIF.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( `<div class="repo">` ).
 

@@ -46,7 +46,7 @@ CLASS zcl_abapgit_tadir DEFINITION
       CHANGING
         !ct_tadir   TYPE zif_abapgit_definitions=>ty_tadir_tt
       RAISING
-        zcx_abapgit_exception .
+        zcx_abapgit_exception ##NEEDED.
     METHODS add_local_packages
       IMPORTING
         !it_packages TYPE zif_abapgit_sap_package=>ty_devclass_tt
@@ -76,7 +76,7 @@ CLASS zcl_abapgit_tadir DEFINITION
       CHANGING
         !ct_tadir   TYPE zif_abapgit_definitions=>ty_tadir_tt
       RAISING
-        zcx_abapgit_exception .
+        zcx_abapgit_exception ##NEEDED.
 ENDCLASS.
 
 
@@ -353,7 +353,7 @@ CLASS ZCL_ABAPGIT_TADIR IMPLEMENTATION.
 
     DATA lo_skip_objects TYPE REF TO zcl_abapgit_skip_objects.
 
-    CREATE OBJECT lo_skip_objects.
+    lo_skip_objects = NEW #( ).
 
     ct_tadir = lo_skip_objects->skip_sadl_generated_objects(
       it_tadir = ct_tadir

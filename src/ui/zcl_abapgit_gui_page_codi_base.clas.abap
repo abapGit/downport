@@ -61,7 +61,7 @@ CLASS zcl_abapgit_gui_page_codi_base IMPLEMENTATION.
     DATA:
       lo_sort_menu TYPE REF TO zcl_abapgit_html_toolbar.
 
-    CREATE OBJECT lo_sort_menu.
+    lo_sort_menu = NEW #( ).
 
     lo_sort_menu->add(
       iv_txt = 'By Object, Check, Sub-object'
@@ -73,7 +73,7 @@ CLASS zcl_abapgit_gui_page_codi_base IMPLEMENTATION.
       iv_txt = 'By Check, Object, Sub-object'
       iv_act = c_actions-sort_3 ).
 
-    CREATE OBJECT ro_menu.
+    ro_menu = NEW #( ).
 
     ro_menu->add( iv_txt = 'Sort'
                   io_sub = lo_sort_menu ).
@@ -140,7 +140,6 @@ CLASS zcl_abapgit_gui_page_codi_base IMPLEMENTATION.
           zcl_abapgit_objects_super=>jump_adt( iv_obj_name     = ls_item-obj_name
                                                iv_obj_type     = ls_item-obj_type
                                                iv_sub_obj_name = ls_sub_item-obj_name
-                                               iv_sub_obj_type = ls_sub_item-obj_type
                                                iv_line_number  = lv_line_number ).
           RETURN.
 
@@ -275,7 +274,7 @@ CLASS zcl_abapgit_gui_page_codi_base IMPLEMENTATION.
 
   METHOD render_variant.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div class="ci-head">' ).
     ri_html->add( |Code inspector check variant: <span class="ci-variant">{ iv_variant }</span>| ).

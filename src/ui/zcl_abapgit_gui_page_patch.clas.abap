@@ -12,7 +12,6 @@ CLASS zcl_abapgit_gui_page_patch DEFINITION
           is_file       TYPE zif_abapgit_definitions=>ty_file OPTIONAL
           is_object     TYPE zif_abapgit_definitions=>ty_item OPTIONAL
           it_files      TYPE zif_abapgit_definitions=>ty_stage_tt OPTIONAL
-          iv_patch_mode TYPE abap_bool OPTIONAL
         RAISING
           zcx_abapgit_exception,
 
@@ -194,7 +193,7 @@ CLASS zcl_abapgit_gui_page_patch IMPLEMENTATION.
 
       lv_something_patched = abap_true.
 
-      CREATE OBJECT lo_git_add_patch EXPORTING it_diff = <ls_diff_file>-o_diff->get( ).
+      lo_git_add_patch = NEW #( it_diff = <ls_diff_file>-o_diff->get( ) ).
 
       lv_patch = lo_git_add_patch->get_patch_binary( ).
 
@@ -342,7 +341,7 @@ CLASS zcl_abapgit_gui_page_patch IMPLEMENTATION.
     " While patching we always want to be in split mode
     CLEAR: mv_unified.
     set_layout( ).
-    CREATE OBJECT mo_stage.
+    mo_stage = NEW #( ).
 
     ms_control-page_title = 'Patch'.
     ms_control-page_menu = build_menu( ).
@@ -552,7 +551,7 @@ CLASS zcl_abapgit_gui_page_patch IMPLEMENTATION.
 
   METHOD render_scripts.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
     ri_html->add( 'preparePatch();' ).

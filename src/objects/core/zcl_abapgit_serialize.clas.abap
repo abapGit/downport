@@ -12,7 +12,7 @@ CLASS zcl_abapgit_serialize DEFINITION
         zcx_abapgit_exception .
     METHODS on_end_of_task
       IMPORTING
-        !p_task TYPE clike .
+        !p_task TYPE clike ##NEEDED.
     METHODS serialize
       IMPORTING
         !it_tadir            TYPE zif_abapgit_definitions=>ty_tadir_tt
@@ -201,7 +201,7 @@ CLASS zcl_abapgit_serialize IMPLEMENTATION.
       io_dot                = mo_dot_abapgit
       ii_log                = ii_log ).
 
-    CREATE OBJECT lo_filter.
+    lo_filter = NEW #( ).
 
     lo_filter->apply( EXPORTING it_filter = it_filter
                       CHANGING  ct_tadir  = lt_tadir ).
