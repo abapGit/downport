@@ -22,7 +22,7 @@ CLASS ltcl_abapgit_syntax_xml IMPLEMENTATION.
 
   METHOD setup.
 
-    CREATE OBJECT mo_cut.
+    mo_cut = NEW #( ).
 
   ENDMETHOD.
 
@@ -55,11 +55,11 @@ CLASS ltcl_abapgit_syntax_xml IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
       exp = |<span class="xml_tag">&lt;ECTD</span>|
          && |<span class="attr"> SAPRL</span>=|
-         && |<span class="attr_val">&quot;751&quot;</span>|
+         && |<span class="attr_val">"751"</span>|
          && |<span class="attr"> VERSION</span>=|
-         && |<span class="attr_val">&quot;1.5&quot;</span>|
-         && |<span class="attr"> DOWNLOADDATE</span>=<span class="attr_val">&quot;&quot;</span>|
-         && |<span class="attr"> DOWNLOADTIME</span>=<span class="attr_val">&quot;&quot;</span>|
+         && |<span class="attr_val">"1.5"</span>|
+         && |<span class="attr"> DOWNLOADDATE</span>=<span class="attr_val">""</span>|
+         && |<span class="attr"> DOWNLOADTIME</span>=<span class="attr_val">""</span>|
          && |<span class="xml_tag">&gt;</span>|
       act = mo_cut->process_line( |<ECTD SAPRL="751" VERSION="1.5" DOWNLOADDATE="" DOWNLOADTIME="">| ) ).
 
@@ -69,16 +69,16 @@ CLASS ltcl_abapgit_syntax_xml IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals(
       exp = |<span class="attr"> SAPRL</span>=|
-         && |<span class="attr_val">&quot;751&quot;</span>|
+         && |<span class="attr_val">"751"</span>|
          && |<span class="attr"> VERSION</span>=|
-         && |<span class="attr_val">&quot;&gt;1.5&quot;</span>|
+         && |<span class="attr_val">"&gt;1.5"</span>|
       act = mo_cut->process_line( | SAPRL="751" VERSION=">1.5"| ) ).
 
     cl_abap_unit_assert=>assert_equals(
       exp = |<span class="attr">SAPRL</span>=|
-         && |<span class="attr_val">&quot;751&quot;</span>|
+         && |<span class="attr_val">"751"</span>|
          && |<span class="attr"> VERSION</span>=|
-         && |<span class="attr_val">&#39;&gt;1.5&#39;</span>|
+         && |<span class="attr_val">'&gt;1.5'</span>|
       act = mo_cut->process_line( |SAPRL="751" VERSION='>1.5'| ) ).
 
   ENDMETHOD.
@@ -92,9 +92,9 @@ CLASS ltcl_abapgit_syntax_xml IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
       exp = |<span class="xml_tag">&lt;ECTD</span>|
          && |<span class="attr"> SAPRL</span>=|
-         && |<span class="attr_val">&quot;751&quot;</span>|
+         && |<span class="attr_val">"751"</span>|
          && |<span class="attr"> VERSION</span>=|
-         && |<span class="attr_val">&quot;1.5&quot;</span>|
+         && |<span class="attr_val">"1.5"</span>|
       act = mo_cut->process_line( |<ECTD SAPRL="751" VERSION="1.5"| ) ).
 
 
@@ -154,7 +154,7 @@ CLASS ltcl_syntax_cases IMPLEMENTATION.
           lo_syntax      TYPE REF TO zcl_abapgit_syntax_xml.
 
 
-    CREATE OBJECT lo_syntax.
+    lo_syntax = NEW #( ).
     lt_matches_act = lo_syntax->parse_line( iv_line ).
 
     SORT lt_matches_act BY offset.
