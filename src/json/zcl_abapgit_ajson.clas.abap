@@ -102,7 +102,7 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
 
 
   METHOD create_empty.
-    ro_instance = NEW #( ).
+    CREATE OBJECT ro_instance.
     ro_instance->mi_custom_mapping = ii_custom_mapping.
   ENDMETHOD.
 
@@ -115,10 +115,10 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
       zcx_abapgit_ajson_error=>raise( 'Source not bound' ).
     ENDIF.
 
-    ro_instance = NEW #( ).
+    CREATE OBJECT ro_instance.
 
     IF ii_filter IS BOUND.
-      lo_filter_runner = NEW #( ).
+      CREATE OBJECT lo_filter_runner.
       lo_filter_runner->run(
         EXPORTING
           ii_filter = ii_filter
@@ -194,8 +194,8 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
 
     DATA lo_parser TYPE REF TO lcl_json_parser.
 
-    ro_instance = NEW #( ).
-    lo_parser = NEW #( ).
+    CREATE OBJECT ro_instance.
+    CREATE OBJECT lo_parser.
     ro_instance->mt_json_tree = lo_parser->parse( iv_json ).
     ro_instance->mi_custom_mapping = ii_custom_mapping.
 
@@ -436,7 +436,7 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    lo_to_abap = NEW #( ).
+    CREATE OBJECT lo_to_abap.
 
     TRY.
         rv_value = lo_to_abap->to_timestamp( is_path = lr_item->* ).
@@ -711,7 +711,7 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
     DATA ls_path_parts      TYPE zif_abapgit_ajson=>ty_path_name.
     DATA lv_path_len        TYPE i.
 
-    lo_section = NEW #( ).
+    CREATE OBJECT lo_section.
     lv_normalized_path = lcl_utils=>normalize_path( iv_path ).
     lv_path_len        = strlen( lv_normalized_path ).
     ls_path_parts      = lcl_utils=>split_path( lv_normalized_path ).
