@@ -36,7 +36,6 @@ CLASS zcl_abapgit_gui_page_sett_bckg DEFINITION
       END OF c_id .
     CONSTANTS:
       BEGIN OF c_event,
-        go_back TYPE string VALUE 'go_back',
         run_now TYPE string VALUE 'run_now',
         save    TYPE string VALUE 'save',
       END OF c_event .
@@ -72,7 +71,7 @@ CLASS zcl_abapgit_gui_page_sett_bckg IMPLEMENTATION.
   METHOD constructor.
 
     super->constructor( ).
-    CREATE OBJECT mo_form_data.
+    mo_form_data = NEW #( ).
     mo_repo = io_repo.
     mo_form = get_form_schema( ).
     mo_form_util = zcl_abapgit_html_form_utils=>create( mo_form ).
@@ -86,7 +85,7 @@ CLASS zcl_abapgit_gui_page_sett_bckg IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_sett_bckg.
 
-    CREATE OBJECT lo_component EXPORTING io_repo = io_repo.
+    lo_component = NEW #( io_repo = io_repo ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Background Mode'
@@ -166,7 +165,7 @@ CLASS zcl_abapgit_gui_page_sett_bckg IMPLEMENTATION.
       iv_action      = zif_abapgit_definitions=>c_action-go_background_run
     )->command(
       iv_label       = 'Back'
-      iv_action      = c_event-go_back ).
+      iv_action      = zif_abapgit_definitions=>c_action-go_back ).
 
   ENDMETHOD.
 
@@ -175,7 +174,7 @@ CLASS zcl_abapgit_gui_page_sett_bckg IMPLEMENTATION.
 
     DATA lo_per TYPE REF TO zcl_abapgit_persist_background.
 
-    CREATE OBJECT lo_per.
+    lo_per = NEW #( ).
 
     TRY.
         rs_persist = lo_per->get_by_key( mo_repo->get_key( ) ).
@@ -290,7 +289,7 @@ CLASS zcl_abapgit_gui_page_sett_bckg IMPLEMENTATION.
     ls_per-username = mo_form_data->get( c_id-username ).
     ls_per-password = mo_form_data->get( c_id-password ).
 
-    CREATE OBJECT lo_persistence.
+    lo_persistence = NEW #( ).
 
     IF ls_per-method IS INITIAL.
       lo_persistence->delete( ls_per-key ).
@@ -312,7 +311,7 @@ CLASS zcl_abapgit_gui_page_sett_bckg IMPLEMENTATION.
     mo_form_data = mo_form_util->normalize( ii_event->form_data( ) ).
 
     CASE ii_event->mv_action.
-      WHEN c_event-go_back.
+      WHEN zif_abapgit_definitions=>c_action-go_back.
         rs_handled-state = mo_form_util->exit( mo_form_data ).
 
       WHEN c_event-save.
@@ -330,7 +329,7 @@ CLASS zcl_abapgit_gui_page_sett_bckg IMPLEMENTATION.
 
     read_settings( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( `<div class="repo">` ).
 

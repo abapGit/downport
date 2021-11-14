@@ -6,6 +6,7 @@ CLASS zcl_abapgit_html_form DEFINITION
   PUBLIC SECTION.
 
     INTERFACES zif_abapgit_html_form .
+    INTERFACES zif_abapgit_gui_hotkeys .
 
     CLASS-METHODS create
       IMPORTING
@@ -19,7 +20,9 @@ CLASS zcl_abapgit_html_form DEFINITION
         !io_values         TYPE REF TO zcl_abapgit_string_map
         !io_validation_log TYPE REF TO zcl_abapgit_string_map OPTIONAL
       RETURNING
-        VALUE(ri_html)     TYPE REF TO zif_abapgit_html .
+        VALUE(ri_html)     TYPE REF TO zif_abapgit_html
+      RAISING
+        zcx_abapgit_exception .
     METHODS command
       IMPORTING
         !iv_label      TYPE csequence
@@ -246,7 +249,7 @@ CLASS zcl_abapgit_html_form IMPLEMENTATION.
 
     DATA lv_ts TYPE timestampl.
 
-    CREATE OBJECT ro_form.
+    ro_form = NEW #( ).
     ro_form->mv_form_id = iv_form_id.
     ro_form->mv_help_page = iv_help_page.
 
@@ -355,7 +358,7 @@ CLASS zcl_abapgit_html_form IMPLEMENTATION.
       EXIT.
     ENDLOOP.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( |<div class="dialog { iv_form_class }">| ). " to center use 'dialog-form-center'
     ri_html->add( |<form method="post"{ ls_form_id }{ ls_form_action }>| ).
@@ -432,6 +435,10 @@ CLASS zcl_abapgit_html_form IMPLEMENTATION.
     ri_html->add( |</ul>| ).
     ri_html->add( |</form>| ).
     ri_html->add( |</div>| ).
+
+    zcl_abapgit_ui_factory=>get_gui_services(
+      )->get_hotkeys_ctl(
+      )->register_hotkeys( zif_abapgit_gui_hotkeys~get_hotkey_actions( ) ).
 
   ENDMETHOD.
 
@@ -872,6 +879,34 @@ CLASS zcl_abapgit_html_form IMPLEMENTATION.
     APPEND ls_field TO mt_fields.
 
     ro_self = me.
+
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_gui_hotkeys~get_hotkey_actions.
+
+    DATA: ls_hotkey_action LIKE LINE OF rt_hotkey_actions.
+    FIELD-SYMBOLS: <ls_command> TYPE zif_abapgit_html_form=>ty_command.
+
+    ls_hotkey_action-ui_component = 'Form'.
+
+    READ TABLE mt_commands WITH KEY cmd_type = zif_abapgit_html_form=>c_cmd_type-input_main
+                           ASSIGNING <ls_command>.
+    IF sy-subrc = 0.
+      ls_hotkey_action-description = <ls_command>-label.
+      ls_hotkey_action-action      = <ls_command>-action.
+      ls_hotkey_action-hotkey      = |Enter|.
+      INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
+    ENDIF.
+
+    READ TABLE mt_commands WITH KEY action = zif_abapgit_definitions=>c_action-go_back
+                           ASSIGNING <ls_command>.
+    IF sy-subrc = 0.
+      ls_hotkey_action-description = <ls_command>-label.
+      ls_hotkey_action-action      = <ls_command>-action.
+      ls_hotkey_action-hotkey      = |F3|.
+      INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
+    ENDIF.
 
   ENDMETHOD.
 ENDCLASS.
