@@ -409,8 +409,8 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
   METHOD constructor.
 
     super->constructor( ).
-    CREATE OBJECT mo_validation_log.
-    CREATE OBJECT mo_form_data.
+    mo_validation_log = NEW #( ).
+    mo_form_data = NEW #( ).
 
     init( io_repo ).
     mv_original_url = ms_repo_current-url.
@@ -427,7 +427,7 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_sett_remo.
 
-    CREATE OBJECT lo_component EXPORTING io_repo = io_repo.
+    lo_component = NEW #( io_repo = io_repo ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Remote Settings'
@@ -952,6 +952,18 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
     ls_hotkey_action-hotkey      = |u|.
     INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
 
+    IF mo_repo->is_offline( ) = abap_true.
+      ls_hotkey_action-description = |Switch to Online|.
+      ls_hotkey_action-action      = c_event-switch.
+      ls_hotkey_action-hotkey      = |o|.
+      INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
+    ELSE.
+      ls_hotkey_action-description = |Switch to Offline|.
+      ls_hotkey_action-action      = c_event-switch.
+      ls_hotkey_action-hotkey      = |o|.
+      INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
+    ENDIF.
+
   ENDMETHOD.
 
 
@@ -963,7 +975,7 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
       read_settings( ).
     ENDIF.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( `<div class="repo">` ).
 
