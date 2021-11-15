@@ -254,25 +254,24 @@ CLASS zcl_abapgit_gui_page_diff IMPLEMENTATION.
 
     DATA:
       lo_sub_filter TYPE REF TO zcl_abapgit_html_toolbar,
-      lt_types      TYPE string_table,
-      lt_users      TYPE string_table.
+      lv_user       TYPE string,
+      lt_extensions TYPE SORTED TABLE OF string WITH UNIQUE DEFAULT KEY,
+      lt_obj_types  TYPE SORTED TABLE OF string WITH UNIQUE DEFAULT KEY,
+      lt_users      TYPE SORTED TABLE OF string WITH UNIQUE DEFAULT KEY.
 
     FIELD-SYMBOLS: <ls_diff> LIKE LINE OF mt_diff_files,
                    <lv_i>    TYPE string.
-    " Get unique
+
+    " Get unique filter values
     LOOP AT mt_diff_files ASSIGNING <ls_diff>.
-      APPEND <ls_diff>-type TO lt_types.
-      APPEND <ls_diff>-changed_by TO lt_users.
+      lv_user = <ls_diff>-changed_by.
+      INSERT <ls_diff>-type INTO TABLE lt_extensions.
+      INSERT <ls_diff>-obj_type INTO TABLE lt_obj_types.
+      INSERT lv_user INTO TABLE lt_users.
     ENDLOOP.
 
-    SORT lt_types.
-    DELETE ADJACENT DUPLICATES FROM lt_types.
-
-    SORT lt_users.
-    DELETE ADJACENT DUPLICATES FROM lt_users.
-
-    IF lines( lt_types ) > 1 OR lines( lt_users ) > 1.
-      CREATE OBJECT lo_sub_filter EXPORTING iv_id = 'diff-filter'.
+    IF lines( lt_extensions ) > 1 OR lines( lt_obj_types ) > 1 OR lines( lt_users ) > 1.
+      lo_sub_filter = NEW #( iv_id = 'diff-filter' ).
 
       IF lines( lt_users ) > 1.
         lo_sub_filter->add( iv_txt = 'Only my changes'
@@ -281,21 +280,33 @@ CLASS zcl_abapgit_gui_page_diff IMPLEMENTATION.
                             iv_chk = abap_false ).
       ENDIF.
 
-      " File types
-      IF lines( lt_types ) > 1.
-        lo_sub_filter->add( iv_txt = 'TYPE'
+      " File extensions
+      IF lines( lt_extensions ) > 1.
+        lo_sub_filter->add( iv_txt = 'Extension'
                             iv_typ = zif_abapgit_html=>c_action_type-separator ).
-        LOOP AT lt_types ASSIGNING <lv_i>.
+        LOOP AT lt_extensions ASSIGNING <lv_i>.
           lo_sub_filter->add( iv_txt = <lv_i>
                        iv_typ = zif_abapgit_html=>c_action_type-onclick
-                       iv_aux = 'type'
+                       iv_aux = 'extension'
+                       iv_chk = abap_true ).
+        ENDLOOP.
+      ENDIF.
+
+      " Object types
+      IF lines( lt_obj_types ) > 1.
+        lo_sub_filter->add( iv_txt = 'Object Type'
+                            iv_typ = zif_abapgit_html=>c_action_type-separator ).
+        LOOP AT lt_obj_types ASSIGNING <lv_i>.
+          lo_sub_filter->add( iv_txt = <lv_i>
+                       iv_typ = zif_abapgit_html=>c_action_type-onclick
+                       iv_aux = 'object-type'
                        iv_chk = abap_true ).
         ENDLOOP.
       ENDIF.
 
       " Changed by
       IF lines( lt_users ) > 1.
-        lo_sub_filter->add( iv_txt = 'CHANGED BY'
+        lo_sub_filter->add( iv_txt = 'Changed By'
                             iv_typ = zif_abapgit_html=>c_action_type-separator ).
         LOOP AT lt_users ASSIGNING <lv_i>.
           lo_sub_filter->add( iv_txt = <lv_i>
@@ -318,7 +329,7 @@ CLASS zcl_abapgit_gui_page_diff IMPLEMENTATION.
           lv_jump_target TYPE string.
     FIELD-SYMBOLS: <ls_diff> LIKE LINE OF mt_diff_files.
 
-    CREATE OBJECT lo_sub_jump EXPORTING iv_id = 'jump'.
+    lo_sub_jump = NEW #( iv_id = 'jump' ).
 
     LOOP AT mt_diff_files ASSIGNING <ls_diff>.
 
@@ -446,11 +457,11 @@ CLASS zcl_abapgit_gui_page_diff IMPLEMENTATION.
     " Diff data
     IF <ls_diff>-type <> 'binary'.
       IF <ls_diff>-fstate = c_fstate-remote. " Remote file leading changes
-        CREATE OBJECT <ls_diff>-o_diff EXPORTING iv_new = <ls_remote>-data
-                                                 iv_old = <ls_local>-file-data.
+        <ls_diff>-o_diff = NEW #( iv_new = <ls_remote>-data
+                                  iv_old = <ls_local>-file-data ).
       ELSE.             " Local leading changes or both were modified
-        CREATE OBJECT <ls_diff>-o_diff EXPORTING iv_new = <ls_local>-file-data
-                                                 iv_old = <ls_remote>-data.
+        <ls_diff>-o_diff = NEW #( iv_new = <ls_local>-file-data
+                                  iv_old = <ls_remote>-data ).
       ENDIF.
     ENDIF.
 
@@ -459,7 +470,7 @@ CLASS zcl_abapgit_gui_page_diff IMPLEMENTATION.
 
   METHOD build_menu.
 
-    CREATE OBJECT ro_menu EXPORTING iv_id = 'toolbar-main'.
+    ro_menu = NEW #( iv_id = 'toolbar-main' ).
 
     add_menu_begin( ro_menu ).
     add_jump_sub_menu( ro_menu ).
@@ -723,7 +734,7 @@ CLASS zcl_abapgit_gui_page_diff IMPLEMENTATION.
     DATA: lv_beacon  TYPE string,
           lt_beacons TYPE zif_abapgit_definitions=>ty_string_tt.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     IF is_diff_line-beacon > 0.
       lt_beacons = is_diff-o_diff->get_beacons( ).
@@ -765,7 +776,7 @@ CLASS zcl_abapgit_gui_page_diff IMPLEMENTATION.
     DATA: ls_diff_file LIKE LINE OF mt_diff_files,
           li_progress  TYPE REF TO zif_abapgit_progress.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     li_progress = zcl_abapgit_progress=>get_instance( lines( mt_diff_files ) ).
 
@@ -798,9 +809,10 @@ CLASS zcl_abapgit_gui_page_diff IMPLEMENTATION.
 
   METHOD render_diff.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
-    ri_html->add( |<div class="diff" data-type="{ is_diff-type
+    ri_html->add( |<div class="diff" data-extension="{ is_diff-type
+      }" data-object-type="{ is_diff-obj_type
       }" data-changed-by="{ is_diff-changed_by
       }" data-file="{ is_diff-path && is_diff-filename }">| ).
     ri_html->add( render_diff_head( is_diff ) ).
@@ -829,7 +841,7 @@ CLASS zcl_abapgit_gui_page_diff IMPLEMENTATION.
     DATA: ls_stats TYPE zif_abapgit_definitions=>ty_count,
           lv_link  TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div class="diff_head">' ).
 
@@ -915,7 +927,7 @@ CLASS zcl_abapgit_gui_page_diff IMPLEMENTATION.
 
     lo_highlighter = zcl_abapgit_syntax_factory=>create( iv_filename     = is_diff-filename
                                                          iv_hidden_chars = mv_hidden_chars ).
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     lt_diffs = is_diff-o_diff->get( ).
 
@@ -974,7 +986,7 @@ CLASS zcl_abapgit_gui_page_diff IMPLEMENTATION.
           lv_mark TYPE string,
           lv_bg   TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     " New line
     lv_mark = ` `.
@@ -1041,7 +1053,7 @@ CLASS zcl_abapgit_gui_page_diff IMPLEMENTATION.
 
     FIELD-SYMBOLS <ls_diff_line> LIKE LINE OF mt_delayed_lines.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     " Release delayed subsequent update lines
     IF is_diff_line-result <> zif_abapgit_definitions=>c_diff-update.
@@ -1091,7 +1103,7 @@ CLASS zcl_abapgit_gui_page_diff IMPLEMENTATION.
 
   METHOD render_scripts.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
 
@@ -1120,7 +1132,7 @@ CLASS zcl_abapgit_gui_page_diff IMPLEMENTATION.
 
   METHOD render_table_head.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
     ri_html->add( '<thead class="header">' ).
     ri_html->add( '<tr>' ).
 
