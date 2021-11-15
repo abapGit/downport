@@ -92,7 +92,7 @@ CLASS ZCL_ABAPGIT_REPO_CONTENT_LIST IMPLEMENTATION.
         ls_folder-path    = <ls_item>-path.
         ls_folder-sortkey = c_sortkey-dir. " Directory
         ls_folder-is_dir  = abap_true.
-        CREATE OBJECT lo_state.
+        lo_state = NEW #( ).
       ENDAT.
 
       ls_folder-changes = ls_folder-changes + <ls_item>-changes.
@@ -171,7 +171,7 @@ CLASS ZCL_ABAPGIT_REPO_CONTENT_LIST IMPLEMENTATION.
         <ls_repo_item>-sortkey  = c_sortkey-default. " Default sort key
         <ls_repo_item>-changes  = 0.
         <ls_repo_item>-path     = <ls_status>-path.
-        CREATE OBJECT lo_state.
+        lo_state = NEW #( ).
       ENDAT.
 
       IF <ls_status>-filename IS NOT INITIAL.
@@ -239,7 +239,7 @@ CLASS ZCL_ABAPGIT_REPO_CONTENT_LIST IMPLEMENTATION.
 
   METHOD constructor.
     mo_repo = io_repo.
-    CREATE OBJECT mi_log TYPE zcl_abapgit_log.
+    mi_log = NEW zcl_abapgit_log( ).
   ENDMETHOD.
 
 
