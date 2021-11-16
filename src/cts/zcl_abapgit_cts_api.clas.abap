@@ -170,7 +170,7 @@ CLASS ZCL_ABAPGIT_CTS_API IMPLEMENTATION.
       zcx_abapgit_exception=>raise_t100( ).
     ENDIF.
 
-    rv_locked = boolc( lv_lock_flag <> space ).
+    rv_locked = xsdbool( lv_lock_flag <> space ).
   ENDMETHOD.
 
 
@@ -188,7 +188,7 @@ CLASS ZCL_ABAPGIT_CTS_API IMPLEMENTATION.
       IMPORTING
         pe_result = lv_type_check_result.
 
-    rv_lockable = boolc( lv_type_check_result = 'L' ).
+    rv_lockable = xsdbool( lv_type_check_result = 'L' ).
   ENDMETHOD.
 
 
@@ -206,7 +206,7 @@ CLASS ZCL_ABAPGIT_CTS_API IMPLEMENTATION.
       IMPORTING
         pe_result = lv_type_check_result.
 
-    rv_transportable = boolc( lv_type_check_result CA 'RTL' ).
+    rv_transportable = xsdbool( lv_type_check_result CA 'RTL' ).
   ENDMETHOD.
 
 

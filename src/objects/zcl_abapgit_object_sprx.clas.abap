@@ -295,7 +295,7 @@ CLASS ZCL_ABAPGIT_OBJECT_SPRX IMPLEMENTATION.
         status      = lv_status
         status_text = lv_status_text ).
 
-    rv_bool = boolc( lv_status = if_proxy=>c_state_active ).
+    rv_bool = xsdbool( lv_status = if_proxy=>c_state_active ).
 
   ENDMETHOD.
 
