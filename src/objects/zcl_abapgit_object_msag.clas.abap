@@ -412,7 +412,7 @@ CLASS ZCL_ABAPGIT_OBJECT_MSAG IMPLEMENTATION.
 
     SELECT SINGLE arbgb FROM t100a INTO lv_arbgb
       WHERE arbgb = ms_item-obj_name.                   "#EC CI_GENBUFF
-    rv_bool = xsdbool( sy-subrc = 0 ).
+    rv_bool = boolc( sy-subrc = 0 ).
 
   ENDMETHOD.
 
