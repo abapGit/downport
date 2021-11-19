@@ -47,7 +47,7 @@ CLASS zcl_abapgit_sap_package IMPLEMENTATION.
         rv_are_changes_rec_in_tr_req = li_package->wbo_korr_flag.
       WHEN 1.
         " For new packages, derive from package name
-        rv_are_changes_rec_in_tr_req = boolc( mv_package(1) <> '$' ).
+        rv_are_changes_rec_in_tr_req = xsdbool( mv_package(1) <> '$' ).
       WHEN OTHERS.
         zcx_abapgit_exception=>raise_t100( ).
     ENDCASE.
@@ -224,7 +224,7 @@ CLASS zcl_abapgit_sap_package IMPLEMENTATION.
         intern_err                 = 3
         no_access                  = 4
         object_locked_and_modified = 5 ).
-    rv_bool = boolc( sy-subrc <> 1 ).
+    rv_bool = xsdbool( sy-subrc <> 1 ).
 
   ENDMETHOD.
 
@@ -258,7 +258,8 @@ CLASS zcl_abapgit_sap_package IMPLEMENTATION.
       lv_obj_name TYPE tadir-obj_name,
       lv_role     TYPE trnrole.
 
-    lv_pkg_name = lv_obj_name = mv_package.
+    lv_pkg_name = mv_package.
+    lv_obj_name = mv_package.
 
     CALL FUNCTION 'TR_GET_REQUEST_TYPE'
       EXPORTING

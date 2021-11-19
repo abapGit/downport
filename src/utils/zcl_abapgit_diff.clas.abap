@@ -82,7 +82,7 @@ ENDCLASS.
 
 
 
-CLASS zcl_abapgit_diff IMPLEMENTATION.
+CLASS ZCL_ABAPGIT_DIFF IMPLEMENTATION.
 
 
   METHOD calculate_stats.
@@ -133,11 +133,13 @@ CLASS zcl_abapgit_diff IMPLEMENTATION.
       LOOP AT lt_delta ASSIGNING <ls_delta>.
         CLEAR ls_diff.
         IF <ls_delta>-line1 > 0.
-          ls_diff-old_num = lv_i = <ls_delta>-line1.
+          lv_i = <ls_delta>-line1.
+          ls_diff-old_num = lv_i.
           ls_diff-old     = <ls_delta>-text1.
         ENDIF.
         IF <ls_delta>-line2 > 0.
-          ls_diff-new_num = lv_i = <ls_delta>-line2.
+          lv_i = <ls_delta>-line2.
+          ls_diff-new_num = lv_i.
           ls_diff-new     = <ls_delta>-text2.
         ENDIF.
         IF <ls_delta>-flag1 = 'D'.
@@ -216,8 +218,8 @@ CLASS zcl_abapgit_diff IMPLEMENTATION.
     APPEND '^\s*(DEFINE|ENHANCEMENT)\s' TO lt_regex.
 
     LOOP AT lt_regex INTO lv_regex.
-      CREATE OBJECT lo_regex EXPORTING pattern = lv_regex
-                                       ignore_case = abap_true.
+      lo_regex = NEW #( pattern = lv_regex
+                        ignore_case = abap_true ).
       APPEND lo_regex TO rt_regex_set.
     ENDLOOP.
 

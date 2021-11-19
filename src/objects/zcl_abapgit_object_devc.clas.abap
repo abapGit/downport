@@ -98,7 +98,7 @@ CLASS zcl_abapgit_object_devc IMPLEMENTATION.
            WHERE pgmid = 'R3TR'
            AND NOT ( ( object = 'DEVC' OR object = 'SOTR' ) AND obj_name = iv_package_name )
            AND devclass = iv_package_name.
-    rv_is_empty = boolc( sy-subrc <> 0 ).
+    rv_is_empty = xsdbool( sy-subrc <> 0 ).
 
   ENDMETHOD.
 
@@ -620,7 +620,10 @@ CLASS zcl_abapgit_object_devc IMPLEMENTATION.
     update_pinf_usages( ii_package    = li_package
                         it_usage_data = lt_usage_data ).
 
-    ls_save_sign-pack = ls_save_sign-permis = ls_save_sign-elems = ls_save_sign-interf = abap_true.
+    ls_save_sign-pack = abap_true.
+    ls_save_sign-permis = abap_true.
+    ls_save_sign-elems = abap_true.
+    ls_save_sign-interf = abap_true.
     li_package->save_generic(
       EXPORTING
         i_save_sign           = ls_save_sign
