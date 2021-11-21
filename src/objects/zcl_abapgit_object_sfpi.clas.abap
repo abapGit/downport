@@ -131,7 +131,7 @@ CLASS ZCL_ABAPGIT_OBJECT_SFPI IMPLEMENTATION.
       INTO lv_name
       WHERE name = ms_item-obj_name
       AND state = 'A'.
-    rv_bool = boolc( sy-subrc = 0 ).
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
