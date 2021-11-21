@@ -82,8 +82,8 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_GLOB IMPLEMENTATION.
   METHOD constructor.
 
     super->constructor( ).
-    CREATE OBJECT mo_validation_log.
-    CREATE OBJECT mo_form_data.
+    mo_validation_log = NEW #( ).
+    mo_form_data = NEW #( ).
     mo_form = get_form_schema( ).
     mo_form_util = zcl_abapgit_html_form_utils=>create( mo_form ).
 
@@ -96,7 +96,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_GLOB IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_sett_glob.
 
-    CREATE OBJECT lo_component.
+    lo_component = NEW #( ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Global Settings'
@@ -211,7 +211,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_GLOB IMPLEMENTATION.
       iv_val = mo_settings->get_proxy_port( ) ).
     mo_form_data->set(
       iv_key = c_id-proxy_auth
-      iv_val = boolc( mo_settings->get_proxy_authentication( ) = abap_true ) ) ##TYPE.
+      iv_val = xsdbool( mo_settings->get_proxy_authentication( ) = abap_true ) ) ##TYPE.
 
     read_proxy_bypass( ).
 
@@ -230,10 +230,10 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_GLOB IMPLEMENTATION.
     IF zcl_abapgit_factory=>get_environment( )->is_merged( ) = abap_false.
       mo_form_data->set(
         iv_key = c_id-run_critical_tests
-        iv_val = boolc( mo_settings->get_run_critical_tests( ) = abap_true ) ) ##TYPE.
+        iv_val = xsdbool( mo_settings->get_run_critical_tests( ) = abap_true ) ) ##TYPE.
       mo_form_data->set(
         iv_key = c_id-experimental_features
-        iv_val = boolc( mo_settings->get_experimental_features( ) = abap_true ) ) ##TYPE.
+        iv_val = xsdbool( mo_settings->get_experimental_features( ) = abap_true ) ) ##TYPE.
     ENDIF.
 
     " Set for is_dirty check
@@ -275,7 +275,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_GLOB IMPLEMENTATION.
     " Proxy
     mo_settings->set_proxy_url( mo_form_data->get( c_id-proxy_url ) ).
     mo_settings->set_proxy_port( mo_form_data->get( c_id-proxy_port ) ).
-    mo_settings->set_proxy_authentication( boolc( mo_form_data->get( c_id-proxy_auth ) = abap_true ) ).
+    mo_settings->set_proxy_authentication( xsdbool( mo_form_data->get( c_id-proxy_auth ) = abap_true ) ).
 
     save_proxy_bypass( ).
 
@@ -288,8 +288,8 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_GLOB IMPLEMENTATION.
 
     " Dev Internal
     IF zcl_abapgit_factory=>get_environment( )->is_merged( ) = abap_false.
-      mo_settings->set_run_critical_tests( boolc( mo_form_data->get( c_id-run_critical_tests ) = abap_true ) ).
-      mo_settings->set_experimental_features( boolc( mo_form_data->get( c_id-experimental_features ) = abap_true ) ).
+      mo_settings->set_run_critical_tests( xsdbool( mo_form_data->get( c_id-run_critical_tests ) = abap_true ) ).
+      mo_settings->set_experimental_features( xsdbool( mo_form_data->get( c_id-experimental_features ) = abap_true ) ).
     ENDIF.
 
     " Store in DB
@@ -357,7 +357,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_GLOB IMPLEMENTATION.
       read_settings( ).
     ENDIF.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( mo_form->render(
       io_values         = mo_form_data
