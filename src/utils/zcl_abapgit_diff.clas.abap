@@ -82,7 +82,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_DIFF IMPLEMENTATION.
+CLASS zcl_abapgit_diff IMPLEMENTATION.
 
 
   METHOD calculate_stats.
@@ -115,6 +115,7 @@ CLASS ZCL_ABAPGIT_DIFF IMPLEMENTATION.
       <ls_new>   LIKE LINE OF it_new,
       <ls_delta> LIKE LINE OF lt_delta.
 
+    " Note: Ignore case is for keywords, variables, types etc, but not for literals
     CALL FUNCTION 'RS_CMP_COMPUTE_DELTA'
       EXPORTING
         compare_mode            = mv_compare_mode
@@ -218,8 +219,8 @@ CLASS ZCL_ABAPGIT_DIFF IMPLEMENTATION.
     APPEND '^\s*(DEFINE|ENHANCEMENT)\s' TO lt_regex.
 
     LOOP AT lt_regex INTO lv_regex.
-      CREATE OBJECT lo_regex EXPORTING pattern = lv_regex
-                                       ignore_case = abap_true.
+      lo_regex = NEW #( pattern = lv_regex
+                        ignore_case = abap_true ).
       APPEND lo_regex TO rt_regex_set.
     ENDLOOP.
 
