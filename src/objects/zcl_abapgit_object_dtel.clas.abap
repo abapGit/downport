@@ -237,7 +237,7 @@ CLASS ZCL_ABAPGIT_OBJECT_DTEL IMPLEMENTATION.
       SELECT SINGLE rollname FROM dd04l INTO lv_rollname
         WHERE rollname = lv_rollname.
     ENDIF.
-    rv_bool = boolc( sy-subrc = 0 ).
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
