@@ -3,6 +3,8 @@ CLASS zcl_abapgit_apack_migration DEFINITION
   FINAL
   CREATE PRIVATE.
 
+
+
   PUBLIC SECTION.
     CONSTANTS: c_apack_interface_version TYPE i VALUE 1.
     CLASS-METHODS: run RAISING zcx_abapgit_exception.
