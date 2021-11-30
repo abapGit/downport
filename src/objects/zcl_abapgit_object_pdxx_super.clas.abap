@@ -47,7 +47,7 @@ CLASS zcl_abapgit_object_pdxx_super IMPLEMENTATION.
         not_found = 1
         OTHERS    = 2.
 
-    rv_bool = boolc( sy-subrc = 0 ).
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -116,14 +116,7 @@ CLASS zcl_abapgit_object_pdxx_super IMPLEMENTATION.
 
 
   METHOD zif_abapgit_object~jump.
-    CALL FUNCTION 'RS_TOOL_ACCESS_REMOTE'
-      STARTING NEW TASK 'GIT'
-      EXPORTING
-        operation   = 'SHOW'
-        object_name = ms_item-obj_name
-        object_type = ms_item-obj_type
-      EXCEPTIONS
-        OTHERS      = 0.
+    " Covered by ZCL_ABAPGIT_OBJECTS=>JUMP
   ENDMETHOD.
 
 

@@ -16,7 +16,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_OBJECT_WDCC IMPLEMENTATION.
+CLASS zcl_abapgit_object_wdcc IMPLEMENTATION.
 
 
   METHOD zif_abapgit_object~changed_by.
@@ -308,20 +308,13 @@ CLASS ZCL_ABAPGIT_OBJECT_WDCC IMPLEMENTATION.
       zcx_abapgit_exception=>raise( 'Error check object lock WDCC: ' && ms_item-obj_name ).
     ENDIF.
 
-    rv_is_locked = boolc( lines( lt_enq ) > 0 ).
+    rv_is_locked = xsdbool( lines( lt_enq ) > 0 ).
 
   ENDMETHOD.
 
 
   METHOD zif_abapgit_object~jump.
-
-    CALL FUNCTION 'RS_TOOL_ACCESS'
-      EXPORTING
-        operation     = 'SHOW'
-        object_name   = ms_item-obj_name
-        object_type   = 'WDCC'
-        in_new_window = abap_true.
-
+    " Covered by ZCL_ABAPGIT_OBJECTS=>JUMP
   ENDMETHOD.
 
 

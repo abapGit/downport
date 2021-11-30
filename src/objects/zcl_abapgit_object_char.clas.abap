@@ -31,7 +31,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_OBJECT_CHAR IMPLEMENTATION.
+CLASS zcl_abapgit_object_char IMPLEMENTATION.
 
 
   METHOD instantiate_char_and_lock.
@@ -41,14 +41,14 @@ CLASS ZCL_ABAPGIT_OBJECT_CHAR IMPLEMENTATION.
 
 
     SELECT SINGLE name FROM cls_attribute INTO lv_name WHERE name = ms_item-obj_name.
-    lv_new = boolc( sy-subrc <> 0 ).
+    lv_new = xsdbool( sy-subrc <> 0 ).
     lv_name = ms_item-obj_name.
 
     TRY.
-        CREATE OBJECT ro_char EXPORTING im_name = lv_name
-                                        im_type_group = iv_type_group
-                                        im_new = lv_new
-                                        im_activation_state = iv_activation_state.
+        ro_char = NEW #( im_name = lv_name
+                         im_type_group = iv_type_group
+                         im_new = lv_new
+                         im_activation_state = iv_activation_state ).
       CATCH cx_pak_invalid_data
           cx_pak_not_authorized
           cx_pak_invalid_state
@@ -252,21 +252,7 @@ CLASS ZCL_ABAPGIT_OBJECT_CHAR IMPLEMENTATION.
 
 
   METHOD zif_abapgit_object~jump.
-
-    CALL FUNCTION 'RS_TOOL_ACCESS'
-      EXPORTING
-        operation           = 'SHOW'
-        object_name         = ms_item-obj_name
-        object_type         = ms_item-obj_type
-      EXCEPTIONS
-        not_executed        = 1
-        invalid_object_type = 2
-        OTHERS              = 3.
-
-    IF sy-subrc <> 0.
-      zcx_abapgit_exception=>raise_t100( ).
-    ENDIF.
-
+    " Covered by ZCL_ABAPGIT_OBJECTS=>JUMP
   ENDMETHOD.
 
 

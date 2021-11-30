@@ -86,8 +86,8 @@ CLASS zcl_abapgit_object_sxci IMPLEMENTATION.
 
     lv_package = iv_package.
 
-    CREATE OBJECT lo_filter_values_object EXPORTING filter_object = lo_filter_object
-                                                    filter_values = ls_classic_badi_implementation-filters.
+    lo_filter_values_object = NEW #( filter_object = lo_filter_object
+                                     filter_values = ls_classic_badi_implementation-filters ).
 
     CALL FUNCTION 'SXO_IMPL_SAVE'
       EXPORTING
@@ -148,7 +148,7 @@ CLASS zcl_abapgit_object_sxci IMPLEMENTATION.
         data_inconsistency = 2
         OTHERS             = 3.
 
-    rv_bool = boolc( sy-subrc = 0 ).
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -185,22 +185,7 @@ CLASS zcl_abapgit_object_sxci IMPLEMENTATION.
 
 
   METHOD zif_abapgit_object~jump.
-
-    CALL FUNCTION 'RS_TOOL_ACCESS'
-      EXPORTING
-        operation           = 'SHOW'
-        object_name         = ms_item-obj_name
-        object_type         = ms_item-obj_type
-        in_new_window       = abap_true
-      EXCEPTIONS
-        not_executed        = 1
-        invalid_object_type = 2
-        OTHERS              = 3.
-
-    IF sy-subrc <> 0.
-      zcx_abapgit_exception=>raise_t100( ).
-    ENDIF.
-
+    " Covered by ZCL_ABAPGIT_OBJECTS=>JUMP
   ENDMETHOD.
 
 

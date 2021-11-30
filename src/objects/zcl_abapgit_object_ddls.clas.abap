@@ -148,8 +148,8 @@ CLASS zcl_abapgit_object_ddls IMPLEMENTATION.
         IF sy-subrc = 0.
           ASSIGN COMPONENT 'DDLNAME' OF STRUCTURE <lg_entity_view> TO <lg_ddlname>.
 
-          jump_adt( iv_obj_name = <lg_ddlname>
-                    iv_obj_type = 'DDLS' ).
+          zcl_abapgit_adt_link=>jump( iv_obj_name = <lg_ddlname>
+                                      iv_obj_type = 'DDLS' ).
 
         ENDIF.
 
@@ -349,7 +349,7 @@ CLASS zcl_abapgit_object_ddls IMPLEMENTATION.
             name      = ms_item-obj_name
           IMPORTING
             got_state = lv_state.
-        rv_bool = boolc( NOT lv_state IS INITIAL ).
+        rv_bool = xsdbool( NOT lv_state IS INITIAL ).
       CATCH cx_root.
         rv_bool = abap_false.
     ENDTRY.
