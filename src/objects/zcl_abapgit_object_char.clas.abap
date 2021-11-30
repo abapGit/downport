@@ -41,14 +41,14 @@ CLASS zcl_abapgit_object_char IMPLEMENTATION.
 
 
     SELECT SINGLE name FROM cls_attribute INTO lv_name WHERE name = ms_item-obj_name.
-    lv_new = xsdbool( sy-subrc <> 0 ).
+    lv_new = boolc( sy-subrc <> 0 ).
     lv_name = ms_item-obj_name.
 
     TRY.
-        ro_char = NEW #( im_name = lv_name
-                         im_type_group = iv_type_group
-                         im_new = lv_new
-                         im_activation_state = iv_activation_state ).
+        CREATE OBJECT ro_char EXPORTING im_name = lv_name
+                                        im_type_group = iv_type_group
+                                        im_new = lv_new
+                                        im_activation_state = iv_activation_state.
       CATCH cx_pak_invalid_data
           cx_pak_not_authorized
           cx_pak_invalid_state
