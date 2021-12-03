@@ -81,7 +81,7 @@ CLASS ZCL_ABAPGIT_UTILS IMPLEMENTATION.
 
     FIND ALL OCCURRENCES OF REGEX '[^[:print:]]' IN lv_string_data MATCH COUNT lv_printable_chars_count.
     lv_percentage = lv_printable_chars_count * 100 / strlen( lv_string_data ).
-    rv_is_binary = xsdbool( lv_percentage > lc_binary_threshold ).
+    rv_is_binary = boolc( lv_percentage > lc_binary_threshold ).
 
   ENDMETHOD.
 
