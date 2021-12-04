@@ -71,7 +71,7 @@ CLASS zcl_abapgit_gui_page_sett_bckg IMPLEMENTATION.
   METHOD constructor.
 
     super->constructor( ).
-    mo_form_data = NEW #( ).
+    CREATE OBJECT mo_form_data.
     mo_repo = io_repo.
     mo_form = get_form_schema( ).
     mo_form_util = zcl_abapgit_html_form_utils=>create( mo_form ).
@@ -85,7 +85,7 @@ CLASS zcl_abapgit_gui_page_sett_bckg IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_sett_bckg.
 
-    lo_component = NEW #( io_repo = io_repo ).
+    CREATE OBJECT lo_component EXPORTING io_repo = io_repo.
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Background Mode'
@@ -174,7 +174,7 @@ CLASS zcl_abapgit_gui_page_sett_bckg IMPLEMENTATION.
 
     DATA lo_per TYPE REF TO zcl_abapgit_persist_background.
 
-    lo_per = NEW #( ).
+    CREATE OBJECT lo_per.
 
     TRY.
         rs_persist = lo_per->get_by_key( mo_repo->get_key( ) ).
@@ -289,7 +289,7 @@ CLASS zcl_abapgit_gui_page_sett_bckg IMPLEMENTATION.
     ls_per-username = mo_form_data->get( c_id-username ).
     ls_per-password = mo_form_data->get( c_id-password ).
 
-    lo_persistence = NEW #( ).
+    CREATE OBJECT lo_persistence.
 
     IF ls_per-method IS INITIAL.
       lo_persistence->delete( ls_per-key ).
@@ -329,7 +329,7 @@ CLASS zcl_abapgit_gui_page_sett_bckg IMPLEMENTATION.
 
     read_settings( ).
 
-    ri_html = NEW zcl_abapgit_html( ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
 
     ri_html->add( `<div class="repo">` ).
 
