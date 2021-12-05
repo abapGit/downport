@@ -250,7 +250,7 @@ CLASS ZCL_ABAPGIT_OBJECT_NSPC IMPLEMENTATION.
         namespace_not_valid = 1
         OTHERS              = 2.
 
-    rv_bool = xsdbool( sy-subrc = 0 ).
+    rv_bool = boolc( sy-subrc = 0 ).
 
   ENDMETHOD.
 
