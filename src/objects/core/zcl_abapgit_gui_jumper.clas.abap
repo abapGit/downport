@@ -59,7 +59,7 @@ CLASS zcl_abapgit_gui_jumper IMPLEMENTATION.
         jump_not_possible = 1
         OTHERS            = 2.
 
-    rv_exit = boolc( sy-subrc = 0 ).
+    rv_exit = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -78,7 +78,7 @@ CLASS zcl_abapgit_gui_jumper IMPLEMENTATION.
         invalid_object_type = 2
         OTHERS              = 3.
 
-    rv_exit = boolc( sy-subrc = 0 ).
+    rv_exit = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -103,7 +103,7 @@ CLASS zcl_abapgit_gui_jumper IMPLEMENTATION.
           invalid_object_type = 2
           OTHERS              = 3.
 
-      rv_exit = boolc( sy-subrc = 0 ).
+      rv_exit = xsdbool( sy-subrc = 0 ).
 
     ENDIF.
 
@@ -111,6 +111,11 @@ CLASS zcl_abapgit_gui_jumper IMPLEMENTATION.
 
 
   METHOD zif_abapgit_gui_jumper~jump.
+
+    " WebGUI cannot open windows or ADT
+    IF zcl_abapgit_ui_factory=>get_frontend_services( )->is_webgui( ) = abap_true.
+      zcx_abapgit_exception=>raise( |Jump not possible in WebGUI| ).
+    ENDIF.
 
     " Try all generic jump options
 
