@@ -42,7 +42,7 @@ CLASS zcl_abapgit_gui_page_main IMPLEMENTATION.
 
   METHOD build_main_menu.
 
-    ro_menu = NEW #( iv_id = 'toolbar-main' ).
+    CREATE OBJECT ro_menu EXPORTING iv_id = 'toolbar-main'.
 
     ro_menu->add(
       iv_txt = zcl_abapgit_gui_buttons=>new_online( )
@@ -75,12 +75,12 @@ CLASS zcl_abapgit_gui_page_main IMPLEMENTATION.
 
   METHOD render_content.
 
-    ri_html = NEW zcl_abapgit_html( ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
 
     gui_services( )->get_hotkeys_ctl( )->register_hotkeys( zif_abapgit_gui_hotkeys~get_hotkey_actions( ) ).
 
     IF mo_repo_overview IS INITIAL OR mo_repo_overview->mv_only_favorites <> mv_only_favorites.
-      mo_repo_overview = NEW #( iv_only_favorites = mv_only_favorites ).
+      CREATE OBJECT mo_repo_overview EXPORTING iv_only_favorites = mv_only_favorites.
     ENDIF.
 
     ri_html->add( mo_repo_overview->zif_abapgit_gui_renderable~render( ) ).
@@ -112,7 +112,7 @@ CLASS zcl_abapgit_gui_page_main IMPLEMENTATION.
         ENDTRY.
 
         mv_repo_key = lv_key.
-        rs_handled-page = NEW zcl_abapgit_gui_page_repo_view( iv_key = lv_key ).
+        CREATE OBJECT rs_handled-page TYPE zcl_abapgit_gui_page_repo_view EXPORTING iv_key = lv_key.
         rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page.
 
       WHEN zif_abapgit_definitions=>c_action-change_order_by.
@@ -128,7 +128,7 @@ CLASS zcl_abapgit_gui_page_main IMPLEMENTATION.
       WHEN zif_abapgit_definitions=>c_action-direction.
 
         mo_repo_overview->set_order_direction(
-          xsdbool( ii_event->query( )->get( 'DIRECTION' ) = 'DESCENDING' ) ).
+          boolc( ii_event->query( )->get( 'DIRECTION' ) = 'DESCENDING' ) ).
         rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
 
       WHEN c_actions-apply_filter.
@@ -138,7 +138,7 @@ CLASS zcl_abapgit_gui_page_main IMPLEMENTATION.
 
       WHEN zif_abapgit_definitions=>c_action-go_patch.
 
-        rs_handled-page = NEW zcl_abapgit_gui_page_patch( iv_key = lv_key ).
+        CREATE OBJECT rs_handled-page TYPE zcl_abapgit_gui_page_patch EXPORTING iv_key = lv_key.
         rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page.
 
       WHEN OTHERS.
