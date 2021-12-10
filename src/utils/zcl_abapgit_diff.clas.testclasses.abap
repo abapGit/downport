@@ -93,11 +93,11 @@ CLASS ltcl_diff IMPLEMENTATION.
     lv_xnew = zcl_abapgit_convert=>string_to_xstring_utf8( lv_new ).
     lv_xold = zcl_abapgit_convert=>string_to_xstring_utf8( lv_old ).
 
-    lo_diff = NEW #( iv_new = lv_xnew
-                     iv_old = lv_xold
-                     iv_ignore_indentation = iv_ignore_indentation
-                     iv_ignore_comments = iv_ignore_comments
-                     iv_ignore_case = iv_ignore_case ).
+    CREATE OBJECT lo_diff EXPORTING iv_new = lv_xnew
+                                    iv_old = lv_xold
+                                    iv_ignore_indentation = iv_ignore_indentation
+                                    iv_ignore_comments = iv_ignore_comments
+                                    iv_ignore_case = iv_ignore_case.
 
 
     lt_diff = lo_diff->get( ).
