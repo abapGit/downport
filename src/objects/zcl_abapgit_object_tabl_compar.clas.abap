@@ -136,7 +136,7 @@ CLASS ZCL_ABAPGIT_OBJECT_TABL_COMPAR IMPLEMENTATION.
 
     DELETE lt_founds WHERE object_cls <> 'DT'.
 
-    rv_is_structure_used_in_db_tab = boolc( lines( lt_founds ) > 0 ).
+    rv_is_structure_used_in_db_tab = xsdbool( lines( lt_founds ) > 0 ).
 
   ENDMETHOD.
 
