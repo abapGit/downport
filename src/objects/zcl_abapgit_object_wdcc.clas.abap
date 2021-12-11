@@ -308,7 +308,7 @@ CLASS zcl_abapgit_object_wdcc IMPLEMENTATION.
       zcx_abapgit_exception=>raise( 'Error check object lock WDCC: ' && ms_item-obj_name ).
     ENDIF.
 
-    rv_is_locked = xsdbool( lines( lt_enq ) > 0 ).
+    rv_is_locked = boolc( lines( lt_enq ) > 0 ).
 
   ENDMETHOD.
 
