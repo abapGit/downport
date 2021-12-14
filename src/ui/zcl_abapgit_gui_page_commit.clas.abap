@@ -140,8 +140,8 @@ CLASS zcl_abapgit_gui_page_commit IMPLEMENTATION.
     " Get settings from DB
     mo_settings = zcl_abapgit_persist_factory=>get_settings( )->read( ).
 
-    CREATE OBJECT mo_validation_log.
-    CREATE OBJECT mo_form_data.
+    mo_validation_log = NEW #( ).
+    mo_form_data = NEW #( ).
     mo_form = get_form_schema( ).
     mo_form_util = zcl_abapgit_html_form_utils=>create( mo_form ).
 
@@ -152,9 +152,9 @@ CLASS zcl_abapgit_gui_page_commit IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_commit.
 
-    CREATE OBJECT lo_component EXPORTING io_repo = io_repo
-                                         io_stage = io_stage
-                                         iv_sci_result = iv_sci_result.
+    lo_component = NEW #( io_repo = io_repo
+                          io_stage = io_stage
+                          iv_sci_result = iv_sci_result ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Commit'
@@ -365,7 +365,7 @@ CLASS zcl_abapgit_gui_page_commit IMPLEMENTATION.
       rv_valid = abap_true.
     ELSE.
       FIND REGEX lc_email_regex IN iv_email.
-      rv_valid = boolc( sy-subrc = 0 ).
+      rv_valid = xsdbool( sy-subrc = 0 ).
     ENDIF.
 
   ENDMETHOD.
@@ -375,12 +375,12 @@ CLASS zcl_abapgit_gui_page_commit IMPLEMENTATION.
 
     FIELD-SYMBOLS <ls_stage> LIKE LINE OF mt_stage.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<table class="stage_tab">' ).
     ri_html->add( '<thead>' ).
     ri_html->add( '<tr>' ).
-    ri_html->add( '<th colspan="3">Staged Files (<a href="#top">Summary</a>)</th>' ).
+    ri_html->add( '<th colspan="3">Staged Files (See <a href="#top">Summary</a> Above)</th>' ).
     ri_html->add( '</tr>' ).
     ri_html->add( '</thead>' ).
 
@@ -418,7 +418,7 @@ CLASS zcl_abapgit_gui_page_commit IMPLEMENTATION.
 
     FIELD-SYMBOLS <ls_stage> LIKE LINE OF mt_stage.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     LOOP AT mt_stage ASSIGNING <ls_stage>.
       ls_sum-method = <ls_stage>-method.
@@ -447,7 +447,7 @@ CLASS zcl_abapgit_gui_page_commit IMPLEMENTATION.
       ri_html->add( 'files' ).
     ENDIF.
 
-    ri_html->add( '(<a href="#stage-details">Details</a>)' ).
+    ri_html->add( '(See <a href="#stage-details">Details</a> Below)' ).
 
   ENDMETHOD.
 
@@ -545,7 +545,7 @@ CLASS zcl_abapgit_gui_page_commit IMPLEMENTATION.
       get_defaults( ).
     ENDIF.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div id="top" class="paddings">' ).
     ri_html->add( zcl_abapgit_gui_chunk_lib=>render_repo_top( mo_repo ) ).
