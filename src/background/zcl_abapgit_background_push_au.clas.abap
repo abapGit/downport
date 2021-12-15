@@ -130,7 +130,7 @@ CLASS zcl_abapgit_background_push_au IMPLEMENTATION.
 *     Fill user details
       ls_comment-committer = determine_user_details( lv_changed_by ).
 
-      CREATE OBJECT lo_stage.
+      lo_stage = NEW #( ).
 
       CLEAR ls_user_files.
 
@@ -191,7 +191,7 @@ CLASS zcl_abapgit_background_push_au IMPLEMENTATION.
 
     ASSERT lines( is_files-remote ) > 0.
 
-    CREATE OBJECT lo_stage.
+    lo_stage = NEW #( ).
 
     ls_comment-comment = 'BG: Deletion'.
 
