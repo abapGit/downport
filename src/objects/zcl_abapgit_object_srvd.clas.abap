@@ -251,7 +251,7 @@ CLASS ZCL_ABAPGIT_OBJECT_SRVD IMPLEMENTATION.
             data_selection = 'P'
           IMPORTING
             eo_object_data = lo_object_data.
-        rv_bool = xsdbool( lo_object_data IS NOT INITIAL AND lo_object_data->get_object_key( ) IS NOT INITIAL ).
+        rv_bool = boolc( lo_object_data IS NOT INITIAL AND lo_object_data->get_object_key( ) IS NOT INITIAL ).
       CATCH cx_root.
         rv_bool = abap_false.
     ENDTRY.
