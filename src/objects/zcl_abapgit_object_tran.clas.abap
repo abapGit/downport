@@ -370,7 +370,7 @@ CLASS zcl_abapgit_object_tran IMPLEMENTATION.
 
   METHOD is_variant_transaction.
 
-    rv_variant_transaction = boolc( is_tstcp-param(1) = '@' ).
+    rv_variant_transaction = xsdbool( is_tstcp-param(1) = '@' ).
 
   ENDMETHOD.
 
@@ -669,7 +669,8 @@ CLASS zcl_abapgit_object_tran IMPLEMENTATION.
 
 
     IF zif_abapgit_object~exists( ) = abap_true.
-      zif_abapgit_object~delete( iv_package ).
+      zif_abapgit_object~delete( iv_package   = iv_package
+                                 iv_transport = iv_transport ).
     ENDIF.
 
     io_xml->read( EXPORTING iv_name = 'TSTC'
@@ -773,7 +774,7 @@ CLASS zcl_abapgit_object_tran IMPLEMENTATION.
 
     SELECT SINGLE tcode FROM tstc INTO lv_tcode
       WHERE tcode = ms_item-obj_name.                   "#EC CI_GENBUFF
-    rv_bool = boolc( sy-subrc = 0 ).
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 

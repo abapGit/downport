@@ -26,9 +26,9 @@ CLASS zcl_abapgit_object_enhs IMPLEMENTATION.
 
     CASE iv_tool.
       WHEN cl_enh_tool_badi_def=>tooltype.
-        CREATE OBJECT ri_enho TYPE zcl_abapgit_object_enhs_badi_d.
+        ri_enho = NEW zcl_abapgit_object_enhs_badi_d( ).
       WHEN cl_enh_tool_hook_def=>tool_type.
-        CREATE OBJECT ri_enho TYPE zcl_abapgit_object_enhs_hook_d.
+        ri_enho = NEW zcl_abapgit_object_enhs_hook_d( ).
       WHEN OTHERS.
         zcx_abapgit_exception=>raise( |ENHS: Unsupported tool { iv_tool }| ).
     ENDCASE.
@@ -89,7 +89,8 @@ CLASS zcl_abapgit_object_enhs IMPLEMENTATION.
           li_enhs      TYPE REF TO zif_abapgit_object_enhs.
 
     IF zif_abapgit_object~exists( ) = abap_true.
-      zif_abapgit_object~delete( iv_package ).
+      zif_abapgit_object~delete( iv_package   = iv_package
+                                 iv_transport = iv_transport ).
     ENDIF.
 
     io_xml->read( EXPORTING iv_name = 'TOOL'

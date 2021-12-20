@@ -123,8 +123,9 @@ CLASS zcl_abapgit_objects DEFINITION
         !iv_package TYPE devclass .
     CLASS-METHODS delete_object
       IMPORTING
-        !iv_package TYPE devclass
-        !is_item    TYPE zif_abapgit_definitions=>ty_item
+        !iv_package   TYPE devclass
+        !is_item      TYPE zif_abapgit_definitions=>ty_item
+        !iv_transport TYPE trkorr
       RAISING
         zcx_abapgit_exception .
     CLASS-METHODS compare_remote_to_local
@@ -137,10 +138,11 @@ CLASS zcl_abapgit_objects DEFINITION
         zcx_abapgit_exception .
     CLASS-METHODS deserialize_objects
       IMPORTING
-        !is_step  TYPE zif_abapgit_objects=>ty_step_data
-        !ii_log   TYPE REF TO zif_abapgit_log
+        !is_step      TYPE zif_abapgit_objects=>ty_step_data
+        !ii_log       TYPE REF TO zif_abapgit_log
+        !iv_transport TYPE trkorr
       CHANGING
-        !ct_files TYPE zif_abapgit_definitions=>ty_file_signatures_tt
+        !ct_files     TYPE zif_abapgit_definitions=>ty_file_signatures_tt
       RAISING
         zcx_abapgit_exception .
     CLASS-METHODS check_objects_locked
@@ -186,7 +188,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_OBJECTS IMPLEMENTATION.
+CLASS zcl_abapgit_objects IMPLEMENTATION.
 
 
   METHOD changed_by.
@@ -360,8 +362,8 @@ CLASS ZCL_ABAPGIT_OBJECTS IMPLEMENTATION.
         RETURN.
       ENDIF.
 
-      CREATE OBJECT li_remote_version TYPE zcl_abapgit_xml_input EXPORTING iv_xml = zcl_abapgit_convert=>xstring_to_string_utf8( ls_remote_file-data )
-                                                                           iv_filename = ls_remote_file-filename.
+      li_remote_version = NEW zcl_abapgit_xml_input( iv_xml = zcl_abapgit_convert=>xstring_to_string_utf8( ls_remote_file-data )
+                                                     iv_filename = ls_remote_file-filename ).
 
       ls_result = li_comparator->compare( ii_remote = li_remote_version
                                           ii_log = ii_log ).
@@ -440,7 +442,7 @@ CLASS ZCL_ABAPGIT_OBJECTS IMPLEMENTATION.
         lv_message = |Object type { is_item-obj_type } is not supported by this system|.
         IF iv_native_only = abap_false.
           TRY. " 2nd step, try looking for plugins
-              CREATE OBJECT ri_obj TYPE zcl_abapgit_objects_bridge EXPORTING is_item = is_item.
+              ri_obj = NEW zcl_abapgit_objects_bridge( is_item = is_item ).
             CATCH cx_sy_create_object_error.
               zcx_abapgit_exception=>raise( lv_message ).
           ENDTRY.
@@ -498,8 +500,9 @@ CLASS ZCL_ABAPGIT_OBJECTS IMPLEMENTATION.
 
         TRY.
             delete_object(
-              iv_package = <ls_tadir>-devclass
-              is_item    = ls_item ).
+              iv_package   = <ls_tadir>-devclass
+              is_item      = ls_item
+              iv_transport = is_checks-transport-transport ).
 
             INSERT <ls_tadir> INTO TABLE lt_deleted.
             DELETE lt_tadir.
@@ -547,7 +550,8 @@ CLASS ZCL_ABAPGIT_OBJECTS IMPLEMENTATION.
     li_obj = create_object( is_item     = is_item
                             iv_language = zif_abapgit_definitions=>c_english ).
 
-    li_obj->delete( iv_package ).
+    li_obj->delete( iv_package   = iv_package
+                    iv_transport = iv_transport ).
 
     IF li_obj->get_metadata( )-delete_tadir = abap_true.
 
@@ -662,8 +666,8 @@ CLASS ZCL_ABAPGIT_OBJECTS IMPLEMENTATION.
           ENDIF.
 
           " Create or update object
-          CREATE OBJECT lo_files EXPORTING is_item = ls_item
-                                           iv_path = lv_path.
+          lo_files = NEW #( is_item = ls_item
+                            iv_path = lv_path ).
           lo_files->set_files( lt_remote ).
 
           "analyze XML in order to instantiate the proper serializer
@@ -714,9 +718,13 @@ CLASS ZCL_ABAPGIT_OBJECTS IMPLEMENTATION.
     "run deserialize for all steps and it's objects
     SORT lt_steps BY order.
     LOOP AT lt_steps ASSIGNING <ls_step>.
-      deserialize_objects( EXPORTING is_step = <ls_step>
-                                     ii_log  = ii_log
-                           CHANGING ct_files = rt_accessed_files ).
+      deserialize_objects(
+        EXPORTING
+          is_step      = <ls_step>
+          ii_log       = ii_log
+          iv_transport = is_checks-transport-transport
+        CHANGING
+          ct_files     = rt_accessed_files ).
     ENDLOOP.
 
     update_package_tree( io_repo->get_package( ) ).
@@ -757,10 +765,11 @@ CLASS ZCL_ABAPGIT_OBJECTS IMPLEMENTATION.
         iv_text    = |Deserialize { is_step-descr } - { <ls_obj>-item-obj_name }| ).
 
       TRY.
-          <ls_obj>-obj->deserialize( iv_package = <ls_obj>-package
-                                     io_xml     = <ls_obj>-xml
-                                     iv_step    = is_step-step_id
-                                     ii_log     = ii_log ).
+          <ls_obj>-obj->deserialize( iv_package   = <ls_obj>-package
+                                     io_xml       = <ls_obj>-xml
+                                     iv_step      = is_step-step_id
+                                     ii_log       = ii_log
+                                     iv_transport = iv_transport ).
           APPEND LINES OF <ls_obj>-obj->mo_files->get_accessed_files( ) TO ct_files.
 
           ii_log->add_success( iv_msg = |Object { <ls_obj>-item-obj_name } imported|
@@ -1007,14 +1016,14 @@ CLASS ZCL_ABAPGIT_OBJECTS IMPLEMENTATION.
         rs_files_and_item-item-obj_name }| ).
     ENDIF.
 
-    CREATE OBJECT lo_files EXPORTING is_item = rs_files_and_item-item.
+    lo_files = NEW #( is_item = rs_files_and_item-item ).
 
     li_obj = create_object( is_item     = rs_files_and_item-item
                             iv_language = iv_language ).
 
     li_obj->mo_files = lo_files.
 
-    CREATE OBJECT li_xml TYPE zcl_abapgit_xml_output.
+    li_xml = NEW zcl_abapgit_xml_output( ).
 
     ls_i18n_params-main_language         = iv_language.
     ls_i18n_params-main_language_only    = iv_main_language_only.
@@ -1031,7 +1040,7 @@ CLASS ZCL_ABAPGIT_OBJECTS IMPLEMENTATION.
 
     check_duplicates( rs_files_and_item-files ).
 
-    rs_files_and_item-item-inactive = boolc( li_obj->is_active( ) = abap_false ).
+    rs_files_and_item-item-inactive = xsdbool( li_obj->is_active( ) = abap_false ).
 
     LOOP AT rs_files_and_item-files ASSIGNING <ls_file>.
       <ls_file>-sha1 = zcl_abapgit_hash=>sha1_blob( <ls_file>-data ).
