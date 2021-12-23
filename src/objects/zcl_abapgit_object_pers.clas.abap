@@ -140,7 +140,7 @@ CLASS zcl_abapgit_object_pers IMPLEMENTATION.
         pers_key_does_not_exist = 1
         OTHERS                  = 2 ).
 
-    rv_bool = boolc( sy-subrc = 0 ).
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
