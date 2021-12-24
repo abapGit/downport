@@ -210,7 +210,7 @@ CLASS ZCL_ABAPGIT_OBJECT_TOBJ IMPLEMENTATION.
     SELECT SINGLE objectname FROM objh INTO lv_objectname
       WHERE objectname = ms_item-obj_name(lv_type_pos)
       AND objecttype = ms_item-obj_name+lv_type_pos.    "#EC CI_GENBUFF
-    rv_bool = xsdbool( sy-subrc = 0 ).
+    rv_bool = boolc( sy-subrc = 0 ).
 
   ENDMETHOD.
 
