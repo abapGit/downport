@@ -102,7 +102,7 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
 
 
   METHOD create_empty.
-    CREATE OBJECT ro_instance.
+    ro_instance = NEW #( ).
     ro_instance->mi_custom_mapping = ii_custom_mapping.
   ENDMETHOD.
 
@@ -115,10 +115,10 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
       zcx_abapgit_ajson_error=>raise( 'Source not bound' ).
     ENDIF.
 
-    CREATE OBJECT ro_instance.
+    ro_instance = NEW #( ).
 
     IF ii_filter IS BOUND.
-      CREATE OBJECT lo_filter_runner.
+      lo_filter_runner = NEW #( ).
       lo_filter_runner->run(
         EXPORTING
           ii_filter = ii_filter
@@ -194,8 +194,8 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
 
     DATA lo_parser TYPE REF TO lcl_json_parser.
 
-    CREATE OBJECT ro_instance.
-    CREATE OBJECT lo_parser.
+    ro_instance = NEW #( ).
+    lo_parser = NEW #( ).
     ro_instance->mt_json_tree = lo_parser->parse( iv_json ).
     ro_instance->mi_custom_mapping = ii_custom_mapping.
 
@@ -354,7 +354,7 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
     IF lv_item IS INITIAL OR lv_item->type = zif_abapgit_ajson=>node_type-null.
       RETURN.
     ELSEIF lv_item->type = zif_abapgit_ajson=>node_type-boolean.
-      rv_value = boolc( lv_item->value = 'true' ).
+      rv_value = xsdbool( lv_item->value = 'true' ).
     ELSEIF lv_item->value IS NOT INITIAL.
       rv_value = abap_true.
     ENDIF.
@@ -436,7 +436,7 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    CREATE OBJECT lo_to_abap.
+    lo_to_abap = NEW #( ).
 
     TRY.
         rv_value = lo_to_abap->to_timestamp( is_path = lr_item->* ).
@@ -603,7 +603,7 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
     ri_json = me.
 
     DATA lv_bool TYPE abap_bool.
-    lv_bool = boolc( iv_val IS NOT INITIAL ).
+    lv_bool = xsdbool( iv_val IS NOT INITIAL ).
     zif_abapgit_ajson~set(
       iv_ignore_empty = abap_false
       iv_path = iv_path
@@ -711,7 +711,7 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
     DATA ls_path_parts      TYPE zif_abapgit_ajson=>ty_path_name.
     DATA lv_path_len        TYPE i.
 
-    CREATE OBJECT lo_section.
+    lo_section = NEW #( ).
     lv_normalized_path = lcl_utils=>normalize_path( iv_path ).
     lv_path_len        = strlen( lv_normalized_path ).
     ls_path_parts      = lcl_utils=>split_path( lv_normalized_path ).
