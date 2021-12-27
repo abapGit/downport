@@ -23,10 +23,8 @@ CLASS zcl_abapgit_object_asfc IMPLEMENTATION.
 
   METHOD get_generic.
 
-    CREATE OBJECT ro_generic
-      EXPORTING
-        is_item     = ms_item
-        iv_language = mv_language.
+    ro_generic = NEW #( is_item = ms_item
+                        iv_language = mv_language ).
 
   ENDMETHOD.
 

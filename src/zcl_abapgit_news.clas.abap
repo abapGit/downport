@@ -151,11 +151,9 @@ CLASS zcl_abapgit_news IMPLEMENTATION.
     LOOP AT lt_remote ASSIGNING <ls_file> WHERE path = lc_log_path
                                             AND ( filename CP lc_log_filename OR filename CP lc_log_filename_up ).
 
-      CREATE OBJECT ro_instance
-        EXPORTING
-          iv_rawdata          = <ls_file>-data
-          iv_current_version  = lv_version
-          iv_lastseen_version = zcl_abapgit_version=>normalize( lv_last_seen ).
+      ro_instance = NEW #( iv_rawdata = <ls_file>-data
+                           iv_current_version = lv_version
+                           iv_lastseen_version = zcl_abapgit_version=>normalize( lv_last_seen ) ).
 
       EXIT.
 
@@ -177,24 +175,24 @@ CLASS zcl_abapgit_news IMPLEMENTATION.
 
   METHOD has_important.
     READ TABLE mt_log WITH KEY is_important = abap_true TRANSPORTING NO FIELDS.
-    rv_boolean = boolc( sy-subrc IS INITIAL ).
+    rv_boolean = xsdbool( sy-subrc IS INITIAL ).
   ENDMETHOD.
 
 
   METHOD has_news.
-    rv_boolean = boolc( lines( mt_log ) > 0 ).
+    rv_boolean = xsdbool( lines( mt_log ) > 0 ).
   ENDMETHOD.
 
 
   METHOD has_unseen.
-    rv_boolean = boolc( zcl_abapgit_version=>compare(
+    rv_boolean = xsdbool( zcl_abapgit_version=>compare(
       iv_a = mv_latest_version
       iv_b = mv_lastseen_version ) > 0 ).
   ENDMETHOD.
 
 
   METHOD has_updates.
-    rv_boolean = boolc( zcl_abapgit_version=>compare(
+    rv_boolean = xsdbool( zcl_abapgit_version=>compare(
       iv_a = mv_latest_version
       iv_b = mv_current_version ) > 0 ).
   ENDMETHOD.
@@ -273,7 +271,7 @@ CLASS zcl_abapgit_news IMPLEMENTATION.
                                                         iv_b = iv_current_version ).
     ELSE.
       FIND FIRST OCCURRENCE OF REGEX '^\s*!' IN iv_line.
-      rs_log-is_important = boolc( sy-subrc IS INITIAL ). " Change is important
+      rs_log-is_important = xsdbool( sy-subrc IS INITIAL ). " Change is important
     ENDIF.
 
     rs_log-text = iv_line.
