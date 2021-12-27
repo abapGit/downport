@@ -891,9 +891,14 @@ CLASS zcl_abapgit_object_tabl IMPLEMENTATION.
 
     zif_abapgit_object~serialize( li_local_version_output ).
 
-    CREATE OBJECT li_local_version_input TYPE zcl_abapgit_xml_input EXPORTING iv_xml = li_local_version_output->render( ).
+    CREATE OBJECT li_local_version_input
+      TYPE zcl_abapgit_xml_input
+      EXPORTING
+        iv_xml = li_local_version_output->render( ).
 
-    CREATE OBJECT ri_comparator TYPE zcl_abapgit_object_tabl_compar EXPORTING ii_local = li_local_version_input.
+    CREATE OBJECT ri_comparator TYPE zcl_abapgit_object_tabl_compar
+      EXPORTING
+        ii_local = li_local_version_input.
 
   ENDMETHOD.
 

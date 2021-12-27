@@ -114,8 +114,10 @@ CLASS zcl_abapgit_zip IMPLEMENTATION.
       zcx_abapgit_exception=>raise( |Package { iv_package } doesn't exist| ).
     ENDIF.
 
-    CREATE OBJECT lo_serialize EXPORTING io_dot_abapgit = io_dot_abapgit
-                                         is_local_settings = is_local_settings.
+    CREATE OBJECT lo_serialize
+      EXPORTING
+        io_dot_abapgit    = io_dot_abapgit
+        is_local_settings = is_local_settings.
 
     lt_zip = lo_serialize->files_local(
       iv_package = iv_package

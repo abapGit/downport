@@ -161,11 +161,15 @@ CLASS zcl_abapgit_gui_router IMPLEMENTATION.
     CASE ii_event->mv_action.
       WHEN zif_abapgit_definitions=>c_action-db_edit.
         lo_query->to_abap( CHANGING cs_container = ls_db_key ).
-        CREATE OBJECT rs_handled-page TYPE zcl_abapgit_gui_page_db_edit EXPORTING is_key = ls_db_key.
+        CREATE OBJECT rs_handled-page TYPE zcl_abapgit_gui_page_db_edit
+          EXPORTING
+            is_key = ls_db_key.
         rs_handled-state = get_state_db_edit( ii_event ).
       WHEN zif_abapgit_definitions=>c_action-db_display.
         lo_query->to_abap( CHANGING cs_container = ls_db_key ).
-        CREATE OBJECT rs_handled-page TYPE zcl_abapgit_gui_page_db_dis EXPORTING is_key = ls_db_key.
+        CREATE OBJECT rs_handled-page TYPE zcl_abapgit_gui_page_db_dis
+          EXPORTING
+            is_key = ls_db_key.
         rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page.
     ENDCASE.
 
@@ -210,7 +214,9 @@ CLASS zcl_abapgit_gui_router IMPLEMENTATION.
         lv_last_repo_key = zcl_abapgit_persistence_user=>get_instance( )->get_repo_show( ).
 
         IF lv_last_repo_key IS NOT INITIAL.
-          CREATE OBJECT rs_handled-page TYPE zcl_abapgit_gui_page_repo_view EXPORTING iv_key = lv_last_repo_key.
+          CREATE OBJECT rs_handled-page TYPE zcl_abapgit_gui_page_repo_view
+            EXPORTING
+              iv_key = lv_last_repo_key.
           rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page.
         ELSE.
           rs_handled-page = main_page( ).
@@ -290,7 +296,9 @@ CLASS zcl_abapgit_gui_router IMPLEMENTATION.
 
     lo_repo ?= zcl_abapgit_repo_srv=>get_instance( )->get( iv_key ).
 
-    CREATE OBJECT lo_page EXPORTING io_repo = lo_repo.
+    CREATE OBJECT lo_page
+      EXPORTING
+        io_repo = lo_repo.
 
     ri_page = lo_page.
 
@@ -310,9 +318,11 @@ CLASS zcl_abapgit_gui_router IMPLEMENTATION.
     ls_object-obj_type = ii_event->query( )->get( 'OBJ_TYPE' ).
     ls_object-obj_name = ii_event->query( )->get( 'OBJ_NAME' ). " unescape ?
 
-    CREATE OBJECT lo_page EXPORTING iv_key = lv_key
-                                    is_file = ls_file
-                                    is_object = ls_object.
+    CREATE OBJECT lo_page
+      EXPORTING
+        iv_key    = lv_key
+        is_file   = ls_file
+        is_object = ls_object.
 
     ri_page = lo_page.
 
@@ -343,14 +353,18 @@ CLASS zcl_abapgit_gui_router IMPLEMENTATION.
 
     IF lo_repo->get_local_settings( )-code_inspector_check_variant IS NOT INITIAL.
 
-      CREATE OBJECT lo_code_inspector_page EXPORTING io_repo = lo_repo.
+      CREATE OBJECT lo_code_inspector_page
+        EXPORTING
+          io_repo = lo_repo.
 
       IF lo_code_inspector_page->is_nothing_to_display( ) = abap_true.
         " force refresh on stage, to make sure the latest local and remote files are used
         lo_repo->refresh( ).
-        CREATE OBJECT lo_stage_page EXPORTING io_repo = lo_repo
-                                              iv_seed = lv_seed
-                                              iv_sci_result = zif_abapgit_definitions=>c_sci_result-passed.
+        CREATE OBJECT lo_stage_page
+          EXPORTING
+            io_repo = lo_repo
+            iv_seed = lv_seed
+            iv_sci_result = zif_abapgit_definitions=>c_sci_result-passed.
         ri_page = lo_stage_page.
       ELSE.
         ri_page = lo_code_inspector_page.
@@ -373,8 +387,10 @@ CLASS zcl_abapgit_gui_router IMPLEMENTATION.
       " force refresh on stage, to make sure the latest local and remote files are used
       lo_repo->refresh( ).
 
-      CREATE OBJECT lo_stage_page EXPORTING io_repo = lo_repo
-                                            iv_seed = lv_seed.
+      CREATE OBJECT lo_stage_page
+        EXPORTING
+          io_repo = lo_repo
+          iv_seed = lv_seed.
 
       ri_page = lo_stage_page.
 
@@ -399,7 +415,9 @@ CLASS zcl_abapgit_gui_router IMPLEMENTATION.
         ENDTRY.
       ENDIF.
 
-      CREATE OBJECT lo_page_repo TYPE zcl_abapgit_gui_page_repo_view EXPORTING iv_key = lo_repo->get_key( ).
+      CREATE OBJECT lo_page_repo TYPE zcl_abapgit_gui_page_repo_view
+        EXPORTING
+          iv_key = lo_repo->get_key( ).
 
       ri_page = lo_page_repo.
     ENDIF.
@@ -469,7 +487,9 @@ CLASS zcl_abapgit_gui_router IMPLEMENTATION.
         zcl_abapgit_services_git=>tag_overview( lv_key ).
         rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
       WHEN zif_abapgit_definitions=>c_action-git_tag_create.                " GIT Tag create
-        CREATE OBJECT rs_handled-page TYPE zcl_abapgit_gui_page_tag EXPORTING io_repo = zcl_abapgit_repo_srv=>get_instance( )->get( lv_key ).
+        CREATE OBJECT rs_handled-page TYPE zcl_abapgit_gui_page_tag
+          EXPORTING
+            io_repo = zcl_abapgit_repo_srv=>get_instance( )->get( lv_key ).
         rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page.
       WHEN zif_abapgit_definitions=>c_action-git_tag_delete.                " GIT Tag create
         zcl_abapgit_services_git=>delete_tag( lv_key ).
@@ -570,10 +590,14 @@ CLASS zcl_abapgit_gui_router IMPLEMENTATION.
         zcl_abapgit_services_repo=>refresh( lv_key ).
         rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
       WHEN zif_abapgit_definitions=>c_action-repo_syntax_check.
-        CREATE OBJECT rs_handled-page TYPE zcl_abapgit_gui_page_syntax EXPORTING io_repo = lo_repo.
+        CREATE OBJECT rs_handled-page TYPE zcl_abapgit_gui_page_syntax " Syntax check
+          EXPORTING
+            io_repo = lo_repo.
         rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page.
       WHEN zif_abapgit_definitions=>c_action-repo_code_inspector.             " Code inspector
-        CREATE OBJECT rs_handled-page TYPE zcl_abapgit_gui_page_code_insp EXPORTING io_repo = lo_repo.
+        CREATE OBJECT rs_handled-page TYPE zcl_abapgit_gui_page_code_insp
+          EXPORTING
+            io_repo = lo_repo.
         rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page.
       WHEN zif_abapgit_definitions=>c_action-repo_purge.                      " Repo purge all objects (uninstall)
         zcl_abapgit_services_repo=>purge( lv_key ).
@@ -766,7 +790,9 @@ CLASS zcl_abapgit_gui_router IMPLEMENTATION.
           WHEN lc_page-repo_view.
             rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
           WHEN lc_page-main_view.
-            CREATE OBJECT rs_handled-page TYPE zcl_abapgit_gui_page_repo_view EXPORTING iv_key = lo_repo->get_key( ).
+            CREATE OBJECT rs_handled-page TYPE zcl_abapgit_gui_page_repo_view
+              EXPORTING
+                iv_key = lo_repo->get_key( ).
             rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page.
           WHEN OTHERS.
             rs_handled-state = zcl_abapgit_gui=>c_event_state-no_more_act.

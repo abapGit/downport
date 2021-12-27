@@ -82,7 +82,7 @@ CLASS ZCL_ABAPGIT_OBJECT_FDT0 IMPLEMENTATION.
         WHERE object_type = 'AP'
         AND id = lv_application_id
         AND deleted = ''.
-      ev_create = xsdbool( lv_count = 0 ).
+      ev_create = boolc( lv_count = 0 ).
     ENDIF.
 
     " Fill in user/time/system-specific fields
@@ -590,9 +590,13 @@ CLASS ZCL_ABAPGIT_OBJECT_FDT0 IMPLEMENTATION.
     CREATE OBJECT lo_local_version_output.
     zif_abapgit_object~serialize( lo_local_version_output ).
 
-    CREATE OBJECT lo_local_version_input EXPORTING iv_xml = lo_local_version_output->zif_abapgit_xml_output~render( ).
+    CREATE OBJECT lo_local_version_input
+      EXPORTING
+        iv_xml = lo_local_version_output->zif_abapgit_xml_output~render( ).
 
-    CREATE OBJECT ri_comparator TYPE zcl_abapgit_object_tabl_compar EXPORTING ii_local = lo_local_version_input.
+    CREATE OBJECT ri_comparator TYPE zcl_abapgit_object_tabl_compar
+      EXPORTING
+        ii_local = lo_local_version_input.
 
   ENDMETHOD.
 

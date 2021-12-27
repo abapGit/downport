@@ -71,8 +71,10 @@ CLASS zcl_abapgit_gui_page_merge IMPLEMENTATION.
 
     io_repo->select_branch( |{ zif_abapgit_definitions=>c_git_branch-heads_prefix }{ iv_target }| ).
 
-    CREATE OBJECT mi_merge TYPE zcl_abapgit_merge EXPORTING io_repo = io_repo
-                                                            iv_source_branch = iv_source.
+    CREATE OBJECT mi_merge TYPE zcl_abapgit_merge
+      EXPORTING
+        io_repo          = io_repo
+        iv_source_branch = iv_source.
     mi_merge->run( ).
 
     ms_control-page_title = 'Merge'.
@@ -209,8 +211,10 @@ CLASS zcl_abapgit_gui_page_merge IMPLEMENTATION.
 
         IF mo_repo->get_local_settings( )-code_inspector_check_variant IS NOT INITIAL.
 
-          CREATE OBJECT rs_handled-page TYPE zcl_abapgit_gui_page_code_insp EXPORTING io_repo = mo_repo
-                                                                                      io_stage = mi_merge->get_result( )-stage.
+          CREATE OBJECT rs_handled-page TYPE zcl_abapgit_gui_page_code_insp
+            EXPORTING
+              io_repo  = mo_repo
+              io_stage = mi_merge->get_result( )-stage.
 
         ELSE.
 
@@ -224,9 +228,11 @@ CLASS zcl_abapgit_gui_page_merge IMPLEMENTATION.
 
       WHEN c_actions-res_conflicts.
 
-        CREATE OBJECT rs_handled-page TYPE zcl_abapgit_gui_page_merge_res EXPORTING io_repo = mo_repo
-                                                                                    io_merge_page = me
-                                                                                    io_merge = mi_merge.
+        CREATE OBJECT rs_handled-page TYPE zcl_abapgit_gui_page_merge_res
+          EXPORTING
+            io_repo       = mo_repo
+            io_merge_page = me
+            io_merge      = mi_merge.
         rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page.
 
       WHEN OTHERS.

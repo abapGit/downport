@@ -354,7 +354,9 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DEBUGINFO IMPLEMENTATION.
 
         CATCH cx_sy_create_object_error.
           TRY. " 2nd step, try looking for plugins
-              CREATE OBJECT li_object TYPE zcl_abapgit_objects_bridge EXPORTING is_item = ls_item.
+              CREATE OBJECT li_object TYPE zcl_abapgit_objects_bridge
+                EXPORTING
+                  is_item = ls_item.
             CATCH cx_sy_create_object_error.
               rv_html = rv_html && |<td class="error" colspan="5">{ lv_class } - error instantiating class</td>|.
               CONTINUE.

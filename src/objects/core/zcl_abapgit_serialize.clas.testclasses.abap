@@ -166,9 +166,13 @@ CLASS ltcl_i18n IMPLEMENTATION.
     INSERT 'DE' INTO TABLE ls_data-i18n_languages.
 
     TRY.
-        CREATE OBJECT mo_dot_abapgit EXPORTING is_data = ls_data.
+        CREATE OBJECT mo_dot_abapgit
+          EXPORTING
+            is_data = ls_data.
 
-        CREATE OBJECT mo_cut EXPORTING io_dot_abapgit = mo_dot_abapgit.
+        CREATE OBJECT mo_cut
+          EXPORTING
+            io_dot_abapgit = mo_dot_abapgit.
       CATCH zcx_abapgit_exception.
         cl_abap_unit_assert=>fail( 'Error creating serializer' ).
     ENDTRY.
@@ -205,7 +209,9 @@ CLASS ltcl_i18n IMPLEMENTATION.
 
     lv_xml = zcl_abapgit_convert=>xstring_to_string_utf8( <ls_result>-file-data ).
 
-    CREATE OBJECT lo_input EXPORTING iv_xml = lv_xml.
+    CREATE OBJECT lo_input
+      EXPORTING
+        iv_xml = lv_xml.
 
     lo_input->zif_abapgit_xml_input~read( EXPORTING iv_name = 'DD02V'
                                           CHANGING  cg_data = ls_dd02v ).
