@@ -157,8 +157,8 @@ CLASS zcl_abapgit_object_sqsc IMPLEMENTATION.
 
     IF zcl_abapgit_objects=>exists( ls_item ) = abap_true.
 
-      lo_interface = NEW #( is_item = ls_item
-                            iv_language = mv_language ).
+      CREATE OBJECT lo_interface EXPORTING is_item = ls_item
+                                           iv_language = mv_language.
 
       lo_interface->zif_abapgit_object~delete( iv_package   = iv_package
                                                iv_transport = iv_transport ).
