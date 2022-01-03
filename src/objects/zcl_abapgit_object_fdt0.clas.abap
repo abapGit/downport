@@ -44,7 +44,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_OBJECT_FDT0 IMPLEMENTATION.
+CLASS zcl_abapgit_object_fdt0 IMPLEMENTATION.
 
 
   METHOD before_xml_deserialize.
@@ -394,16 +394,12 @@ CLASS ZCL_ABAPGIT_OBJECT_FDT0 IMPLEMENTATION.
   METHOD zif_abapgit_object~delete.
 
     DATA lv_is_local TYPE abap_bool.
-    DATA lv_ordernum TYPE trkorr.
     DATA lt_application_id TYPE TABLE OF fdt_admn_0000s-application_id.
     DATA ls_object_category_sel TYPE if_fdt_query=>s_object_category_sel.
     DATA lv_failure TYPE abap_bool.
     DATA lx_fdt_input TYPE REF TO cx_fdt_input.
 
     lv_is_local = check_is_local( ).
-    IF lv_is_local = abap_false.
-      lv_ordernum = zcl_abapgit_default_transport=>get_instance( )->get( )-ordernum.
-    ENDIF.
 
     SELECT application_id FROM fdt_admn_0000s INTO TABLE lt_application_id
       WHERE object_type = 'AP'
@@ -507,7 +503,6 @@ CLASS ZCL_ABAPGIT_OBJECT_FDT0 IMPLEMENTATION.
     DATA lx_fdt_input TYPE REF TO cx_fdt_input.
     DATA lo_dom_tree TYPE REF TO if_ixml_document.
     DATA lv_is_local TYPE abap_bool.
-    DATA lv_ordernum TYPE trkorr.
     DATA lt_message TYPE if_fdt_types=>t_message.
     DATA lv_create TYPE abap_bool.
 
@@ -541,15 +536,13 @@ CLASS ZCL_ABAPGIT_OBJECT_FDT0 IMPLEMENTATION.
 
         ELSE. "Transportable Object
 
-          lv_ordernum = zcl_abapgit_default_transport=>get_instance( )->get( )-ordernum.
-
           lo_dexc->import_xml(
             EXPORTING
               io_dom_tree            = lo_dom_tree
               iv_create              = lv_create
               iv_activate            = abap_true
               iv_simulate            = abap_false
-              iv_workbench_trrequest = lv_ordernum
+              iv_workbench_trrequest = iv_transport
             IMPORTING
               et_message             = lt_message ).
 
@@ -577,7 +570,7 @@ CLASS ZCL_ABAPGIT_OBJECT_FDT0 IMPLEMENTATION.
       AND name = ms_item-obj_name
       AND deleted = ''.
 
-    rv_bool = boolc( lv_count > 0 ).
+    rv_bool = xsdbool( lv_count > 0 ).
 
   ENDMETHOD.
 
@@ -587,12 +580,12 @@ CLASS ZCL_ABAPGIT_OBJECT_FDT0 IMPLEMENTATION.
     DATA lo_local_version_output TYPE REF TO zcl_abapgit_xml_output.
     DATA lo_local_version_input  TYPE REF TO zcl_abapgit_xml_input.
 
-    CREATE OBJECT lo_local_version_output.
+    lo_local_version_output = NEW #( ).
     zif_abapgit_object~serialize( lo_local_version_output ).
 
-    CREATE OBJECT lo_local_version_input EXPORTING iv_xml = lo_local_version_output->zif_abapgit_xml_output~render( ).
+    lo_local_version_input = NEW #( iv_xml = lo_local_version_output->zif_abapgit_xml_output~render( ) ).
 
-    CREATE OBJECT ri_comparator TYPE zcl_abapgit_object_tabl_compar EXPORTING ii_local = lo_local_version_input.
+    ri_comparator = NEW zcl_abapgit_object_tabl_compar( ii_local = lo_local_version_input ).
 
   ENDMETHOD.
 
@@ -635,7 +628,7 @@ CLASS ZCL_ABAPGIT_OBJECT_FDT0 IMPLEMENTATION.
     lv_index = lines( lt_version ).
     READ TABLE lt_version ASSIGNING <ls_version> INDEX lv_index.
 
-    rv_active = boolc( <ls_version>-state = 'A' ).
+    rv_active = xsdbool( <ls_version>-state = 'A' ).
 
   ENDMETHOD.
 

@@ -20,14 +20,16 @@ CLASS zcl_abapgit_object_wdca DEFINITION
         zcx_abapgit_exception .
     METHODS save
       IMPORTING
-        !is_outline TYPE wdy_cfg_outline_data
-        !it_data    TYPE wdy_cfg_persist_data_appl_tab
-        !iv_package TYPE devclass
+        !is_outline   TYPE wdy_cfg_outline_data
+        !it_data      TYPE wdy_cfg_persist_data_appl_tab
+        !iv_package   TYPE devclass
+        !iv_transport TYPE trkorr
       RAISING
         zcx_abapgit_exception .
     METHODS delete
       IMPORTING
-        !iv_package TYPE devclass
+        !iv_package   TYPE devclass
+        !iv_transport TYPE trkorr
       RAISING
         zcx_abapgit_exception .
     METHODS check
@@ -63,14 +65,13 @@ CLASS zcl_abapgit_object_wdca IMPLEMENTATION.
       ls_outline   TYPE wdy_cfg_outline_data,
       lv_operation TYPE i,
       lv_name      TYPE wdy_md_object_name,
-      lv_exists    TYPE wdy_boolean,
-      lv_transport TYPE trkorr.
+      lv_exists    TYPE wdy_boolean.
 
     ls_key = ms_item-obj_name.
 
     TRY.
-        CREATE OBJECT lo_cfg EXPORTING config_key = ls_key
-                                       object_name = lv_name.
+        lo_cfg = NEW #( config_key = ls_key
+                        object_name = lv_name ).
 
         MOVE-CORRESPONDING ls_key TO ls_outline.
 
@@ -86,8 +87,7 @@ CLASS zcl_abapgit_object_wdca IMPLEMENTATION.
           RETURN.
         ENDIF.
 
-        lv_transport = zcl_abapgit_default_transport=>get_instance( )->get( )-ordernum.
-        lo_cfg->set_transport( trkorr   = lv_transport
+        lo_cfg->set_transport( trkorr   = iv_transport
                                devclass = iv_package ).
 
         lv_operation = if_wdr_cfg_constants=>c_cts_operation-e_delete.
@@ -95,7 +95,7 @@ CLASS zcl_abapgit_object_wdca IMPLEMENTATION.
         DO 2 TIMES.
           lo_cfg->do_next_step(
             IMPORTING
-              e_messages = lt_messages
+              e_messages  = lt_messages
             CHANGING
               c_operation = lv_operation ).
           check( lt_messages ).
@@ -130,8 +130,8 @@ CLASS zcl_abapgit_object_wdca IMPLEMENTATION.
     ls_key = ms_item-obj_name.
 
     TRY.
-        CREATE OBJECT lo_cfg EXPORTING config_key = ls_key
-                                       object_name = lv_name.
+        lo_cfg = NEW #( config_key = ls_key
+                        object_name = lv_name ).
 
         MOVE-CORRESPONDING ls_key TO es_outline.
 
@@ -181,14 +181,13 @@ CLASS zcl_abapgit_object_wdca IMPLEMENTATION.
       ls_data      LIKE LINE OF it_data,
       lv_operation TYPE i,
       lv_name      TYPE wdy_md_object_name,
-      lv_exists    TYPE wdy_boolean,
-      lv_transport TYPE trkorr.
+      lv_exists    TYPE wdy_boolean.
 
     MOVE-CORRESPONDING is_outline TO ls_key.
 
     TRY.
-        CREATE OBJECT lo_cfg EXPORTING config_key = ls_key
-                                       object_name = lv_name.
+        lo_cfg = NEW #( config_key = ls_key
+                        object_name = lv_name ).
 
         READ TABLE it_data INDEX 1 INTO ls_data.
         ASSERT sy-subrc = 0.
@@ -206,8 +205,7 @@ CLASS zcl_abapgit_object_wdca IMPLEMENTATION.
     ENDTRY.
 
     TRY.
-        lv_transport = zcl_abapgit_default_transport=>get_instance( )->get( )-ordernum.
-        lo_cfg->set_transport( trkorr   = lv_transport
+        lo_cfg->set_transport( trkorr   = iv_transport
                                devclass = iv_package ).
         lo_cfg->set_save_data( ls_data ).
         lo_cfg->set_config_description( is_outline ).
@@ -252,7 +250,8 @@ CLASS zcl_abapgit_object_wdca IMPLEMENTATION.
 
   METHOD zif_abapgit_object~delete.
 
-    delete( iv_package = iv_package ).
+    delete( iv_package   = iv_package
+            iv_transport = iv_transport ).
 
   ENDMETHOD.
 
@@ -270,10 +269,10 @@ CLASS zcl_abapgit_object_wdca IMPLEMENTATION.
     io_xml->read( EXPORTING iv_name = 'DATA'
                   CHANGING  cg_data = lt_data ).
 
-    save( is_outline = ls_outline
-          it_data    = lt_data
-          iv_package = iv_package ).
-
+    save( is_outline   = ls_outline
+          it_data      = lt_data
+          iv_package   = iv_package
+          iv_transport = iv_transport ).
 
     TRY.
         lv_xml_string = mo_files->read_string( iv_extra = 'appl_config'
@@ -330,7 +329,7 @@ CLASS zcl_abapgit_object_wdca IMPLEMENTATION.
       WHERE config_id = ls_wdy_config_key-config_id
         AND config_type = ls_wdy_config_key-config_type
         AND config_var = ls_wdy_config_key-config_var.  "#EC CI_GENBUFF
-    rv_bool = boolc( sy-subrc = 0 ).
+    rv_bool = xsdbool( sy-subrc = 0 ).
   ENDMETHOD.
 
 

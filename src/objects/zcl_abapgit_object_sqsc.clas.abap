@@ -97,8 +97,7 @@ CLASS zcl_abapgit_object_sqsc DEFINITION
       END OF ty_proxy.
 
     DATA:
-      mo_proxy     TYPE REF TO object,
-      mv_transport TYPE e070use-ordernum.
+      mo_proxy TYPE REF TO object.
 
     METHODS:
       delete_interface_if_it_exists
@@ -136,10 +135,6 @@ CLASS zcl_abapgit_object_sqsc IMPLEMENTATION.
 
     <lv_dbproxyname> = ms_item-obj_name.
 
-    mv_transport = zcl_abapgit_default_transport=>get_instance(
-                                               )->get(
-                                               )-ordernum.
-
   ENDMETHOD.
 
 
@@ -157,8 +152,8 @@ CLASS zcl_abapgit_object_sqsc IMPLEMENTATION.
 
     IF zcl_abapgit_objects=>exists( ls_item ) = abap_true.
 
-      CREATE OBJECT lo_interface EXPORTING is_item = ls_item
-                                           iv_language = mv_language.
+      lo_interface = NEW #( is_item = ls_item
+                            iv_language = mv_language ).
 
       lo_interface->zif_abapgit_object~delete( iv_package   = iv_package
                                                iv_transport = iv_transport ).
@@ -180,7 +175,7 @@ CLASS zcl_abapgit_object_sqsc IMPLEMENTATION.
     TRY.
         CALL METHOD mo_proxy->('IF_DBPROC_PROXY_UI~DELETE')
           EXPORTING
-            if_transport_req = mv_transport.
+            if_transport_req = iv_transport.
 
       CATCH cx_root INTO lx_error.
         zcx_abapgit_exception=>raise_with_text( lx_error ).
@@ -210,7 +205,7 @@ CLASS zcl_abapgit_object_sqsc IMPLEMENTATION.
       CALL METHOD mo_proxy->('IF_DBPROC_PROXY_UI~CREATE')
         EXPORTING
           if_interface_pool = ls_proxy-header-interface_pool
-          if_transport_req  = mv_transport
+          if_transport_req  = iv_transport
           if_package        = iv_package
           if_langu          = mv_language.
 
@@ -219,7 +214,7 @@ CLASS zcl_abapgit_object_sqsc IMPLEMENTATION.
     TRY.
         CALL METHOD mo_proxy->('IF_DBPROC_PROXY_UI~WRITE_TO_SOURCE')
           EXPORTING
-            if_transport_req  = mv_transport
+            if_transport_req  = iv_transport
             is_header         = ls_proxy-header
             it_parameter      = ls_proxy-parameters
             it_parameter_type = ls_proxy-parameter_types.
