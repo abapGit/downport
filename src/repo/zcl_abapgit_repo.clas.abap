@@ -34,6 +34,7 @@ CLASS zcl_abapgit_repo DEFINITION
     METHODS get_files_local
       IMPORTING
         !ii_log         TYPE REF TO zif_abapgit_log OPTIONAL
+        !ii_obj_filter  TYPE REF TO zif_abapgit_object_filter OPTIONAL
       RETURNING
         VALUE(rt_files) TYPE zif_abapgit_definitions=>ty_files_item_tt
       RAISING
@@ -42,6 +43,8 @@ CLASS zcl_abapgit_repo DEFINITION
       RETURNING
         VALUE(rt_checksums) TYPE zif_abapgit_definitions=>ty_file_signatures_tt .
     METHODS get_files_remote
+      IMPORTING
+        ii_obj_filter   TYPE REF TO zif_abapgit_object_filter OPTIONAL
       RETURNING
         VALUE(rt_files) TYPE zif_abapgit_definitions=>ty_files_tt
       RAISING
@@ -106,7 +109,7 @@ CLASS zcl_abapgit_repo DEFINITION
       RAISING
         zcx_abapgit_exception .
     METHODS has_remote_source
-          ABSTRACT
+      ABSTRACT
       RETURNING
         VALUE(rv_yes) TYPE abap_bool .
     METHODS status
@@ -308,7 +311,7 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
 
   METHOD create_new_log.
 
-    CREATE OBJECT mi_log TYPE zcl_abapgit_log.
+    mi_log = NEW zcl_abapgit_log( ).
     mi_log->set_title( iv_title ).
 
     ri_log = mi_log.
@@ -353,9 +356,9 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
     " Deserialize objects
     TRY.
         lt_updated_files = zcl_abapgit_objects=>deserialize(
-            io_repo   = me
-            is_checks = is_checks
-            ii_log    = ii_log ).
+          io_repo   = me
+          is_checks = is_checks
+          ii_log    = ii_log ).
       CATCH zcx_abapgit_exception INTO lx_error.
 * ensure to reset default transport request task
         zcl_abapgit_default_transport=>get_instance( )->reset( ).
@@ -454,7 +457,7 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
 
     get_files_remote( ).
 
-    CREATE OBJECT ri_config TYPE zcl_abapgit_data_config.
+    ri_config = NEW zcl_abapgit_data_config( ).
     mi_data_config = ri_config.
 
     READ TABLE mt_remote ASSIGNING <ls_remote>
@@ -468,7 +471,7 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
 
 
   METHOD get_dot_abapgit.
-    CREATE OBJECT ro_dot_abapgit EXPORTING is_data = ms_data-dot_abapgit.
+    ro_dot_abapgit = NEW #( is_data = ms_data-dot_abapgit ).
   ENDMETHOD.
 
 
@@ -485,20 +488,25 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
   METHOD get_files_local.
 
     DATA lo_serialize TYPE REF TO zcl_abapgit_serialize.
-
+    DATA lt_filter TYPE zif_abapgit_definitions=>ty_tadir_tt.
     " Serialization happened before and no refresh request
     IF lines( mt_local ) > 0 AND mv_request_local_refresh = abap_false.
       rt_files = mt_local.
       RETURN.
     ENDIF.
 
-    CREATE OBJECT lo_serialize EXPORTING io_dot_abapgit = get_dot_abapgit( )
-                                         is_local_settings = get_local_settings( ).
+    lo_serialize = NEW #( io_dot_abapgit = get_dot_abapgit( )
+                          is_local_settings = get_local_settings( ) ).
+
+    IF ii_obj_filter IS NOT INITIAL.
+      lt_filter = ii_obj_filter->get_filter( ).
+    ENDIF.
 
     rt_files = lo_serialize->files_local(
       iv_package     = get_package( )
       ii_data_config = get_data_config( )
-      ii_log         = ii_log ).
+      ii_log         = ii_log
+      it_filter      = lt_filter ).
 
     mt_local                 = rt_files.
     mv_request_local_refresh = abap_false. " Fulfill refresh
@@ -507,7 +515,23 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
 
 
   METHOD get_files_remote.
+    DATA lt_filter TYPE zif_abapgit_definitions=>ty_tadir_tt.
+    DATA lr_filter TYPE REF TO zcl_abapgit_repo_filter.
+
     rt_files = mt_remote.
+    IF ii_obj_filter IS NOT INITIAL.
+      lt_filter = ii_obj_filter->get_filter( ).
+
+      lr_filter = NEW #( ).
+      lr_filter->apply_object_filter(
+        EXPORTING
+          it_filter   = lt_filter
+          io_dot      = get_dot_abapgit( )
+          iv_devclass = get_package( )
+        CHANGING
+          ct_files    = rt_files ).
+
+    ENDIF.
   ENDMETHOD.
 
 
@@ -629,11 +653,9 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
         ls_last_item       = <ls_local>-item.
       ENDIF.
 
-      compare_with_remote_checksum( EXPORTING
-                                      it_remote_files = lt_remote
-                                      is_local_file = <ls_local>-file
-                                    CHANGING
-                                      cs_checksum = <ls_checksum> ).
+      compare_with_remote_checksum( EXPORTING it_remote_files = lt_remote
+                                              is_local_file   = <ls_local>-file
+                                    CHANGING  cs_checksum     = <ls_checksum> ).
 
     ENDLOOP.
     set( it_checksums = lt_checksums ).
@@ -684,7 +706,7 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
     CLEAR lt_tadir.
     INSERT ls_tadir INTO TABLE lt_tadir.
 
-    CREATE OBJECT lo_serialize.
+    lo_serialize = NEW #( ).
     lt_new_local_files = lo_serialize->serialize(
       iv_package = ms_data-package
       it_tadir   = lt_tadir ).
@@ -831,9 +853,9 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
   METHOD status.
 
     IF lines( mt_status ) = 0.
-      mt_status = zcl_abapgit_file_status=>status(
-        io_repo = me
-        ii_log  = ii_log ).
+      mt_status = zcl_abapgit_file_status=>status( io_repo = me
+                                                   ii_log  = ii_log ).
+
     ENDIF.
 
     rt_results = mt_status.
