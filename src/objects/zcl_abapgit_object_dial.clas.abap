@@ -133,7 +133,7 @@ CLASS ZCL_ABAPGIT_OBJECT_DIAL IMPLEMENTATION.
 
     ls_tdct = _read_tdct( ).
 
-    rv_bool = boolc( ls_tdct IS NOT INITIAL ).
+    rv_bool = xsdbool( ls_tdct IS NOT INITIAL ).
 
   ENDMETHOD.
 
