@@ -43,9 +43,9 @@ CLASS zcl_abapgit_gui_page_repo_over DEFINITION
         url             TYPE string,
         package         TYPE devclass,
         branch          TYPE string,
-        created_by      TYPE xubname,
+        created_by      TYPE syuname,
         created_at      TYPE string,
-        deserialized_by TYPE xubname,
+        deserialized_by TYPE syuname,
         deserialized_at TYPE string,
         write_protected TYPE abap_bool,
       END OF ty_overview,
@@ -279,7 +279,7 @@ CLASS zcl_abapgit_gui_page_repo_over IMPLEMENTATION.
     ii_html->add( |<input type="submit" class="hidden-submit">| ).
     ii_html->add( |</form>| ).
 
-    lv_new_toggle_favorites = boolc( NOT mv_only_favorites = abap_true ).
+    lv_new_toggle_favorites = xsdbool( NOT mv_only_favorites = abap_true ).
     " render icon for current state but filter value for new state
     IF mv_only_favorites = abap_true.
       lv_icon_class = `blue`.
@@ -307,7 +307,7 @@ CLASS zcl_abapgit_gui_page_repo_over IMPLEMENTATION.
 
   METHOD render_scripts.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
     ri_html->add( 'setInitialFocus("filter");' ).
@@ -664,7 +664,7 @@ CLASS zcl_abapgit_gui_page_repo_over IMPLEMENTATION.
 
     DATA lv_attrs TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     IF iv_value IS NOT INITIAL.
       lv_attrs = | value="{ iv_value }"|.
@@ -717,7 +717,7 @@ CLASS zcl_abapgit_gui_page_repo_over IMPLEMENTATION.
     apply_order_by( CHANGING ct_overview = mt_overview ).
     apply_filter( CHANGING ct_overview = mt_overview ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     render_header_bar( ri_html ).
 
