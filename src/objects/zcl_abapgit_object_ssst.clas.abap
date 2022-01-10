@@ -148,7 +148,7 @@ CLASS zcl_abapgit_object_ssst IMPLEMENTATION.
       WHERE active    = c_style_active
         AND stylename = ms_item-obj_name
         AND vari      = ''.
-    rv_bool = boolc( sy-subrc = 0 ).
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -200,19 +200,9 @@ CLASS zcl_abapgit_object_ssst IMPLEMENTATION.
     ls_bcdata-fval = '=DISPLAY'.
     APPEND ls_bcdata TO lt_bcdata.
 
-    CALL FUNCTION 'ABAP4_CALL_TRANSACTION'
-      STARTING NEW TASK 'GIT'
-      EXPORTING
-        tcode     = 'SMARTSTYLES'
-        mode_val  = 'E'
-      TABLES
-        using_tab = lt_bcdata
-      EXCEPTIONS
-        OTHERS    = 1.
-
-    IF sy-subrc <> 0.
-      zcx_abapgit_exception=>raise( 'error from ABAP4_CALL_TRANSACTION, SSST' ).
-    ENDIF.
+    zcl_abapgit_ui_factory=>get_gui_jumper( )->jump_batch_input(
+      iv_tcode   = 'SMARTSTYLES'
+      it_bdcdata = lt_bcdata ).
 
   ENDMETHOD.
 

@@ -486,14 +486,14 @@ CLASS zcl_abapgit_object_sicf IMPLEMENTATION.
 
     ls_tadir = read_tadir_sicf( ms_item-obj_name ).
 
-    rv_bool = boolc( NOT ls_tadir IS INITIAL ).
+    rv_bool = xsdbool( NOT ls_tadir IS INITIAL ).
 
     IF rv_bool = abap_true.
       ls_key = ls_tadir-obj_name.
       SELECT SINGLE icfaltnme FROM icfservice INTO ls_key-icf_name
         WHERE icf_name = ls_key-icf_name
         AND icfparguid = ls_key-icfparguid.
-      rv_bool = boolc( sy-subrc = 0 ).
+      rv_bool = xsdbool( sy-subrc = 0 ).
     ENDIF.
 
   ENDMETHOD.
@@ -552,19 +552,9 @@ CLASS zcl_abapgit_object_sicf IMPLEMENTATION.
     ls_bcdata-fval = '=ONLI'.
     APPEND ls_bcdata TO lt_bcdata.
 
-    CALL FUNCTION 'ABAP4_CALL_TRANSACTION'
-      STARTING NEW TASK 'GIT'
-      EXPORTING
-        tcode     = 'SICF'
-        mode_val  = 'E'
-      TABLES
-        using_tab = lt_bcdata
-      EXCEPTIONS
-        OTHERS    = 1.
-
-    IF sy-subrc <> 0.
-      zcx_abapgit_exception=>raise( 'error from ABAP4_CALL_TRANSACTION, SICF' ).
-    ENDIF.
+    zcl_abapgit_ui_factory=>get_gui_jumper( )->jump_batch_input(
+      iv_tcode   = 'SICF'
+      it_bdcdata = lt_bcdata ).
 
   ENDMETHOD.
 

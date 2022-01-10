@@ -59,7 +59,7 @@ CLASS zcl_abapgit_gui_jumper IMPLEMENTATION.
         jump_not_possible = 1
         OTHERS            = 2.
 
-    rv_exit = boolc( sy-subrc = 0 ).
+    rv_exit = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -78,7 +78,7 @@ CLASS zcl_abapgit_gui_jumper IMPLEMENTATION.
         invalid_object_type = 2
         OTHERS              = 3.
 
-    rv_exit = boolc( sy-subrc = 0 ).
+    rv_exit = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -103,7 +103,7 @@ CLASS zcl_abapgit_gui_jumper IMPLEMENTATION.
           invalid_object_type = 2
           OTHERS              = 3.
 
-      rv_exit = boolc( sy-subrc = 0 ).
+      rv_exit = xsdbool( sy-subrc = 0 ).
 
     ENDIF.
 
@@ -177,6 +177,44 @@ CLASS zcl_abapgit_gui_jumper IMPLEMENTATION.
           " Use fallback
       ENDTRY.
     ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_gui_jumper~jump_batch_input.
+
+    DATA lv_msg TYPE c LENGTH 80.
+
+    IF iv_new_window = abap_true.
+      CALL FUNCTION 'ABAP4_CALL_TRANSACTION'
+        STARTING NEW TASK 'GIT'
+        EXPORTING
+          tcode                 = iv_tcode
+          mode_val              = 'E'
+        TABLES
+          using_tab             = it_bdcdata
+        EXCEPTIONS
+          system_failure        = 1 MESSAGE lv_msg
+          communication_failure = 2 MESSAGE lv_msg
+          resource_failure      = 3
+          OTHERS                = 4.
+    ELSE.
+      CALL FUNCTION 'ABAP4_CALL_TRANSACTION'
+        EXPORTING
+          tcode                 = iv_tcode
+          mode_val              = 'E'
+        TABLES
+          using_tab             = it_bdcdata
+        EXCEPTIONS
+          OTHERS                = 4.
+    ENDIF.
+
+    CASE sy-subrc.
+      WHEN 1 OR 2.
+        zcx_abapgit_exception=>raise( |Batch input error for transaction { iv_tcode }: { lv_msg }| ).
+      WHEN 3 OR 4.
+        zcx_abapgit_exception=>raise( |Batch input error for transaction { iv_tcode }| ).
+    ENDCASE.
 
   ENDMETHOD.
 ENDCLASS.

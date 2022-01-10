@@ -128,6 +128,7 @@ CLASS ltcl_json_utils DEFINITION
 
     METHODS json_diff FOR TESTING RAISING zcx_abapgit_ajson_error.
     METHODS json_diff_types FOR TESTING RAISING zcx_abapgit_ajson_error.
+    METHODS json_diff_arrays FOR TESTING RAISING zcx_abapgit_ajson_error.
     METHODS json_sort FOR TESTING RAISING zcx_abapgit_ajson_error.
 
 ENDCLASS.
@@ -189,7 +190,7 @@ CLASS ltcl_json_utils IMPLEMENTATION.
 
     REPLACE ALL OCCURRENCES OF '\n' IN lv_json WITH cl_abap_char_utilities=>newline.
 
-    CREATE OBJECT lo_insert_exp.
+    lo_insert_exp = NEW #( ).
     lo_insert_exp->add( '                |        |object |        |0|3' ).
     lo_insert_exp->add( '/               |boolean |str    |true    |0|0' ). " changed type (insert new)
     lo_insert_exp->add( '/               |issues  |array  |        |0|1' ).
@@ -198,7 +199,7 @@ CLASS ltcl_json_utils IMPLEMENTATION.
     lo_insert_exp->add( '/issues/1/      |end     |object |        |0|1' ).
     lo_insert_exp->add( '/issues/1/end/  |new     |num    |1       |0|0' ). " array insert
 
-    CREATE OBJECT lo_delete_exp.
+    lo_delete_exp = NEW #( ).
     lo_delete_exp->add( '                |        |object |        |0|3' ).
     lo_delete_exp->add( '/               |boolean |bool   |true    |0|0' ). " changed type (delete old)
     lo_delete_exp->add( '/               |false   |bool   |false   |0|0' ). " delete
@@ -207,7 +208,7 @@ CLASS ltcl_json_utils IMPLEMENTATION.
     lo_delete_exp->add( '/issues/1/      |end     |object |        |0|1' ).
     lo_delete_exp->add( '/issues/1/end/  |row     |num    |4       |0|0' ). " array delete
 
-    CREATE OBJECT lo_change_exp.
+    lo_change_exp = NEW #( ).
     lo_change_exp->add( '                |        |object |        |0|2' ).
     lo_change_exp->add( '/               |issues  |array  |        |0|1' ).
     lo_change_exp->add( '/               |number  |num    |789     |0|0' ). " changed value
@@ -215,7 +216,7 @@ CLASS ltcl_json_utils IMPLEMENTATION.
     lo_change_exp->add( '/issues/1/      |start   |object |        |0|1' ).
     lo_change_exp->add( '/issues/1/start/|row     |num    |5       |0|0' ). " array change
 
-    CREATE OBJECT lo_util.
+    lo_util = NEW #( ).
 
     lo_util->diff(
       EXPORTING
@@ -272,18 +273,18 @@ CLASS ltcl_json_utils IMPLEMENTATION.
     REPLACE ALL OCCURRENCES OF '\n' IN lv_json_a WITH cl_abap_char_utilities=>newline.
     REPLACE ALL OCCURRENCES OF '\n' IN lv_json_b WITH cl_abap_char_utilities=>newline.
 
-    CREATE OBJECT lo_insert_exp.
+    lo_insert_exp = NEW #( ).
     lo_insert_exp->add( '                |        |object |        |0|1' ).
     lo_insert_exp->add( '/               |string  |array  |        |0|3' ).
     lo_insert_exp->add( '/string/        |1       |str    |a       |1|0' ).
     lo_insert_exp->add( '/string/        |2       |str    |b       |2|0' ).
     lo_insert_exp->add( '/string/        |3       |str    |c       |3|0' ).
 
-    CREATE OBJECT lo_delete_exp.
+    lo_delete_exp = NEW #( ).
     lo_delete_exp->add( '                |        |object |        |0|1' ).
     lo_delete_exp->add( '/               |string  |str    |abc     |0|0' ).
 
-    CREATE OBJECT lo_util.
+    lo_util = NEW #( ).
 
     lo_util->diff(
       EXPORTING
@@ -330,6 +331,85 @@ CLASS ltcl_json_utils IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD json_diff_arrays.
+
+    DATA:
+      lv_json_a     TYPE string,
+      lv_json_b     TYPE string,
+      lo_util       TYPE REF TO zcl_abapgit_ajson_utilities,
+      lo_insert     TYPE REF TO zif_abapgit_ajson,
+      lo_delete     TYPE REF TO zif_abapgit_ajson,
+      lo_change     TYPE REF TO zif_abapgit_ajson,
+      lo_insert_exp TYPE REF TO lcl_nodes_helper.
+
+    " Add empty array
+    lv_json_a =
+      '{\n' &&
+      '  "number": 123\n' &&
+      '}'.
+
+    lv_json_b =
+      '{\n' &&
+      '  "names": [],\n' &&
+      '  "number": 123\n' &&
+      '}'.
+
+    REPLACE ALL OCCURRENCES OF '\n' IN lv_json_a WITH cl_abap_char_utilities=>newline.
+    REPLACE ALL OCCURRENCES OF '\n' IN lv_json_b WITH cl_abap_char_utilities=>newline.
+
+    lo_util = NEW #( ).
+
+    " Empty arrays are ignored by default
+    lo_util->diff(
+      EXPORTING
+        iv_json_a = lv_json_a
+        iv_json_b = lv_json_b
+      IMPORTING
+        eo_insert = lo_insert
+        eo_delete = lo_delete
+        eo_change = lo_change ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lines( lo_insert->mt_json_tree )
+      exp = 0 ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lines( lo_delete->mt_json_tree )
+      exp = 0 ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lines( lo_change->mt_json_tree )
+      exp = 0 ).
+
+    " Keep empty arrays
+    lo_util->diff(
+      EXPORTING
+        iv_json_a = lv_json_a
+        iv_json_b = lv_json_b
+        iv_keep_empty_arrays = abap_true
+      IMPORTING
+        eo_insert = lo_insert
+        eo_delete = lo_delete
+        eo_change = lo_change ).
+
+    lo_insert_exp = NEW #( ).
+    lo_insert_exp->add( '                |        |object |        |0|1' ).
+    lo_insert_exp->add( '/               |names   |array  |        |0|0' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_insert->mt_json_tree
+      exp = lo_insert_exp->mt_nodes ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lines( lo_delete->mt_json_tree )
+      exp = 0 ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lines( lo_change->mt_json_tree )
+      exp = 0 ).
+
+  ENDMETHOD.
+
   METHOD json_sort.
 
     DATA:
@@ -366,7 +446,7 @@ CLASS ltcl_json_utils IMPLEMENTATION.
 
     REPLACE ALL OCCURRENCES OF '\n' IN lv_sorted_exp WITH cl_abap_char_utilities=>newline.
 
-    CREATE OBJECT lo_util.
+    lo_util = NEW #( ).
 
     lv_sorted = lo_util->sort( iv_json = lv_json ).
 
