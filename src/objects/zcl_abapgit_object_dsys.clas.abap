@@ -165,7 +165,7 @@ CLASS zcl_abapgit_object_dsys IMPLEMENTATION.
            WHERE id   = c_id
            AND object = mv_doc_object.                  "#EC CI_GENBUFF
 
-    rv_bool = xsdbool( lv_count > 0 ).
+    rv_bool = boolc( lv_count > 0 ).
 
   ENDMETHOD.
 
