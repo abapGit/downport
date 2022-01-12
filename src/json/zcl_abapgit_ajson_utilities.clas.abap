@@ -256,7 +256,7 @@ CLASS zcl_abapgit_ajson_utilities IMPLEMENTATION.
 
   METHOD normalize_input.
 
-    IF boolc( iv_json IS INITIAL ) = boolc( io_json IS INITIAL ).
+    IF xsdbool( iv_json IS INITIAL ) = xsdbool( io_json IS INITIAL ).
       zcx_abapgit_ajson_error=>raise( 'Either supply JSON string or instance, but not both' ).
     ENDIF.
 
