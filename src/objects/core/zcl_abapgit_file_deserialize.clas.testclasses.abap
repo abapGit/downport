@@ -36,7 +36,7 @@ CLASS ltcl_filter_files_to_deser IMPLEMENTATION.
 
   METHOD setup.
 
-    CREATE OBJECT mo_objects.
+    mo_objects = NEW #( ).
 
   ENDMETHOD.
 
@@ -234,7 +234,8 @@ CLASS ltcl_prio_deserialization DEFINITION FINAL FOR TESTING
       enhs_before_ensc FOR TESTING RAISING cx_static_check,
       ensc_before_enho FOR TESTING RAISING cx_static_check,
       enho_before_enhc FOR TESTING RAISING cx_static_check,
-      xslt_before_clas_and_prog FOR TESTING RAISING cx_static_check,
+      xslt_before_clas FOR TESTING RAISING cx_static_check,
+      xslt_before_prog FOR TESTING RAISING cx_static_check,
 
       given
         IMPORTING
@@ -256,7 +257,7 @@ ENDCLASS.
 CLASS ltcl_prio_deserialization IMPLEMENTATION.
 
   METHOD setup.
-    CREATE OBJECT mo_objects.
+    mo_objects = NEW #( ).
     mv_exp_output_tabix = 0.
   ENDMETHOD.
 
@@ -364,7 +365,7 @@ CLASS ltcl_prio_deserialization IMPLEMENTATION.
     then( 'PINF' ).
   ENDMETHOD.
 
-  METHOD xslt_before_clas_and_prog.
+  METHOD xslt_before_clas.
     given( 'XSLT' ).
     given( 'INTF' ).
     given( 'CLAS' ).
@@ -372,6 +373,14 @@ CLASS ltcl_prio_deserialization IMPLEMENTATION.
     then( 'XSLT' ).
     then( 'INTF' ).
     then( 'CLAS' ).
+  ENDMETHOD.
+
+  METHOD xslt_before_prog.
+    given( 'PROG' ).
+    given( 'XSLT' ).
+    when_deser_is_priorized( ).
+    then( 'XSLT' ).
+    then( 'PROG' ).
   ENDMETHOD.
 
   METHOD ddls_before_dcls.
@@ -401,7 +410,7 @@ CLASS ltcl_prio_deserialization IMPLEMENTATION.
 
     DATA lo_log TYPE REF TO zcl_abapgit_log.
 
-    CREATE OBJECT lo_log.
+    lo_log = NEW #( ).
 
     mt_output = mo_objects->prioritize_deser(
       ii_log     = lo_log
