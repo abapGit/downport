@@ -202,7 +202,7 @@ CLASS zcl_abapgit_serialize IMPLEMENTATION.
       io_dot                = mo_dot_abapgit
       ii_log                = ii_log ).
 
-    CREATE OBJECT lo_filter.
+    lo_filter = NEW #( ).
 
     lo_filter->apply( EXPORTING it_filter = it_filter
                       CHANGING  ct_tadir  = lt_tadir ).
@@ -210,7 +210,7 @@ CLASS zcl_abapgit_serialize IMPLEMENTATION.
 * if there are less than 10 objects run in single thread
 * this helps a lot when debugging, plus performance gain
 * with low number of objects does not matter much
-    lv_force = boolc( lines( lt_tadir ) < 10 ).
+    lv_force = xsdbool( lines( lt_tadir ) < 10 ).
 
     lt_found = serialize(
       iv_package          = iv_package
@@ -451,14 +451,16 @@ CLASS zcl_abapgit_serialize IMPLEMENTATION.
   METHOD run_parallel.
 
     DATA: lv_msg  TYPE c LENGTH 100,
+          lv_task TYPE c LENGTH 32,
           lv_free LIKE mv_free.
 
 
     ASSERT mv_free > 0.
 
     DO.
+      lv_task = |{ iv_task }-{ sy-index }|.
       CALL FUNCTION 'Z_ABAPGIT_SERIALIZE_PARALLEL'
-        STARTING NEW TASK iv_task
+        STARTING NEW TASK lv_task
         DESTINATION IN GROUP mv_group
         CALLING on_end_of_task ON END OF TASK
         EXPORTING
