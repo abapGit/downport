@@ -570,7 +570,7 @@ CLASS zcl_abapgit_object_fdt0 IMPLEMENTATION.
       AND name = ms_item-obj_name
       AND deleted = ''.
 
-    rv_bool = xsdbool( lv_count > 0 ).
+    rv_bool = boolc( lv_count > 0 ).
 
   ENDMETHOD.
 
@@ -580,12 +580,12 @@ CLASS zcl_abapgit_object_fdt0 IMPLEMENTATION.
     DATA lo_local_version_output TYPE REF TO zcl_abapgit_xml_output.
     DATA lo_local_version_input  TYPE REF TO zcl_abapgit_xml_input.
 
-    lo_local_version_output = NEW #( ).
+    CREATE OBJECT lo_local_version_output.
     zif_abapgit_object~serialize( lo_local_version_output ).
 
-    lo_local_version_input = NEW #( iv_xml = lo_local_version_output->zif_abapgit_xml_output~render( ) ).
+    CREATE OBJECT lo_local_version_input EXPORTING iv_xml = lo_local_version_output->zif_abapgit_xml_output~render( ).
 
-    ri_comparator = NEW zcl_abapgit_object_tabl_compar( ii_local = lo_local_version_input ).
+    CREATE OBJECT ri_comparator TYPE zcl_abapgit_object_tabl_compar EXPORTING ii_local = lo_local_version_input.
 
   ENDMETHOD.
 
@@ -628,7 +628,7 @@ CLASS zcl_abapgit_object_fdt0 IMPLEMENTATION.
     lv_index = lines( lt_version ).
     READ TABLE lt_version ASSIGNING <ls_version> INDEX lv_index.
 
-    rv_active = xsdbool( <ls_version>-state = 'A' ).
+    rv_active = boolc( <ls_version>-state = 'A' ).
 
   ENDMETHOD.
 
