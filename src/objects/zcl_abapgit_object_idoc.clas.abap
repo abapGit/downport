@@ -160,7 +160,7 @@ CLASS zcl_abapgit_object_idoc IMPLEMENTATION.
         no_authority     = 3
         OTHERS           = 4.
 
-    rv_bool = xsdbool( sy-subrc = 0 ).
+    rv_bool = boolc( sy-subrc = 0 ).
 
   ENDMETHOD.
 
