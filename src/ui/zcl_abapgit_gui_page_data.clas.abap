@@ -155,8 +155,8 @@ CLASS zcl_abapgit_gui_page_data IMPLEMENTATION.
     DATA lo_form TYPE REF TO zcl_abapgit_html_form.
     DATA lo_form_data TYPE REF TO zcl_abapgit_string_map.
 
-    ri_html = NEW zcl_abapgit_html( ).
-    lo_form_data = NEW #( ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    CREATE OBJECT lo_form_data.
 
     lo_form = zcl_abapgit_html_form=>create( ).
     lo_form->text(
@@ -178,7 +178,7 @@ CLASS zcl_abapgit_gui_page_data IMPLEMENTATION.
 
   METHOD render_content.
 
-    ri_html = NEW zcl_abapgit_html( ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
 
     ri_html->add( render_add( ) ).
     ri_html->add( render_existing( ) ).
@@ -193,14 +193,14 @@ CLASS zcl_abapgit_gui_page_data IMPLEMENTATION.
     DATA lt_configs TYPE zif_abapgit_data_config=>ty_config_tt.
     DATA ls_config LIKE LINE OF lt_configs.
 
-    ri_html = NEW zcl_abapgit_html( ).
-    lo_form_data = NEW #( ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    CREATE OBJECT lo_form_data.
 
     lt_configs = mi_config->get_configs( ).
 
     LOOP AT lt_configs INTO ls_config.
       lo_form = zcl_abapgit_html_form=>create(  ).
-      lo_form_data = NEW #( ).
+      CREATE OBJECT lo_form_data.
 
       lo_form_data->set(
         iv_key = c_id-table
