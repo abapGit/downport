@@ -671,7 +671,7 @@ CLASS zcl_abapgit_object_udmo IMPLEMENTATION.
            WHERE  dmoid     = mv_data_model
            AND    as4local  = mv_activation_state.
 
-    rv_bool = xsdbool( sy-subrc = 0 ).
+    rv_bool = boolc( sy-subrc = 0 ).
 
 
 
