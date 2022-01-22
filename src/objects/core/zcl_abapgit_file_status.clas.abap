@@ -142,7 +142,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_FILE_STATUS IMPLEMENTATION.
+CLASS zcl_abapgit_file_status IMPLEMENTATION.
 
 
   METHOD build_existing.
@@ -176,14 +176,14 @@ CLASS ZCL_ABAPGIT_FILE_STATUS IMPLEMENTATION.
       IF ls_file_sig-sha1 <> is_remote-sha1.
         rs_result-rstate = zif_abapgit_definitions=>c_state-modified.
       ENDIF.
-      rs_result-match = boolc( rs_result-lstate IS INITIAL
+      rs_result-match = xsdbool( rs_result-lstate IS INITIAL
         AND rs_result-rstate IS INITIAL ).
     ELSE.
       " This is a strange situation. As both local and remote exist
       " the state should also be present. Maybe this is a first run of the code.
       " In this case just compare hashes directly and mark both changed
       " the user will presumably decide what to do after checking the actual diff
-      rs_result-match = boolc( is_local-file-sha1 = is_remote-sha1 ).
+      rs_result-match = xsdbool( is_local-file-sha1 = is_remote-sha1 ).
       IF rs_result-match = abap_false.
         rs_result-lstate = zif_abapgit_definitions=>c_state-modified.
         rs_result-rstate = zif_abapgit_definitions=>c_state-modified.
@@ -694,17 +694,17 @@ CLASS ZCL_ABAPGIT_FILE_STATUS IMPLEMENTATION.
         it_items    = it_items_idx
         it_state    = it_state_idx ).
 
-      " Check if same file exists in different location
+      " Check if same file exists in different location (not for generic package files)
       READ TABLE it_local ASSIGNING <ls_local>
         WITH KEY file-filename = <ls_remote>-filename.
-      IF sy-subrc = 0.
+      IF sy-subrc = 0 AND <ls_remote>-filename <> zcl_abapgit_filename_logic=>c_package_file.
         <ls_result>-match = abap_false.
         <ls_result>-lstate = zif_abapgit_definitions=>c_state-deleted.
         <ls_result>-rstate = zif_abapgit_definitions=>c_state-unchanged.
         IF <ls_local>-file-sha1 = <ls_remote>-sha1.
           <ls_result>-packmove = abap_true.
         ENDIF.
-      ELSEIF sy-subrc = 4.
+      ELSE.
         " Check if file existed before and was deleted locally
         READ TABLE it_state_idx TRANSPORTING NO FIELDS
           WITH KEY path = <ls_remote>-path filename = <ls_remote>-filename
