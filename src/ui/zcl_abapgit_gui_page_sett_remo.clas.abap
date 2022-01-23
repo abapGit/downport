@@ -235,16 +235,18 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
     APPEND INITIAL LINE TO lt_columns ASSIGNING <ls_column>.
     <ls_column>-name = 'MESSAGE'.
     <ls_column>-text = 'Message'.
+    <ls_column>-length = 60.
     APPEND INITIAL LINE TO lt_columns ASSIGNING <ls_column>.
     <ls_column>-name = 'DATETIME'.
     <ls_column>-text = 'Datetime'.
+    <ls_column>-length = 17.
 
     li_popups = zcl_abapgit_ui_factory=>get_popups( ).
     li_popups->popup_to_select_from_list(
       EXPORTING
         it_list               = it_value_tab
         iv_title              = |Checkout Commit|
-        iv_end_column         = 83
+        iv_end_column         = 100
         iv_striped_pattern    = abap_true
         iv_optimize_col_width = abap_false
         iv_selection_mode     = if_salv_c_selection_mode=>single
@@ -409,8 +411,8 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
   METHOD constructor.
 
     super->constructor( ).
-    CREATE OBJECT mo_validation_log.
-    CREATE OBJECT mo_form_data.
+    mo_validation_log = NEW #( ).
+    mo_form_data = NEW #( ).
 
     init( io_repo ).
     mv_original_url = ms_repo_current-url.
@@ -427,7 +429,7 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_sett_remo.
 
-    CREATE OBJECT lo_component EXPORTING io_repo = io_repo.
+    lo_component = NEW #( io_repo = io_repo ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Remote Settings'
@@ -706,7 +708,7 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
 
     DATA lv_url TYPE string.
 
-    ms_repo_new-offline = boolc( ms_repo_new-offline = abap_false ).
+    ms_repo_new-offline = xsdbool( ms_repo_new-offline = abap_false ).
     mv_mode = get_mode( ms_repo_new ).
 
     lv_url = mo_form_data->get( c_id-url ).
@@ -975,7 +977,7 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
       read_settings( ).
     ENDIF.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( `<div class="repo">` ).
 
@@ -993,5 +995,4 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
     gui_services( )->get_hotkeys_ctl( )->register_hotkeys( zif_abapgit_gui_hotkeys~get_hotkey_actions( ) ).
 
   ENDMETHOD.
-
 ENDCLASS.
