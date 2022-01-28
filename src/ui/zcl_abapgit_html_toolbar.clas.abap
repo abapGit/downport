@@ -125,7 +125,7 @@ CLASS zcl_abapgit_html_toolbar IMPLEMENTATION.
 
     DATA: lv_class TYPE string.
 
-    ri_html = NEW zcl_abapgit_html( ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
 
     lv_class = 'nav-container'.
     IF iv_right = abap_true.
@@ -143,7 +143,7 @@ CLASS zcl_abapgit_html_toolbar IMPLEMENTATION.
 
     DATA: lv_class TYPE string.
 
-    ri_html = NEW zcl_abapgit_html( ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
 
     lv_class = 'nav-container'.
     IF iv_right = abap_true.
@@ -179,7 +179,7 @@ CLASS zcl_abapgit_html_toolbar IMPLEMENTATION.
     FIELD-SYMBOLS <ls_item> LIKE LINE OF mt_items.
 
 
-    ri_html = NEW zcl_abapgit_html( ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
 
     IF iv_sort = abap_true.
       SORT mt_items BY txt ASCENDING AS TEXT.
