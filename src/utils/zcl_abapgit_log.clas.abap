@@ -39,7 +39,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_LOG IMPLEMENTATION.
+CLASS zcl_abapgit_log IMPLEMENTATION.
 
 
   METHOD constructor.
@@ -51,7 +51,7 @@ CLASS ZCL_ABAPGIT_LOG IMPLEMENTATION.
 
   METHOD from_exception.
 
-    CREATE OBJECT ro_log.
+    ro_log = NEW #( ).
 
     IF io_x IS BOUND.
       ro_log->zif_abapgit_log~add_exception( io_x ).
@@ -179,7 +179,7 @@ CLASS ZCL_ABAPGIT_LOG IMPLEMENTATION.
 
     DATA lo_log TYPE REF TO zcl_abapgit_log.
 
-    CREATE OBJECT lo_log EXPORTING iv_title = mv_title.
+    lo_log = NEW #( iv_title = mv_title ).
     lo_log->mt_log = mt_log.
     ri_log = lo_log.
 
@@ -258,6 +258,7 @@ CLASS ZCL_ABAPGIT_LOG IMPLEMENTATION.
       ls_msg-exception = <ls_log>-exception.
       APPEND ls_msg TO rt_msg.
     ENDLOOP.
+    DELETE ADJACENT DUPLICATES FROM rt_msg.
   ENDMETHOD.
 
 

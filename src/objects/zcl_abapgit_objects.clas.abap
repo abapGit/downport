@@ -362,8 +362,8 @@ CLASS zcl_abapgit_objects IMPLEMENTATION.
         RETURN.
       ENDIF.
 
-      CREATE OBJECT li_remote_version TYPE zcl_abapgit_xml_input EXPORTING iv_xml = zcl_abapgit_convert=>xstring_to_string_utf8( ls_remote_file-data )
-                                                                           iv_filename = ls_remote_file-filename.
+      li_remote_version = NEW zcl_abapgit_xml_input( iv_xml = zcl_abapgit_convert=>xstring_to_string_utf8( ls_remote_file-data )
+                                                     iv_filename = ls_remote_file-filename ).
 
       ls_result = li_comparator->compare( ii_remote = li_remote_version
                                           ii_log = ii_log ).
@@ -442,7 +442,7 @@ CLASS zcl_abapgit_objects IMPLEMENTATION.
         lv_message = |Object type { is_item-obj_type } is not supported by this system|.
         IF iv_native_only = abap_false.
           TRY. " 2nd step, try looking for plugins
-              CREATE OBJECT ri_obj TYPE zcl_abapgit_objects_bridge EXPORTING is_item = is_item.
+              ri_obj = NEW zcl_abapgit_objects_bridge( is_item = is_item ).
             CATCH cx_sy_create_object_error.
               zcx_abapgit_exception=>raise( lv_message ).
           ENDTRY.
@@ -666,8 +666,8 @@ CLASS zcl_abapgit_objects IMPLEMENTATION.
           ENDIF.
 
           " Create or update object
-          CREATE OBJECT lo_files EXPORTING is_item = ls_item
-                                           iv_path = lv_path.
+          lo_files = NEW #( is_item = ls_item
+                            iv_path = lv_path ).
           lo_files->set_files( lt_remote ).
 
           "analyze XML in order to instantiate the proper serializer
@@ -787,13 +787,21 @@ CLASS zcl_abapgit_objects IMPLEMENTATION.
 
     CASE is_step-step_id.
       WHEN zif_abapgit_object=>gc_step_id-ddic.
-        zcl_abapgit_objects_activation=>activate( abap_true ).
+        zcl_abapgit_objects_activation=>activate(
+          iv_ddic = abap_true
+          ii_log  = ii_log ).
       WHEN zif_abapgit_object=>gc_step_id-abap.
-        zcl_abapgit_objects_activation=>activate( abap_false ).
+        zcl_abapgit_objects_activation=>activate(
+          iv_ddic = abap_false
+          ii_log  = ii_log ).
       WHEN zif_abapgit_object=>gc_step_id-late.
         " late can have both DDIC (like TABL with REF TO) and non-DDIC objects
-        zcl_abapgit_objects_activation=>activate( abap_true ).
-        zcl_abapgit_objects_activation=>activate( abap_false ).
+        zcl_abapgit_objects_activation=>activate(
+          iv_ddic = abap_true
+          ii_log  = ii_log ).
+        zcl_abapgit_objects_activation=>activate(
+          iv_ddic = abap_false
+          ii_log  = ii_log ).
     ENDCASE.
 
 *   Call postprocessing
@@ -1000,6 +1008,7 @@ CLASS zcl_abapgit_objects IMPLEMENTATION.
   METHOD serialize.
 
     DATA: li_obj         TYPE REF TO zif_abapgit_object,
+          lx_error       TYPE REF TO zcx_abapgit_exception,
           li_xml         TYPE REF TO zif_abapgit_xml_output,
           lo_files       TYPE REF TO zcl_abapgit_objects_files,
           ls_i18n_params TYPE zif_abapgit_definitions=>ty_i18n_params.
@@ -1014,14 +1023,14 @@ CLASS zcl_abapgit_objects IMPLEMENTATION.
         rs_files_and_item-item-obj_name }| ).
     ENDIF.
 
-    CREATE OBJECT lo_files EXPORTING is_item = rs_files_and_item-item.
+    lo_files = NEW #( is_item = rs_files_and_item-item ).
 
     li_obj = create_object( is_item     = rs_files_and_item-item
                             iv_language = iv_language ).
 
     li_obj->mo_files = lo_files.
 
-    CREATE OBJECT li_xml TYPE zcl_abapgit_xml_output.
+    li_xml = NEW zcl_abapgit_xml_output( ).
 
     ls_i18n_params-main_language         = iv_language.
     ls_i18n_params-main_language_only    = iv_main_language_only.
@@ -1029,7 +1038,12 @@ CLASS zcl_abapgit_objects IMPLEMENTATION.
 
     li_xml->i18n_params( ls_i18n_params ).
 
-    li_obj->serialize( li_xml ).
+    TRY.
+        li_obj->serialize( li_xml ).
+      CATCH zcx_abapgit_exception INTO lx_error.
+        rs_files_and_item-item-inactive = xsdbool( li_obj->is_active( ) = abap_false ).
+        RAISE EXCEPTION lx_error.
+    ENDTRY.
 
     IF lo_files->is_json_metadata( ) = abap_false.
       lo_files->add_xml( ii_xml      = li_xml
@@ -1040,7 +1054,7 @@ CLASS zcl_abapgit_objects IMPLEMENTATION.
 
     check_duplicates( rs_files_and_item-files ).
 
-    rs_files_and_item-item-inactive = boolc( li_obj->is_active( ) = abap_false ).
+    rs_files_and_item-item-inactive = xsdbool( li_obj->is_active( ) = abap_false ).
 
     LOOP AT rs_files_and_item-files ASSIGNING <ls_file>.
       <ls_file>-sha1 = zcl_abapgit_hash=>sha1_blob( <ls_file>-data ).
