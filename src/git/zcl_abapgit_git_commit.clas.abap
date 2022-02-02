@@ -1,4 +1,3 @@
-"! <p class="shorttext synchronized" lang="en">Git Commit</p>
 CLASS zcl_abapgit_git_commit DEFINITION
   PUBLIC
   CREATE PUBLIC .
@@ -301,7 +300,7 @@ CLASS zcl_abapgit_git_commit IMPLEMENTATION.
       READ TABLE it_commits
         TRANSPORTING NO FIELDS
         WITH KEY sha1 = iv_sha1.
-      rv_result = boolc( sy-subrc <> 0 ).
+      rv_result = xsdbool( sy-subrc <> 0 ).
 
     ENDIF.
 

@@ -336,13 +336,13 @@ CLASS zcl_abapgit_objects IMPLEMENTATION.
 * before pull, this is useful eg. when overwriting a TABL object.
 * only the main XML file is used for comparison
 
-    DATA: ls_remote_file      TYPE zif_abapgit_definitions=>ty_file,
-          li_remote_version   TYPE REF TO zif_abapgit_xml_input,
-          lv_count            TYPE i,
-          ls_result           TYPE zif_abapgit_comparator=>ty_result,
-          lv_answer           TYPE string,
-          li_comparator       TYPE REF TO zif_abapgit_comparator,
-          ls_item             TYPE zif_abapgit_definitions=>ty_item.
+    DATA: ls_remote_file    TYPE zif_abapgit_definitions=>ty_file,
+          li_remote_version TYPE REF TO zif_abapgit_xml_input,
+          lv_count          TYPE i,
+          ls_result         TYPE zif_abapgit_comparator=>ty_result,
+          lv_answer         TYPE string,
+          li_comparator     TYPE REF TO zif_abapgit_comparator,
+          ls_item           TYPE zif_abapgit_definitions=>ty_item.
 
     FIND ALL OCCURRENCES OF '.' IN is_result-filename MATCH COUNT lv_count.
 
@@ -362,8 +362,8 @@ CLASS zcl_abapgit_objects IMPLEMENTATION.
         RETURN.
       ENDIF.
 
-      CREATE OBJECT li_remote_version TYPE zcl_abapgit_xml_input EXPORTING iv_xml = zcl_abapgit_convert=>xstring_to_string_utf8( ls_remote_file-data )
-                                                                           iv_filename = ls_remote_file-filename.
+      li_remote_version = NEW zcl_abapgit_xml_input( iv_xml = zcl_abapgit_convert=>xstring_to_string_utf8( ls_remote_file-data )
+                                                     iv_filename = ls_remote_file-filename ).
 
       ls_result = li_comparator->compare( ii_remote = li_remote_version
                                           ii_log = ii_log ).
@@ -379,22 +379,17 @@ CLASS zcl_abapgit_objects IMPLEMENTATION.
 
       "continue or abort?
       IF zcl_abapgit_ui_factory=>get_frontend_services( )->gui_is_available( ) = abap_true.
-        CALL FUNCTION 'POPUP_TO_CONFIRM'
-          EXPORTING
-            titlebar              = 'Warning'
-            text_question         = ls_result-text
-            text_button_1         = 'Abort'
-            icon_button_1         = 'ICON_CANCEL'
-            text_button_2         = 'Pull anyway'
-            icon_button_2         = 'ICON_OKAY'
-            default_button        = '2'
-            display_cancel_button = abap_false
-          IMPORTING
-            answer                = lv_answer
-          EXCEPTIONS
-            text_not_found        = 1
-            OTHERS                = 2.
-        IF sy-subrc <> 0 OR lv_answer = 1.
+        lv_answer = zcl_abapgit_ui_factory=>get_popups( )->popup_to_confirm(
+          iv_titlebar              = 'Warning'
+          iv_text_question         = ls_result-text
+          iv_text_button_1         = 'Pull Anyway'
+          iv_icon_button_1         = 'ICON_OKAY'
+          iv_text_button_2         = 'Cancel'
+          iv_icon_button_2         = 'ICON_CANCEL'
+          iv_default_button        = '2'
+          iv_display_cancel_button = abap_false ).
+
+        IF lv_answer = '2'.
           zcx_abapgit_exception=>raise( |Deserialization for object { is_result-obj_name } | &
                                         |(type { is_result-obj_type }) aborted by user| ).
         ENDIF.
@@ -442,7 +437,7 @@ CLASS zcl_abapgit_objects IMPLEMENTATION.
         lv_message = |Object type { is_item-obj_type } is not supported by this system|.
         IF iv_native_only = abap_false.
           TRY. " 2nd step, try looking for plugins
-              CREATE OBJECT ri_obj TYPE zcl_abapgit_objects_bridge EXPORTING is_item = is_item.
+              ri_obj = NEW zcl_abapgit_objects_bridge( is_item = is_item ).
             CATCH cx_sy_create_object_error.
               zcx_abapgit_exception=>raise( lv_message ).
           ENDTRY.
@@ -666,8 +661,8 @@ CLASS zcl_abapgit_objects IMPLEMENTATION.
           ENDIF.
 
           " Create or update object
-          CREATE OBJECT lo_files EXPORTING is_item = ls_item
-                                           iv_path = lv_path.
+          lo_files = NEW #( is_item = ls_item
+                            iv_path = lv_path ).
           lo_files->set_files( lt_remote ).
 
           "analyze XML in order to instantiate the proper serializer
@@ -1023,14 +1018,14 @@ CLASS zcl_abapgit_objects IMPLEMENTATION.
         rs_files_and_item-item-obj_name }| ).
     ENDIF.
 
-    CREATE OBJECT lo_files EXPORTING is_item = rs_files_and_item-item.
+    lo_files = NEW #( is_item = rs_files_and_item-item ).
 
     li_obj = create_object( is_item     = rs_files_and_item-item
                             iv_language = iv_language ).
 
     li_obj->mo_files = lo_files.
 
-    CREATE OBJECT li_xml TYPE zcl_abapgit_xml_output.
+    li_xml = NEW zcl_abapgit_xml_output( ).
 
     ls_i18n_params-main_language         = iv_language.
     ls_i18n_params-main_language_only    = iv_main_language_only.
@@ -1041,7 +1036,7 @@ CLASS zcl_abapgit_objects IMPLEMENTATION.
     TRY.
         li_obj->serialize( li_xml ).
       CATCH zcx_abapgit_exception INTO lx_error.
-        rs_files_and_item-item-inactive = boolc( li_obj->is_active( ) = abap_false ).
+        rs_files_and_item-item-inactive = xsdbool( li_obj->is_active( ) = abap_false ).
         RAISE EXCEPTION lx_error.
     ENDTRY.
 
@@ -1054,7 +1049,7 @@ CLASS zcl_abapgit_objects IMPLEMENTATION.
 
     check_duplicates( rs_files_and_item-files ).
 
-    rs_files_and_item-item-inactive = boolc( li_obj->is_active( ) = abap_false ).
+    rs_files_and_item-item-inactive = xsdbool( li_obj->is_active( ) = abap_false ).
 
     LOOP AT rs_files_and_item-files ASSIGNING <ls_file>.
       <ls_file>-sha1 = zcl_abapgit_hash=>sha1_blob( <ls_file>-data ).
