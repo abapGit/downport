@@ -279,7 +279,7 @@ CLASS zcl_abapgit_gui_page_repo_over IMPLEMENTATION.
     ii_html->add( |<input type="submit" class="hidden-submit">| ).
     ii_html->add( |</form>| ).
 
-    lv_new_toggle_favorites = boolc( NOT mv_only_favorites = abap_true ).
+    lv_new_toggle_favorites = xsdbool( NOT mv_only_favorites = abap_true ).
     " render icon for current state but filter value for new state
     IF mv_only_favorites = abap_true.
       lv_icon_class = `blue`.
@@ -307,7 +307,7 @@ CLASS zcl_abapgit_gui_page_repo_over IMPLEMENTATION.
 
   METHOD render_scripts.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
     ri_html->add( 'setInitialFocus("filter");' ).
@@ -485,7 +485,7 @@ CLASS zcl_abapgit_gui_page_repo_over IMPLEMENTATION.
     DATA lo_toolbar TYPE REF TO zcl_abapgit_html_toolbar.
     DATA lo_toolbar_more_sub TYPE REF TO zcl_abapgit_html_toolbar.
 
-    CREATE OBJECT lo_toolbar EXPORTING iv_id = 'toolbar-ovp'.
+    lo_toolbar = NEW #( iv_id = 'toolbar-ovp' ).
 
     lo_toolbar->add( iv_txt      = |Pull|
                      iv_act      = |{ zif_abapgit_definitions=>c_action-git_reset }{ lc_dummy_key }|
@@ -528,7 +528,7 @@ CLASS zcl_abapgit_gui_page_repo_over IMPLEMENTATION.
                      iv_class    = |{ lc_action_class }|
                      iv_li_class = |{ lc_action_class }| ).
 
-    CREATE OBJECT lo_toolbar_more_sub EXPORTING iv_id = 'toolbar-ovp-more_sub'.
+    lo_toolbar_more_sub = NEW #( iv_id = 'toolbar-ovp-more_sub' ).
 
     lo_toolbar_more_sub->add( iv_txt      = |Stage by Transport|
                               iv_act      = |{ zif_abapgit_definitions=>c_action-go_stage_transport }{ lc_dummy_key }|
@@ -657,7 +657,7 @@ CLASS zcl_abapgit_gui_page_repo_over IMPLEMENTATION.
 
     DATA lv_attrs TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     IF iv_value IS NOT INITIAL.
       lv_attrs = | value="{ iv_value }"|.
@@ -710,7 +710,7 @@ CLASS zcl_abapgit_gui_page_repo_over IMPLEMENTATION.
     apply_order_by( CHANGING ct_overview = mt_overview ).
     apply_filter( CHANGING ct_overview = mt_overview ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     render_header_bar( ri_html ).
 
