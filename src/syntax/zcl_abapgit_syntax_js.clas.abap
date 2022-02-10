@@ -172,7 +172,7 @@ CLASS ZCL_ABAPGIT_SYNTAX_JS IMPLEMENTATION.
 
     lv_str = to_lower( iv_chunk ).
     READ TABLE gt_keywords WITH TABLE KEY keyword = lv_str TRANSPORTING NO FIELDS.
-    rv_yes = boolc( sy-subrc = 0 ).
+    rv_yes = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
