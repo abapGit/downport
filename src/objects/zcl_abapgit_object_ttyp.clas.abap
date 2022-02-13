@@ -110,7 +110,7 @@ CLASS zcl_abapgit_object_ttyp IMPLEMENTATION.
 
     SELECT SINGLE typename FROM dd40l INTO lv_typename
       WHERE typename = ms_item-obj_name.
-    rv_bool = boolc( sy-subrc = 0 ).
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
