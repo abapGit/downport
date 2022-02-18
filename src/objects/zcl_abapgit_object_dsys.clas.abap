@@ -165,7 +165,7 @@ CLASS zcl_abapgit_object_dsys IMPLEMENTATION.
            WHERE id   = c_id
            AND object = mv_doc_object.                  "#EC CI_GENBUFF
 
-    rv_bool = boolc( lv_count > 0 ).
+    rv_bool = xsdbool( lv_count > 0 ).
 
   ENDMETHOD.
 
@@ -213,9 +213,7 @@ CLASS zcl_abapgit_object_dsys IMPLEMENTATION.
         object_not_found = 2
         OTHERS           = 3.
 
-    IF sy-subrc <> 0.
-      zcx_abapgit_exception=>raise_t100( ).
-    ENDIF.
+    rv_exit = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 

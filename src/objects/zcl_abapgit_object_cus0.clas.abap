@@ -112,7 +112,7 @@ CLASS zcl_abapgit_object_cus0 IMPLEMENTATION.
       IMPORTING
         message      = ls_message.
 
-    rv_bool = boolc( ls_message IS INITIAL ).
+    rv_bool = xsdbool( ls_message IS INITIAL ).
 
   ENDMETHOD.
 
@@ -155,6 +155,8 @@ CLASS zcl_abapgit_object_cus0 IMPLEMENTATION.
         i_display    = abap_true
       CHANGING
         img_activity = lv_img_activity.
+
+    rv_exit = abap_true.
   ENDMETHOD.
 
 

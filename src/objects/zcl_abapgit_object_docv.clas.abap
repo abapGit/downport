@@ -117,7 +117,7 @@ CLASS zcl_abapgit_object_docv IMPLEMENTATION.
       WHERE id     = lv_id
         AND object = lv_object.                         "#EC CI_GENBUFF
 
-    rv_bool = boolc( sy-subrc = 0 ).
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -149,9 +149,6 @@ CLASS zcl_abapgit_object_docv IMPLEMENTATION.
 
 
   METHOD zif_abapgit_object~jump.
-
-    zcx_abapgit_exception=>raise( 'todo, jump DOCV' ).
-
   ENDMETHOD.
 
 

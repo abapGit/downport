@@ -23,8 +23,8 @@ CLASS zcl_abapgit_object_iwsv IMPLEMENTATION.
 
   METHOD get_generic.
 
-    CREATE OBJECT ro_generic EXPORTING is_item = ms_item
-                                       iv_language = mv_language.
+    ro_generic = NEW #( is_item = ms_item
+                        iv_language = mv_language ).
 
   ENDMETHOD.
 
@@ -112,6 +112,8 @@ CLASS zcl_abapgit_object_iwsv IMPLEMENTATION.
     zcl_abapgit_ui_factory=>get_gui_jumper( )->jump_batch_input(
       iv_tcode   = '/IWBEP/REG_SERVICE'
       it_bdcdata = lt_bdcdata ).
+
+    rv_exit = abap_true.
 
   ENDMETHOD.
 

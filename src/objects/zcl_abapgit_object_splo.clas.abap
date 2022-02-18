@@ -63,7 +63,7 @@ CLASS ZCL_ABAPGIT_OBJECT_SPLO IMPLEMENTATION.
 
     SELECT SINGLE papart INTO lv_papart FROM tsp1d
       WHERE papart = ms_item-obj_name.
-    rv_bool = boolc( sy-subrc = 0 ).
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -95,7 +95,6 @@ CLASS ZCL_ABAPGIT_OBJECT_SPLO IMPLEMENTATION.
 
 
   METHOD zif_abapgit_object~jump.
-    zcx_abapgit_exception=>raise( 'todo, jump, SPLO' ).
   ENDMETHOD.
 
 

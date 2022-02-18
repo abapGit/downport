@@ -105,7 +105,7 @@ CLASS zcl_abapgit_object_shi5 IMPLEMENTATION.
       IMPORTING
         extension_header = ls_extension_header.
 
-    rv_bool = boolc( ls_extension_header IS NOT INITIAL ).
+    rv_bool = xsdbool( ls_extension_header IS NOT INITIAL ).
 
   ENDMETHOD.
 
@@ -147,6 +147,9 @@ CLASS zcl_abapgit_object_shi5 IMPLEMENTATION.
         originals_only       = abap_true
       TABLES
         show_only_extensions = lt_extension.
+
+    rv_exit = abap_true.
+
   ENDMETHOD.
 
 

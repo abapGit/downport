@@ -288,7 +288,7 @@ CLASS zcl_abapgit_object_chdo IMPLEMENTATION.
       FROM tcdrp
       WHERE object = mv_object.
 
-    rv_bool = boolc( sy-subrc = 0 ).
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -342,6 +342,8 @@ CLASS zcl_abapgit_object_chdo IMPLEMENTATION.
     zcl_abapgit_ui_factory=>get_gui_jumper( )->jump_batch_input(
       iv_tcode   = 'SCDO'
       it_bdcdata = lt_bdcdata ).
+
+    rv_exit = abap_true.
 
   ENDMETHOD.
 

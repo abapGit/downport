@@ -115,7 +115,7 @@ CLASS zcl_abapgit_object_iext IMPLEMENTATION.
       EXCEPTIONS
         OTHERS    = 1.
 
-    rv_bool = boolc( sy-subrc = 0 ).
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -171,6 +171,8 @@ CLASS zcl_abapgit_object_iext IMPLEMENTATION.
     zcl_abapgit_ui_factory=>get_gui_jumper( )->jump_batch_input(
       iv_tcode   = 'WE30'
       it_bdcdata = lt_bdcdata ).
+
+    rv_exit = abap_true.
 
   ENDMETHOD.
 

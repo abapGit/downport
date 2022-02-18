@@ -125,7 +125,7 @@ CLASS zcl_abapgit_object_dial IMPLEMENTATION.
 
     ls_tdct = _read_tdct( ).
 
-    rv_bool = boolc( ls_tdct IS NOT INITIAL ).
+    rv_bool = xsdbool( ls_tdct IS NOT INITIAL ).
 
   ENDMETHOD.
 
@@ -171,9 +171,7 @@ CLASS zcl_abapgit_object_dial IMPLEMENTATION.
         object_not_found = 1
         OTHERS           = 2.
 
-    IF sy-subrc <> 0.
-      zcx_abapgit_exception=>raise_t100( ).
-    ENDIF.
+    rv_exit = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 

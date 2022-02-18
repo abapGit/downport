@@ -130,7 +130,7 @@ CLASS zcl_abapgit_object_form IMPLEMENTATION.
     DATA lv_string TYPE string.
     DATA li_xml TYPE REF TO zif_abapgit_xml_output.
 
-    CREATE OBJECT li_xml TYPE zcl_abapgit_xml_output.
+    li_xml = NEW zcl_abapgit_xml_output( ).
     li_xml->add( iv_name = c_objectname_tdlines
                  ig_data = it_lines ).
     lv_string = li_xml->render( ).
@@ -171,7 +171,7 @@ CLASS zcl_abapgit_object_form IMPLEMENTATION.
 
     ENDTRY.
 
-    CREATE OBJECT li_xml TYPE zcl_abapgit_xml_input EXPORTING iv_xml = lv_string.
+    li_xml = NEW zcl_abapgit_xml_input( iv_xml = lv_string ).
     li_xml->read( EXPORTING iv_name = c_objectname_tdlines
                   CHANGING  cg_data = rt_lines ).
 
@@ -386,6 +386,8 @@ CLASS zcl_abapgit_object_form IMPLEMENTATION.
     zcl_abapgit_ui_factory=>get_gui_jumper( )->jump_batch_input(
       iv_tcode   = 'SE71'
       it_bdcdata = lt_bdcdata ).
+
+    rv_exit = abap_true.
 
   ENDMETHOD.
 

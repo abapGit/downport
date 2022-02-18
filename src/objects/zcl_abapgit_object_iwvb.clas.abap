@@ -23,8 +23,8 @@ CLASS zcl_abapgit_object_iwvb IMPLEMENTATION.
 
   METHOD get_generic.
 
-    CREATE OBJECT ro_generic EXPORTING is_item = ms_item
-                                       iv_language = mv_language.
+    ro_generic = NEW #( is_item = ms_item
+                        iv_language = mv_language ).
 
   ENDMETHOD.
 
@@ -93,6 +93,8 @@ CLASS zcl_abapgit_object_iwvb IMPLEMENTATION.
       WITH ip_aname = ms_item-obj_name
       WITH ip_avers = ms_item-obj_name+32(4)
       AND RETURN.
+
+    rv_exit = abap_true.
 
   ENDMETHOD.
 

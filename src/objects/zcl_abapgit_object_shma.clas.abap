@@ -194,7 +194,7 @@ CLASS zcl_abapgit_object_shma IMPLEMENTATION.
            INTO lv_area_name
            WHERE area_name = ms_item-obj_name.
 
-    rv_bool = boolc( sy-subrc = 0 ).
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -249,6 +249,8 @@ CLASS zcl_abapgit_object_shma IMPLEMENTATION.
     zcl_abapgit_ui_factory=>get_gui_jumper( )->jump_batch_input(
       iv_tcode   = 'SHMA'
       it_bdcdata = lt_bcdata ).
+
+    rv_exit = abap_true.
 
   ENDMETHOD.
 

@@ -23,8 +23,8 @@ CLASS ZCL_ABAPGIT_OBJECT_SPPF IMPLEMENTATION.
 
   METHOD get_generic.
 
-    CREATE OBJECT ro_generic EXPORTING is_item = ms_item
-                                       iv_language = mv_language.
+    ro_generic = NEW #( is_item = ms_item
+                        iv_language = mv_language ).
 
   ENDMETHOD.
 
@@ -88,9 +88,6 @@ CLASS ZCL_ABAPGIT_OBJECT_SPPF IMPLEMENTATION.
 
 
   METHOD zif_abapgit_object~jump.
-
-    zcx_abapgit_exception=>raise( |TODO: Jump| ).
-
   ENDMETHOD.
 
 

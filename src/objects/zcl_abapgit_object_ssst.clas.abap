@@ -148,7 +148,7 @@ CLASS zcl_abapgit_object_ssst IMPLEMENTATION.
       WHERE active    = c_style_active
         AND stylename = ms_item-obj_name
         AND vari      = ''.
-    rv_bool = boolc( sy-subrc = 0 ).
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -203,6 +203,8 @@ CLASS zcl_abapgit_object_ssst IMPLEMENTATION.
     zcl_abapgit_ui_factory=>get_gui_jumper( )->jump_batch_input(
       iv_tcode   = 'SMARTSTYLES'
       it_bdcdata = lt_bcdata ).
+
+    rv_exit = abap_true.
 
   ENDMETHOD.
 

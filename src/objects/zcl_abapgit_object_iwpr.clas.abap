@@ -23,8 +23,8 @@ CLASS zcl_abapgit_object_iwpr IMPLEMENTATION.
 
   METHOD get_generic.
 
-    CREATE OBJECT ro_generic EXPORTING is_item = ms_item
-                                       iv_language = mv_language.
+    ro_generic = NEW #( is_item = ms_item
+                        iv_language = mv_language ).
 
   ENDMETHOD.
 
@@ -92,6 +92,8 @@ CLASS zcl_abapgit_object_iwpr IMPLEMENTATION.
     SUBMIT /iwbep/r_sbui_service_builder
       WITH i_prname = ms_item-obj_name
       AND RETURN.
+
+    rv_exit = abap_true.
 
   ENDMETHOD.
 

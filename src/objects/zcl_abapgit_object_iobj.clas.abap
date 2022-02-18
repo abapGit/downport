@@ -265,7 +265,7 @@ CLASS ZCL_ABAPGIT_OBJECT_IOBJ IMPLEMENTATION.
       INTO lv_iobjnm
       WHERE iobjnm = ms_item-obj_name.
 
-    rv_bool = boolc( sy-subrc = 0 ).
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -336,7 +336,6 @@ CLASS ZCL_ABAPGIT_OBJECT_IOBJ IMPLEMENTATION.
 
 
   METHOD zif_abapgit_object~jump.
-    zcx_abapgit_exception=>raise( |Jump to InfoObjects is not yet supported| ).
   ENDMETHOD.
 
 

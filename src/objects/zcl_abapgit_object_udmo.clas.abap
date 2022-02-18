@@ -671,7 +671,7 @@ CLASS zcl_abapgit_object_udmo IMPLEMENTATION.
            WHERE  dmoid     = mv_data_model
            AND    as4local  = mv_activation_state.
 
-    rv_bool = boolc( sy-subrc = 0 ).
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
 
 
@@ -737,6 +737,8 @@ CLASS zcl_abapgit_object_udmo IMPLEMENTATION.
     zcl_abapgit_ui_factory=>get_gui_jumper( )->jump_batch_input(
       iv_tcode   = 'SD11'
       it_bdcdata = lt_bdcdata ).
+
+    rv_exit = abap_true.
 
   ENDMETHOD.
 

@@ -349,7 +349,7 @@ CLASS zcl_abapgit_object_ddls IMPLEMENTATION.
             name      = ms_item-obj_name
           IMPORTING
             got_state = lv_state.
-        rv_bool = boolc( NOT lv_state IS INITIAL ).
+        rv_bool = xsdbool( NOT lv_state IS INITIAL ).
       CATCH cx_root.
         rv_bool = abap_false.
     ENDTRY.
@@ -399,12 +399,10 @@ CLASS zcl_abapgit_object_ddls IMPLEMENTATION.
       IMPORTING
         typekind = lv_ddtypekind.
 
-    CASE lv_ddtypekind.
-      WHEN 'STOB'.
-        open_adt_stob( ms_item-obj_name ).
-      WHEN OTHERS.
-        zcx_abapgit_exception=>raise( 'DDLS Jump Error' ).
-    ENDCASE.
+    IF lv_ddtypekind = 'STOB'.
+      open_adt_stob( ms_item-obj_name ).
+      rv_exit = abap_true.
+    ENDIF.
 
   ENDMETHOD.
 
