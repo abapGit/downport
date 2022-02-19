@@ -48,7 +48,7 @@ CLASS zcl_abapgit_apack_reader DEFINITION
 
     TYPES:
       BEGIN OF ty_s_manifest_declaration,
-        clsname  TYPE seometarel-clsname,
+        clsname  TYPE seoclsname,
         devclass TYPE devclass,
       END OF ty_s_manifest_declaration .
 
@@ -117,7 +117,7 @@ CLASS zcl_abapgit_apack_reader IMPLEMENTATION.
 
 
   METHOD create_instance.
-    CREATE OBJECT ro_manifest_reader EXPORTING iv_package_name = iv_package_name.
+    ro_manifest_reader = NEW #( iv_package_name = iv_package_name ).
   ENDMETHOD.
 
 
