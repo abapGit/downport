@@ -335,7 +335,7 @@ CLASS zcl_abapgit_object_webi IMPLEMENTATION.
 
     lv_name = ms_item-obj_name.
 
-    CREATE OBJECT lo_vif.
+    lo_vif = NEW #( ).
     TRY.
         lo_vif->if_ws_md_vif_root~delete_virtual_interface( lv_name ).
       CATCH cx_ws_md_exception.
