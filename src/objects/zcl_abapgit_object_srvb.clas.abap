@@ -415,7 +415,7 @@ CLASS zcl_abapgit_object_srvb IMPLEMENTATION.
           p_object_data    = lo_object_data ).
 
         ENDIF.
-        rv_bool = boolc( lo_object_data IS NOT INITIAL AND lo_object_data->get_object_key( ) IS NOT INITIAL ).
+        rv_bool = xsdbool( lo_object_data IS NOT INITIAL AND lo_object_data->get_object_key( ) IS NOT INITIAL ).
       CATCH cx_root.
         rv_bool = abap_false.
     ENDTRY.
