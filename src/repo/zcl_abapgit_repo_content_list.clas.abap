@@ -92,7 +92,7 @@ CLASS ZCL_ABAPGIT_REPO_CONTENT_LIST IMPLEMENTATION.
         ls_folder-path    = <ls_item>-path.
         ls_folder-sortkey = c_sortkey-dir. " Directory
         ls_folder-is_dir  = abap_true.
-        lo_state = NEW #( ).
+        CREATE OBJECT lo_state.
       ENDAT.
 
       ls_folder-changes = ls_folder-changes + <ls_item>-changes.
@@ -127,7 +127,7 @@ CLASS ZCL_ABAPGIT_REPO_CONTENT_LIST IMPLEMENTATION.
       <ls_repo_item>-obj_name = <ls_tadir>-obj_name.
       <ls_repo_item>-path     = <ls_tadir>-path.
       MOVE-CORRESPONDING <ls_repo_item> TO ls_item.
-      <ls_repo_item>-inactive = xsdbool( zcl_abapgit_objects=>is_active( ls_item ) = abap_false ).
+      <ls_repo_item>-inactive = boolc( zcl_abapgit_objects=>is_active( ls_item ) = abap_false ).
       IF <ls_repo_item>-inactive = abap_true.
         <ls_repo_item>-sortkey = c_sortkey-inactive.
       ELSE.
@@ -171,12 +171,12 @@ CLASS ZCL_ABAPGIT_REPO_CONTENT_LIST IMPLEMENTATION.
         <ls_repo_item>-sortkey  = c_sortkey-default. " Default sort key
         <ls_repo_item>-changes  = 0.
         <ls_repo_item>-path     = <ls_status>-path.
-        lo_state = NEW #( ).
+        CREATE OBJECT lo_state.
       ENDAT.
 
       IF <ls_status>-filename IS NOT INITIAL.
         MOVE-CORRESPONDING <ls_status> TO ls_file.
-        ls_file-is_changed = xsdbool( <ls_status>-match = abap_false ). " TODO refactor
+        ls_file-is_changed = boolc( <ls_status>-match = abap_false ). " TODO refactor
         APPEND ls_file TO <ls_repo_item>-files.
 
         IF <ls_status>-inactive = abap_true AND <ls_repo_item>-sortkey > c_sortkey-changed.
@@ -239,7 +239,7 @@ CLASS ZCL_ABAPGIT_REPO_CONTENT_LIST IMPLEMENTATION.
 
   METHOD constructor.
     mo_repo = io_repo.
-    mi_log = NEW zcl_abapgit_log( ).
+    CREATE OBJECT mi_log TYPE zcl_abapgit_log.
   ENDMETHOD.
 
 
