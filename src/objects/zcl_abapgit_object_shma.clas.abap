@@ -194,7 +194,7 @@ CLASS zcl_abapgit_object_shma IMPLEMENTATION.
            INTO lv_area_name
            WHERE area_name = ms_item-obj_name.
 
-    rv_bool = xsdbool( sy-subrc = 0 ).
+    rv_bool = boolc( sy-subrc = 0 ).
 
   ENDMETHOD.
 
