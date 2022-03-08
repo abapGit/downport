@@ -237,7 +237,7 @@ CLASS zcl_abapgit_object_oa2p IMPLEMENTATION.
         enq     = lt_locks.    " Number of chosen lock entries
 
 
-    rv_is_locked = boolc( lv_lock_number > 0 ).
+    rv_is_locked = xsdbool( lv_lock_number > 0 ).
 
   ENDMETHOD.
 
