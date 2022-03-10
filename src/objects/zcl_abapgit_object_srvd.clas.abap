@@ -62,11 +62,10 @@ CLASS zcl_abapgit_object_srvd IMPLEMENTATION.
 
     FIELD-SYMBOLS: <lv_value> TYPE data.
 
-    ASSIGN COMPONENT iv_fieldname OF STRUCTURE cs_metadata
-           TO <lv_value>.
-    ASSERT sy-subrc = 0.
-
-    CLEAR: <lv_value>.
+    ASSIGN COMPONENT iv_fieldname OF STRUCTURE cs_metadata TO <lv_value>.
+    IF sy-subrc = 0.
+      CLEAR: <lv_value>.
+    ENDIF.
 
   ENDMETHOD.
 
@@ -130,6 +129,11 @@ CLASS zcl_abapgit_object_srvd IMPLEMENTATION.
     clear_field(
       EXPORTING
         iv_fieldname = 'ABAP_LANGUAGE_VERSION'
+      CHANGING
+        cs_metadata  = cs_metadata ).
+    clear_field(
+      EXPORTING
+        iv_fieldname = 'ABAP_LANGU_VERSION'
       CHANGING
         cs_metadata  = cs_metadata ).
 
@@ -465,7 +469,7 @@ CLASS zcl_abapgit_object_srvd IMPLEMENTATION.
             data_selection = 'P'
           IMPORTING
             eo_object_data = lo_object_data.
-        rv_bool = boolc( lo_object_data IS NOT INITIAL AND lo_object_data->get_object_key( ) IS NOT INITIAL ).
+        rv_bool = xsdbool( lo_object_data IS NOT INITIAL AND lo_object_data->get_object_key( ) IS NOT INITIAL ).
       CATCH cx_root.
         rv_bool = abap_false.
     ENDTRY.
