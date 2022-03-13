@@ -36,7 +36,7 @@ CLASS ltcl_filter_files_to_deser IMPLEMENTATION.
 
   METHOD setup.
 
-    mo_objects = NEW #( ).
+    CREATE OBJECT mo_objects.
 
   ENDMETHOD.
 
@@ -257,7 +257,7 @@ ENDCLASS.
 CLASS ltcl_prio_deserialization IMPLEMENTATION.
 
   METHOD setup.
-    mo_objects = NEW #( ).
+    CREATE OBJECT mo_objects.
     mv_exp_output_tabix = 0.
   ENDMETHOD.
 
@@ -410,7 +410,7 @@ CLASS ltcl_prio_deserialization IMPLEMENTATION.
 
     DATA lo_log TYPE REF TO zcl_abapgit_log.
 
-    lo_log = NEW #( ).
+    CREATE OBJECT lo_log.
 
     mt_output = mo_objects->prioritize_deser(
       ii_log     = lo_log
