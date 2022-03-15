@@ -367,7 +367,7 @@ CLASS zcl_abapgit_object_srvb IMPLEMENTATION.
 
         corr_insert( iv_package ).
 
-      CATCH cx_swb_exception INTO lx_error.
+      CATCH cx_root INTO lx_error.
         CALL FUNCTION 'DEQUEUE_ESWB_EO'
           EXPORTING
             objtype = ms_item-obj_type
@@ -415,7 +415,7 @@ CLASS zcl_abapgit_object_srvb IMPLEMENTATION.
           p_object_data    = lo_object_data ).
 
         ENDIF.
-        rv_bool = boolc( lo_object_data IS NOT INITIAL AND lo_object_data->get_object_key( ) IS NOT INITIAL ).
+        rv_bool = xsdbool( lo_object_data IS NOT INITIAL AND lo_object_data->get_object_key( ) IS NOT INITIAL ).
       CATCH cx_root.
         rv_bool = abap_false.
     ENDTRY.
