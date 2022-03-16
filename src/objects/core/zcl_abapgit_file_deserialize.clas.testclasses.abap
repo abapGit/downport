@@ -36,7 +36,7 @@ CLASS ltcl_filter_files_to_deser IMPLEMENTATION.
 
   METHOD setup.
 
-    CREATE OBJECT mo_objects.
+    mo_objects = NEW #( ).
 
   ENDMETHOD.
 
@@ -222,7 +222,9 @@ CLASS ltcl_prio_deserialization DEFINITION FINAL FOR TESTING
       setup,
       ddls_before_dcls FOR TESTING RAISING cx_static_check,
       webi_before_sprx FOR TESTING RAISING cx_static_check,
-      iasp_before_isrp FOR TESTING RAISING cx_static_check,
+      iasp_before_iarp FOR TESTING RAISING cx_static_check,
+      iarp_before_iatu FOR TESTING RAISING cx_static_check,
+      prog_before_iaxu FOR TESTING RAISING cx_static_check,
       iobj_before_odso FOR TESTING RAISING cx_static_check,
       tobj_before_scp1 FOR TESTING RAISING cx_static_check,
       otgr_before_char FOR TESTING RAISING cx_static_check,
@@ -257,7 +259,7 @@ ENDCLASS.
 CLASS ltcl_prio_deserialization IMPLEMENTATION.
 
   METHOD setup.
-    CREATE OBJECT mo_objects.
+    mo_objects = NEW #( ).
     mv_exp_output_tabix = 0.
   ENDMETHOD.
 
@@ -341,12 +343,28 @@ CLASS ltcl_prio_deserialization IMPLEMENTATION.
     then( 'ODSO' ).
   ENDMETHOD.
 
-  METHOD iasp_before_isrp.
-    given( 'ISRP' ).
+  METHOD iasp_before_iarp.
+    given( 'IARP' ).
     given( 'IASP' ).
     when_deser_is_priorized( ).
     then( 'IASP' ).
-    then( 'ISRP' ).
+    then( 'IARP' ).
+  ENDMETHOD.
+
+  METHOD iarp_before_iatu.
+    given( 'IATU' ).
+    given( 'IARP' ).
+    when_deser_is_priorized( ).
+    then( 'IARP' ).
+    then( 'IATU' ).
+  ENDMETHOD.
+
+  METHOD prog_before_iaxu.
+    given( 'IAXU' ).
+    given( 'PROG' ).
+    when_deser_is_priorized( ).
+    then( 'PROG' ).
+    then( 'IAXU' ).
   ENDMETHOD.
 
   METHOD webi_before_sprx.
@@ -366,12 +384,18 @@ CLASS ltcl_prio_deserialization IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD xslt_before_clas.
+    given( 'INTF' ).
+    given( 'CLAS' ).
     given( 'XSLT' ).
     given( 'INTF' ).
     given( 'CLAS' ).
+    given( 'XSLT' ).
     when_deser_is_priorized( ).
     then( 'XSLT' ).
+    then( 'XSLT' ).
     then( 'INTF' ).
+    then( 'INTF' ).
+    then( 'CLAS' ).
     then( 'CLAS' ).
   ENDMETHOD.
 
@@ -410,7 +434,7 @@ CLASS ltcl_prio_deserialization IMPLEMENTATION.
 
     DATA lo_log TYPE REF TO zcl_abapgit_log.
 
-    CREATE OBJECT lo_log.
+    lo_log = NEW #( ).
 
     mt_output = mo_objects->prioritize_deser(
       ii_log     = lo_log

@@ -170,7 +170,7 @@ CLASS ZCL_ABAPGIT_FILE_DESERIALIZE IMPLEMENTATION.
 
     lt_items = map_results_to_items( it_results ).
 
-    CREATE OBJECT lo_graph EXPORTING it_items = lt_items.
+    lo_graph = NEW #( it_items = lt_items ).
 
     LOOP AT lt_items INTO ls_item.
       CLEAR lt_requires.
@@ -189,19 +189,26 @@ CLASS ZCL_ABAPGIT_FILE_DESERIALIZE IMPLEMENTATION.
         WHEN 'CLAS'.
           lt_requires = lt_items.
           DELETE lt_requires WHERE obj_type <> 'SPRX'
+            AND obj_type <> 'INTF'
             AND obj_type <> 'XSLT'.
         WHEN 'PROG'.
           lt_requires = lt_items.
           DELETE lt_requires WHERE obj_type <> 'XSLT'.
         WHEN 'INTF'.
           lt_requires = lt_items.
-          DELETE lt_requires WHERE obj_type <> 'SPRX'.
+          DELETE lt_requires WHERE obj_type <> 'SPRX'
+            AND obj_type <> 'XSLT'.
         WHEN 'TABL'.
           lt_requires = lt_items.
           DELETE lt_requires WHERE obj_type <> 'SPRX'.
-        WHEN 'ISRP'.
+        WHEN 'IARP'.
           lt_requires = lt_items.
           DELETE lt_requires WHERE obj_type <> 'IASP'.
+        WHEN 'IATU' OR 'IAXU'.
+          lt_requires = lt_items.
+          DELETE lt_requires WHERE obj_type <> 'IASP'
+            AND obj_type <> 'PROG'
+            AND obj_type <> 'IARP'.
         WHEN 'DCLS'.
           lt_requires = lt_items.
           DELETE lt_requires WHERE obj_type <> 'DDLS'.
