@@ -298,7 +298,7 @@ CLASS ZCL_ABAPGIT_TRANSPORT IMPLEMENTATION.
           lv_message TYPE string.
     FIELD-SYMBOLS: <ls_log> TYPE sprot_u.
 
-    li_log = NEW zcl_abapgit_log( iv_title = iv_title ).
+    CREATE OBJECT li_log TYPE zcl_abapgit_log EXPORTING iv_title = iv_title.
 
     LOOP AT it_log ASSIGNING <ls_log>.
 
