@@ -79,8 +79,8 @@ CLASS zcl_abapgit_filename_logic IMPLEMENTATION.
     CLEAR es_item.
     es_item-obj_type = lv_type.
     es_item-obj_name = lv_name.
-    ev_is_xml        = boolc( lv_ext = to_upper( c_package_file-extension ) AND strlen( lv_type ) = 4 ).
-    ev_is_json       = boolc( lv_ext = to_upper( c_json_file-extension ) AND strlen( lv_type ) = 4 ).
+    ev_is_xml        = xsdbool( lv_ext = to_upper( c_package_file-extension ) AND strlen( lv_type ) = 4 ).
+    ev_is_json       = xsdbool( lv_ext = to_upper( c_json_file-extension ) AND strlen( lv_type ) = 4 ).
 
   ENDMETHOD.
 
