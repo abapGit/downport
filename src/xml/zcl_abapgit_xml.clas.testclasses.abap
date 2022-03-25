@@ -40,7 +40,7 @@ ENDCLASS.
 CLASS ltcl_xml IMPLEMENTATION.
 
   METHOD setup.
-    CREATE OBJECT mo_xml.
+    mo_xml = NEW #( ).
   ENDMETHOD.
 
   METHOD parse_xml.
