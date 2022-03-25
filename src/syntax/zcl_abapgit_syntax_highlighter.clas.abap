@@ -93,8 +93,8 @@ CLASS zcl_abapgit_syntax_highlighter IMPLEMENTATION.
     DATA ls_rule LIKE LINE OF mt_rules.
 
     IF NOT iv_regex IS INITIAL.
-      CREATE OBJECT ls_rule-regex EXPORTING pattern = iv_regex
-                                            ignore_case = abap_true.
+      ls_rule-regex = NEW #( pattern = iv_regex
+                             ignore_case = abap_true ).
     ENDIF.
 
     ls_rule-token         = iv_token.
@@ -192,7 +192,7 @@ CLASS zcl_abapgit_syntax_highlighter IMPLEMENTATION.
     "/^\s+$/
     lv_whitespace = ` ` && cl_abap_char_utilities=>horizontal_tab && cl_abap_char_utilities=>cr_lf.
 
-    rv_result = boolc( iv_string CO lv_whitespace ).
+    rv_result = xsdbool( iv_string CO lv_whitespace ).
 
   ENDMETHOD.
 
@@ -283,6 +283,8 @@ CLASS zcl_abapgit_syntax_highlighter IMPLEMENTATION.
       REPLACE ALL OCCURRENCES OF cl_abap_char_utilities=>horizontal_tab IN rv_line WITH '&nbsp;&rarr;&nbsp;'.
       REPLACE ALL OCCURRENCES OF cl_abap_char_utilities=>cr_lf(1)       IN rv_line WITH '&para;'.
       REPLACE ALL OCCURRENCES OF ` `                                    IN rv_line WITH '&middot;'.
+      REPLACE ALL OCCURRENCES OF cl_abap_char_utilities=>form_feed IN rv_line
+        WITH '<span class="red">&odash;</span>'.
 
       IF strlen( rv_line ) BETWEEN 1 AND 2.
         lv_bom = zcl_abapgit_convert=>string_to_xstring( rv_line ).
