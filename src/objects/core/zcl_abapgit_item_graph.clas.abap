@@ -86,7 +86,7 @@ CLASS ZCL_ABAPGIT_ITEM_GRAPH IMPLEMENTATION.
 
 
   METHOD has_vertices.
-    rv_bool = boolc( lines( mt_vertices ) > 0 ).
+    rv_bool = xsdbool( lines( mt_vertices ) > 0 ).
   ENDMETHOD.
 
 
