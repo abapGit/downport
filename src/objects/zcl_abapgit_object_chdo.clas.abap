@@ -288,7 +288,7 @@ CLASS zcl_abapgit_object_chdo IMPLEMENTATION.
       FROM tcdrp
       WHERE object = mv_object.
 
-    rv_bool = xsdbool( sy-subrc = 0 ).
+    rv_bool = boolc( sy-subrc = 0 ).
 
   ENDMETHOD.
 
