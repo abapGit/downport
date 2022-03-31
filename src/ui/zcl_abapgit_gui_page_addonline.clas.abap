@@ -67,8 +67,8 @@ CLASS zcl_abapgit_gui_page_addonline IMPLEMENTATION.
 
   METHOD constructor.
     super->constructor( ).
-    CREATE OBJECT mo_validation_log.
-    CREATE OBJECT mo_form_data.
+    mo_validation_log = NEW #( ).
+    mo_form_data = NEW #( ).
     mo_form = get_form_schema( ).
     mo_form_util = zcl_abapgit_html_form_utils=>create( mo_form ).
   ENDMETHOD.
@@ -78,7 +78,7 @@ CLASS zcl_abapgit_gui_page_addonline IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_addonline.
 
-    CREATE OBJECT lo_component.
+    lo_component = NEW #( ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'New Online Repository'
@@ -125,6 +125,9 @@ CLASS zcl_abapgit_gui_page_addonline IMPLEMENTATION.
     )->option(
       iv_label       = 'Full'
       iv_value       = zif_abapgit_dot_abapgit=>c_folder_logic-full
+    )->option(
+      iv_label       = 'Mixed'
+      iv_value       = zif_abapgit_dot_abapgit=>c_folder_logic-mixed
     )->text(
       iv_name        = c_id-display_name
       iv_label       = 'Display Name'
@@ -180,12 +183,11 @@ CLASS zcl_abapgit_gui_page_addonline IMPLEMENTATION.
     ENDIF.
 
     IF io_form_data->get( c_id-folder_logic ) <> zif_abapgit_dot_abapgit=>c_folder_logic-prefix
-        AND io_form_data->get( c_id-folder_logic ) <> zif_abapgit_dot_abapgit=>c_folder_logic-full.
+        AND io_form_data->get( c_id-folder_logic ) <> zif_abapgit_dot_abapgit=>c_folder_logic-full
+        AND io_form_data->get( c_id-folder_logic ) <> zif_abapgit_dot_abapgit=>c_folder_logic-mixed.
       ro_validation_log->set(
         iv_key = c_id-folder_logic
-        iv_val = |Invalid folder logic { io_form_data->get( c_id-folder_logic )
-        }. Must be { zif_abapgit_dot_abapgit=>c_folder_logic-prefix
-        } or { zif_abapgit_dot_abapgit=>c_folder_logic-full } | ).
+        iv_val = |Invalid folder logic { io_form_data->get( c_id-folder_logic ) }| ).
     ENDIF.
 
   ENDMETHOD.
@@ -260,7 +262,7 @@ CLASS zcl_abapgit_gui_page_addonline IMPLEMENTATION.
         IF mo_validation_log->is_empty( ) = abap_true.
           mo_form_data->to_abap( CHANGING cs_container = ls_repo_params ).
           lo_new_online_repo = zcl_abapgit_services_repo=>new_online( ls_repo_params ).
-          CREATE OBJECT rs_handled-page TYPE zcl_abapgit_gui_page_repo_view EXPORTING iv_key = lo_new_online_repo->get_key( ).
+          rs_handled-page = NEW zcl_abapgit_gui_page_repo_view( iv_key = lo_new_online_repo->get_key( ) ).
           rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page_replacing.
         ELSE.
           rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render. " Display errors
@@ -275,7 +277,7 @@ CLASS zcl_abapgit_gui_page_addonline IMPLEMENTATION.
 
     gui_services( )->register_event_handler( me ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( mo_form->render(
       io_values         = mo_form_data
