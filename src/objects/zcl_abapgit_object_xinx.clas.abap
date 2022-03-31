@@ -263,7 +263,7 @@ CLASS zcl_abapgit_object_xinx IMPLEMENTATION.
         illegal_input = 1
         OTHERS        = 2.
 
-    rv_bool = xsdbool( ls_dd12v IS NOT INITIAL ).
+    rv_bool = boolc( ls_dd12v IS NOT INITIAL ).
 
   ENDMETHOD.
 
