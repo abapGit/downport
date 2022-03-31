@@ -10,7 +10,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_OBJECT_SPLO IMPLEMENTATION.
+CLASS zcl_abapgit_object_splo IMPLEMENTATION.
 
 
   METHOD zif_abapgit_object~changed_by.
@@ -53,6 +53,8 @@ CLASS ZCL_ABAPGIT_OBJECT_SPLO IMPLEMENTATION.
 
     tadir_insert( iv_package ).
 
+    corr_insert( iv_package ).
+
   ENDMETHOD.
 
 
@@ -63,7 +65,7 @@ CLASS ZCL_ABAPGIT_OBJECT_SPLO IMPLEMENTATION.
 
     SELECT SINGLE papart INTO lv_papart FROM tsp1d
       WHERE papart = ms_item-obj_name.
-    rv_bool = boolc( sy-subrc = 0 ).
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
