@@ -541,13 +541,6 @@ CLASS zcl_abapgit_objects_program IMPLEMENTATION.
           STATE lv_state.          "of the mail program -> insert empty textpool
       ENDIF.
     ELSE.
-      IF lines( it_tpool ) = 1 AND lv_language = mv_language.
-        READ TABLE it_tpool WITH KEY id = 'R' TRANSPORTING NO FIELDS.
-        IF sy-subrc = 0.
-          RETURN. "No action because description in main language is already there
-        ENDIF.
-      ENDIF.
-
       INSERT TEXTPOOL iv_program
         FROM it_tpool
         LANGUAGE lv_language
@@ -932,7 +925,7 @@ CLASS zcl_abapgit_objects_program IMPLEMENTATION.
     IF io_xml IS BOUND.
       li_xml = io_xml.
     ELSE.
-      CREATE OBJECT li_xml TYPE zcl_abapgit_xml_output.
+      li_xml = NEW zcl_abapgit_xml_output( ).
     ENDIF.
 
     li_xml->add( iv_name = 'PROGDIR'

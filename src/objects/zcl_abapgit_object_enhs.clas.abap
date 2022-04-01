@@ -26,9 +26,9 @@ CLASS zcl_abapgit_object_enhs IMPLEMENTATION.
 
     CASE iv_tool.
       WHEN cl_enh_tool_badi_def=>tooltype.
-        CREATE OBJECT ri_enho TYPE zcl_abapgit_object_enhs_badi_d.
+        ri_enho = NEW zcl_abapgit_object_enhs_badi_d( ).
       WHEN cl_enh_tool_hook_def=>tool_type.
-        CREATE OBJECT ri_enho TYPE zcl_abapgit_object_enhs_hook_d.
+        ri_enho = NEW zcl_abapgit_object_enhs_hook_d( ).
       WHEN OTHERS.
         zcx_abapgit_exception=>raise( |ENHS: Unsupported tool { iv_tool }| ).
     ENDCASE.
@@ -44,7 +44,8 @@ CLASS zcl_abapgit_object_enhs IMPLEMENTATION.
     lv_spot_name = ms_item-obj_name.
 
     TRY.
-        li_spot_ref = cl_enh_factory=>get_enhancement_spot( lv_spot_name ).
+        li_spot_ref = cl_enh_factory=>get_enhancement_spot( spot_name = lv_spot_name
+                                                            run_dark  = abap_true ).
         li_spot_ref->get_attributes( IMPORTING changedby = rv_user ).
 
       CATCH cx_enh_root.
@@ -64,6 +65,7 @@ CLASS zcl_abapgit_object_enhs IMPLEMENTATION.
 
     TRY.
         li_enh_object ?= cl_enh_factory=>get_enhancement_spot( spot_name = lv_spot_name
+                                                               run_dark  = abap_true
                                                                lock      = abap_true ).
 
         li_enh_object->delete( nevertheless_delete = abap_true
@@ -136,7 +138,8 @@ CLASS zcl_abapgit_object_enhs IMPLEMENTATION.
     lv_spot_name = ms_item-obj_name.
 
     TRY.
-        li_spot_ref = cl_enh_factory=>get_enhancement_spot( lv_spot_name ).
+        li_spot_ref = cl_enh_factory=>get_enhancement_spot( spot_name = lv_spot_name
+                                                            run_dark  = abap_true ).
 
         rv_bool = abap_true.
 
@@ -189,7 +192,8 @@ CLASS zcl_abapgit_object_enhs IMPLEMENTATION.
     lv_spot_name = ms_item-obj_name.
 
     TRY.
-        li_spot_ref = cl_enh_factory=>get_enhancement_spot( lv_spot_name ).
+        li_spot_ref = cl_enh_factory=>get_enhancement_spot( spot_name = lv_spot_name
+                                                            run_dark  = abap_true ).
 
       CATCH cx_enh_root INTO lx_enh_root.
         zcx_abapgit_exception=>raise_with_text( lx_enh_root ).

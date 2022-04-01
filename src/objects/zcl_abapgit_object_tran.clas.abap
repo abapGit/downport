@@ -370,7 +370,7 @@ CLASS zcl_abapgit_object_tran IMPLEMENTATION.
 
   METHOD is_variant_transaction.
 
-    rv_variant_transaction = boolc( is_tstcp-param(1) = '@' ).
+    rv_variant_transaction = xsdbool( is_tstcp-param(1) = '@' ).
 
   ENDMETHOD.
 
@@ -722,6 +722,8 @@ CLASS zcl_abapgit_object_tran IMPLEMENTATION.
 
         clear_functiongroup_globals( ).
 
+        corr_insert( iv_package ).
+
         CALL FUNCTION 'RPY_TRANSACTION_INSERT'
           EXPORTING
             transaction             = ls_tstc-tcode
@@ -738,6 +740,7 @@ CLASS zcl_abapgit_object_tran IMPLEMENTATION.
             html_enabled            = ls_tstcc-s_webgui
             java_enabled            = ls_tstcc-s_platin
             wingui_enabled          = ls_tstcc-s_win32
+            suppress_corr_insert    = abap_true
           TABLES
             param_values            = lt_param_values
           EXCEPTIONS
@@ -774,7 +777,7 @@ CLASS zcl_abapgit_object_tran IMPLEMENTATION.
 
     SELECT SINGLE tcode FROM tstc INTO lv_tcode
       WHERE tcode = ms_item-obj_name.                   "#EC CI_GENBUFF
-    rv_bool = boolc( sy-subrc = 0 ).
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
