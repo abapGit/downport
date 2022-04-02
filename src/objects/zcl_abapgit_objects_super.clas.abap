@@ -282,7 +282,7 @@ CLASS zcl_abapgit_objects_super IMPLEMENTATION.
       ms_item-inactive = abap_true.
     ENDIF.
 
-    rv_active = xsdbool( ms_item-inactive = abap_false ).
+    rv_active = boolc( ms_item-inactive = abap_false ).
   ENDMETHOD.
 
 
@@ -312,7 +312,7 @@ CLASS zcl_abapgit_objects_super IMPLEMENTATION.
       ms_item-inactive = abap_true.
     ENDIF.
 
-    rv_active = xsdbool( ms_item-inactive = abap_false ).
+    rv_active = boolc( ms_item-inactive = abap_false ).
 
   ENDMETHOD.
 
