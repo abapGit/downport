@@ -119,7 +119,7 @@ CLASS zcl_abapgit_object_scvi IMPLEMENTATION.
       EXCEPTIONS
         no_variant = 1
         OTHERS     = 2.
-    rv_bool = xsdbool( sy-subrc = 0 ).
+    rv_bool = boolc( sy-subrc = 0 ).
 
   ENDMETHOD.
 
