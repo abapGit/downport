@@ -969,8 +969,8 @@ CLASS zcl_abapgit_object_fugr IMPLEMENTATION.
 
     LOOP AT it_includes INTO lv_include.
 
-      lo_cross = NEW #( p_name = lv_include
-                        p_include = lv_include ).
+      CREATE OBJECT lo_cross EXPORTING p_name = lv_include
+                                       p_include = lv_include.
 
       lo_cross->index_actualize( ).
 
@@ -1136,7 +1136,7 @@ CLASS zcl_abapgit_object_fugr IMPLEMENTATION.
         function_pool   = lv_pool
       EXCEPTIONS
         pool_not_exists = 1.
-    rv_bool = xsdbool( sy-subrc <> 1 ).
+    rv_bool = boolc( sy-subrc <> 1 ).
 
   ENDMETHOD.
 
