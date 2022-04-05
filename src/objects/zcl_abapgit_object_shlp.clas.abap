@@ -96,7 +96,7 @@ CLASS zcl_abapgit_object_shlp IMPLEMENTATION.
 
     SELECT SINGLE shlpname FROM dd30l INTO lv_shlpname
       WHERE shlpname = ms_item-obj_name.
-    rv_bool = xsdbool( sy-subrc = 0 ).
+    rv_bool = boolc( sy-subrc = 0 ).
 
   ENDMETHOD.
 
