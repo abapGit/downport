@@ -11,6 +11,8 @@ CLASS zcl_abapgit_objects_generic DEFINITION
       RAISING
         zcx_abapgit_exception .
     METHODS delete
+      IMPORTING
+        !iv_package TYPE devclass
       RAISING
         zcx_abapgit_exception .
     METHODS deserialize
@@ -260,6 +262,8 @@ CLASS zcl_abapgit_objects_generic IMPLEMENTATION.
       ENDIF.
     ENDLOOP.
 
+    corr_insert( iv_package ).
+
   ENDMETHOD.
 
 
@@ -267,7 +271,7 @@ CLASS zcl_abapgit_objects_generic IMPLEMENTATION.
 
     validate( io_xml ).
 
-    delete( ).
+    delete( iv_package ).
 
     deserialize_data( io_xml ).
 
@@ -383,7 +387,7 @@ CLASS zcl_abapgit_objects_generic IMPLEMENTATION.
     ASSIGN lr_table_line->* TO <lg_table_line>.
 
     SELECT SINGLE * FROM (lv_primary) INTO <lg_table_line> WHERE (lv_where_clause).
-    rv_bool = boolc( sy-dbcnt > 0 ).
+    rv_bool = xsdbool( sy-dbcnt > 0 ).
 
   ENDMETHOD.
 

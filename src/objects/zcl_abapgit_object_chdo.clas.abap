@@ -275,6 +275,8 @@ CLASS zcl_abapgit_object_chdo IMPLEMENTATION.
     INSERT tcdobts FROM TABLE ls_change_object-objects_text.
     INSERT tcdrps  FROM TABLE ls_change_object-reports_generated.
 
+    tadir_insert( iv_package ).
+
     after_import( ).
 
     corr_insert( iv_package ).
@@ -288,7 +290,7 @@ CLASS zcl_abapgit_object_chdo IMPLEMENTATION.
       FROM tcdrp
       WHERE object = mv_object.
 
-    rv_bool = boolc( sy-subrc = 0 ).
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
