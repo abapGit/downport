@@ -383,7 +383,7 @@ CLASS zcl_abapgit_objects_generic IMPLEMENTATION.
     ASSIGN lr_table_line->* TO <lg_table_line>.
 
     SELECT SINGLE * FROM (lv_primary) INTO <lg_table_line> WHERE (lv_where_clause).
-    rv_bool = xsdbool( sy-dbcnt > 0 ).
+    rv_bool = boolc( sy-dbcnt > 0 ).
 
   ENDMETHOD.
 
