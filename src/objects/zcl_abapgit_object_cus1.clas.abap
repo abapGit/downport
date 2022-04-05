@@ -129,7 +129,7 @@ CLASS zcl_abapgit_object_cus1 IMPLEMENTATION.
         activity_exists_not = 1
         OTHERS              = 2.
 
-    rv_bool = boolc( sy-subrc = 0 ).
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -180,6 +180,8 @@ CLASS zcl_abapgit_object_cus1 IMPLEMENTATION.
     zcl_abapgit_ui_factory=>get_gui_jumper( )->jump_batch_input(
       iv_tcode   = 'S_CUS_ACTIVITY'
       it_bdcdata = lt_bdc_data ).
+
+    rv_exit = abap_true.
 
   ENDMETHOD.
 
