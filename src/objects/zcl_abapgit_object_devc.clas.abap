@@ -98,7 +98,7 @@ CLASS zcl_abapgit_object_devc IMPLEMENTATION.
            WHERE pgmid = 'R3TR'
            AND NOT ( ( object = 'DEVC' OR object = 'SOTR' ) AND obj_name = iv_package_name )
            AND devclass = iv_package_name.
-    rv_is_empty = boolc( sy-subrc <> 0 ).
+    rv_is_empty = xsdbool( sy-subrc <> 0 ).
 
   ENDMETHOD.
 
@@ -481,6 +481,14 @@ CLASS zcl_abapgit_object_devc IMPLEMENTATION.
         iv_name = 'DEVC'
       CHANGING
         cg_data = ls_package_data ).
+
+    IF mv_local_devclass(1) = '$'.
+      IF ls_package_data-mainpack = 'X'.
+        zcx_abapgit_exception=>raise( |Main package { iv_package } cannot be used in local package| ).
+      ELSEIF ls_package_data-mainpack = 'S'.
+        zcx_abapgit_exception=>raise( |Structure package { iv_package } cannot be used in local package| ).
+      ENDIF.
+    ENDIF.
 
     li_package = get_package( ).
 
