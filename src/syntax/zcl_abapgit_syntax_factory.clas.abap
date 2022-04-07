@@ -24,17 +24,17 @@ CLASS zcl_abapgit_syntax_factory IMPLEMENTATION.
 
     " Create instance of highighter dynamically dependent on syntax type
     IF iv_filename CP '*.abap'.
-      ro_instance = NEW zcl_abapgit_syntax_abap( ).
+      CREATE OBJECT ro_instance TYPE zcl_abapgit_syntax_abap.
     ELSEIF iv_filename CP '*.xml' OR iv_filename CP '*.html'.
-      ro_instance = NEW zcl_abapgit_syntax_xml( ).
+      CREATE OBJECT ro_instance TYPE zcl_abapgit_syntax_xml.
     ELSEIF iv_filename CP '*.css'.
-      ro_instance = NEW zcl_abapgit_syntax_css( ).
+      CREATE OBJECT ro_instance TYPE zcl_abapgit_syntax_css.
     ELSEIF iv_filename CP '*.js'.
-      ro_instance = NEW zcl_abapgit_syntax_js( ).
+      CREATE OBJECT ro_instance TYPE zcl_abapgit_syntax_js.
     ELSEIF iv_filename CP '*.json'.
-      ro_instance = NEW zcl_abapgit_syntax_json( ).
+      CREATE OBJECT ro_instance TYPE zcl_abapgit_syntax_json.
     ELSEIF iv_filename CP '*.txt' OR iv_filename CP '*.ini'  OR iv_filename CP '*.text'.
-      ro_instance = NEW zcl_abapgit_syntax_txt( ).
+      CREATE OBJECT ro_instance TYPE zcl_abapgit_syntax_txt.
     ELSE.
       CLEAR ro_instance.
     ENDIF.
