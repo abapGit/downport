@@ -250,7 +250,7 @@ CLASS zcl_abapgit_html_form IMPLEMENTATION.
 
     DATA lv_ts TYPE timestampl.
 
-    CREATE OBJECT ro_form.
+    ro_form = NEW #( ).
     ro_form->mv_form_id = iv_form_id.
     ro_form->mv_help_page = iv_help_page.
 
@@ -362,7 +362,7 @@ CLASS zcl_abapgit_html_form IMPLEMENTATION.
       EXIT.
     ENDLOOP.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( |<div class="dialog { iv_form_class }">| ). " to center use 'dialog-form-center'
     ri_html->add( |<form method="post"{ ls_form_id }{ ls_form_action }>| ).
@@ -485,8 +485,12 @@ CLASS zcl_abapgit_html_form IMPLEMENTATION.
       lv_item_class TYPE string.
 
     " Get value and validation error
-    ls_attr-value = escape( val    = io_values->get( is_field-name )
-                            format = cl_abap_format=>e_html_attr ).
+    ls_attr-value = io_values->get( is_field-name ).
+
+    IF is_field-type <> zif_abapgit_html_form=>c_field_type-textarea.
+      ls_attr-value = escape( val    = ls_attr-value
+                              format = cl_abap_format=>e_html_attr ).
+    ENDIF.
 
     IF io_validation_log IS BOUND.
       ls_attr-error = io_validation_log->get( is_field-name ).
