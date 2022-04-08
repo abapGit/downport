@@ -98,7 +98,7 @@ CLASS zcl_abapgit_object_devc IMPLEMENTATION.
            WHERE pgmid = 'R3TR'
            AND NOT ( ( object = 'DEVC' OR object = 'SOTR' ) AND obj_name = iv_package_name )
            AND devclass = iv_package_name.
-    rv_is_empty = boolc( sy-subrc <> 0 ).
+    rv_is_empty = xsdbool( sy-subrc <> 0 ).
 
   ENDMETHOD.
 
@@ -635,6 +635,8 @@ CLASS zcl_abapgit_object_devc IMPLEMENTATION.
     li_package->save_generic(
       EXPORTING
         i_save_sign           = ls_save_sign
+        i_transport_request   = iv_transport
+        i_suppress_dialog     = abap_true
       EXCEPTIONS
         cancelled_in_corr     = 1
         permission_failure    = 2
