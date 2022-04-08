@@ -185,7 +185,7 @@ CLASS ZCL_ABAPGIT_PERSISTENCE_REPO IMPLEMENTATION.
 
     DATA: lo_background TYPE REF TO zcl_abapgit_persist_background.
 
-    lo_background = NEW #( ).
+    CREATE OBJECT lo_background.
     lo_background->delete( iv_key ).
 
     mo_db->delete( iv_type  = zcl_abapgit_persistence_db=>c_type_repo
@@ -205,7 +205,7 @@ CLASS ZCL_ABAPGIT_PERSISTENCE_REPO IMPLEMENTATION.
       it_keys = lt_keys
       iv_type = zcl_abapgit_persistence_db=>c_type_repo ).
 
-    rv_yes = xsdbool( lines( lt_content ) > 0 ).
+    rv_yes = boolc( lines( lt_content ) > 0 ).
 
   ENDMETHOD.
 
