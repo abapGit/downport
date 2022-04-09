@@ -86,7 +86,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_BOVERVIEW IMPLEMENTATION.
                    <ls_create> LIKE LINE OF <ls_commit>-create.
 
 
-    ri_html = NEW zcl_abapgit_html( ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
 
     ri_html->add( zcl_abapgit_gui_chunk_lib=>render_repo_top(
       io_repo         = mo_repo
@@ -210,7 +210,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_BOVERVIEW IMPLEMENTATION.
 
   METHOD build_menu.
 
-    ro_menu = NEW #( ).
+    CREATE OBJECT ro_menu.
 
     IF mv_compress = abap_true.
       ro_menu->add(
@@ -265,7 +265,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_BOVERVIEW IMPLEMENTATION.
     FIELD-SYMBOLS: <ls_branch> LIKE LINE OF lt_branches.
 
 
-    ri_html = NEW zcl_abapgit_html( ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
 
     lt_branches = mi_branch_overview->get_branches( ).
 
@@ -299,7 +299,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_BOVERVIEW IMPLEMENTATION.
 
     FIELD-SYMBOLS: <ls_commit> LIKE LINE OF mt_commits.
 
-    ri_html = NEW zcl_abapgit_html( ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
 
     LOOP AT mt_commits ASSIGNING <ls_commit>.
 
@@ -351,7 +351,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_BOVERVIEW IMPLEMENTATION.
 
   METHOD render_content.
 
-    ri_html = NEW zcl_abapgit_html( ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
 
     ri_html->add( '<div id="toc">' ).
     ri_html->add( body( ) ).
@@ -362,7 +362,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_BOVERVIEW IMPLEMENTATION.
 
   METHOD render_merge.
 
-    ri_html = NEW zcl_abapgit_html( ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
 
     ri_html->add( '<form id="commit_form" method="post" action="sapevent:merge">' ).
     ri_html->add( 'Merge' ).
@@ -396,9 +396,9 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_BOVERVIEW IMPLEMENTATION.
       WHEN c_actions-merge.
         ls_merge-source = ii_event->form_data( )->get( 'source' ).
         ls_merge-target = ii_event->form_data( )->get( 'target' ).
-        lo_merge = NEW #( io_repo = mo_repo
-                          iv_source = ls_merge-source
-                          iv_target = ls_merge-target ).
+        CREATE OBJECT lo_merge EXPORTING io_repo = mo_repo
+                                         iv_source = ls_merge-source
+                                         iv_target = ls_merge-target.
         rs_handled-page = lo_merge.
         rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page.
       WHEN OTHERS.
