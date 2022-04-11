@@ -16,7 +16,11 @@ CLASS zcl_abapgit_repo DEFINITION
       get_files_local FOR zif_abapgit_repo~get_files_local,
       get_files_remote FOR zif_abapgit_repo~get_files_remote,
       get_local_settings FOR zif_abapgit_repo~get_local_settings,
-      refresh FOR zif_abapgit_repo~refresh.
+      refresh FOR zif_abapgit_repo~refresh,
+      get_dot_abapgit FOR zif_abapgit_repo~get_dot_abapgit,
+      set_dot_abapgit FOR zif_abapgit_repo~set_dot_abapgit,
+      deserialize FOR zif_abapgit_repo~deserialize,
+      deserialize_checks FOR zif_abapgit_repo~deserialize_checks.
 
     METHODS constructor
       IMPORTING
@@ -25,11 +29,6 @@ CLASS zcl_abapgit_repo DEFINITION
     METHODS bind_listener
       IMPORTING
         !ii_listener TYPE REF TO zif_abapgit_repo_listener .
-    METHODS deserialize_checks
-      RETURNING
-        VALUE(rs_checks) TYPE zif_abapgit_definitions=>ty_deserialize_checks
-      RAISING
-        zcx_abapgit_exception .
     METHODS delete_checks
       RETURNING
         VALUE(rs_checks) TYPE zif_abapgit_definitions=>ty_delete_checks
@@ -38,26 +37,12 @@ CLASS zcl_abapgit_repo DEFINITION
     METHODS get_local_checksums_per_file
       RETURNING
         VALUE(rt_checksums) TYPE zif_abapgit_definitions=>ty_file_signatures_tt .
-    METHODS get_dot_abapgit
-      RETURNING
-        VALUE(ro_dot_abapgit) TYPE REF TO zcl_abapgit_dot_abapgit .
-    METHODS set_dot_abapgit
-      IMPORTING
-        !io_dot_abapgit TYPE REF TO zcl_abapgit_dot_abapgit
-      RAISING
-        zcx_abapgit_exception .
     METHODS get_dot_apack
       RETURNING
         VALUE(ro_dot_apack) TYPE REF TO zcl_abapgit_apack_reader .
     METHODS get_data_config
       RETURNING
         VALUE(ri_config) TYPE REF TO zif_abapgit_data_config
-      RAISING
-        zcx_abapgit_exception .
-    METHODS deserialize
-      IMPORTING
-        !is_checks TYPE zif_abapgit_definitions=>ty_deserialize_checks
-        !ii_log    TYPE REF TO zif_abapgit_log
       RAISING
         zcx_abapgit_exception .
     METHODS update_local_checksums
@@ -284,7 +269,7 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
 
   METHOD create_new_log.
 
-    CREATE OBJECT mi_log TYPE zcl_abapgit_log.
+    mi_log = NEW zcl_abapgit_log( ).
     mi_log->set_title( iv_title ).
 
     ri_log = mi_log.
@@ -429,7 +414,7 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    CREATE OBJECT ri_config TYPE zcl_abapgit_data_config.
+    ri_config = NEW zcl_abapgit_data_config( ).
     mi_data_config = ri_config.
 
     " Assume remote data has been loaded already
@@ -444,7 +429,7 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
 
 
   METHOD get_dot_abapgit.
-    CREATE OBJECT ro_dot_abapgit EXPORTING is_data = ms_data-dot_abapgit.
+    ro_dot_abapgit = NEW #( is_data = ms_data-dot_abapgit ).
   ENDMETHOD.
 
 
@@ -468,8 +453,8 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    CREATE OBJECT lo_serialize EXPORTING io_dot_abapgit = get_dot_abapgit( )
-                                         is_local_settings = get_local_settings( ).
+    lo_serialize = NEW #( io_dot_abapgit = get_dot_abapgit( )
+                          is_local_settings = get_local_settings( ) ).
 
     IF ii_obj_filter IS NOT INITIAL.
       lt_filter = ii_obj_filter->get_filter( ).
@@ -495,7 +480,7 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
     IF ii_obj_filter IS NOT INITIAL.
       lt_filter = ii_obj_filter->get_filter( ).
 
-      CREATE OBJECT lr_filter.
+      lr_filter = NEW #( ).
       lr_filter->apply_object_filter(
         EXPORTING
           it_filter   = lt_filter
@@ -679,7 +664,7 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
     CLEAR lt_tadir.
     INSERT ls_tadir INTO TABLE lt_tadir.
 
-    CREATE OBJECT lo_serialize.
+    lo_serialize = NEW #( ).
     lt_new_local_files = lo_serialize->serialize(
       iv_package = ms_data-package
       it_tadir   = lt_tadir ).
