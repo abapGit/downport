@@ -15,8 +15,8 @@ ENDCLASS.
 
 CLASS ltcl_test_base IMPLEMENTATION.
   METHOD setup.
-    CREATE OBJECT mo_asset_manager.
-    CREATE OBJECT mo_cut EXPORTING ii_asset_manager = mo_asset_manager.
+    mo_asset_manager = NEW #( ).
+    mo_cut = NEW #( ii_asset_manager = mo_asset_manager ).
   ENDMETHOD.
 
   METHOD teardown.
