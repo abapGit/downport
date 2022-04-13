@@ -67,7 +67,7 @@ CLASS zcl_abapgit_gui_page_db IMPLEMENTATION.
 
     lt_data = zcl_abapgit_persistence_db=>get_instance( )->list( ).
 
-    CREATE OBJECT lo_zip.
+    lo_zip = NEW #( ).
 
     LOOP AT lt_data ASSIGNING <ls_data>.
       CONCATENATE <ls_data>-type '_' <ls_data>-value '.xml' INTO lv_filename.
@@ -97,7 +97,7 @@ CLASS zcl_abapgit_gui_page_db IMPLEMENTATION.
 
   METHOD build_menu.
 
-    CREATE OBJECT ro_menu.
+    ro_menu = NEW #( ).
 
     ro_menu->add( iv_txt = 'Backup'
                   iv_act = c_action-backup ).
@@ -150,6 +150,7 @@ CLASS zcl_abapgit_gui_page_db IMPLEMENTATION.
           ls_match  TYPE submatch_result,
           lv_cnt    TYPE i.
 
+    DATA lt_lines TYPE string_table.
 
     CASE is_data-type.
       WHEN zcl_abapgit_persistence_db=>c_type_repo.
@@ -186,6 +187,20 @@ CLASS zcl_abapgit_gui_page_db IMPLEMENTATION.
         rv_text = 'Global Settings'.
       WHEN zcl_abapgit_persistence_db=>c_type_packages.
         rv_text = 'Local Package Details'.
+      WHEN zcl_abapgit_persistence_db=>c_type_repo_csum.
+        IF strlen( is_data-data_str ) > 0.
+          SPLIT is_data-data_str AT cl_abap_char_utilities=>newline INTO TABLE lt_lines.
+          READ TABLE lt_lines INDEX 1 INTO rv_text.
+          rv_text = |{ rv_text } ({ lines( lt_lines ) } lines)|.
+
+          IF strlen( rv_text ) >= 250.
+            rv_text = rv_text(250).
+          ENDIF.
+          rv_text = escape(
+            val    = rv_text
+            format = cl_abap_format=>e_html_attr ).
+        ENDIF.
+
       WHEN OTHERS.
         IF strlen( is_data-data_str ) >= 250.
           rv_text = is_data-data_str(250).
@@ -211,7 +226,7 @@ CLASS zcl_abapgit_gui_page_db IMPLEMENTATION.
 
     lt_data = zcl_abapgit_persistence_db=>get_instance( )->list( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div class="db_list">' ).
     ri_html->add( '<table class="db_tab">' ).
@@ -236,7 +251,7 @@ CLASS zcl_abapgit_gui_page_db IMPLEMENTATION.
 
       lv_action  = zcl_abapgit_html_action_utils=>dbkey_encode( <ls_data> ).
 
-      CREATE OBJECT lo_toolbar.
+      lo_toolbar = NEW #( ).
       lo_toolbar->add( iv_txt = 'Display'
                        iv_act = |{ zif_abapgit_definitions=>c_action-db_display }?{ lv_action }| ).
       lo_toolbar->add( iv_txt = 'Edit'
@@ -287,7 +302,7 @@ CLASS zcl_abapgit_gui_page_db IMPLEMENTATION.
 
     lv_zip = li_fe_serv->file_upload( lv_path ).
 
-    CREATE OBJECT lo_zip.
+    lo_zip = NEW #( ).
 
     lo_zip->load(
       EXPORTING

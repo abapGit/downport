@@ -142,7 +142,7 @@ ENDCLASS.
 
 
 
-CLASS zcl_abapgit_file_status IMPLEMENTATION.
+CLASS ZCL_ABAPGIT_FILE_STATUS IMPLEMENTATION.
 
 
   METHOD build_existing.
@@ -176,14 +176,14 @@ CLASS zcl_abapgit_file_status IMPLEMENTATION.
       IF ls_file_sig-sha1 <> is_remote-sha1.
         rs_result-rstate = zif_abapgit_definitions=>c_state-modified.
       ENDIF.
-      rs_result-match = boolc( rs_result-lstate IS INITIAL
+      rs_result-match = xsdbool( rs_result-lstate IS INITIAL
         AND rs_result-rstate IS INITIAL ).
     ELSE.
       " This is a strange situation. As both local and remote exist
       " the state should also be present. Maybe this is a first run of the code.
       " In this case just compare hashes directly and mark both changed
       " the user will presumably decide what to do after checking the actual diff
-      rs_result-match = boolc( is_local-file-sha1 = is_remote-sha1 ).
+      rs_result-match = xsdbool( is_local-file-sha1 = is_remote-sha1 ).
       IF rs_result-match = abap_false.
         rs_result-lstate = zif_abapgit_definitions=>c_state-modified.
         rs_result-rstate = zif_abapgit_definitions=>c_state-modified.
@@ -789,7 +789,7 @@ CLASS zcl_abapgit_file_status IMPLEMENTATION.
       io_dot       = io_repo->get_dot_abapgit( )
       it_local     = lt_local
       it_remote    = lt_remote
-      it_cur_state = io_repo->get_local_checksums_per_file( ) ).
+      it_cur_state = io_repo->zif_abapgit_repo~checksums( )->get_checksums_per_file( ) ).
 
     run_checks(
       ii_log     = ii_log
