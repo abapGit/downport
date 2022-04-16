@@ -20,7 +20,7 @@ ENDCLASS.
 CLASS ltcl_html IMPLEMENTATION.
 
   METHOD setup.
-    CREATE OBJECT mo_html TYPE zcl_abapgit_html.
+    mo_html = NEW zcl_abapgit_html( ).
   ENDMETHOD.
 
   METHOD indent1.
