@@ -37,6 +37,7 @@ CLASS zcl_abapgit_ajson DEFINITION
     ALIASES:
       mt_json_tree FOR zif_abapgit_ajson~mt_json_tree,
       keep_item_order FOR zif_abapgit_ajson~keep_item_order,
+      format_datetime FOR zif_abapgit_ajson~format_datetime,
       freeze FOR zif_abapgit_ajson~freeze.
 
     CLASS-METHODS parse
@@ -75,6 +76,7 @@ CLASS zcl_abapgit_ajson DEFINITION
     DATA mv_read_only TYPE abap_bool.
     DATA mi_custom_mapping TYPE REF TO zif_abapgit_ajson_mapping.
     DATA mv_keep_item_order TYPE abap_bool.
+    DATA mv_format_datetime TYPE abap_bool.
 
     METHODS get_item
       IMPORTING
@@ -102,7 +104,7 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
 
 
   METHOD create_empty.
-    CREATE OBJECT ro_instance.
+    ro_instance = NEW #( ).
     ro_instance->mi_custom_mapping = ii_custom_mapping.
   ENDMETHOD.
 
@@ -115,10 +117,10 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
       zcx_abapgit_ajson_error=>raise( 'Source not bound' ).
     ENDIF.
 
-    CREATE OBJECT ro_instance.
+    ro_instance = NEW #( ).
 
     IF ii_filter IS BOUND.
-      CREATE OBJECT lo_filter_runner.
+      lo_filter_runner = NEW #( ).
       lo_filter_runner->run(
         EXPORTING
           ii_filter = ii_filter
@@ -194,8 +196,8 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
 
     DATA lo_parser TYPE REF TO lcl_json_parser.
 
-    CREATE OBJECT ro_instance.
-    CREATE OBJECT lo_parser.
+    ro_instance = NEW #( ).
+    lo_parser = NEW #( ).
     ro_instance->mt_json_tree = lo_parser->parse( iv_json ).
     ro_instance->mi_custom_mapping = ii_custom_mapping.
 
@@ -330,6 +332,11 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD zif_abapgit_ajson~format_datetime.
+    mv_format_datetime = abap_true.
+    ri_json = me.
+  ENDMETHOD.
+
 
   METHOD zif_abapgit_ajson~freeze.
     mv_read_only = abap_true.
@@ -354,7 +361,7 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
     IF lv_item IS INITIAL OR lv_item->type = zif_abapgit_ajson=>node_type-null.
       RETURN.
     ELSEIF lv_item->type = zif_abapgit_ajson=>node_type-boolean.
-      rv_value = boolc( lv_item->value = 'true' ).
+      rv_value = xsdbool( lv_item->value = 'true' ).
     ELSEIF lv_item->value IS NOT INITIAL.
       rv_value = abap_true.
     ENDIF.
@@ -436,7 +443,7 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    CREATE OBJECT lo_to_abap.
+    lo_to_abap = NEW #( ).
 
     TRY.
         rv_value = lo_to_abap->to_timestamp( lr_item->value ).
@@ -537,6 +544,7 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
     IF ls_split_path IS INITIAL. " Assign root, exceptional processing
       IF iv_node_type IS NOT INITIAL.
         mt_json_tree = lcl_abap_to_json=>insert_with_type(
+          iv_format_datetime = mv_format_datetime
           iv_keep_item_order = mv_keep_item_order
           iv_data            = iv_val
           iv_type            = iv_node_type
@@ -544,6 +552,7 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
           ii_custom_mapping  = mi_custom_mapping ).
       ELSE.
         mt_json_tree = lcl_abap_to_json=>convert(
+          iv_format_datetime = mv_format_datetime
           iv_keep_item_order = mv_keep_item_order
           iv_data            = iv_val
           is_prefix          = ls_split_path
@@ -574,6 +583,7 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
 
     IF iv_node_type IS NOT INITIAL.
       lt_new_nodes = lcl_abap_to_json=>insert_with_type(
+        iv_format_datetime = mv_format_datetime
         iv_keep_item_order = mv_keep_item_order
         iv_data            = iv_val
         iv_type            = iv_node_type
@@ -582,6 +592,7 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
         ii_custom_mapping  = mi_custom_mapping ).
     ELSE.
       lt_new_nodes = lcl_abap_to_json=>convert(
+        iv_format_datetime = mv_format_datetime
         iv_keep_item_order = mv_keep_item_order
         iv_data            = iv_val
         iv_array_index     = lv_array_index
@@ -603,7 +614,7 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
     ri_json = me.
 
     DATA lv_bool TYPE abap_bool.
-    lv_bool = boolc( iv_val IS NOT INITIAL ).
+    lv_bool = xsdbool( iv_val IS NOT INITIAL ).
     zif_abapgit_ajson~set(
       iv_ignore_empty = abap_false
       iv_path = iv_path
@@ -617,9 +628,7 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
     ri_json = me.
 
     DATA lv_val TYPE string.
-    IF iv_val IS NOT INITIAL.
-      lv_val = iv_val+0(4) && '-' && iv_val+4(2) && '-' && iv_val+6(2).
-    ENDIF.
+    lv_val = lcl_abap_to_json=>format_date( iv_val ).
 
     zif_abapgit_ajson~set(
       iv_ignore_empty = abap_false
@@ -670,30 +679,10 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
 
   METHOD zif_abapgit_ajson~set_timestamp.
 
-    CONSTANTS lc_utc TYPE c LENGTH 6 VALUE 'UTC'.
-
-    DATA:
-      lv_date          TYPE d,
-      lv_time          TYPE t,
-      lv_timestamp_iso TYPE string.
-
     ri_json = me.
 
-    IF iv_val IS INITIAL.
-      " The zero value is January 1, year 1, 00:00:00.000000000 UTC.
-      lv_date = '00010101'.
-    ELSE.
-
-      CONVERT TIME STAMP iv_val TIME ZONE lc_utc
-        INTO DATE lv_date TIME lv_time.
-
-    ENDIF.
-
-    lv_timestamp_iso =
-        lv_date+0(4) && '-' && lv_date+4(2) && '-' && lv_date+6(2) &&
-        'T' &&
-        lv_time+0(2) && '-' && lv_time+2(2) && '-' && lv_time+4(2) &&
-        'Z'.
+    DATA lv_timestamp_iso TYPE string.
+    lv_timestamp_iso = lcl_abap_to_json=>format_timestamp( iv_val ).
 
     zif_abapgit_ajson~set(
       iv_ignore_empty = abap_false
@@ -711,7 +700,7 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
     DATA ls_path_parts      TYPE zif_abapgit_ajson=>ty_path_name.
     DATA lv_path_len        TYPE i.
 
-    CREATE OBJECT lo_section.
+    lo_section = NEW #( ).
     lv_normalized_path = lcl_utils=>normalize_path( iv_path ).
     lv_path_len        = strlen( lv_normalized_path ).
     ls_path_parts      = lcl_utils=>split_path( lv_normalized_path ).
@@ -801,7 +790,7 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
     DATA lo_to_abap TYPE REF TO lcl_json_to_abap.
 
     CLEAR ev_container.
-    CREATE OBJECT lo_to_abap EXPORTING ii_custom_mapping = mi_custom_mapping.
+    lo_to_abap = NEW #( ii_custom_mapping = mi_custom_mapping ).
 
     lo_to_abap->to_abap(
       EXPORTING
