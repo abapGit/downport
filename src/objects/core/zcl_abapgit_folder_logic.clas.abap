@@ -54,7 +54,7 @@ CLASS zcl_abapgit_folder_logic IMPLEMENTATION.
 
 
   METHOD get_instance.
-    CREATE OBJECT ro_instance.
+    ro_instance = NEW #( ).
   ENDMETHOD.
 
 
