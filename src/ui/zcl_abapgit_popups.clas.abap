@@ -832,7 +832,7 @@ CLASS zcl_abapgit_popups IMPLEMENTATION.
         p_object_data    = es_package_data
       EXCEPTIONS
         action_cancelled = 1.
-    ev_create = boolc( sy-subrc = 0 ).
+    ev_create = xsdbool( sy-subrc = 0 ).
   ENDMETHOD.
 
 
@@ -941,7 +941,7 @@ CLASS zcl_abapgit_popups IMPLEMENTATION.
         ENDIF.
 
         IF iv_header_text CN ' _0'.
-          CREATE OBJECT lo_table_header EXPORTING text = iv_header_text.
+          lo_table_header = NEW #( text = iv_header_text ).
           mo_select_list_popup->set_top_of_list( lo_table_header ).
         ENDIF.
 
@@ -1044,7 +1044,8 @@ CLASS zcl_abapgit_popups IMPLEMENTATION.
     " If default transport is set and its type matches, then use it as default for the popup
     ls_e070use = zcl_abapgit_default_transport=>get_instance( )->get( ).
 
-    IF ls_e070use-trfunction = is_transport_type-request AND iv_use_default = abap_true.
+    IF ( ls_e070use-trfunction = is_transport_type-request OR ls_e070use-trfunction IS INITIAL )
+      AND iv_use_default_transport = abap_true.
       lv_order = ls_e070use-ordernum.
     ENDIF.
 
