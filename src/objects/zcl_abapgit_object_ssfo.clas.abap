@@ -235,7 +235,7 @@ CLASS zcl_abapgit_object_ssfo IMPLEMENTATION.
           lv_text                TYPE string,
           lv_within_code_section TYPE abap_bool.
 
-    lo_sf = NEW #( ).
+    CREATE OBJECT lo_sf.
 
 * set "created by" and "changed by" to current user
     li_iterator = io_xml->get_raw( )->get_root_element( )->create_iterator( ).
@@ -294,7 +294,7 @@ CLASS zcl_abapgit_object_ssfo IMPLEMENTATION.
 
     SELECT SINGLE formname FROM stxfadm INTO lv_formname
       WHERE formname = ms_item-obj_name.
-    rv_bool = xsdbool( sy-subrc = 0 ).
+    rv_bool = boolc( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -327,7 +327,7 @@ CLASS zcl_abapgit_object_ssfo IMPLEMENTATION.
       IMPORTING
         o_inactive = ms_item-inactive.
 
-    rv_active = xsdbool( ms_item-inactive = abap_false ).
+    rv_active = boolc( ms_item-inactive = abap_false ).
 
   ENDMETHOD.
 
@@ -410,7 +410,7 @@ CLASS zcl_abapgit_object_ssfo IMPLEMENTATION.
     li_ixml = cl_ixml=>create( ).
     li_xml_doc = li_ixml->create_document( ).
 
-    lo_sf = NEW #( ).
+    CREATE OBJECT lo_sf.
     lv_formname = ms_item-obj_name. " convert type
     TRY.
         lo_sf->load( im_formname = lv_formname
