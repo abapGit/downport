@@ -97,6 +97,9 @@ CLASS ltcl_popups_mock IMPLEMENTATION.
   METHOD zif_abapgit_popups~popup_select_wb_tc_tr_and_tsk.
   ENDMETHOD.
 
+  METHOD zif_abapgit_popups~tag_list_popup.
+  ENDMETHOD.
+
 ENDCLASS.
 
 CLASS ltcl_test_form DEFINITION
@@ -125,7 +128,7 @@ CLASS ltcl_test_form IMPLEMENTATION.
 
   METHOD setup.
 
-    CREATE OBJECT mo_popups_mock TYPE ltcl_popups_mock.
+    mo_popups_mock = NEW ltcl_popups_mock( ).
     zcl_abapgit_ui_injector=>set_popups( mo_popups_mock ).
 
   ENDMETHOD.
