@@ -27,14 +27,6 @@ CLASS zcl_abapgit_file_status DEFINITION
         VALUE(rt_results) TYPE zif_abapgit_definitions=>ty_results_tt
       RAISING
         zcx_abapgit_exception .
-    CLASS-METHODS prepare_remote
-      IMPORTING
-        !io_dot          TYPE REF TO zcl_abapgit_dot_abapgit
-        !it_remote       TYPE zif_abapgit_definitions=>ty_files_tt
-      RETURNING
-        VALUE(rt_remote) TYPE zif_abapgit_definitions=>ty_files_tt
-      RAISING
-        zcx_abapgit_exception .
     CLASS-METHODS process_local
       IMPORTING
         !io_dot       TYPE REF TO zcl_abapgit_dot_abapgit
@@ -176,14 +168,14 @@ CLASS ZCL_ABAPGIT_FILE_STATUS IMPLEMENTATION.
       IF ls_file_sig-sha1 <> is_remote-sha1.
         rs_result-rstate = zif_abapgit_definitions=>c_state-modified.
       ENDIF.
-      rs_result-match = boolc( rs_result-lstate IS INITIAL
+      rs_result-match = xsdbool( rs_result-lstate IS INITIAL
         AND rs_result-rstate IS INITIAL ).
     ELSE.
       " This is a strange situation. As both local and remote exist
       " the state should also be present. Maybe this is a first run of the code.
       " In this case just compare hashes directly and mark both changed
       " the user will presumably decide what to do after checking the actual diff
-      rs_result-match = boolc( is_local-file-sha1 = is_remote-sha1 ).
+      rs_result-match = xsdbool( is_local-file-sha1 = is_remote-sha1 ).
       IF rs_result-match = abap_false.
         rs_result-lstate = zif_abapgit_definitions=>c_state-modified.
         rs_result-rstate = zif_abapgit_definitions=>c_state-modified.
@@ -282,10 +274,7 @@ CLASS ZCL_ABAPGIT_FILE_STATUS IMPLEMENTATION.
 
     lt_state_idx = it_cur_state. " Force sort it
 
-    " Prepare remote files
-    lt_remote = prepare_remote(
-      io_dot    = io_dot
-      it_remote = it_remote ).
+    lt_remote = it_remote.
 
     " Process local files and new local files
     process_local(
@@ -517,27 +506,6 @@ CLASS ZCL_ABAPGIT_FILE_STATUS IMPLEMENTATION.
         rv_devclass = lv_name.
       ENDIF.
     ENDIF.
-  ENDMETHOD.
-
-
-  METHOD prepare_remote.
-
-    DATA lv_index TYPE sy-index.
-
-    FIELD-SYMBOLS <ls_remote> LIKE LINE OF it_remote.
-
-    rt_remote = it_remote.
-    SORT rt_remote BY path filename.
-
-    " Skip ignored files
-    LOOP AT rt_remote ASSIGNING <ls_remote>.
-      lv_index = sy-tabix.
-      IF io_dot->is_ignored( iv_path     = <ls_remote>-path
-                             iv_filename = <ls_remote>-filename ) = abap_true.
-        DELETE rt_remote INDEX lv_index.
-      ENDIF.
-    ENDLOOP.
-
   ENDMETHOD.
 
 
@@ -774,7 +742,7 @@ CLASS ZCL_ABAPGIT_FILE_STATUS IMPLEMENTATION.
       io_repo->find_remote_dot_abapgit( ).
     ENDIF.
 
-    lt_remote = io_repo->get_files_remote( ).
+    lt_remote = io_repo->get_files_remote( iv_ignore_files = abap_true ).
 
     li_exit = zcl_abapgit_exit=>get_instance( ).
     li_exit->pre_calculate_repo_status(

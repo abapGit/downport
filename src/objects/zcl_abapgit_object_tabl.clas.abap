@@ -447,7 +447,7 @@ CLASS zcl_abapgit_object_tabl IMPLEMENTATION.
   METHOD is_db_table_category.
 
     " values from domain TABCLASS
-    rv_is_db_table_type = boolc( iv_tabclass = 'TRANSP'
+    rv_is_db_table_type = xsdbool( iv_tabclass = 'TRANSP'
                               OR iv_tabclass = 'CLUSTER'
                               OR iv_tabclass = 'POOL' ).
 
@@ -464,7 +464,7 @@ CLASS zcl_abapgit_object_tabl IMPLEMENTATION.
            FROM edisegment
            INTO lv_segment_type
            WHERE segtyp = lv_segment_type.
-    rv_is_idoc_segment = boolc( sy-subrc = 0 ).
+    rv_is_idoc_segment = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -723,7 +723,6 @@ CLASS zcl_abapgit_object_tabl IMPLEMENTATION.
           lt_dd08v  TYPE TABLE OF dd08v,
           lt_dd35v  TYPE TABLE OF dd35v,
           lt_dd36m  TYPE dd36mttyp,
-          lv_refs   TYPE abap_bool,
           ls_extras TYPE ty_tabl_extras.
 
     FIELD-SYMBOLS: <ls_dd03p>      TYPE dd03p,
@@ -748,15 +747,6 @@ CLASS zcl_abapgit_object_tabl IMPLEMENTATION.
       IF sy-subrc = 0 AND <lg_roworcolst> IS INITIAL.
         <lg_roworcolst> = 'C'. "Reverse fix from serialize
       ENDIF.
-
-      " DDIC Step: Replace REF TO class/interface with generic reference to avoid cyclic dependency
-      LOOP AT lt_dd03p ASSIGNING <ls_dd03p> WHERE comptype = 'R' AND ( reftype = 'C' OR reftype = 'I' ).
-        IF iv_step = zif_abapgit_object=>gc_step_id-ddic.
-          <ls_dd03p>-rollname = 'OBJECT'.
-        ELSE.
-          lv_refs = abap_true.
-        ENDIF.
-      ENDLOOP.
 
       " Number fields sequentially and fill table name
       LOOP AT lt_dd03p ASSIGNING <ls_dd03p>.
@@ -793,7 +783,7 @@ CLASS zcl_abapgit_object_tabl IMPLEMENTATION.
         CLEAR: lt_dd08v, lt_dd35v, lt_dd36m.
       ENDIF.
 
-      IF iv_step = zif_abapgit_object=>gc_step_id-late AND lv_refs = abap_false
+      IF iv_step = zif_abapgit_object=>gc_step_id-late
         AND lines( lt_dd35v ) = 0 AND lines( lt_dd08v ) = 0.
         RETURN. " already active
       ENDIF.
@@ -876,7 +866,7 @@ CLASS zcl_abapgit_object_tabl IMPLEMENTATION.
       SELECT SINGLE tabname FROM dd02l INTO lv_tabname
         WHERE tabname = lv_tabname.
     ENDIF.
-    rv_bool = boolc( sy-subrc = 0 ).
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -887,13 +877,13 @@ CLASS zcl_abapgit_object_tabl IMPLEMENTATION.
           li_local_version_input  TYPE REF TO zif_abapgit_xml_input.
 
 
-    CREATE OBJECT li_local_version_output TYPE zcl_abapgit_xml_output.
+    li_local_version_output = NEW zcl_abapgit_xml_output( ).
 
     zif_abapgit_object~serialize( li_local_version_output ).
 
-    CREATE OBJECT li_local_version_input TYPE zcl_abapgit_xml_input EXPORTING iv_xml = li_local_version_output->render( ).
+    li_local_version_input = NEW zcl_abapgit_xml_input( iv_xml = li_local_version_output->render( ) ).
 
-    CREATE OBJECT ri_comparator TYPE zcl_abapgit_object_tabl_compar EXPORTING ii_local = li_local_version_input.
+    ri_comparator = NEW zcl_abapgit_object_tabl_compar( ii_local = li_local_version_input ).
 
   ENDMETHOD.
 

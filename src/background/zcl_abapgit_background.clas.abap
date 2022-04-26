@@ -96,7 +96,7 @@ CLASS ZCL_ABAPGIT_BACKGROUND IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    CREATE OBJECT lo_per.
+    lo_per = NEW #( ).
     lt_list = lo_per->list( ).
 
     WRITE: / 'Background mode'.
@@ -112,13 +112,17 @@ CLASS ZCL_ABAPGIT_BACKGROUND IMPLEMENTATION.
             iv_username = <ls_list>-username
             iv_password = <ls_list>-password ).
 
-          CREATE OBJECT li_log TYPE zcl_abapgit_log.
+          li_log = NEW zcl_abapgit_log( ).
           CREATE OBJECT li_background TYPE (<ls_list>-method).
 
           li_background->run(
             io_repo     = lo_repo
             ii_log      = li_log
             it_settings = <ls_list>-settings ).
+
+          " Clear auth buffer to allow different user/password per repository in background mode
+          zcl_abapgit_login_manager=>clear( ).
+
         CATCH zcx_abapgit_exception INTO lx_error.
           li_log->add_exception( lx_error ).
       ENDTRY.
