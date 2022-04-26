@@ -142,7 +142,7 @@ CLASS ZCL_ABAPGIT_ZLIB IMPLEMENTATION.
     ENDIF.
 
     CLEAR gv_out.
-    go_stream = NEW #( iv_data = iv_compressed ).
+    CREATE OBJECT go_stream EXPORTING iv_data = iv_compressed.
 
     DO.
       lv_bfinal = go_stream->take_bits( 1 ).
@@ -226,7 +226,7 @@ CLASS ZCL_ABAPGIT_ZLIB IMPLEMENTATION.
       <lv_length> = go_stream->take_int( 3 ).
     ENDDO.
 
-    go_lencode = NEW #( it_lengths = lt_lengths ).
+    CREATE OBJECT go_lencode EXPORTING it_lengths = lt_lengths.
 
     CLEAR lt_lengths.
     WHILE lines( lt_lengths ) < lv_nlen + lv_ndist.
@@ -255,9 +255,9 @@ CLASS ZCL_ABAPGIT_ZLIB IMPLEMENTATION.
     DELETE lt_lengths FROM lv_nlen + 1.
     DELETE lt_dists TO lv_nlen.
 
-    go_lencode = NEW #( it_lengths = lt_lengths ).
+    CREATE OBJECT go_lencode EXPORTING it_lengths = lt_lengths.
 
-    go_distcode = NEW #( it_lengths = lt_dists ).
+    CREATE OBJECT go_distcode EXPORTING it_lengths = lt_dists.
 
   ENDMETHOD.
 
@@ -280,14 +280,14 @@ CLASS ZCL_ABAPGIT_ZLIB IMPLEMENTATION.
       APPEND 8 TO lt_lengths.
     ENDDO.
 
-    go_lencode = NEW #( it_lengths = lt_lengths ).
+    CREATE OBJECT go_lencode EXPORTING it_lengths = lt_lengths.
 
     CLEAR lt_lengths.
     DO c_maxdcodes TIMES.
       APPEND 5 TO lt_lengths.
     ENDDO.
 
-    go_distcode = NEW #( it_lengths = lt_lengths ).
+    CREATE OBJECT go_distcode EXPORTING it_lengths = lt_lengths.
 
   ENDMETHOD.
 
