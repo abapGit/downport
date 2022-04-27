@@ -22,7 +22,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_OBJECT_VCLS IMPLEMENTATION.
+CLASS zcl_abapgit_object_vcls IMPLEMENTATION.
 
 
   METHOD is_locked.
@@ -46,7 +46,11 @@ CLASS ZCL_ABAPGIT_OBJECT_VCLS IMPLEMENTATION.
 
 
   METHOD zif_abapgit_object~changed_by.
-    rv_user = c_user_unknown. " todo
+    SELECT SINGLE author FROM vcldir INTO rv_user
+      WHERE vclname = ms_item-obj_name.
+    IF sy-subrc <> 0.
+      rv_user = c_user_unknown.
+    ENDIF.
   ENDMETHOD.
 
 
@@ -146,7 +150,7 @@ CLASS ZCL_ABAPGIT_OBJECT_VCLS IMPLEMENTATION.
     SELECT SINGLE changedate INTO lv_changedate FROM vcldir
       WHERE vclname = ms_item-obj_name.
 
-    rv_bool = boolc( sy-subrc = 0 ).
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -175,7 +179,7 @@ CLASS ZCL_ABAPGIT_OBJECT_VCLS IMPLEMENTATION.
       WHERE vclname = ms_item-obj_name.
 
 * see logic in function module VIEWCLUSTER_GET_DEFINITION
-    rv_active = boolc( lv_changedate IS NOT INITIAL ).
+    rv_active = xsdbool( lv_changedate IS NOT INITIAL ).
 
   ENDMETHOD.
 
