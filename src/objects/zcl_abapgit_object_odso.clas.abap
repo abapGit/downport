@@ -22,7 +22,22 @@ CLASS zcl_abapgit_object_odso DEFINITION
 ENDCLASS.
 
 
+
 CLASS zcl_abapgit_object_odso IMPLEMENTATION.
+
+
+  METHOD clear_field.
+
+    FIELD-SYMBOLS: <lg_field> TYPE data.
+
+    ASSIGN COMPONENT iv_fieldname
+           OF STRUCTURE cg_metadata
+           TO <lg_field>.
+    ASSERT sy-subrc = 0.
+
+    CLEAR: <lg_field>.
+
+  ENDMETHOD.
 
 
   METHOD zif_abapgit_object~changed_by.
@@ -202,7 +217,7 @@ CLASS zcl_abapgit_object_odso IMPLEMENTATION.
     INTO lv_iobjnm
     WHERE odsobject = ms_item-obj_name.
 
-    rv_bool = boolc( sy-subrc = 0 ).
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -260,7 +275,7 @@ CLASS zcl_abapgit_object_odso IMPLEMENTATION.
 
 
   METHOD zif_abapgit_object~jump.
-    zcx_abapgit_exception=>raise( |Jump to ODSO is not yet supported| ).
+    " Covered by ZCL_ABAPGIT_OBJECTS=>JUMP
   ENDMETHOD.
 
 
@@ -341,19 +356,6 @@ CLASS zcl_abapgit_object_odso IMPLEMENTATION.
 
     io_xml->add( iv_name = 'INDEX_IOBJ'
                  ig_data = <lt_index_iobj> ).
-
-  ENDMETHOD.
-
-  METHOD clear_field.
-
-    FIELD-SYMBOLS: <lg_field> TYPE data.
-
-    ASSIGN COMPONENT iv_fieldname
-           OF STRUCTURE cg_metadata
-           TO <lg_field>.
-    ASSERT sy-subrc = 0.
-
-    CLEAR: <lg_field>.
 
   ENDMETHOD.
 ENDCLASS.
