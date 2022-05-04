@@ -19,7 +19,7 @@ CLASS ltcl_determine_max_threads IMPLEMENTATION.
 
   METHOD setup.
     TRY.
-        mo_cut = NEW #( ).
+        CREATE OBJECT mo_cut.
       CATCH zcx_abapgit_exception.
         cl_abap_unit_assert=>fail( 'Error creating serializer' ).
     ENDTRY.
@@ -69,7 +69,7 @@ CLASS ltcl_serialize IMPLEMENTATION.
 
   METHOD setup.
     TRY.
-        mo_cut = NEW #( ).
+        CREATE OBJECT mo_cut.
       CATCH zcx_abapgit_exception.
         cl_abap_unit_assert=>fail( 'Error creating serializer' ).
     ENDTRY.
@@ -119,13 +119,13 @@ CLASS ltcl_serialize IMPLEMENTATION.
     <ls_tadir>-object   = 'ABCD'.
     <ls_tadir>-obj_name = 'OBJECT'.
 
-    li_log1 = NEW zcl_abapgit_log( ).
+    CREATE OBJECT li_log1 TYPE zcl_abapgit_log.
     mo_cut->serialize(
       it_tadir            = lt_tadir
       ii_log              = li_log1
       iv_force_sequential = abap_true ).
 
-    li_log2 = NEW zcl_abapgit_log( ).
+    CREATE OBJECT li_log2 TYPE zcl_abapgit_log.
     mo_cut->serialize(
       it_tadir            = lt_tadir
       ii_log              = li_log2
@@ -176,9 +176,9 @@ CLASS ltcl_i18n IMPLEMENTATION.
     INSERT 'DE' INTO TABLE ls_data-i18n_languages.
 
     TRY.
-        mo_dot_abapgit = NEW #( is_data = ls_data ).
+        CREATE OBJECT mo_dot_abapgit EXPORTING is_data = ls_data.
 
-        mo_cut = NEW #( io_dot_abapgit = mo_dot_abapgit ).
+        CREATE OBJECT mo_cut EXPORTING io_dot_abapgit = mo_dot_abapgit.
       CATCH zcx_abapgit_exception.
         cl_abap_unit_assert=>fail( 'Error creating serializer' ).
     ENDTRY.
@@ -215,7 +215,7 @@ CLASS ltcl_i18n IMPLEMENTATION.
 
     lv_xml = zcl_abapgit_convert=>xstring_to_string_utf8( <ls_result>-file-data ).
 
-    lo_input = NEW #( iv_xml = lv_xml ).
+    CREATE OBJECT lo_input EXPORTING iv_xml = lv_xml.
 
     lo_input->zif_abapgit_xml_input~read( EXPORTING iv_name = 'DD02V'
                                           CHANGING  cg_data = ls_dd02v ).
