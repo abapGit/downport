@@ -252,6 +252,8 @@ CLASS zcl_abapgit_object_chdo IMPLEMENTATION.
       delete_tadir_tabl( ls_tcdrs ).
     ENDLOOP.
 
+    corr_insert( iv_package ).
+
   ENDMETHOD.
 
 
@@ -290,7 +292,7 @@ CLASS zcl_abapgit_object_chdo IMPLEMENTATION.
       FROM tcdrp
       WHERE object = mv_object.
 
-    rv_bool = boolc( sy-subrc = 0 ).
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 

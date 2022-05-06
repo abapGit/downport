@@ -233,10 +233,9 @@ CLASS zcl_abapgit_object_udmo IMPLEMENTATION.
 
       CALL FUNCTION 'SDU_DMO_ENT_PUT'
         EXPORTING
-          object   = ls_udmo_entity
+          object = ls_udmo_entity
         EXCEPTIONS
-          ret_code = 0
-          OTHERS   = 0.
+          OTHERS = 0.
 
     ENDLOOP.
 
@@ -671,7 +670,7 @@ CLASS zcl_abapgit_object_udmo IMPLEMENTATION.
            WHERE  dmoid     = mv_data_model
            AND    as4local  = mv_activation_state.
 
-    rv_bool = boolc( sy-subrc = 0 ).
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
 
 
