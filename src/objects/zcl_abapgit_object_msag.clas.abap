@@ -362,7 +362,7 @@ CLASS zcl_abapgit_object_msag IMPLEMENTATION.
         zcx_abapgit_exception=>raise( 'MSAG: Table T100 modify failed' ).
       ENDIF.
       CLEAR ls_t100u.
-      MOVE-CORRESPONDING <ls_t100> TO ls_t100u ##enh_ok.
+      MOVE-CORRESPONDING <ls_t100> TO ls_t100u ##ENH_OK.
       ls_t100u-name    = sy-uname.
       ls_t100u-datum   = sy-datum.
       ls_t100u-selfdef = '3'.
@@ -412,7 +412,7 @@ CLASS zcl_abapgit_object_msag IMPLEMENTATION.
 
     SELECT SINGLE arbgb FROM t100a INTO lv_arbgb
       WHERE arbgb = ms_item-obj_name.                   "#EC CI_GENBUFF
-    rv_bool = boolc( sy-subrc = 0 ).
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 

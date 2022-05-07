@@ -290,7 +290,7 @@ CLASS zcl_abapgit_objects_program IMPLEMENTATION.
     ls_adm = is_cua-adm.
     auto_correct_cua_adm( EXPORTING is_cua = is_cua CHANGING cs_adm = ls_adm ).
 
-    sy-tcode = 'SE41' ##write_ok. " evil hack, workaround to handle fixes in note 2159455
+    sy-tcode = 'SE41' ##WRITE_OK. " evil hack, workaround to handle fixes in note 2159455
     CALL FUNCTION 'RS_CUA_INTERNAL_WRITE'
       EXPORTING
         program   = iv_program_name
@@ -925,7 +925,7 @@ CLASS zcl_abapgit_objects_program IMPLEMENTATION.
     IF io_xml IS BOUND.
       li_xml = io_xml.
     ELSE.
-      CREATE OBJECT li_xml TYPE zcl_abapgit_xml_output.
+      li_xml = NEW zcl_abapgit_xml_output( ).
     ENDIF.
 
     li_xml->add( iv_name = 'PROGDIR'

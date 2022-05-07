@@ -204,7 +204,7 @@ CLASS zcl_abapgit_object_udmo IMPLEMENTATION.
         object_class        = c_transport_object_class
         devclass            = iv_package
         master_language     = mv_language
-        mode                = 'INSERT'
+        mode                = 'I'
         global_lock         = abap_true
         suppress_dialog     = abap_true
       EXCEPTIONS
@@ -670,7 +670,7 @@ CLASS zcl_abapgit_object_udmo IMPLEMENTATION.
            WHERE  dmoid     = mv_data_model
            AND    as4local  = mv_activation_state.
 
-    rv_bool = boolc( sy-subrc = 0 ).
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
 
 
