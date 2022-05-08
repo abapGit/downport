@@ -14,7 +14,7 @@ ENDCLASS.
 CLASS ltcl_length_utf8 IMPLEMENTATION.
 
   METHOD setup.
-    CREATE OBJECT mo_cut.
+    mo_cut = NEW #( ).
   ENDMETHOD.
 
   METHOD length_utf8_hex.
