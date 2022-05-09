@@ -353,7 +353,7 @@ CLASS ZCL_ABAPGIT_TADIR IMPLEMENTATION.
 
     DATA lo_skip_objects TYPE REF TO zcl_abapgit_skip_objects.
 
-    lo_skip_objects = NEW #( ).
+    CREATE OBJECT lo_skip_objects.
 
     ct_tadir = lo_skip_objects->skip_sadl_generated_objects(
       it_tadir = ct_tadir
