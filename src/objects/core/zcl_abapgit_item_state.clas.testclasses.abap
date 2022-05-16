@@ -13,7 +13,7 @@ CLASS ltcl_state_test IMPLEMENTATION.
     DATA ls_item TYPE zif_abapgit_definitions=>ty_result.
     DATA lo_cut TYPE REF TO zcl_abapgit_item_state.
 
-    CREATE OBJECT lo_cut.
+    lo_cut = NEW #( ).
 
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->local( )
@@ -123,7 +123,7 @@ CLASS ltcl_state_test IMPLEMENTATION.
     DATA ls_item TYPE zif_abapgit_definitions=>ty_repo_item.
     DATA lo_cut TYPE REF TO zcl_abapgit_item_state.
 
-    CREATE OBJECT lo_cut.
+    lo_cut = NEW #( ).
 
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->local( )
