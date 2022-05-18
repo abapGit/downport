@@ -67,7 +67,7 @@ CLASS zcl_abapgit_environment IMPLEMENTATION.
     " Changes to repository objects are not permitted in this client (TK 729)
     " Shadow system
     " Running upgrade
-    rv_result = xsdbool(
+    rv_result = boolc(
       lv_systemedit <> 'N' AND
       lv_sys_cliinddep_edit NA '23' AND
       lv_is_shadow <> abap_true AND
