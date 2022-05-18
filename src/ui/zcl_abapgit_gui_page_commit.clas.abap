@@ -105,11 +105,6 @@ CLASS zcl_abapgit_gui_page_commit DEFINITION
         !it_stage      TYPE zif_abapgit_definitions=>ty_stage_tt
       RETURNING
         VALUE(rv_text) TYPE string.
-    METHODS is_valid_email
-      IMPORTING
-        iv_email        TYPE string
-      RETURNING
-        VALUE(rv_valid) TYPE abap_bool.
     METHODS branch_name_to_internal
       IMPORTING
         iv_branch_name            TYPE string
@@ -140,8 +135,8 @@ CLASS zcl_abapgit_gui_page_commit IMPLEMENTATION.
     " Get settings from DB
     mo_settings = zcl_abapgit_persist_factory=>get_settings( )->read( ).
 
-    CREATE OBJECT mo_validation_log.
-    CREATE OBJECT mo_form_data.
+    mo_validation_log = NEW #( ).
+    mo_form_data = NEW #( ).
     mo_form = get_form_schema( ).
     mo_form_util = zcl_abapgit_html_form_utils=>create( mo_form ).
 
@@ -152,9 +147,9 @@ CLASS zcl_abapgit_gui_page_commit IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_commit.
 
-    CREATE OBJECT lo_component EXPORTING io_repo = io_repo
-                                         io_stage = io_stage
-                                         iv_sci_result = iv_sci_result.
+    lo_component = NEW #( io_repo = io_repo
+                          io_stage = io_stage
+                          iv_sci_result = iv_sci_result ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Commit'
@@ -354,28 +349,11 @@ CLASS zcl_abapgit_gui_page_commit IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD is_valid_email.
-
-    " Email address validation (RFC 5322)
-    " https://www.oreilly.com/library/view/regular-expressions-cookbook/9781449327453/ch04s01.html
-    CONSTANTS lc_email_regex TYPE string VALUE
-      '[\w!#$%&*+/=?`{|}~^-]+(?:\.[\w!#$%&*+/=?`{|}~^-]+)*@(?:[A-Za-z0-9-]+\.)+[A-Za-z]{2,6}'.
-
-    IF iv_email IS INITIAL.
-      rv_valid = abap_true.
-    ELSE.
-      FIND REGEX lc_email_regex IN iv_email.
-      rv_valid = boolc( sy-subrc = 0 ).
-    ENDIF.
-
-  ENDMETHOD.
-
-
   METHOD render_stage_details.
 
     FIELD-SYMBOLS <ls_stage> LIKE LINE OF mt_stage.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<table class="stage_tab">' ).
     ri_html->add( '<thead>' ).
@@ -418,7 +396,7 @@ CLASS zcl_abapgit_gui_page_commit IMPLEMENTATION.
 
     FIELD-SYMBOLS <ls_stage> LIKE LINE OF mt_stage.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     LOOP AT mt_stage ASSIGNING <ls_stage>.
       ls_sum-method = <ls_stage>-method.
@@ -459,13 +437,13 @@ CLASS zcl_abapgit_gui_page_commit IMPLEMENTATION.
 
     ro_validation_log = mo_form_util->validate( io_form_data ).
 
-    IF is_valid_email( io_form_data->get( c_id-committer_email ) ) = abap_false.
+    IF zcl_abapgit_utils=>is_valid_email( io_form_data->get( c_id-committer_email ) ) = abap_false.
       ro_validation_log->set(
         iv_key = c_id-committer_email
         iv_val = |Invalid email address| ).
     ENDIF.
 
-    IF is_valid_email( io_form_data->get( c_id-author_email ) ) = abap_false.
+    IF zcl_abapgit_utils=>is_valid_email( io_form_data->get( c_id-author_email ) ) = abap_false.
       ro_validation_log->set(
         iv_key = c_id-author_email
         iv_val = |Invalid email address| ).
@@ -545,7 +523,7 @@ CLASS zcl_abapgit_gui_page_commit IMPLEMENTATION.
       get_defaults( ).
     ENDIF.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div id="top" class="paddings">' ).
     ri_html->add( zcl_abapgit_gui_chunk_lib=>render_repo_top( mo_repo ) ).

@@ -832,7 +832,7 @@ CLASS zcl_abapgit_popups IMPLEMENTATION.
         p_object_data    = es_package_data
       EXCEPTIONS
         action_cancelled = 1.
-    ev_create = boolc( sy-subrc = 0 ).
+    ev_create = xsdbool( sy-subrc = 0 ).
   ENDMETHOD.
 
 
@@ -941,7 +941,7 @@ CLASS zcl_abapgit_popups IMPLEMENTATION.
         ENDIF.
 
         IF iv_header_text CN ' _0'.
-          CREATE OBJECT lo_table_header EXPORTING text = iv_header_text.
+          lo_table_header = NEW #( text = iv_header_text ).
           mo_select_list_popup->set_top_of_list( lo_table_header ).
         ENDIF.
 
@@ -1084,7 +1084,6 @@ CLASS zcl_abapgit_popups IMPLEMENTATION.
           lv_answer    TYPE c LENGTH 1,
           lv_default   TYPE i,
           lv_tag       TYPE string,
-          lv_text      TYPE string,
           lt_selection TYPE TABLE OF spopli.
 
     FIELD-SYMBOLS: <ls_sel> LIKE LINE OF lt_selection,
@@ -1146,9 +1145,6 @@ CLASS zcl_abapgit_popups IMPLEMENTATION.
 
     ls_branch = lo_branches->find_by_name( <ls_tag>-name ).
     MOVE-CORRESPONDING ls_branch TO rs_tag.
-
-    lv_text = |Tag switched to { zcl_abapgit_git_tag=>remove_tag_prefix( rs_tag-name ) } |.
-    MESSAGE lv_text TYPE 'S'.
 
   ENDMETHOD.
 

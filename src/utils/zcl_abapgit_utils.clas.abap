@@ -19,13 +19,18 @@ CLASS zcl_abapgit_utils DEFINITION
         !ev_time    TYPE zif_abapgit_definitions=>ty_commit-time
       RAISING
         zcx_abapgit_exception .
+    CLASS-METHODS is_valid_email
+      IMPORTING
+        iv_email        TYPE string
+      RETURNING
+        VALUE(rv_valid) TYPE abap_bool.
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_UTILS IMPLEMENTATION.
+CLASS zcl_abapgit_utils IMPLEMENTATION.
 
 
   METHOD extract_author_data.
@@ -81,8 +86,24 @@ CLASS ZCL_ABAPGIT_UTILS IMPLEMENTATION.
 
     FIND ALL OCCURRENCES OF REGEX '[^[:print:]]' IN lv_string_data MATCH COUNT lv_printable_chars_count.
     lv_percentage = lv_printable_chars_count * 100 / strlen( lv_string_data ).
-    rv_is_binary = boolc( lv_percentage > lc_binary_threshold ).
+    rv_is_binary = xsdbool( lv_percentage > lc_binary_threshold ).
 
   ENDMETHOD.
 
+
+  METHOD is_valid_email.
+
+    " Email address validation (RFC 5322)
+    " https://www.oreilly.com/library/view/regular-expressions-cookbook/9781449327453/ch04s01.html
+    CONSTANTS lc_email_regex TYPE string VALUE
+      '[\w!#$%&*+/=?`{|}~^-]+(?:\.[\w!#$%&*+/=?`{|}~^-]+)*@(?:[A-Za-z0-9-]+\.)+[A-Za-z]{2,6}'.
+
+    IF iv_email IS INITIAL.
+      rv_valid = abap_true.
+    ELSE.
+      FIND REGEX lc_email_regex IN iv_email.
+      rv_valid = xsdbool( sy-subrc = 0 ).
+    ENDIF.
+
+  ENDMETHOD.
 ENDCLASS.
