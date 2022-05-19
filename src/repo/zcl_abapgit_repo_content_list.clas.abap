@@ -9,8 +9,9 @@ CLASS zcl_abapgit_repo_content_list DEFINITION
 
     METHODS list
       IMPORTING iv_path              TYPE string
-                iv_by_folders        TYPE abap_bool
-                iv_changes_only      TYPE abap_bool
+                iv_by_folders        TYPE abap_bool OPTIONAL
+                iv_changes_only      TYPE abap_bool OPTIONAL
+                iv_transports        TYPE abap_bool OPTIONAL
       RETURNING VALUE(rt_repo_items) TYPE zif_abapgit_definitions=>ty_repo_item_tt
       RAISING   zcx_abapgit_exception.
 
@@ -42,6 +43,9 @@ CLASS zcl_abapgit_repo_content_list DEFINITION
       IMPORTING iv_cur_dir    TYPE string
       CHANGING  ct_repo_items TYPE zif_abapgit_definitions=>ty_repo_item_tt
       RAISING   zcx_abapgit_exception.
+
+    METHODS determine_transports
+      CHANGING ct_repo_items TYPE zif_abapgit_definitions=>ty_repo_item_tt.
 
     METHODS filter_changes
       CHANGING ct_repo_items TYPE zif_abapgit_definitions=>ty_repo_item_tt.
@@ -92,7 +96,7 @@ CLASS ZCL_ABAPGIT_REPO_CONTENT_LIST IMPLEMENTATION.
         ls_folder-path    = <ls_item>-path.
         ls_folder-sortkey = c_sortkey-dir. " Directory
         ls_folder-is_dir  = abap_true.
-        CREATE OBJECT lo_state.
+        lo_state = NEW #( ).
       ENDAT.
 
       ls_folder-changes = ls_folder-changes + <ls_item>-changes.
@@ -127,7 +131,7 @@ CLASS ZCL_ABAPGIT_REPO_CONTENT_LIST IMPLEMENTATION.
       <ls_repo_item>-obj_name = <ls_tadir>-obj_name.
       <ls_repo_item>-path     = <ls_tadir>-path.
       MOVE-CORRESPONDING <ls_repo_item> TO ls_item.
-      <ls_repo_item>-inactive = boolc( zcl_abapgit_objects=>is_active( ls_item ) = abap_false ).
+      <ls_repo_item>-inactive = xsdbool( zcl_abapgit_objects=>is_active( ls_item ) = abap_false ).
       IF <ls_repo_item>-inactive = abap_true.
         <ls_repo_item>-sortkey = c_sortkey-inactive.
       ELSE.
@@ -171,12 +175,12 @@ CLASS ZCL_ABAPGIT_REPO_CONTENT_LIST IMPLEMENTATION.
         <ls_repo_item>-sortkey  = c_sortkey-default. " Default sort key
         <ls_repo_item>-changes  = 0.
         <ls_repo_item>-path     = <ls_status>-path.
-        CREATE OBJECT lo_state.
+        lo_state = NEW #( ).
       ENDAT.
 
       IF <ls_status>-filename IS NOT INITIAL.
         MOVE-CORRESPONDING <ls_status> TO ls_file.
-        ls_file-is_changed = boolc( <ls_status>-match = abap_false ). " TODO refactor
+        ls_file-is_changed = xsdbool( <ls_status>-match = abap_false ). " TODO refactor
         APPEND ls_file TO <ls_repo_item>-files.
 
         IF <ls_status>-inactive = abap_true AND <ls_repo_item>-sortkey > c_sortkey-changed.
@@ -239,7 +243,26 @@ CLASS ZCL_ABAPGIT_REPO_CONTENT_LIST IMPLEMENTATION.
 
   METHOD constructor.
     mo_repo = io_repo.
-    CREATE OBJECT mi_log TYPE zcl_abapgit_log.
+    mi_log = NEW zcl_abapgit_log( ).
+  ENDMETHOD.
+
+
+  METHOD determine_transports.
+
+    DATA ls_item TYPE zif_abapgit_definitions=>ty_item.
+
+    FIELD-SYMBOLS <ls_item> LIKE LINE OF ct_repo_items.
+
+    LOOP AT ct_repo_items ASSIGNING <ls_item>.
+      ls_item-obj_type = <ls_item>-obj_type.
+      ls_item-obj_name = <ls_item>-obj_name.
+      TRY.
+          <ls_item>-transport = zcl_abapgit_factory=>get_cts_api( )->get_transport_for_object( ls_item ).
+        CATCH zcx_abapgit_exception ##NO_HANDLER.
+          " Ignore errors related to object check when trying to get transport
+      ENDTRY.
+    ENDLOOP.
+
   ENDMETHOD.
 
 
@@ -299,6 +322,10 @@ CLASS ZCL_ABAPGIT_REPO_CONTENT_LIST IMPLEMENTATION.
     IF iv_changes_only = abap_true.
       " There are never changes for offline repositories
       filter_changes( CHANGING ct_repo_items = rt_repo_items ).
+    ENDIF.
+
+    IF iv_transports = abap_true.
+      determine_transports( CHANGING ct_repo_items = rt_repo_items ).
     ENDIF.
 
     SORT rt_repo_items BY
