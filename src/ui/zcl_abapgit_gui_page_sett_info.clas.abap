@@ -123,7 +123,7 @@ CLASS zcl_abapgit_gui_page_sett_info IMPLEMENTATION.
   METHOD constructor.
 
     super->constructor( ).
-    CREATE OBJECT mo_form_data.
+    mo_form_data = NEW #( ).
     mo_repo = io_repo.
     mo_form = get_form_schema( ).
 
@@ -134,7 +134,7 @@ CLASS zcl_abapgit_gui_page_sett_info IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_sett_info.
 
-    CREATE OBJECT lo_component EXPORTING io_repo = io_repo.
+    lo_component = NEW #( io_repo = io_repo ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Repository Stats'
@@ -483,18 +483,18 @@ CLASS zcl_abapgit_gui_page_sett_info IMPLEMENTATION.
     ENDLOOP.
 
     IF mo_repo->has_remote_source( ) = abap_true.
-      LOOP AT it_remote ASSIGNING <ls_remote>.
-        ls_info_file = read_stats_file( <ls_remote> ).
-
-        ls_info_remote-size = ls_info_remote-size + ls_info_file-size.
-        ls_info_remote-line = ls_info_remote-line + ls_info_file-line.
-        ls_info_remote-sloc = ls_info_remote-sloc + ls_info_file-sloc.
-
+      LOOP AT it_remote ASSIGNING <ls_remote> WHERE filename IS NOT INITIAL.
         lv_ignored = mo_repo->get_dot_abapgit( )->is_ignored(
                        iv_filename = <ls_remote>-filename
                        iv_path     = <ls_remote>-path ).
 
-        IF <ls_remote>-filename IS NOT INITIAL AND lv_ignored = abap_false.
+        IF lv_ignored = abap_false.
+          ls_info_file = read_stats_file( <ls_remote> ).
+
+          ls_info_remote-size = ls_info_remote-size + ls_info_file-size.
+          ls_info_remote-line = ls_info_remote-line + ls_info_file-line.
+          ls_info_remote-sloc = ls_info_remote-sloc + ls_info_file-sloc.
+
           TRY.
               zcl_abapgit_filename_logic=>file_to_object(
                 EXPORTING
@@ -585,7 +585,7 @@ CLASS zcl_abapgit_gui_page_sett_info IMPLEMENTATION.
 
     read_settings( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( `<div class="repo">` ).
 
