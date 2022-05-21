@@ -134,7 +134,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_FILE_STATUS IMPLEMENTATION.
+CLASS zcl_abapgit_file_status IMPLEMENTATION.
 
 
   METHOD build_existing.
@@ -142,9 +142,10 @@ CLASS ZCL_ABAPGIT_FILE_STATUS IMPLEMENTATION.
     DATA: ls_file_sig LIKE LINE OF it_state.
 
     " Item
-    rs_result-obj_type = is_local-item-obj_type.
-    rs_result-obj_name = is_local-item-obj_name.
-    rs_result-package  = is_local-item-devclass.
+    rs_result-obj_type  = is_local-item-obj_type.
+    rs_result-obj_name  = is_local-item-obj_name.
+    rs_result-package   = is_local-item-devclass.
+    rs_result-srcsystem = is_local-item-srcsystem.
 
     " File
     rs_result-path     = is_local-file-path.
@@ -168,14 +169,14 @@ CLASS ZCL_ABAPGIT_FILE_STATUS IMPLEMENTATION.
       IF ls_file_sig-sha1 <> is_remote-sha1.
         rs_result-rstate = zif_abapgit_definitions=>c_state-modified.
       ENDIF.
-      rs_result-match = boolc( rs_result-lstate IS INITIAL
+      rs_result-match = xsdbool( rs_result-lstate IS INITIAL
         AND rs_result-rstate IS INITIAL ).
     ELSE.
       " This is a strange situation. As both local and remote exist
       " the state should also be present. Maybe this is a first run of the code.
       " In this case just compare hashes directly and mark both changed
       " the user will presumably decide what to do after checking the actual diff
-      rs_result-match = boolc( is_local-file-sha1 = is_remote-sha1 ).
+      rs_result-match = xsdbool( is_local-file-sha1 = is_remote-sha1 ).
       IF rs_result-match = abap_false.
         rs_result-lstate = zif_abapgit_definitions=>c_state-modified.
         rs_result-rstate = zif_abapgit_definitions=>c_state-modified.
@@ -188,9 +189,10 @@ CLASS ZCL_ABAPGIT_FILE_STATUS IMPLEMENTATION.
   METHOD build_new_local.
 
     " Item
-    rs_result-obj_type = is_local-item-obj_type.
-    rs_result-obj_name = is_local-item-obj_name.
-    rs_result-package  = is_local-item-devclass.
+    rs_result-obj_type  = is_local-item-obj_type.
+    rs_result-obj_name  = is_local-item-obj_name.
+    rs_result-package   = is_local-item-devclass.
+    rs_result-srcsystem = is_local-item-srcsystem.
 
     " File
     rs_result-path     = is_local-file-path.
@@ -231,9 +233,10 @@ CLASS ZCL_ABAPGIT_FILE_STATUS IMPLEMENTATION.
     IF sy-subrc = 0.
 
       " Completely new (xml, abap) and new file in an existing object
-      rs_result-obj_type = ls_item-obj_type.
-      rs_result-obj_name = ls_item-obj_name.
-      rs_result-package  = ls_item-devclass.
+      rs_result-obj_type  = ls_item-obj_type.
+      rs_result-obj_name  = ls_item-obj_name.
+      rs_result-package   = ls_item-devclass.
+      rs_result-srcsystem = sy-sysid.
 
       READ TABLE it_state INTO ls_file_sig
         WITH KEY path = is_remote-path filename = is_remote-filename

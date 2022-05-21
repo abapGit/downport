@@ -202,7 +202,7 @@ CLASS zcl_abapgit_serialize IMPLEMENTATION.
       io_dot                = mo_dot_abapgit
       ii_log                = ii_log ).
 
-    CREATE OBJECT lo_filter.
+    lo_filter = NEW #( ).
 
     lo_filter->apply( EXPORTING it_filter = it_filter
                       CHANGING  ct_tadir  = lt_tadir ).
@@ -210,7 +210,7 @@ CLASS zcl_abapgit_serialize IMPLEMENTATION.
 * if there are less than 10 objects run in single thread
 * this helps a lot when debugging, plus performance gain
 * with low number of objects does not matter much
-    lv_force = boolc( lines( lt_tadir ) < 10 ).
+    lv_force = xsdbool( lines( lt_tadir ) < 10 ).
 
     lt_found = serialize(
       iv_package          = iv_package
@@ -497,9 +497,10 @@ CLASS zcl_abapgit_serialize IMPLEMENTATION.
           ls_file_item TYPE zif_abapgit_objects=>ty_serialization.
 
 
-    ls_file_item-item-obj_type = is_tadir-object.
-    ls_file_item-item-obj_name = is_tadir-obj_name.
-    ls_file_item-item-devclass = is_tadir-devclass.
+    ls_file_item-item-obj_type  = is_tadir-object.
+    ls_file_item-item-obj_name  = is_tadir-obj_name.
+    ls_file_item-item-devclass  = is_tadir-devclass.
+    ls_file_item-item-srcsystem = is_tadir-srcsystem.
 
     TRY.
         ls_file_item = zcl_abapgit_objects=>serialize(
