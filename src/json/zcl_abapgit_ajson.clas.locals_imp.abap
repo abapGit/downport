@@ -373,7 +373,7 @@ CLASS lcl_json_serializer IMPLEMENTATION.
   METHOD stringify.
 
     DATA lo TYPE REF TO lcl_json_serializer.
-    CREATE OBJECT lo.
+    lo = NEW #( ).
     lo->mt_json_tree = it_json_tree.
     lo->mv_indent_step = iv_indent.
     lo->mv_keep_item_order = iv_keep_item_order.
@@ -872,7 +872,7 @@ CLASS lcl_json_to_abap IMPLEMENTATION.
         " Do nothing
       WHEN zif_abapgit_ajson=>node_type-boolean.
         " TODO: check type ?
-        <container> = boolc( is_node-value = 'true' ).
+        <container> = xsdbool( is_node-value = 'true' ).
       WHEN zif_abapgit_ajson=>node_type-number.
         " TODO: check type ?
         <container> = is_node-value.
@@ -1063,7 +1063,7 @@ CLASS lcl_abap_to_json DEFINITION FINAL.
 
     METHODS convert_ajson
       IMPORTING
-        io_json TYPE REF TO zcl_abapgit_ajson
+        io_json TYPE REF TO zif_abapgit_ajson
         is_prefix TYPE zif_abapgit_ajson=>ty_path_name
         iv_index TYPE i DEFAULT 0
       CHANGING
@@ -1152,7 +1152,7 @@ CLASS lcl_abap_to_json IMPLEMENTATION.
 
     lo_type = cl_abap_typedescr=>describe_by_data( iv_data ).
 
-    CREATE OBJECT lo_converter.
+    lo_converter = NEW #( ).
     lo_converter->mi_custom_mapping  = ii_custom_mapping.
     lo_converter->mv_keep_item_order = iv_keep_item_order.
     lo_converter->mv_format_datetime = iv_format_datetime.
@@ -1206,7 +1206,9 @@ CLASS lcl_abap_to_json IMPLEMENTATION.
 
       WHEN OTHERS.
 
-        IF io_type->type_kind = cl_abap_typedescr=>typekind_dref.
+        IF io_type->type_kind = cl_abap_typedescr=>typekind_dref OR iv_data IS INITIAL.
+          " Convert data references and initial references to other types (like ref to class or interface)
+          " Initial references will result in "null"
           convert_ref(
             EXPORTING
               iv_data   = iv_data
@@ -1439,7 +1441,7 @@ CLASS lcl_abap_to_json IMPLEMENTATION.
     " and rtti seems to cache type descriptions really well (https://github.com/sbcgua/benchmarks.git)
     " the structures will be repeated in real life
 
-    ls_next_prefix-path = is_prefix-path && ls_root-name && '/'.
+    ls_next_prefix-path = is_prefix-path && <root>-name && '/'.
 
     LOOP AT lt_comps ASSIGNING <c>.
 
@@ -1517,7 +1519,7 @@ CLASS lcl_abap_to_json IMPLEMENTATION.
     lo_table ?= io_type.
     lo_ltype  = lo_table->get_table_line_type( ).
 
-    ls_next_prefix-path = is_prefix-path && is_prefix-name && '/'.
+    ls_next_prefix-path = is_prefix-path && <root>-name && '/'.
     ASSIGN iv_data TO <tab>.
 
     lv_tabix = 1.
@@ -1546,7 +1548,7 @@ CLASS lcl_abap_to_json IMPLEMENTATION.
 
     lo_type = cl_abap_typedescr=>describe_by_data( iv_data ).
 
-    CREATE OBJECT lo_converter.
+    lo_converter = NEW #( ).
     lo_converter->mi_custom_mapping  = ii_custom_mapping.
     lo_converter->mv_keep_item_order = iv_keep_item_order.
     lo_converter->mv_format_datetime = iv_format_datetime.

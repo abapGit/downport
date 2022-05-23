@@ -119,6 +119,9 @@ CLASS ZCL_ABAPGIT_FILE_DESERIALIZE IMPLEMENTATION.
       ENDLOOP.
     ENDIF.
 
+    "ignore table content
+    DELETE rt_results WHERE path = zif_abapgit_data_config=>c_default_path.
+
     SORT rt_results
       BY obj_type ASCENDING
          obj_name ASCENDING
@@ -170,7 +173,7 @@ CLASS ZCL_ABAPGIT_FILE_DESERIALIZE IMPLEMENTATION.
 
     lt_items = map_results_to_items( it_results ).
 
-    CREATE OBJECT lo_graph EXPORTING it_items = lt_items.
+    lo_graph = NEW #( it_items = lt_items ).
 
     LOOP AT lt_items INTO ls_item.
       CLEAR lt_requires.
