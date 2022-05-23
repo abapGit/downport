@@ -99,14 +99,14 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_OBJECT_CLAS IMPLEMENTATION.
+CLASS zcl_abapgit_object_clas IMPLEMENTATION.
 
 
   METHOD constructor.
     super->constructor( is_item     = is_item
                         iv_language = iv_language ).
 
-    CREATE OBJECT mi_object_oriented_object_fct TYPE zcl_abapgit_oo_class.
+    mi_object_oriented_object_fct = NEW zcl_abapgit_oo_class( ).
 
     mv_classpool_name = cl_oo_classname_service=>get_classpool_name( |{ is_item-obj_name }| ).
 
@@ -645,6 +645,8 @@ CLASS ZCL_ABAPGIT_OBJECT_CLAS IMPLEMENTATION.
   METHOD zif_abapgit_object~delete.
     DATA: ls_clskey TYPE seoclskey.
     ls_clskey-clsname = ms_item-obj_name.
+
+    corr_insert( iv_package ).
 
     mi_object_oriented_object_fct->delete( ls_clskey ).
   ENDMETHOD.
