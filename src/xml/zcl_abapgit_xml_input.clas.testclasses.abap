@@ -41,7 +41,9 @@ CLASS ltcl_xml IMPLEMENTATION.
       | </asx:abap>\n| &&
       |</abapGit>|.
 
-    CREATE OBJECT lo_input EXPORTING iv_xml = lv_xml.
+    CREATE OBJECT lo_input
+      EXPORTING
+        iv_xml = lv_xml.
 
     lo_input->zif_abapgit_xml_input~read( EXPORTING iv_name = 'DATA'
                                           CHANGING cg_data = ls_data ).
@@ -68,7 +70,9 @@ CLASS ltcl_xml IMPLEMENTATION.
                                            ig_data = ls_old ).
     lv_xml = lo_output->zif_abapgit_xml_output~render( ).
 
-    CREATE OBJECT lo_input EXPORTING iv_xml = lv_xml.
+    CREATE OBJECT lo_input
+      EXPORTING
+        iv_xml = lv_xml.
     lo_input->zif_abapgit_xml_input~read( EXPORTING iv_name = 'DATA'
                                           CHANGING cg_data = ls_new ).
 
@@ -99,7 +103,9 @@ CLASS ltcl_xml IMPLEMENTATION.
                                            ig_data = ls_old ).
     lv_xml = lo_output->zif_abapgit_xml_output~render( ).
 
-    CREATE OBJECT lo_input EXPORTING iv_xml = lv_xml.
+    CREATE OBJECT lo_input
+      EXPORTING
+        iv_xml = lv_xml.
     lo_input->zif_abapgit_xml_input~read( EXPORTING iv_name = 'DATA'
                                           CHANGING cg_data = ls_new ).
 
@@ -131,7 +137,9 @@ CLASS ltcl_xml IMPLEMENTATION.
                                            ig_data = ls_new ).
     lv_xml = lo_output->zif_abapgit_xml_output~render( ).
 
-    CREATE OBJECT lo_input EXPORTING iv_xml = lv_xml.
+    CREATE OBJECT lo_input
+      EXPORTING
+        iv_xml = lv_xml.
     lo_input->zif_abapgit_xml_input~read( EXPORTING iv_name = 'DATA'
                                           CHANGING cg_data = ls_old ).
 
@@ -167,7 +175,9 @@ CLASS ltcl_xml IMPLEMENTATION.
       | </asx:abap>\n| &&
       |</abapGit>|.
 
-    CREATE OBJECT lo_input EXPORTING iv_xml = lv_xml.
+    CREATE OBJECT lo_input
+      EXPORTING
+        iv_xml = lv_xml.
 
     lo_input->zif_abapgit_xml_input~read( EXPORTING iv_name = 'VSEOINTERF'
                                           CHANGING cg_data = ls_vseointerf ).

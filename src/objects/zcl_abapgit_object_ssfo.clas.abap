@@ -328,7 +328,7 @@ CLASS zcl_abapgit_object_ssfo IMPLEMENTATION.
       IMPORTING
         o_inactive = lv_inactive.
 
-    rv_active = xsdbool( lv_inactive = abap_false ).
+    rv_active = boolc( lv_inactive = abap_false ).
 
   ENDMETHOD.
 

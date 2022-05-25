@@ -665,7 +665,9 @@ CLASS ltcl_status_helper IMPLEMENTATION.
       it_remote    = mt_remote
       it_cur_state = mt_state ).
 
-    CREATE OBJECT ro_result EXPORTING it_results = lt_results.
+    CREATE OBJECT ro_result
+      EXPORTING
+        it_results = lt_results.
 
   ENDMETHOD.
 

@@ -98,7 +98,7 @@ CLASS zcl_abapgit_object_styl IMPLEMENTATION.
         strings    = ls_style-strings
         tabs       = ls_style-tabs.
 
-    rv_bool = xsdbool( lv_found = abap_true ).
+    rv_bool = boolc( lv_found = abap_true ).
 
   ENDMETHOD.
 

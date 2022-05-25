@@ -162,7 +162,9 @@ CLASS zcl_abapgit_log_viewer IMPLEMENTATION.
     ASSERT is_log-exception IS BOUND.
     lx_abapgit ?= is_log-exception.
 
-    CREATE OBJECT ro_exception_viewer EXPORTING ix_error = lx_abapgit.
+    CREATE OBJECT ro_exception_viewer
+      EXPORTING
+        ix_error = lx_abapgit.
 
   ENDMETHOD.
 
@@ -394,7 +396,9 @@ CLASS zcl_abapgit_log_viewer IMPLEMENTATION.
                                   start_line   = ls_position-start_row
                                   end_line     = ls_position-end_row ).
 
-        CREATE OBJECT lo_form_header EXPORTING text = ii_log->get_title( ).
+        CREATE OBJECT lo_form_header
+          EXPORTING
+            text = ii_log->get_title( ).
 
         lo_alv->set_top_of_list( lo_form_header ).
 
