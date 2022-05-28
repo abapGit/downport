@@ -36,21 +36,17 @@ CLASS zcl_abapgit_ajson_filter_lib IMPLEMENTATION.
 
 
   METHOD create_and_filter.
-    CREATE OBJECT ri_filter TYPE lcl_and_filter
-      EXPORTING
-        it_filters = it_filters.
+    ri_filter = NEW lcl_and_filter( it_filters = it_filters ).
   ENDMETHOD.
 
 
   METHOD create_empty_filter.
-    CREATE OBJECT ri_filter TYPE lcl_empty_filter.
+    ri_filter = NEW lcl_empty_filter( ).
   ENDMETHOD.
 
 
   METHOD create_path_filter.
-    CREATE OBJECT ri_filter TYPE lcl_paths_filter
-      EXPORTING
-        it_skip_paths = it_skip_paths
-        iv_skip_paths = iv_skip_paths.
+    ri_filter = NEW lcl_paths_filter( it_skip_paths = it_skip_paths
+                                      iv_skip_paths = iv_skip_paths ).
   ENDMETHOD.
 ENDCLASS.

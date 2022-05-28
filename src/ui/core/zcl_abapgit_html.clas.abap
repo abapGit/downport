@@ -89,10 +89,8 @@ CLASS zcl_abapgit_html IMPLEMENTATION.
 
 
   METHOD class_constructor.
-    CREATE OBJECT go_single_tags_re
-      EXPORTING
-        pattern     = '<(AREA|BASE|BR|COL|COMMAND|EMBED|HR|IMG|INPUT|LINK|META|PARAM|SOURCE|!)'
-        ignore_case = abap_false.
+    go_single_tags_re = NEW #( pattern = '<(AREA|BASE|BR|COL|COMMAND|EMBED|HR|IMG|INPUT|LINK|META|PARAM|SOURCE|!)'
+                               ignore_case = abap_false ).
 
     gv_spaces = repeat( val = ` `
                         occ = 200 ).
@@ -406,7 +404,7 @@ CLASS zcl_abapgit_html IMPLEMENTATION.
 
 
   METHOD zif_abapgit_html~is_empty.
-    rv_yes = boolc( lines( mt_buffer ) = 0 ).
+    rv_yes = xsdbool( lines( mt_buffer ) = 0 ).
   ENDMETHOD.
 
 
