@@ -141,6 +141,7 @@ CLASS ZCL_ABAPGIT_SERVICES_REPO IMPLEMENTATION.
       ls_tadir-pgmid    = 'R3TR'.
       ls_tadir-object   = <ls_overwrite>-obj_type.
       ls_tadir-obj_name = <ls_overwrite>-obj_name.
+      ls_tadir-devclass = <ls_overwrite>-devclass.
       INSERT ls_tadir INTO TABLE lt_tadir.
 
     ENDLOOP.
@@ -610,7 +611,7 @@ CLASS ZCL_ABAPGIT_SERVICES_REPO IMPLEMENTATION.
     ls_transport_to_branch = zcl_abapgit_ui_factory=>get_popups( )->popup_to_create_transp_branch(
       lt_transport_headers ).
 
-    CREATE OBJECT lo_transport_to_branch.
+    lo_transport_to_branch = NEW #( ).
     lo_transport_to_branch->create(
       io_repository          = lo_repository
       is_transport_to_branch = ls_transport_to_branch
