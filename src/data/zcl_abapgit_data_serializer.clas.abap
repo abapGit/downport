@@ -83,7 +83,7 @@ CLASS zcl_abapgit_data_serializer IMPLEMENTATION.
         wrong_status = 1
         OTHERS       = 2.
 
-    rv_exists = xsdbool( sy-subrc = 0 AND lv_subrc = 0 ).
+    rv_exists = boolc( sy-subrc = 0 AND lv_subrc = 0 ).
 
   ENDMETHOD.
 
