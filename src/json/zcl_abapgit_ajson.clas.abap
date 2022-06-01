@@ -798,7 +798,9 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
     DATA lo_to_abap TYPE REF TO lcl_json_to_abap.
 
     CLEAR ev_container.
-    CREATE OBJECT lo_to_abap EXPORTING ii_custom_mapping = mi_custom_mapping.
+    CREATE OBJECT lo_to_abap
+      EXPORTING
+        ii_custom_mapping = mi_custom_mapping.
 
     lo_to_abap->to_abap(
       EXPORTING

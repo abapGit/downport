@@ -78,7 +78,9 @@ CLASS zcl_abapgit_gui_page_merge_sel IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_merge_sel.
 
-    CREATE OBJECT lo_component EXPORTING ii_repo = ii_repo.
+    CREATE OBJECT lo_component
+      EXPORTING
+        ii_repo = ii_repo.
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Merge Branches'
@@ -164,9 +166,11 @@ CLASS zcl_abapgit_gui_page_merge_sel IMPLEMENTATION.
           zcx_abapgit_exception=>raise( 'Select different branches' ).
         ENDIF.
 
-        CREATE OBJECT lo_merge EXPORTING io_repo = mo_repo
-                                         iv_source = mo_form_data->get( c_id-source )
-                                         iv_target = mo_form_data->get( c_id-target ).
+        CREATE OBJECT lo_merge
+          EXPORTING
+            io_repo   = mo_repo
+            iv_source = mo_form_data->get( c_id-source )
+            iv_target = mo_form_data->get( c_id-target ).
 
         rs_handled-page = lo_merge.
         rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page.
