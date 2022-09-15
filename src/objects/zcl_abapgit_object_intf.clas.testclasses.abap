@@ -79,6 +79,9 @@ CLASS lth_oo_object_fnc IMPLEMENTATION.
   METHOD zif_abapgit_oo_object_fnc~read_descriptions.
   ENDMETHOD.
 
+  METHOD zif_abapgit_oo_object_fnc~read_descriptions_sub.
+  ENDMETHOD.
+
   METHOD zif_abapgit_oo_object_fnc~read_documentation.
   ENDMETHOD.
 
@@ -97,6 +100,9 @@ CLASS lth_oo_object_fnc IMPLEMENTATION.
   METHOD zif_abapgit_oo_object_fnc~update_descriptions.
     ms_descriptions_key = is_key.
     mt_descriptions = it_descriptions.
+  ENDMETHOD.
+
+  METHOD zif_abapgit_oo_object_fnc~update_descriptions_sub.
   ENDMETHOD.
 
 ENDCLASS.
@@ -130,18 +136,14 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     ms_item-obj_name = 'ZIF_ABAPGIT_TEST_INTF'.
     ms_item-obj_type = 'INTF'.
 
-    CREATE OBJECT lo_cut
-      EXPORTING
-        is_item     = ms_item
-        iv_language = 'E'.
+    lo_cut = NEW #( is_item = ms_item
+                    iv_language = 'E' ).
 
-    CREATE OBJECT lo_cut->zif_abapgit_object~mo_files
-      EXPORTING
-        is_item = ms_item.
+    lo_cut->zif_abapgit_object~mo_files = NEW #( is_item = ms_item ).
 
-    CREATE OBJECT mo_log.
+    mo_log = NEW #( ).
 
-    CREATE OBJECT mo_object_fnc.
+    mo_object_fnc = NEW #( ).
     lo_cut->mi_object_oriented_object_fct  = mo_object_fnc.
 
     mo_cut = lo_cut.
@@ -157,9 +159,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA ls_expected_docu_line TYPE tline.
     DATA lt_expected_docu_lines TYPE tlinetab.
 
-    CREATE OBJECT lo_xmlin TYPE zcl_abapgit_xml_input
-      EXPORTING
-        iv_xml = get_xml( ).
+    lo_xmlin = NEW zcl_abapgit_xml_input( iv_xml = get_xml( ) ).
 
     mo_cut->mo_files->add_abap( get_source( ) ).
 
