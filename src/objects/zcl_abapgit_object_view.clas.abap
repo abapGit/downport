@@ -24,6 +24,7 @@ CLASS zcl_abapgit_object_view DEFINITION PUBLIC INHERITING FROM zcl_abapgit_obje
                  external     TYPE viewclass VALUE 'X',
                  replication  TYPE viewclass VALUE 'R',
                END OF co_viewclass.
+    CONSTANTS c_longtext_id_view TYPE dokil-id VALUE 'VW'.
 
     METHODS:
       read_view
@@ -168,6 +169,9 @@ CLASS zcl_abapgit_object_view IMPLEMENTATION.
       zcx_abapgit_exception=>raise_t100( ).
     ENDIF.
 
+    deserialize_longtexts( ii_xml         = io_xml
+                           iv_longtext_id = c_longtext_id_view ).
+
     zcl_abapgit_objects_activation=>add_item( ms_item ).
 
   ENDMETHOD.
@@ -180,7 +184,7 @@ CLASS zcl_abapgit_object_view IMPLEMENTATION.
 
     SELECT SINGLE viewname FROM dd25l INTO lv_viewname
       WHERE viewname = ms_item-obj_name.
-    rv_bool = boolc( sy-subrc = 0 ).
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
     IF rv_bool = abap_true.
       TRY.
@@ -308,6 +312,9 @@ CLASS zcl_abapgit_object_view IMPLEMENTATION.
                  iv_name = 'DD28J_TABLE' ).
     io_xml->add( ig_data = lt_dd28v
                  iv_name = 'DD28V_TABLE' ).
+
+    serialize_longtexts( ii_xml         = io_xml
+                         iv_longtext_id = c_longtext_id_view ).
 
   ENDMETHOD.
 ENDCLASS.

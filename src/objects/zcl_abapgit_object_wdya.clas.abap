@@ -4,6 +4,8 @@ CLASS zcl_abapgit_object_wdya DEFINITION PUBLIC INHERITING FROM zcl_abapgit_obje
     INTERFACES zif_abapgit_object.
   PROTECTED SECTION.
   PRIVATE SECTION.
+    CONSTANTS c_longtext_id_wdya TYPE dokil-id VALUE 'WA'.
+
     METHODS read
       EXPORTING es_app        TYPE wdy_application
                 et_properties TYPE wdy_app_property_table
@@ -70,9 +72,9 @@ CLASS zcl_abapgit_object_wdya IMPLEMENTATION.
 
 
     TRY.
-        CREATE OBJECT lo_app EXPORTING name = is_app-application_name
-                                       definition = is_app
-                                       devclass = iv_package.
+        lo_app = NEW #( name = is_app-application_name
+                        definition = is_app
+                        devclass = iv_package ).
 
         LOOP AT it_properties ASSIGNING <ls_property>.
           li_prop = lo_app->if_wdy_md_application~create_property( <ls_property>-name ).
@@ -150,6 +152,8 @@ CLASS zcl_abapgit_object_wdya IMPLEMENTATION.
         zcx_abapgit_exception=>raise( 'WDYA, error deleting' ).
     ENDTRY.
 
+    delete_longtexts( c_longtext_id_wdya ).
+
   ENDMETHOD.
 
 
@@ -170,6 +174,9 @@ CLASS zcl_abapgit_object_wdya IMPLEMENTATION.
     zcl_abapgit_sotr_handler=>create_sotr(
       iv_package = iv_package
       io_xml     = io_xml ).
+
+    deserialize_longtexts( ii_xml         = io_xml
+                           iv_longtext_id = c_longtext_id_wdya ).
 
   ENDMETHOD.
 
@@ -243,6 +250,9 @@ CLASS zcl_abapgit_object_wdya IMPLEMENTATION.
       iv_object   = ms_item-obj_type
       iv_obj_name = ms_item-obj_name
       io_xml      = io_xml ).
+
+    serialize_longtexts( ii_xml         = io_xml
+                         iv_longtext_id = c_longtext_id_wdya ).
 
   ENDMETHOD.
 ENDCLASS.

@@ -19,6 +19,8 @@ CLASS zcl_abapgit_object_char DEFINITION
         cls_attr_valuet TYPE STANDARD TABLE OF cls_attr_valuet WITH DEFAULT KEY,
       END OF ty_char .
 
+    CONSTANTS c_longtext_id_char TYPE dokil-id VALUE 'CH'.
+
     METHODS instantiate_char_and_lock
       IMPORTING
         !iv_type_group       TYPE cls_object_type_group
@@ -41,14 +43,14 @@ CLASS zcl_abapgit_object_char IMPLEMENTATION.
 
 
     SELECT SINGLE name FROM cls_attribute INTO lv_name WHERE name = ms_item-obj_name.
-    lv_new = boolc( sy-subrc <> 0 ).
+    lv_new = xsdbool( sy-subrc <> 0 ).
     lv_name = ms_item-obj_name.
 
     TRY.
-        CREATE OBJECT ro_char EXPORTING im_name = lv_name
-                                        im_type_group = iv_type_group
-                                        im_new = lv_new
-                                        im_activation_state = iv_activation_state.
+        ro_char = NEW #( im_name = lv_name
+                         im_type_group = iv_type_group
+                         im_new = lv_new
+                         im_activation_state = iv_activation_state ).
       CATCH cx_pak_invalid_data
           cx_pak_not_authorized
           cx_pak_invalid_state
@@ -213,6 +215,9 @@ CLASS zcl_abapgit_object_char IMPLEMENTATION.
         lo_char->if_pak_wb_object_internal~unlock( ).
     ENDTRY.
 
+    deserialize_longtexts( ii_xml         = io_xml
+                           iv_longtext_id = c_longtext_id_char ).
+
   ENDMETHOD.
 
 
@@ -296,6 +301,9 @@ CLASS zcl_abapgit_object_char IMPLEMENTATION.
 
     io_xml->add( iv_name = 'CHAR'
                  ig_data = ls_char ).
+
+    serialize_longtexts( ii_xml         = io_xml
+                         iv_longtext_id = c_longtext_id_char ).
 
   ENDMETHOD.
 ENDCLASS.
