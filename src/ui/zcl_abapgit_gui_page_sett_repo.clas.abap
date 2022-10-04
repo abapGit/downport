@@ -27,14 +27,16 @@ CLASS zcl_abapgit_gui_page_sett_repo DEFINITION
 
     CONSTANTS:
       BEGIN OF c_id,
-        dot             TYPE string VALUE 'dot',
-        main_language   TYPE string VALUE 'main_language',
-        i18n_langs      TYPE string VALUE 'i18n_langs',
-        starting_folder TYPE string VALUE 'starting_folder',
-        folder_logic    TYPE string VALUE 'folder_logic',
-        ignore          TYPE string VALUE 'ignore',
-        requirements    TYPE string VALUE 'requirements',
-      END OF c_id .
+        dot              TYPE string VALUE 'dot',
+        main_language    TYPE string VALUE 'main_language',
+        i18n_langs       TYPE string VALUE 'i18n_langs',
+        starting_folder  TYPE string VALUE 'starting_folder',
+        folder_logic     TYPE string VALUE 'folder_logic',
+        ignore           TYPE string VALUE 'ignore',
+        requirements     TYPE string VALUE 'requirements',
+        version_constant TYPE string VALUE 'version_constant',
+        version_value    TYPE string VALUE 'version_value',
+      END OF c_id.
     CONSTANTS:
       BEGIN OF c_event,
         save TYPE string VALUE 'save',
@@ -77,8 +79,8 @@ CLASS zcl_abapgit_gui_page_sett_repo IMPLEMENTATION.
   METHOD constructor.
 
     super->constructor( ).
-    CREATE OBJECT mo_validation_log.
-    CREATE OBJECT mo_form_data.
+    mo_validation_log = NEW #( ).
+    mo_form_data = NEW #( ).
     mo_repo = io_repo.
     mo_form = get_form_schema( ).
     mo_form_util = zcl_abapgit_html_form_utils=>create( mo_form ).
@@ -92,7 +94,7 @@ CLASS zcl_abapgit_gui_page_sett_repo IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_sett_repo.
 
-    CREATE OBJECT lo_component EXPORTING io_repo = io_repo.
+    lo_component = NEW #( io_repo = io_repo ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Repository Settings'
@@ -158,6 +160,14 @@ CLASS zcl_abapgit_gui_page_sett_repo IMPLEMENTATION.
     )->column(
       iv_label       = 'Minimum Patch'
       iv_width       = '30%'
+    )->text(
+      iv_name        = c_id-version_constant
+      iv_label       = 'Version Constant'
+      iv_placeholder = 'ZVERSION_CLASS=>VERSION_CONSTANT'
+    )->text(
+      iv_name        = c_id-version_value
+      iv_label       = 'Version Value'
+      iv_readonly    = abap_true
     )->command(
       iv_label       = 'Save Settings'
       iv_cmd_type    = zif_abapgit_html_form=>c_cmd_type-input_main
@@ -208,6 +218,18 @@ CLASS zcl_abapgit_gui_page_sett_repo IMPLEMENTATION.
     mo_form_data->set(
       iv_key = c_id-starting_folder
       iv_val = ls_dot-starting_folder ).
+    mo_form_data->set(
+      iv_key = c_id-version_constant
+      iv_val = ls_dot-version_constant ).
+    TRY.
+        mo_form_data->set(
+          iv_key = c_id-version_value
+          iv_val = zcl_abapgit_version=>get_version_constant_value( ls_dot-version_constant ) ).
+      CATCH zcx_abapgit_exception.
+        mo_form_data->set(
+          iv_key = c_id-version_value
+          iv_val = '' ).
+    ENDTRY.
 
     lv_ignore = concat_lines_of(
       table = ls_dot-ignore
@@ -268,6 +290,7 @@ CLASS zcl_abapgit_gui_page_sett_repo IMPLEMENTATION.
 
     lo_dot->set_folder_logic( mo_form_data->get( c_id-folder_logic ) ).
     lo_dot->set_starting_folder( mo_form_data->get( c_id-starting_folder ) ).
+    lo_dot->set_version_constant( mo_form_data->get( c_id-version_constant ) ).
 
     lo_dot->set_i18n_languages(
       zcl_abapgit_lxe_texts=>convert_lang_string_to_table(
@@ -320,11 +343,13 @@ CLASS zcl_abapgit_gui_page_sett_repo IMPLEMENTATION.
   METHOD validate_form.
 
     DATA:
-      lv_folder      TYPE string,
-      lv_len         TYPE i,
-      lv_component   TYPE zif_abapgit_dot_abapgit=>ty_requirement-component,
-      lv_min_release TYPE zif_abapgit_dot_abapgit=>ty_requirement-min_release,
-      lv_min_patch   TYPE zif_abapgit_dot_abapgit=>ty_requirement-min_patch.
+      lv_folder           TYPE string,
+      lv_len              TYPE i,
+      lv_component        TYPE zif_abapgit_dot_abapgit=>ty_requirement-component,
+      lv_min_release      TYPE zif_abapgit_dot_abapgit=>ty_requirement-min_release,
+      lv_min_patch        TYPE zif_abapgit_dot_abapgit=>ty_requirement-min_patch,
+      lv_version_constant TYPE string,
+      lx_exception        TYPE REF TO zcx_abapgit_exception.
 
     ro_validation_log = mo_form_util->validate( io_form_data ).
 
@@ -360,6 +385,17 @@ CLASS zcl_abapgit_gui_page_sett_repo IMPLEMENTATION.
       ENDIF.
     ENDDO.
 
+    TRY.
+        lv_version_constant = io_form_data->get( c_id-version_constant ).
+        IF lv_version_constant IS NOT INITIAL.
+          zcl_abapgit_version=>get_version_constant_value( lv_version_constant ).
+        ENDIF.
+      CATCH zcx_abapgit_exception INTO lx_exception.
+        ro_validation_log->set(
+          iv_key = c_id-version_constant
+          iv_val = lx_exception->get_text( ) ).
+    ENDTRY.
+
   ENDMETHOD.
 
 
@@ -394,7 +430,7 @@ CLASS zcl_abapgit_gui_page_sett_repo IMPLEMENTATION.
       read_settings( ).
     ENDIF.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( `<div class="repo">` ).
 
