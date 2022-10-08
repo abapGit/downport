@@ -185,7 +185,7 @@ CLASS zcl_abapgit_object_intf IMPLEMENTATION.
 
   METHOD deserialize_pre_ddic.
 
-    DATA: ls_intf   TYPE ty_intf.
+    DATA ls_intf TYPE ty_intf.
 
     IF zcl_abapgit_persist_factory=>get_settings( )->read( )->get_experimental_features( ) = abap_true.
       ls_intf = read_json( ).
@@ -196,6 +196,7 @@ CLASS zcl_abapgit_object_intf IMPLEMENTATION.
 
     mi_object_oriented_object_fct->create(
       EXPORTING
+        iv_check      = abap_false
         iv_package    = iv_package
       CHANGING
         cg_properties = ls_intf-vseointerf ).
@@ -252,7 +253,7 @@ CLASS zcl_abapgit_object_intf IMPLEMENTATION.
     lv_json_data = zif_abapgit_object~mo_files->read_raw( iv_ext = 'json' ).
     ls_intf_aff = lcl_aff_metadata_handler=>deserialize( lv_json_data ).
 
-    CREATE OBJECT lo_aff_mapper TYPE lcl_aff_type_mapping.
+    lo_aff_mapper = NEW lcl_aff_type_mapping( ).
     lo_aff_mapper->to_abapgit( EXPORTING iv_data = ls_intf_aff
                                          iv_object_name = ms_item-obj_name
                                IMPORTING es_data = rs_intf ).
@@ -380,16 +381,6 @@ CLASS zcl_abapgit_object_intf IMPLEMENTATION.
     ls_clskey-clsname = ms_item-obj_name.
 
     ls_intf-vseointerf = mi_object_oriented_object_fct->get_interface_properties( ls_clskey ).
-
-    CLEAR: ls_intf-vseointerf-uuid,
-           ls_intf-vseointerf-author,
-           ls_intf-vseointerf-createdon,
-           ls_intf-vseointerf-changedby,
-           ls_intf-vseointerf-changedon,
-           ls_intf-vseointerf-chgdanyby,
-           ls_intf-vseointerf-chgdanyon,
-           ls_intf-vseointerf-r3release,
-           ls_intf-vseointerf-version.
 
     " Select all active translations of documentation
     " Skip main language - it was already serialized
@@ -527,6 +518,7 @@ CLASS zcl_abapgit_object_intf IMPLEMENTATION.
       ELSE.
         mi_object_oriented_object_fct->create(
           EXPORTING
+            iv_check      = abap_true
             iv_package    = iv_package
           CHANGING
             cg_properties = ls_intf-vseointerf ).
