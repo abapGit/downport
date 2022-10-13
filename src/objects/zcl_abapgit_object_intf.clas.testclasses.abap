@@ -136,14 +136,14 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     ms_item-obj_name = 'ZIF_ABAPGIT_TEST_INTF'.
     ms_item-obj_type = 'INTF'.
 
-    CREATE OBJECT lo_cut EXPORTING is_item = ms_item
-                                   iv_language = 'E'.
+    lo_cut = NEW #( is_item = ms_item
+                    iv_language = 'E' ).
 
-    CREATE OBJECT lo_cut->zif_abapgit_object~mo_files EXPORTING is_item = ms_item.
+    lo_cut->zif_abapgit_object~mo_files = NEW #( is_item = ms_item ).
 
-    CREATE OBJECT mo_log.
+    mo_log = NEW #( ).
 
-    CREATE OBJECT mo_object_fnc.
+    mo_object_fnc = NEW #( ).
     lo_cut->mi_object_oriented_object_fct  = mo_object_fnc.
 
     mo_cut = lo_cut.
@@ -159,7 +159,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA ls_expected_docu_line TYPE tline.
     DATA lt_expected_docu_lines TYPE tlinetab.
 
-    CREATE OBJECT lo_xmlin TYPE zcl_abapgit_xml_input EXPORTING iv_xml = get_xml( ).
+    lo_xmlin = NEW zcl_abapgit_xml_input( iv_xml = get_xml( ) ).
 
     mo_cut->mo_files->add_abap( get_source( ) ).
 
@@ -354,10 +354,16 @@ CLASS ltcl_aff_metadata IMPLEMENTATION.
 
   METHOD deserialize_non_defaults.
     DATA:
-      lv_source         TYPE string,
-      lv_source_xstring TYPE xstring,
-      ls_actual         TYPE zif_abapgit_aff_intf_v1=>ty_main,
-      ls_expected       TYPE zif_abapgit_aff_intf_v1=>ty_main.
+      lv_source                  TYPE string,
+      lv_source_xstring          TYPE xstring,
+      ls_description_type        TYPE zif_abapgit_aff_oo_types_v1=>ty_component_description,
+      ls_description_attr        TYPE zif_abapgit_aff_oo_types_v1=>ty_component_description,
+      ls_description_meth_param  TYPE zif_abapgit_aff_oo_types_v1=>ty_component_description,
+      ls_description_meth_params TYPE zif_abapgit_aff_oo_types_v1=>ty_component_descriptions,
+      ls_description_even        TYPE zif_abapgit_aff_oo_types_v1=>ty_event,
+      ls_description_meth        TYPE zif_abapgit_aff_oo_types_v1=>ty_method,
+      ls_actual                  TYPE zif_abapgit_aff_intf_v1=>ty_main,
+      ls_expected                TYPE zif_abapgit_aff_intf_v1=>ty_main.
 
 
     ls_expected-format_version = `1`.
@@ -366,6 +372,27 @@ CLASS ltcl_aff_metadata IMPLEMENTATION.
     ls_expected-header-abap_language_version = zif_abapgit_aff_types_v1=>co_abap_language_version_src-key_user.
     ls_expected-category = zif_abapgit_aff_intf_v1=>co_category-db_procedure_proxy.
     ls_expected-proxy = abap_true.
+
+    ls_description_type-name = 'TY_EXAMPLE_TYPE'.
+    ls_description_type-description = 'This is an example type'.
+    APPEND ls_description_type TO ls_expected-descriptions-types.
+
+    ls_description_attr-name = 'CO_EXAMPLE_CONSTANT'.
+    ls_description_attr-description = 'This is an example constant'.
+    APPEND ls_description_attr TO ls_expected-descriptions-attributes.
+
+    ls_description_even-name = 'EXAMPLE_EVENT'.
+    ls_description_even-description = 'This is an example event'.
+    APPEND ls_description_even TO ls_expected-descriptions-events.
+
+    ls_description_meth_param-name = 'I_PARAM'.
+    ls_description_meth_param-description = 'This is an example parameter'.
+    APPEND ls_description_meth_param TO ls_description_meth_params.
+
+    ls_description_meth-name = 'EXAMPLE_METHOD'.
+    ls_description_meth-description = 'This is an example method'.
+    ls_description_meth-parameters = ls_description_meth_params.
+    APPEND ls_description_meth TO ls_expected-descriptions-methods.
 
     lv_source =
       `{` && cl_abap_char_utilities=>newline &&
@@ -376,7 +403,39 @@ CLASS ltcl_aff_metadata IMPLEMENTATION.
       `    "abapLanguageVersion": "keyUser"` && cl_abap_char_utilities=>newline &&
       `  },` && cl_abap_char_utilities=>newline &&
       `  "category": "dbProcedureProxy",` && cl_abap_char_utilities=>newline &&
-      `  "proxy": true` && cl_abap_char_utilities=>newline &&
+      `  "proxy": true,` && cl_abap_char_utilities=>newline &&
+      `  "descriptions": {` && cl_abap_char_utilities=>newline &&
+      `    "types": [` && cl_abap_char_utilities=>newline &&
+      `      {` && cl_abap_char_utilities=>newline &&
+      `        "name": "TY_EXAMPLE_TYPE",` && cl_abap_char_utilities=>newline &&
+      `        "description": "This is an example type"` && cl_abap_char_utilities=>newline &&
+      `      }` && cl_abap_char_utilities=>newline &&
+      `    ],` && cl_abap_char_utilities=>newline &&
+      `    "attributes": [` && cl_abap_char_utilities=>newline &&
+      `      {` && cl_abap_char_utilities=>newline &&
+      `        "name": "CO_EXAMPLE_CONSTANT",` && cl_abap_char_utilities=>newline &&
+      `        "description": "This is an example constant"` && cl_abap_char_utilities=>newline &&
+      `      }` && cl_abap_char_utilities=>newline &&
+      `    ],` && cl_abap_char_utilities=>newline &&
+      `    "events": [` && cl_abap_char_utilities=>newline &&
+      `      {` && cl_abap_char_utilities=>newline &&
+      `        "name": "EXAMPLE_EVENT",` && cl_abap_char_utilities=>newline &&
+      `        "description": "This is an example event"` && cl_abap_char_utilities=>newline &&
+      `      }` && cl_abap_char_utilities=>newline &&
+      `    ],` && cl_abap_char_utilities=>newline &&
+      `    "methods": [` && cl_abap_char_utilities=>newline &&
+      `      {` && cl_abap_char_utilities=>newline &&
+      `        "name": "EXAMPLE_METHOD",` && cl_abap_char_utilities=>newline &&
+      `        "description": "This is an example method",` && cl_abap_char_utilities=>newline &&
+      `        "parameters": [` && cl_abap_char_utilities=>newline &&
+      `          {` && cl_abap_char_utilities=>newline &&
+      `            "name": "I_PARAM",` && cl_abap_char_utilities=>newline &&
+      `            "description": "This is an example parameter"` && cl_abap_char_utilities=>newline &&
+      `          }` && cl_abap_char_utilities=>newline &&
+      `        ]` && cl_abap_char_utilities=>newline &&
+      `      }` && cl_abap_char_utilities=>newline &&
+      `    ]` && cl_abap_char_utilities=>newline &&
+      `  }` && cl_abap_char_utilities=>newline &&
       `}` && cl_abap_char_utilities=>newline.
 
     lv_source_xstring = cl_abap_codepage=>convert_to( lv_source ).
