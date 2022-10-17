@@ -18,8 +18,8 @@ ENDCLASS.
 CLASS ltcl_test IMPLEMENTATION.
 
   METHOD setup.
-    CREATE OBJECT mi_cut TYPE zcl_abapgit_data_serializer.
-    CREATE OBJECT mi_config TYPE zcl_abapgit_data_config.
+    mi_cut = NEW zcl_abapgit_data_serializer( ).
+    mi_config = NEW zcl_abapgit_data_config( ).
   ENDMETHOD.
 
   METHOD serialize.
@@ -46,7 +46,6 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD serialize_error_table.
 
     DATA ls_config TYPE zif_abapgit_data_config=>ty_config.
-    DATA lt_files TYPE zif_abapgit_definitions=>ty_files_tt.
     DATA lv_where LIKE LINE OF ls_config-where.
 
     ls_config-type = 'TABU'.
@@ -67,7 +66,6 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD serialize_error_field.
 
     DATA ls_config TYPE zif_abapgit_data_config=>ty_config.
-    DATA lt_files TYPE zif_abapgit_definitions=>ty_files_tt.
     DATA lv_where LIKE LINE OF ls_config-where.
 
     ls_config-type = 'TABU'.

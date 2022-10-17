@@ -239,7 +239,6 @@ CLASS ZCL_ABAPGIT_JSON_HANDLER IMPLEMENTATION.
           lv_json           TYPE string,
           lo_ajson          TYPE REF TO zcl_abapgit_ajson,
           lo_ajson_filtered TYPE REF TO zif_abapgit_ajson,
-          lv_enum_abap      TYPE string,
           lo_filter         TYPE REF TO lcl_aff_filter.
 
     FIELD-SYMBOLS: <lg_source> LIKE LINE OF lt_st_source.
@@ -261,7 +260,7 @@ CLASS ZCL_ABAPGIT_JSON_HANDLER IMPLEMENTATION.
     map2json_custom_enum( EXPORTING it_enum_mappings = iv_enum_mappings
                           CHANGING co_ajson          = lo_ajson ).
 
-    CREATE OBJECT lo_filter EXPORTING iv_skip_paths = iv_skip_paths.
+    lo_filter = NEW #( iv_skip_paths = iv_skip_paths ).
     lo_ajson_filtered = zcl_abapgit_ajson=>create_from(
                           ii_source_json = lo_ajson
                           ii_filter      = lo_filter ).
