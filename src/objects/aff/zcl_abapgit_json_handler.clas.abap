@@ -261,7 +261,7 @@ CLASS ZCL_ABAPGIT_JSON_HANDLER IMPLEMENTATION.
     map2json_custom_enum( EXPORTING it_enum_mappings = iv_enum_mappings
                           CHANGING co_ajson          = lo_ajson ).
 
-    CREATE OBJECT lo_filter EXPORTING iv_skip_paths = iv_skip_paths.
+    lo_filter = NEW #( iv_skip_paths = iv_skip_paths ).
     lo_ajson_filtered = zcl_abapgit_ajson=>create_from(
                           ii_source_json = lo_ajson
                           ii_filter      = lo_filter ).
