@@ -275,7 +275,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_REPO_OVER IMPLEMENTATION.
     DATA lo_toolbar TYPE REF TO zcl_abapgit_html_toolbar.
     DATA lo_toolbar_more_sub TYPE REF TO zcl_abapgit_html_toolbar.
 
-    CREATE OBJECT lo_toolbar EXPORTING iv_id = 'toolbar-ovp'.
+    lo_toolbar = NEW #( iv_id = 'toolbar-ovp' ).
 
     lo_toolbar->add(
       iv_txt      = |Pull|
@@ -325,7 +325,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_REPO_OVER IMPLEMENTATION.
       iv_class    = |{ lc_action_class }|
       iv_li_class = |{ lc_action_class }| ).
 
-    CREATE OBJECT lo_toolbar_more_sub EXPORTING iv_id = 'toolbar-ovp-more_sub'.
+    lo_toolbar_more_sub = NEW #( iv_id = 'toolbar-ovp-more_sub' ).
 
     lo_toolbar_more_sub->add(
       iv_txt      = |Stage by Transport|
@@ -347,14 +347,16 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_REPO_OVER IMPLEMENTATION.
       iv_txt   = |Remove|
       iv_title = |Remove abapGit's records of the repository (the system's |
               && |development objects will remain unaffected)|
-      iv_act   = |{ zif_abapgit_definitions=>c_action-repo_remove }{ lc_dummy_key }| ).
+      iv_act   = |{ zif_abapgit_definitions=>c_action-repo_remove }{ lc_dummy_key }|
+      iv_class    = |{ lc_action_class }|
+      iv_li_class = |{ lc_action_class }| ).
 
     lo_toolbar_more_sub->add(
       iv_txt      = |Uninstall|
       iv_title    = |Delete all development objects belonging to this package |
                  && |(and subpackages) from the system|
       iv_act      = |{ zif_abapgit_definitions=>c_action-repo_purge }{ lc_dummy_key }|
-      iv_class    = |{ lc_action_class } { lc_online_class }|
+      iv_class    = |{ lc_action_class }|
       iv_li_class = |{ lc_action_class }| ).
 
     lo_toolbar->add(
@@ -372,7 +374,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_REPO_OVER IMPLEMENTATION.
 
     DATA lv_icon_class TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( |<form class="inline" method="post" action="sapevent:{ c_action-apply_filter }">| ).
     ri_html->add( zcl_abapgit_gui_chunk_lib=>render_text_input(
@@ -404,7 +406,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_REPO_OVER IMPLEMENTATION.
 
   METHOD render_header_bar.
 
-    ii_html->add( |<div class="pad-1em" id="repo-overview-toolbar">| ).
+    ii_html->add( |<div class="repo-overview-toolbar">| ).
     ii_html->add( render_filter_bar( ) ).
     ii_html->add( render_action_toolbar( ) ).
     ii_html->add( |</div>| ).
@@ -414,8 +416,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_REPO_OVER IMPLEMENTATION.
 
   METHOD render_repo_list.
 
-    ii_html->add( |<div class="db_list repo-overview">| ).
-    ii_html->add( |<table class="db_tab">| ).
+    ii_html->add( |<table>| ).
 
     render_table_header( ii_html ).
     render_table_body(
@@ -424,14 +425,13 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_REPO_OVER IMPLEMENTATION.
     render_table_footer( ii_html ).
 
     ii_html->add( |</table>| ).
-    ii_html->add( |</div>| ).
 
   ENDMETHOD.
 
 
   METHOD render_scripts.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
     ri_html->add( 'setInitialFocus("filter");' ).
@@ -460,12 +460,15 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_REPO_OVER IMPLEMENTATION.
   METHOD render_table_footer.
 
     IF mv_only_favorites = abap_true.
-      ii_html->add( `<tfoot><tr><td colspan="5">` ).
-      ii_html->add( `(Only favorites are shown. ` ).
-      ii_html->add( ii_html->a(
-        iv_txt   = |Show All|
-        iv_act   = |{ zif_abapgit_definitions=>c_action-toggle_favorites }?force_state={ abap_false }| ) ).
-      ii_html->add( `)</td></tr></tfoot>` ).
+      ii_html->add( `<tfoot>` ).
+      ii_html->add( `<tr><td colspan="100%">` ).
+      ii_html->add( |(Only favorites are shown. {
+        ii_html->a(
+          iv_txt   = |Show All|
+          iv_act   = |{ zif_abapgit_definitions=>c_action-toggle_favorites }?force_state={ abap_false }| )
+      })| ).
+      ii_html->add( `</td></tr>` ).
+      ii_html->add( `</tfoot>` ).
     ENDIF.
 
   ENDMETHOD.
@@ -539,7 +542,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_REPO_OVER IMPLEMENTATION.
 
     _add_column(
       iv_tech_name      = 'GO'
-      iv_css_class      = 'ro-go'
+      iv_css_class      = 'ro-go wmin'
       iv_allow_order_by = abap_false ).
 
     ii_html->add( |<thead>| ).
@@ -563,31 +566,22 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_REPO_OVER IMPLEMENTATION.
       lv_repo_type_icon TYPE string,
       lv_favorite_icon  TYPE string,
       lv_fav_tr_class   TYPE string,
-      lv_lock           TYPE string,
-      lv_repo_go_link   TYPE string.
+      lv_lock           TYPE string.
 
-    lv_is_online_repo = boolc( is_repo-type = abap_false ).
+    lv_is_online_repo = xsdbool( is_repo-type = abap_false ).
 
     " Start of row
     IF is_repo-favorite = abap_true.
-      lv_fav_tr_class = ' favorite'.
+      lv_fav_tr_class = ' class="favorite"'.
     ELSE.
       lv_fav_tr_class = ''.
     ENDIF.
 
-    ii_html->add( |<tr class="repo{
-      lv_fav_tr_class }" data-key="{
-      is_repo-key }" data-offline="{ is_repo-type }">| ).
+    ii_html->add( |<tr{ lv_fav_tr_class } data-key="{ is_repo-key }" data-offline="{ is_repo-type }">| ).
 
     " Favorite
-    IF is_repo-favorite = abap_true.
-      lv_favorite_icon = 'star/blue'.
-    ELSE.
-      lv_favorite_icon = 'star/grey'.
-    ENDIF.
-
     lv_favorite_icon = ii_html->icon(
-      iv_name  = lv_favorite_icon
+      iv_name  = 'star/grey' " blue is added in css, based on TR style
       iv_class = 'pad-sides'
       iv_hint  = 'Click to toggle favorite' ).
 
@@ -673,15 +667,13 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_REPO_OVER IMPLEMENTATION.
       iv_class = 'ro-detail'
       iv_content = |{ is_repo-key }| ).
 
-    " the link is clicked in javascript
-    lv_repo_go_link = ii_html->a(
-      iv_txt   = ``
-      iv_act   = |{ c_action-select }?key={ is_repo-key }|
-      iv_class = 'hidden' ).
-
+    " Go-to action
     ii_html->td(
-      iv_class   = 'ro-go'
-      iv_content = |<span class="link" title="Open">&rsaquo;{ lv_repo_go_link }</span>| ).
+      iv_class = 'ro-go wmin'
+      iv_content = ii_html->a(
+        iv_title = 'Open'
+        iv_txt   = '&rtrif;'
+        iv_act   = |{ c_action-select }?key={ is_repo-key }| ) ).
 
     ii_html->add( `</tr>` ).
 
@@ -730,7 +722,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_REPO_OVER IMPLEMENTATION.
           CATCH zcx_abapgit_exception ##NO_HANDLER.
         ENDTRY.
 
-        CREATE OBJECT rs_handled-page TYPE zcl_abapgit_gui_page_repo_view EXPORTING iv_key = lv_key.
+        rs_handled-page = NEW zcl_abapgit_gui_page_repo_view( iv_key = lv_key ).
         rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page.
 
       WHEN zif_abapgit_definitions=>c_action-change_order_by.
@@ -743,13 +735,13 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_REPO_OVER IMPLEMENTATION.
         IF ii_event->query( )->has( 'FORCE_STATE' ) = abap_true.
           mv_only_favorites = ii_event->query( )->get( 'FORCE_STATE' ).
         ELSE.
-          mv_only_favorites = boolc( mv_only_favorites = abap_false ).
+          mv_only_favorites = xsdbool( mv_only_favorites = abap_false ).
         ENDIF.
         rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
 
       WHEN zif_abapgit_definitions=>c_action-direction.
 
-        set_order_direction( boolc( ii_event->query( )->get( 'DIRECTION' ) = 'DESCENDING' ) ).
+        set_order_direction( xsdbool( ii_event->query( )->get( 'DIRECTION' ) = 'DESCENDING' ) ).
         rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
 
       WHEN c_action-apply_filter.
@@ -759,7 +751,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_REPO_OVER IMPLEMENTATION.
 
       WHEN zif_abapgit_definitions=>c_action-go_patch.
 
-        CREATE OBJECT rs_handled-page TYPE zcl_abapgit_gui_page_patch EXPORTING iv_key = lv_key.
+        rs_handled-page = NEW zcl_abapgit_gui_page_patch( iv_key = lv_key ).
         rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page.
 
     ENDCASE.
@@ -823,13 +815,16 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_REPO_OVER IMPLEMENTATION.
 
     lt_overview = prepare_overviews( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
-    render_header_bar( ri_html ).
     zcl_abapgit_exit=>get_instance( )->wall_message_list( ri_html ).
+
+    ri_html->add( |<div class="repo-overview">| ).
+    render_header_bar( ri_html ).
     render_repo_list(
       ii_html     = ri_html
       it_overview = lt_overview ).
+    ri_html->add( |</div>| ).
 
     gui_services( )->register_event_handler( me ).
     register_deferred_script( render_scripts( ) ).
