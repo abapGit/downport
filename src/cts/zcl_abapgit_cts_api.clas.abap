@@ -132,7 +132,8 @@ CLASS zcl_abapgit_cts_api IMPLEMENTATION.
     SELECT SINGLE a~trkorr FROM e070 AS a JOIN e071 AS b ON a~trkorr = b~trkorr
       INTO rv_transport
       WHERE ( a~trstatus = 'D' OR a~trstatus = 'L' )
-      AND b~pgmid = iv_program_id AND b~object = iv_object_type AND b~obj_name = iv_object_name.
+        AND a~trfunction <> 'G'
+        AND b~pgmid = iv_program_id AND b~object = iv_object_type AND b~obj_name = iv_object_name.
 
   ENDMETHOD.
 
@@ -170,7 +171,7 @@ CLASS zcl_abapgit_cts_api IMPLEMENTATION.
       zcx_abapgit_exception=>raise_t100( ).
     ENDIF.
 
-    rv_locked = boolc( lv_lock_flag <> space ).
+    rv_locked = xsdbool( lv_lock_flag <> space ).
   ENDMETHOD.
 
 
@@ -206,7 +207,7 @@ CLASS zcl_abapgit_cts_api IMPLEMENTATION.
       IMPORTING
         pe_result = lv_type_check_result.
 
-    rv_transportable = boolc( lv_type_check_result CA 'RTL' ).
+    rv_transportable = xsdbool( lv_type_check_result CA 'RTL' ).
   ENDMETHOD.
 
 
