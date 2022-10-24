@@ -389,7 +389,7 @@ CLASS lcl_json_serializer DEFINITION FINAL CREATE PRIVATE.
     DATA mv_indent_step TYPE i.
     DATA mv_level TYPE i.
 
-    CLASS-METHODS escape
+    CLASS-METHODS escape_string
       IMPORTING
         iv_unescaped TYPE string
       RETURNING
@@ -425,7 +425,7 @@ CLASS lcl_json_serializer IMPLEMENTATION.
   METHOD stringify.
 
     DATA lo TYPE REF TO lcl_json_serializer.
-    CREATE OBJECT lo.
+    lo = NEW #( ).
     lo->mt_json_tree = it_json_tree.
     lo->mv_indent_step = iv_indent.
     lo->mv_keep_item_order = iv_keep_item_order.
@@ -475,7 +475,7 @@ CLASS lcl_json_serializer IMPLEMENTATION.
       WHEN zif_abapgit_ajson=>node_type-object.
         lv_item = lv_item && '{'.
       WHEN zif_abapgit_ajson=>node_type-string.
-        lv_item = lv_item && |"{ escape( is_node-value ) }"|.
+        lv_item = lv_item && |"{ escape_string( is_node-value ) }"|.
       WHEN zif_abapgit_ajson=>node_type-boolean OR zif_abapgit_ajson=>node_type-number.
         lv_item = lv_item && is_node-value.
       WHEN zif_abapgit_ajson=>node_type-null.
@@ -560,7 +560,7 @@ CLASS lcl_json_serializer IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD escape.
+  METHOD escape_string.
 
     rv_escaped = iv_unescaped.
     IF rv_escaped CA |"\\\t\n\r|.
@@ -897,12 +897,12 @@ CLASS lcl_json_to_abap IMPLEMENTATION.
           IF is_parent_type-tab_item_buf IS BOUND. " Indirect hint that table was sorted/hashed, see get_node_type.
             TRY.
                 INSERT <tab_item> INTO TABLE <parent_anytab>.
+                IF sy-subrc <> 0.
+                  zcx_abapgit_ajson_error=>raise( 'Duplicate insertion' ).
+                ENDIF.
               CATCH cx_sy_itab_duplicate_key.
-                sy-subrc = 4.
+                zcx_abapgit_ajson_error=>raise( 'Duplicate insertion' ).
             ENDTRY.
-            IF sy-subrc <> 0.
-              zcx_abapgit_ajson_error=>raise( 'Duplicate insertion' ).
-            ENDIF.
           ENDIF.
 
         ENDLOOP.
@@ -940,7 +940,7 @@ CLASS lcl_json_to_abap IMPLEMENTATION.
         " Do nothing
       WHEN zif_abapgit_ajson=>node_type-boolean.
         " TODO: check type ?
-        <container> = boolc( is_node-value = 'true' ).
+        <container> = xsdbool( is_node-value = 'true' ).
       WHEN zif_abapgit_ajson=>node_type-number.
         " TODO: check type ?
         <container> = is_node-value.
@@ -1224,7 +1224,7 @@ CLASS lcl_abap_to_json IMPLEMENTATION.
 
     lo_type = cl_abap_typedescr=>describe_by_data( iv_data ).
 
-    CREATE OBJECT lo_converter.
+    lo_converter = NEW #( ).
     lo_converter->mi_custom_mapping  = ii_custom_mapping.
     lo_converter->mv_keep_item_order = iv_keep_item_order.
     lo_converter->mv_format_datetime = iv_format_datetime.
@@ -1621,7 +1621,7 @@ CLASS lcl_abap_to_json IMPLEMENTATION.
 
     lo_type = cl_abap_typedescr=>describe_by_data( iv_data ).
 
-    CREATE OBJECT lo_converter.
+    lo_converter = NEW #( ).
     lo_converter->mi_custom_mapping  = ii_custom_mapping.
     lo_converter->mv_keep_item_order = iv_keep_item_order.
     lo_converter->mv_format_datetime = iv_format_datetime.
