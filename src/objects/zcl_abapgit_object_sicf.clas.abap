@@ -487,7 +487,7 @@ CLASS zcl_abapgit_object_sicf IMPLEMENTATION.
       SELECT SINGLE icfaltnme FROM icfservice INTO ls_key-icf_name
         WHERE icf_name = ls_key-icf_name
         AND icfparguid = ls_key-icfparguid.
-      rv_bool = boolc( sy-subrc = 0 ).
+      rv_bool = xsdbool( sy-subrc = 0 ).
     ENDIF.
 
   ENDMETHOD.
