@@ -516,7 +516,7 @@ CLASS zcl_abapgit_objects_activation IMPLEMENTATION.
         illegal_input = 1
         OTHERS        = 2.
 
-    rv_active = boolc( sy-subrc = 0 AND ( lv_state = '' OR lv_state = 'A' ) ).
+    rv_active = xsdbool( sy-subrc = 0 AND ( lv_state = '' OR lv_state = 'A' ) ).
 
   ENDMETHOD.
 
@@ -559,7 +559,7 @@ CLASS zcl_abapgit_objects_activation IMPLEMENTATION.
         p_e071                    = lt_e071
         p_xmsg                    = lt_messages.
 
-    rv_active = boolc( lt_messages IS INITIAL ).
+    rv_active = xsdbool( lt_messages IS INITIAL ).
 
   ENDMETHOD.
 
@@ -569,6 +569,7 @@ CLASS zcl_abapgit_objects_activation IMPLEMENTATION.
     DATA: ls_class   LIKE LINE OF gt_classes,
           lo_cross   TYPE REF TO cl_wb_crossreference,
           ls_item    TYPE zif_abapgit_definitions=>ty_item,
+          lv_msg     TYPE string,
           lv_error   TYPE c LENGTH 1,
           lv_include TYPE programm.
 
@@ -580,16 +581,18 @@ CLASS zcl_abapgit_objects_activation IMPLEMENTATION.
           lv_include = cl_oo_classname_service=>get_interfacepool_name( ls_class-clsname ).
       ENDCASE.
 
-      CREATE OBJECT lo_cross EXPORTING p_name = lv_include
-                                       p_include = lv_include.
+      lo_cross = NEW #( p_name = lv_include
+                        p_include = lv_include ).
 
       lo_cross->index_actualize( IMPORTING p_error = lv_error ).
 
       IF lv_error = abap_true.
         ls_item-obj_type = ls_class-object.
         ls_item-obj_name = ls_class-clsname.
+        lv_msg = |Error updating where-used list for { ls_item-obj_type } { ls_item-obj_name }.|
+          && | Check for syntax errors|.
         ii_log->add(
-          iv_msg  = 'Error updating where-used list'
+          iv_msg  = lv_msg
           is_item = ls_item ).
       ENDIF.
     ENDLOOP.
