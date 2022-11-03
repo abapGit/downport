@@ -96,8 +96,8 @@ CLASS ZCL_ABAPGIT_HTML IMPLEMENTATION.
 
 
   METHOD class_constructor.
-    CREATE OBJECT go_single_tags_re EXPORTING pattern = '<(AREA|BASE|BR|COL|COMMAND|EMBED|HR|IMG|INPUT|LINK|META|PARAM|SOURCE|!)'
-                                              ignore_case = abap_false.
+    go_single_tags_re = NEW #( pattern = '<(AREA|BASE|BR|COL|COMMAND|EMBED|HR|IMG|INPUT|LINK|META|PARAM|SOURCE|!)'
+                               ignore_case = abap_false ).
 
     gv_spaces = repeat(
       val = ` `
@@ -107,7 +107,7 @@ CLASS ZCL_ABAPGIT_HTML IMPLEMENTATION.
 
 
   METHOD create.
-    CREATE OBJECT ri_instance TYPE zcl_abapgit_html.
+    ri_instance = NEW zcl_abapgit_html( ).
   ENDMETHOD.
 
 
@@ -287,6 +287,7 @@ CLASS ZCL_ABAPGIT_HTML IMPLEMENTATION.
           lv_href  TYPE string,
           lv_click TYPE string,
           lv_id    TYPE string,
+          lv_act   TYPE string,
           lv_style TYPE string,
           lv_title TYPE string.
 
@@ -306,14 +307,21 @@ CLASS ZCL_ABAPGIT_HTML IMPLEMENTATION.
       lv_class = | class="{ lv_class }"|.
     ENDIF.
 
-    lv_href  = ' href="#"'. " Default, dummy
+    lv_href = ' href="#"'. " Default, dummy
+    lv_act  = iv_act.
     IF ( iv_act IS NOT INITIAL OR iv_typ = zif_abapgit_html=>c_action_type-dummy )
         AND iv_opt NA zif_abapgit_html=>c_html_opt-crossout.
       CASE iv_typ.
         WHEN zif_abapgit_html=>c_action_type-url.
-          lv_href  = | href="{ iv_act }"|.
+          IF iv_query IS NOT INITIAL.
+            lv_act = lv_act && `?` && iv_query.
+          ENDIF.
+          lv_href  = | href="{ lv_act }"|.
         WHEN zif_abapgit_html=>c_action_type-sapevent.
-          lv_href  = | href="sapevent:{ iv_act }"|.
+          IF iv_query IS NOT INITIAL.
+            lv_act = lv_act && `?` && iv_query.
+          ENDIF.
+          lv_href  = | href="sapevent:{ lv_act }"|.
         WHEN zif_abapgit_html=>c_action_type-onclick.
           lv_href  = ' href="#"'.
           lv_click = | onclick="{ iv_act }"|.
@@ -377,6 +385,7 @@ CLASS ZCL_ABAPGIT_HTML IMPLEMENTATION.
     zif_abapgit_html~add( zif_abapgit_html~a(
       iv_txt   = iv_txt
       iv_act   = iv_act
+      iv_query = iv_query
       iv_typ   = iv_typ
       iv_opt   = iv_opt
       iv_class = iv_class
@@ -425,7 +434,7 @@ CLASS ZCL_ABAPGIT_HTML IMPLEMENTATION.
 
 
   METHOD zif_abapgit_html~is_empty.
-    rv_yes = boolc( lines( mt_buffer ) = 0 ).
+    rv_yes = xsdbool( lines( mt_buffer ) = 0 ).
   ENDMETHOD.
 
 
