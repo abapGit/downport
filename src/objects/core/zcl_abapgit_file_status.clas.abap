@@ -176,14 +176,14 @@ CLASS zcl_abapgit_file_status IMPLEMENTATION.
       IF ls_file_sig-sha1 <> is_remote-sha1.
         rs_result-rstate = zif_abapgit_definitions=>c_state-modified.
       ENDIF.
-      rs_result-match = boolc( rs_result-lstate IS INITIAL
+      rs_result-match = xsdbool( rs_result-lstate IS INITIAL
         AND rs_result-rstate IS INITIAL ).
     ELSE.
       " This is a strange situation. As both local and remote exist
       " the state should also be present. Maybe this is a first run of the code.
       " In this case just compare hashes directly and mark both changed
       " the user will presumably decide what to do after checking the actual diff
-      rs_result-match = boolc( is_local-file-sha1 = is_remote-sha1 ).
+      rs_result-match = xsdbool( is_local-file-sha1 = is_remote-sha1 ).
       IF rs_result-match = abap_false.
         rs_result-lstate = zif_abapgit_definitions=>c_state-modified.
         rs_result-rstate = zif_abapgit_definitions=>c_state-modified.
@@ -440,6 +440,7 @@ CLASS zcl_abapgit_file_status IMPLEMENTATION.
 
     DATA:
       lv_path         TYPE string,
+      lv_object       TYPE string,
       lo_folder_logic TYPE REF TO zcl_abapgit_folder_logic.
 
     FIELD-SYMBOLS <ls_result> LIKE LINE OF it_results.
@@ -454,12 +455,12 @@ CLASS zcl_abapgit_file_status IMPLEMENTATION.
         io_dot     = io_dot
         iv_package = <ls_result>-package ).
 
-      IF lv_path <> <ls_result>-path.
-        ii_log->add( iv_msg = |Package and path do not match for object {
-                       <ls_result>-obj_type } { <ls_result>-obj_name }|
-                     iv_type = 'W' ).
-      ELSEIF lv_path IS INITIAL.
-        zcx_abapgit_exception=>raise( |Error determining parent package of package { <ls_result>-package }| ).
+      lv_object = |{ <ls_result>-obj_type } { <ls_result>-obj_name }|.
+
+      IF lv_path IS INITIAL.
+        ii_log->add_error( |{ lv_object } already exists outside of { iv_top } package hierarchy| ).
+      ELSEIF lv_path <> <ls_result>-path.
+        ii_log->add_warning( |Package and path do not match for object { lv_object }| ).
       ENDIF.
 
     ENDLOOP.
