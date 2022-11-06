@@ -12,7 +12,7 @@ CLASS zcl_abapgit_repo_offline DEFINITION
       RAISING
         zcx_abapgit_exception .
 
-    METHODS get_name
+    METHODS zif_abapgit_repo~get_name
         REDEFINITION .
     METHODS has_remote_source
         REDEFINITION .
@@ -28,17 +28,8 @@ ENDCLASS.
 CLASS zcl_abapgit_repo_offline IMPLEMENTATION.
 
 
-  METHOD get_name.
-    rv_name = super->get_name( ).
-
-    IF rv_name IS INITIAL.
-      rv_name = ms_data-url.
-    ENDIF.
-  ENDMETHOD.
-
-
   METHOD has_remote_source.
-    rv_yes = boolc( lines( mt_remote ) > 0 ).
+    rv_yes = xsdbool( lines( mt_remote ) > 0 ).
   ENDMETHOD.
 
 
@@ -62,5 +53,14 @@ CLASS zcl_abapgit_repo_offline IMPLEMENTATION.
 
   METHOD set_name.
     set( iv_url = iv_url ).
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_repo~get_name.
+    rv_name = super->get_name( ).
+
+    IF rv_name IS INITIAL.
+      rv_name = ms_data-url.
+    ENDIF.
   ENDMETHOD.
 ENDCLASS.

@@ -39,7 +39,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_MAIN IMPLEMENTATION.
 
   METHOD build_main_menu.
 
-    CREATE OBJECT ro_menu EXPORTING iv_id = 'toolbar-main'.
+    ro_menu = NEW #( iv_id = 'toolbar-main' ).
 
     ro_menu->add(
       iv_txt = zcl_abapgit_gui_buttons=>new_online( )
@@ -68,7 +68,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_MAIN IMPLEMENTATION.
     ms_control-page_menu  = build_main_menu( ).
     ms_control-page_title = 'Repository List'.
 
-    CREATE OBJECT mo_repo_overview EXPORTING iv_only_favorites = iv_only_favorites.
+    mo_repo_overview = NEW #( iv_only_favorites = iv_only_favorites ).
 
   ENDMETHOD.
 
@@ -77,7 +77,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_MAIN IMPLEMENTATION.
 
     register_hotkeys( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
     ri_html->add( mo_repo_overview->zif_abapgit_gui_renderable~render( ) ).
 
   ENDMETHOD.
