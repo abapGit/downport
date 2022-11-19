@@ -67,7 +67,7 @@ CLASS zcl_abapgit_environment IMPLEMENTATION.
     " Changes to repository objects are not permitted in this client (TK 729)
     " Shadow system
     " Running upgrade
-    rv_result = boolc(
+    rv_result = xsdbool(
       lv_systemedit <> 'N' AND
       lv_sys_cliinddep_edit NA '23' AND
       lv_is_shadow <> abap_true AND
@@ -118,7 +118,7 @@ CLASS zcl_abapgit_environment IMPLEMENTATION.
     " This method will be used in the context of SAP Cloud Platform:
     " Pull/Push operations are executed in background jobs.
     " In case of the respective application server needs to be restarted,
-    " it is required to terminae the background job and reschedule again.
+    " it is required to terminate the background job and reschedule again.
     rv_result = abap_false.
     TRY.
         CALL METHOD ('CL_APJ_SCP_TOOLS')=>('IS_RESTART_REQUIRED')
@@ -136,7 +136,7 @@ CLASS zcl_abapgit_environment IMPLEMENTATION.
           CALL METHOD ('CL_COS_UTILITIES')=>('IS_SAP_CLOUD_PLATFORM')
             RECEIVING
               rv_is_sap_cloud_platform = mv_cloud.
-        CATCH cx_sy_dyn_call_illegal_method.
+        CATCH cx_sy_dyn_call_error.
           mv_cloud = abap_false.
       ENDTRY.
     ENDIF.
@@ -209,7 +209,7 @@ CLASS zcl_abapgit_environment IMPLEMENTATION.
     " Memory is set in LSVARF08 / EXPORT_SCREEN_TABLES.
     IMPORT variscreens = lt_variscreens FROM MEMORY ID '%_SCRNR_%'.
 
-    rv_is_variant_maintenance = boolc( lines( lt_variscreens ) > 0 ).
+    rv_is_variant_maintenance = xsdbool( lines( lt_variscreens ) > 0 ).
 
   ENDMETHOD.
 
