@@ -66,7 +66,7 @@ CLASS zcl_abapgit_filename_logic IMPLEMENTATION.
     REPLACE ALL OCCURRENCES OF '#' IN lv_type WITH '/'.
     REPLACE ALL OCCURRENCES OF '#' IN lv_ext WITH '/'.
     " Assume AFF namespace convention
-    go_aff_registry = NEW zcl_abapgit_aff_registry( ).
+    CREATE OBJECT go_aff_registry TYPE zcl_abapgit_aff_registry.
     IF go_aff_registry->is_supported_object_type( lv_type ) = abap_true.
       REPLACE ALL OCCURRENCES OF '(' IN lv_name WITH '/'.
       REPLACE ALL OCCURRENCES OF ')' IN lv_name WITH '/'.
@@ -89,8 +89,8 @@ CLASS zcl_abapgit_filename_logic IMPLEMENTATION.
     CLEAR es_item.
     es_item-obj_type = lv_type.
     es_item-obj_name = lv_name.
-    ev_is_xml        = xsdbool( lv_ext = to_upper( c_package_file-extension ) AND strlen( lv_type ) = 4 ).
-    ev_is_json       = xsdbool( lv_ext = to_upper( c_json_file-extension ) AND strlen( lv_type ) = 4 ).
+    ev_is_xml        = boolc( lv_ext = to_upper( c_package_file-extension ) AND strlen( lv_type ) = 4 ).
+    ev_is_json       = boolc( lv_ext = to_upper( c_json_file-extension ) AND strlen( lv_type ) = 4 ).
 
   ENDMETHOD.
 
@@ -133,7 +133,7 @@ CLASS zcl_abapgit_filename_logic IMPLEMENTATION.
     ENDIF.
 
     " handle namespaces
-    go_aff_registry = NEW zcl_abapgit_aff_registry( ).
+    CREATE OBJECT go_aff_registry TYPE zcl_abapgit_aff_registry.
     IF go_aff_registry->is_supported_object_type( is_item-obj_type ) = abap_true.
       FIND ALL OCCURRENCES OF `/` IN rv_filename MATCH COUNT lv_nb_of_slash.
       IF lv_nb_of_slash = 2.
