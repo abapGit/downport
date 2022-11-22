@@ -134,7 +134,7 @@ CLASS zcl_abapgit_dot_abapgit IMPLEMENTATION.
     ls_data-starting_folder = '/src/'.
     ls_data-folder_logic    = zif_abapgit_dot_abapgit=>c_folder_logic-prefix.
 
-    CREATE OBJECT ro_dot_abapgit EXPORTING is_data = ls_data.
+    ro_dot_abapgit = NEW #( is_data = ls_data ).
 
   ENDMETHOD.
 
@@ -154,7 +154,7 @@ CLASS zcl_abapgit_dot_abapgit IMPLEMENTATION.
 
     ls_data = from_xml( lv_xml ).
 
-    CREATE OBJECT ro_dot_abapgit EXPORTING is_data = ls_data.
+    ro_dot_abapgit = NEW #( is_data = ls_data ).
 
   ENDMETHOD.
 
@@ -217,6 +217,11 @@ CLASS zcl_abapgit_dot_abapgit IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD get_version_constant.
+    rv_version_constant = ms_data-version_constant.
+  ENDMETHOD.
+
+
   METHOD is_ignored.
 
     DATA: lv_name     TYPE string,
@@ -273,21 +278,9 @@ CLASS zcl_abapgit_dot_abapgit IMPLEMENTATION.
 
   METHOD serialize.
 
-    DATA: lv_xml  TYPE string,
-          lv_mark TYPE string.
+    DATA lv_xml TYPE string.
 
     lv_xml = to_xml( ms_data ).
-
-    "unicode systems always add the byte order mark to the xml, while non-unicode does not
-    "this code will always add the byte order mark if it is not in the xml
-    TRY.
-        lv_mark = zcl_abapgit_convert=>xstring_to_string_utf8( cl_abap_char_utilities=>byte_order_mark_utf8 ).
-      CATCH zcx_abapgit_exception ##NO_HANDLER.
-* In non-unicode systems, the byte order mark throws an error
-    ENDTRY.
-    IF lv_xml(1) <> lv_mark.
-      CONCATENATE lv_mark lv_xml INTO lv_xml.
-    ENDIF.
 
     rv_xstr = zcl_abapgit_convert=>string_to_xstring_utf8_bom( lv_xml ).
 
@@ -313,13 +306,11 @@ CLASS zcl_abapgit_dot_abapgit IMPLEMENTATION.
     ms_data-starting_folder = iv_path.
   ENDMETHOD.
 
-  METHOD get_version_constant.
-    rv_version_constant = ms_data-version_constant.
-  ENDMETHOD.
 
   METHOD set_version_constant.
     ms_data-version_constant = iv_version_constant.
   ENDMETHOD.
+
 
   METHOD to_file.
     rs_file-path     = zif_abapgit_definitions=>c_root_dir.
@@ -345,5 +336,4 @@ CLASS zcl_abapgit_dot_abapgit IMPLEMENTATION.
     ASSERT sy-subrc = 0.
 
   ENDMETHOD.
-
 ENDCLASS.
