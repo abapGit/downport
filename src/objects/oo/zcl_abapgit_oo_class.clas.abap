@@ -313,7 +313,7 @@ CLASS zcl_abapgit_oo_class IMPLEMENTATION.
   METHOD update_meta.
 
     DATA: lo_update     TYPE REF TO cl_oo_class_section_source,
-          lx_error      TYPE REF TO cx_oo_clif_scan_error,
+          lx_error      TYPE REF TO cx_oo_source_save_failure,
           ls_clskey     TYPE seoclskey,
           lv_scan_error TYPE abap_bool.
 
@@ -374,7 +374,7 @@ CLASS zcl_abapgit_oo_class IMPLEMENTATION.
 * this will update the SEO* database tables
     TRY.
         lo_update->revert_scan_result( ).
-      CATCH cx_oo_clif_scan_error INTO lx_error.
+      CATCH cx_oo_source_save_failure INTO lx_error.
         zcx_abapgit_exception=>raise_with_text( lx_error ).
     ENDTRY.
 
@@ -650,7 +650,7 @@ CLASS zcl_abapgit_oo_class IMPLEMENTATION.
         no_text       = 4
         inconsistent  = 5
         OTHERS        = 6.
-    rv_exists = boolc( sy-subrc = 0 OR sy-subrc = 4 ).
+    rv_exists = xsdbool( sy-subrc = 0 OR sy-subrc = 4 ).
   ENDMETHOD.
 
 
