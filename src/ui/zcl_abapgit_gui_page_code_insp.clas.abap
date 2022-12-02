@@ -69,34 +69,11 @@ CLASS zcl_abapgit_gui_page_code_insp IMPLEMENTATION.
 
   METHOD ask_user_for_check_variant.
 
-    DATA: lt_return TYPE STANDARD TABLE OF ddshretval.
+    rv_check_variant = zcl_abapgit_ui_factory=>get_popups( )->choose_code_insp_check_variant( ).
 
-    FIELD-SYMBOLS: <ls_return> LIKE LINE OF lt_return.
-
-    CALL FUNCTION 'F4IF_FIELD_VALUE_REQUEST'
-      EXPORTING
-        tabname           = 'SCI_DYNP'
-        fieldname         = 'CHKV'
-      TABLES
-        return_tab        = lt_return
-      EXCEPTIONS
-        field_not_found   = 1
-        no_help_for_field = 2
-        inconsistent_help = 3
-        no_values_found   = 4
-        OTHERS            = 5.
-
-    IF sy-subrc <> 0.
-      zcx_abapgit_exception=>raise_t100( ).
-    ENDIF.
-
-    READ TABLE lt_return ASSIGNING <ls_return>
-                         WITH KEY retfield = 'SCI_DYNP-CHKV'.
-    IF sy-subrc <> 0.
+    IF rv_check_variant IS INITIAL.
       zcx_abapgit_exception=>raise( |Please select a check variant.| ).
     ENDIF.
-
-    rv_check_variant = <ls_return>-fieldval.
 
   ENDMETHOD.
 
@@ -162,19 +139,19 @@ CLASS zcl_abapgit_gui_page_code_insp IMPLEMENTATION.
 
     READ TABLE mt_result TRANSPORTING NO FIELDS
                          WITH KEY kind = 'E'.
-    rv_has_inspection_errors = boolc( sy-subrc = 0 ).
+    rv_has_inspection_errors = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
 
   METHOD is_nothing_to_display.
-    rv_yes = boolc( lines( mt_result ) = 0 ).
+    rv_yes = xsdbool( lines( mt_result ) = 0 ).
   ENDMETHOD.
 
 
   METHOD is_stage_allowed.
 
-    rv_is_stage_allowed = boolc( NOT ( mo_repo->get_local_settings( )-block_commit = abap_true
+    rv_is_stage_allowed = xsdbool( NOT ( mo_repo->get_local_settings( )-block_commit = abap_true
                                            AND has_inspection_errors( ) = abap_true ) ).
 
   ENDMETHOD.
@@ -182,7 +159,7 @@ CLASS zcl_abapgit_gui_page_code_insp IMPLEMENTATION.
 
   METHOD render_content.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( `<div class="repo">` ).
     ri_html->add( zcl_abapgit_gui_chunk_lib=>render_repo_top( io_repo        = mo_repo
@@ -253,8 +230,8 @@ CLASS zcl_abapgit_gui_page_code_insp IMPLEMENTATION.
             ENDIF.
           ENDIF.
 
-          CREATE OBJECT rs_handled-page TYPE zcl_abapgit_gui_page_stage EXPORTING io_repo = lo_repo_online
-                                                                                  iv_sci_result = lv_sci_result.
+          rs_handled-page = NEW zcl_abapgit_gui_page_stage( io_repo = lo_repo_online
+                                                            iv_sci_result = lv_sci_result ).
 
           rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page.
 

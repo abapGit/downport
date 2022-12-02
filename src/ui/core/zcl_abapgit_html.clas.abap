@@ -29,9 +29,6 @@ CLASS zcl_abapgit_html DEFINITION
   PROTECTED SECTION.
   PRIVATE SECTION.
 
-    ALIASES add FOR zif_abapgit_html~add.
-    ALIASES wrap FOR zif_abapgit_html~wrap.
-
     TYPES:
       BEGIN OF ty_indent_context,
         no_indent_jscss TYPE abap_bool,
@@ -74,7 +71,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_HTML IMPLEMENTATION.
+CLASS zcl_abapgit_html IMPLEMENTATION.
 
 
   METHOD checkbox.
@@ -96,8 +93,8 @@ CLASS ZCL_ABAPGIT_HTML IMPLEMENTATION.
 
 
   METHOD class_constructor.
-    CREATE OBJECT go_single_tags_re EXPORTING pattern = '<(AREA|BASE|BR|COL|COMMAND|EMBED|HR|IMG|INPUT|LINK|META|PARAM|SOURCE|!)'
-                                              ignore_case = abap_false.
+    go_single_tags_re = NEW #( pattern = '<(AREA|BASE|BR|COL|COMMAND|EMBED|HR|IMG|INPUT|LINK|META|PARAM|SOURCE|!)'
+                               ignore_case = abap_false ).
 
     gv_spaces = repeat(
       val = ` `
@@ -107,7 +104,7 @@ CLASS ZCL_ABAPGIT_HTML IMPLEMENTATION.
 
 
   METHOD create.
-    CREATE OBJECT ri_instance TYPE zcl_abapgit_html.
+    ri_instance = NEW zcl_abapgit_html( ).
   ENDMETHOD.
 
 
@@ -434,7 +431,7 @@ CLASS ZCL_ABAPGIT_HTML IMPLEMENTATION.
 
 
   METHOD zif_abapgit_html~is_empty.
-    rv_yes = boolc( lines( mt_buffer ) = 0 ).
+    rv_yes = xsdbool( lines( mt_buffer ) = 0 ).
   ENDMETHOD.
 
 
@@ -465,7 +462,7 @@ CLASS ZCL_ABAPGIT_HTML IMPLEMENTATION.
 
 
   METHOD zif_abapgit_html~td.
-    wrap(
+    zif_abapgit_html~wrap(
       iv_tag   = 'td'
       iv_content = iv_content
       ii_content = ii_content
@@ -477,7 +474,7 @@ CLASS ZCL_ABAPGIT_HTML IMPLEMENTATION.
 
 
   METHOD zif_abapgit_html~th.
-    wrap(
+    zif_abapgit_html~wrap(
       iv_tag   = 'th'
       iv_content = iv_content
       ii_content = ii_content
@@ -517,14 +514,14 @@ CLASS ZCL_ABAPGIT_HTML IMPLEMENTATION.
       CLEAR lv_close_tag.
     ENDIF.
 
-    add( lv_open_tag ).
+    zif_abapgit_html~add( lv_open_tag ).
     IF ii_content IS BOUND.
-      add( ii_content ).
+      zif_abapgit_html~add( ii_content ).
     ELSEIF iv_content IS NOT INITIAL.
-      add( iv_content ).
+      zif_abapgit_html~add( iv_content ).
     ENDIF.
     IF lv_close_tag IS NOT INITIAL.
-      add( `</` && iv_tag && `>` ).
+      zif_abapgit_html~add( `</` && iv_tag && `>` ).
     ENDIF.
 
     ri_self = me.

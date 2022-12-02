@@ -911,7 +911,7 @@ CLASS zcl_abapgit_popups IMPLEMENTATION.
         p_object_data    = es_package_data
       EXCEPTIONS
         action_cancelled = 1.
-    ev_create = boolc( sy-subrc = 0 ).
+    ev_create = xsdbool( sy-subrc = 0 ).
   ENDMETHOD.
 
 
@@ -1040,7 +1040,7 @@ CLASS zcl_abapgit_popups IMPLEMENTATION.
         ENDIF.
 
         IF iv_header_text CN ' _0'.
-          CREATE OBJECT lo_table_header EXPORTING text = iv_header_text.
+          lo_table_header = NEW #( text = iv_header_text ).
           mo_select_list_popup->set_top_of_list( lo_table_header ).
         ENDIF.
 
@@ -1375,6 +1375,38 @@ CLASS zcl_abapgit_popups IMPLEMENTATION.
       ENDIF.
       rv_labels = rv_labels && <lv_label>-label.
     ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_popups~choose_code_insp_check_variant.
+
+    DATA: lt_return TYPE STANDARD TABLE OF ddshretval.
+
+    FIELD-SYMBOLS: <ls_return> LIKE LINE OF lt_return.
+
+    CALL FUNCTION 'F4IF_FIELD_VALUE_REQUEST'
+      EXPORTING
+        tabname           = 'SCI_DYNP'
+        fieldname         = 'CHKV'
+      TABLES
+        return_tab        = lt_return
+      EXCEPTIONS
+        field_not_found   = 1
+        no_help_for_field = 2
+        inconsistent_help = 3
+        no_values_found   = 4
+        OTHERS            = 5.
+
+    IF sy-subrc <> 0.
+      zcx_abapgit_exception=>raise_t100( ).
+    ENDIF.
+
+    READ TABLE lt_return ASSIGNING <ls_return>
+                         WITH KEY retfield = 'SCI_DYNP-CHKV'.
+    IF sy-subrc = 0.
+      rv_check_variant = <ls_return>-fieldval.
+    ENDIF.
 
   ENDMETHOD.
 

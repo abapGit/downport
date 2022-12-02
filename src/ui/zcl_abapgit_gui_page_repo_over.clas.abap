@@ -150,6 +150,10 @@ CLASS zcl_abapgit_gui_page_repo_over DEFINITION
       RETURNING
         VALUE(rt_list) TYPE string_table.
 
+    METHODS render_filter_help_hint
+      RETURNING
+        VALUE(rv_html) TYPE string.
+
 ENDCLASS.
 
 
@@ -172,13 +176,19 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_REPO_OVER IMPLEMENTATION.
 
     IF strlen( mv_filter ) > lv_pfxl AND mv_filter+0(lv_pfxl) = c_label_filter_prefix.
       lv_filter_label = mv_filter+lv_pfxl.
-      LOOP AT ct_overview ASSIGNING <ls_r>.
-        lv_idx = sy-tabix.
-        READ TABLE <ls_r>-labels TRANSPORTING NO FIELDS WITH KEY table_line = lv_filter_label.
-        IF sy-subrc <> 0.
-          DELETE ct_overview INDEX lv_idx.
-        ENDIF.
-      ENDLOOP.
+      IF lv_filter_label = 'all'.
+        DELETE ct_overview WHERE labels IS INITIAL.
+      ELSEIF lv_filter_label = 'none'.
+        DELETE ct_overview WHERE labels IS NOT INITIAL.
+      ELSE.
+        LOOP AT ct_overview ASSIGNING <ls_r>.
+          lv_idx = sy-tabix.
+          READ TABLE <ls_r>-labels TRANSPORTING NO FIELDS WITH KEY table_line = lv_filter_label.
+          IF sy-subrc <> 0.
+            DELETE ct_overview INDEX lv_idx.
+          ENDIF.
+        ENDLOOP.
+      ENDIF.
     ELSE. " Regular filter
       DELETE ct_overview WHERE key             NS mv_filter
         AND name            NS mv_filter
@@ -230,7 +240,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_REPO_OVER IMPLEMENTATION.
 
     DATA lo_tab_scheme TYPE REF TO lcl_table_scheme.
 
-    CREATE OBJECT lo_tab_scheme.
+    lo_tab_scheme = NEW #( ).
 
     lo_tab_scheme->add_column(
       iv_tech_name      = 'FAVORITE'
@@ -398,7 +408,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_REPO_OVER IMPLEMENTATION.
     DATA lo_toolbar TYPE REF TO zcl_abapgit_html_toolbar.
     DATA lo_toolbar_more_sub TYPE REF TO zcl_abapgit_html_toolbar.
 
-    CREATE OBJECT lo_toolbar EXPORTING iv_id = 'toolbar-ovp'.
+    lo_toolbar = NEW #( iv_id = 'toolbar-ovp' ).
 
     lo_toolbar->add(
       iv_txt      = |Pull|
@@ -448,7 +458,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_REPO_OVER IMPLEMENTATION.
       iv_class    = |{ lc_action_class }|
       iv_li_class = |{ lc_action_class }| ).
 
-    CREATE OBJECT lo_toolbar_more_sub EXPORTING iv_id = 'toolbar-ovp-more_sub'.
+    lo_toolbar_more_sub = NEW #( iv_id = 'toolbar-ovp-more_sub' ).
 
     lo_toolbar_more_sub->add(
       iv_txt      = |Stage by Transport|
@@ -497,12 +507,12 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_REPO_OVER IMPLEMENTATION.
 
     DATA lv_icon_class TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( |<form class="inline" method="post" action="sapevent:{ c_action-apply_filter }">| ).
     ri_html->add( zcl_abapgit_gui_chunk_lib=>render_text_input(
       iv_name      = |filter|
-      iv_label     = |Filter:|
+      iv_label     = |Filter: { render_filter_help_hint( ) }|
       iv_value     = mv_filter ) ).
     ri_html->add( |<input type="submit" class="hidden-submit">| ).
     ri_html->add( |</form>| ).
@@ -524,6 +534,22 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_REPO_OVER IMPLEMENTATION.
       iv_class = 'command'
       iv_typ   = zif_abapgit_html=>c_action_type-onclick ) ).
     ri_html->add( '</span>' ).
+
+  ENDMETHOD.
+
+
+  METHOD render_filter_help_hint.
+
+    DATA lt_fragments TYPE string_table.
+
+    APPEND `Filter is applied to all text fields in the below table.` TO lt_fragments.
+    APPEND ` Search works for any portion of the text (so can be a mid part as well).` TO lt_fragments.
+    APPEND `<br>Starting query from <code>label:xxx</code> will filter appropriate label.` TO lt_fragments.
+    APPEND `Two "special" label queries are available:` TO lt_fragments.
+    APPEND ` <code>all</code> (to select all repos that has at least one label)` TO lt_fragments.
+    APPEND ` and <code>none</code> (to select unlabeled repos).` TO lt_fragments.
+
+    rv_html = zcl_abapgit_gui_chunk_lib=>render_help_hint( concat_lines_of( table = lt_fragments ) ).
 
   ENDMETHOD.
 
@@ -572,7 +598,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_REPO_OVER IMPLEMENTATION.
 
   METHOD render_scripts.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
     ri_html->add( 'var gHelper = new RepoOverViewHelper({ focusFilterKey: "f" });' ).
@@ -639,7 +665,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_REPO_OVER IMPLEMENTATION.
       lv_fav_tr_class   TYPE string,
       lv_lock           TYPE string.
 
-    lv_is_online_repo = boolc( is_repo-type = abap_false ).
+    lv_is_online_repo = xsdbool( is_repo-type = abap_false ).
 
     " Start of row
     IF is_repo-favorite = abap_true.
@@ -805,7 +831,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_REPO_OVER IMPLEMENTATION.
           CATCH zcx_abapgit_exception ##NO_HANDLER.
         ENDTRY.
 
-        CREATE OBJECT rs_handled-page TYPE zcl_abapgit_gui_page_repo_view EXPORTING iv_key = lv_key.
+        rs_handled-page = NEW zcl_abapgit_gui_page_repo_view( iv_key = lv_key ).
         rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page.
 
       WHEN zif_abapgit_definitions=>c_action-change_order_by.
@@ -818,13 +844,13 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_REPO_OVER IMPLEMENTATION.
         IF ii_event->query( )->has( 'FORCE_STATE' ) = abap_true.
           mv_only_favorites = ii_event->query( )->get( 'FORCE_STATE' ).
         ELSE.
-          mv_only_favorites = boolc( mv_only_favorites = abap_false ).
+          mv_only_favorites = xsdbool( mv_only_favorites = abap_false ).
         ENDIF.
         rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
 
       WHEN zif_abapgit_definitions=>c_action-direction.
 
-        set_order_direction( boolc( ii_event->query( )->get( 'DIRECTION' ) = 'DESCENDING' ) ).
+        set_order_direction( xsdbool( ii_event->query( )->get( 'DIRECTION' ) = 'DESCENDING' ) ).
         rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
 
       WHEN c_action-apply_filter.
@@ -843,7 +869,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_REPO_OVER IMPLEMENTATION.
 
       WHEN zif_abapgit_definitions=>c_action-go_patch.
 
-        CREATE OBJECT rs_handled-page TYPE zcl_abapgit_gui_page_patch EXPORTING iv_key = lv_key.
+        rs_handled-page = NEW zcl_abapgit_gui_page_patch( iv_key = lv_key ).
         rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page.
 
     ENDCASE.
@@ -916,7 +942,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_REPO_OVER IMPLEMENTATION.
 
     lt_overview = prepare_overviews( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     zcl_abapgit_exit=>get_instance( )->wall_message_list( ri_html ).
 
