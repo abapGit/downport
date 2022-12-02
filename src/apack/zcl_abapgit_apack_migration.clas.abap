@@ -89,10 +89,10 @@ CLASS zcl_abapgit_apack_migration IMPLEMENTATION.
 
 
   METHOD add_interface_source_classic.
-    DATA: lo_source      TYPE REF TO cl_oo_source,
+    DATA: lo_source      TYPE REF TO object,
           lt_source_code TYPE zif_abapgit_definitions=>ty_string_tt.
 
-    CREATE OBJECT lo_source
+    CREATE OBJECT lo_source TYPE ('CL_OO_SOURCE')
       EXPORTING
         clskey             = is_clskey
       EXCEPTIONS
@@ -103,11 +103,17 @@ CLASS zcl_abapgit_apack_migration IMPLEMENTATION.
     ENDIF.
 
     TRY.
-        lo_source->access_permission( seok_access_modify ).
+        CALL METHOD lo_source->('ACCESS_PERMISSION')
+          EXPORTING
+            access_mode = seok_access_modify.
         lt_source_code = get_interface_source( ).
-        lo_source->set_source( lt_source_code ).
-        lo_source->save( ).
-        lo_source->access_permission( seok_access_free ).
+        CALL METHOD lo_source->('SET_SOURCE')
+          EXPORTING
+            i_source = lt_source_code.
+        CALL METHOD lo_source->('SAVE').
+        CALL METHOD lo_source->('ACCESS_PERMISSION')
+          EXPORTING
+            access_mode = seok_access_free.
       CATCH cx_oo_access_permission.
         zcx_abapgit_exception=>raise( 'permission error' ).
       CATCH cx_oo_source_save_failure.
@@ -238,7 +244,7 @@ CLASS zcl_abapgit_apack_migration IMPLEMENTATION.
 
     SELECT SINGLE clsname FROM seoclass INTO lv_interface_name
       WHERE clsname = zif_abapgit_apack_definitions=>c_apack_interface_cust.
-    rv_interface_exists = boolc( sy-subrc = 0 ).
+    rv_interface_exists = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -248,7 +254,7 @@ CLASS zcl_abapgit_apack_migration IMPLEMENTATION.
     FIELD-SYMBOLS: <lv_interface_vers> TYPE i.
 
     ASSIGN (zif_abapgit_apack_definitions=>c_apack_interface_cust)=>('CO_INTERFACE_VERSION') TO <lv_interface_vers>.
-    rv_interface_valid = boolc( <lv_interface_vers> IS ASSIGNED
+    rv_interface_valid = xsdbool( <lv_interface_vers> IS ASSIGNED
       AND <lv_interface_vers> >= c_apack_interface_version ).
 
   ENDMETHOD.
@@ -269,7 +275,7 @@ CLASS zcl_abapgit_apack_migration IMPLEMENTATION.
 
     DATA: lo_apack_migration TYPE REF TO zcl_abapgit_apack_migration.
 
-    CREATE OBJECT lo_apack_migration.
+    lo_apack_migration = NEW #( ).
     lo_apack_migration->perform_migration( ).
 
   ENDMETHOD.
