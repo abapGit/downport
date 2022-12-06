@@ -1,4 +1,3 @@
-
 CLASS ltcl_diff DEFINITION FOR TESTING
   DURATION SHORT
   RISK LEVEL HARMLESS.
@@ -6,11 +5,13 @@ CLASS ltcl_diff DEFINITION FOR TESTING
   PRIVATE SECTION.
     DATA: mt_new      TYPE TABLE OF string,
           mt_old      TYPE TABLE OF string,
+          mt_beacons  TYPE zif_abapgit_definitions=>ty_string_tt,
           mt_expected TYPE zif_abapgit_definitions=>ty_diffs_tt.
 
     METHODS:
       add_new IMPORTING iv_new TYPE string,
       add_old IMPORTING iv_old TYPE string,
+      add_beacon   IMPORTING iv_beacon TYPE string,
       add_expected IMPORTING iv_new_num TYPE zif_abapgit_definitions=>ty_diff-new_num
                              iv_new     TYPE zif_abapgit_definitions=>ty_diff-new
                              iv_result  TYPE zif_abapgit_definitions=>ty_diff-result
@@ -26,6 +27,7 @@ CLASS ltcl_diff DEFINITION FOR TESTING
         !iv_ignore_indentation TYPE abap_bool DEFAULT abap_false
         !iv_ignore_comments    TYPE abap_bool DEFAULT abap_false
         !iv_ignore_case        TYPE abap_bool DEFAULT abap_false
+        !iv_check_beacons      TYPE abap_bool DEFAULT abap_false
       RAISING
         zcx_abapgit_exception.
 
@@ -43,25 +45,23 @@ CLASS ltcl_diff DEFINITION FOR TESTING
       diff11 FOR TESTING RAISING zcx_abapgit_exception,
       diff12 FOR TESTING RAISING zcx_abapgit_exception,
       diff13 FOR TESTING RAISING zcx_abapgit_exception,
-      diff14 FOR TESTING RAISING zcx_abapgit_exception.
+      diff14 FOR TESTING RAISING zcx_abapgit_exception,
+      map_beacons FOR TESTING RAISING zcx_abapgit_exception.
 
 ENDCLASS.
-
 
 CLASS ltcl_diff IMPLEMENTATION.
 
   METHOD add_new.
-    DATA lv_new LIKE LINE OF mt_new.
-
-    lv_new = iv_new.
-    APPEND lv_new TO mt_new.
+    APPEND iv_new TO mt_new.
   ENDMETHOD.
 
   METHOD add_old.
-    DATA lv_old LIKE LINE OF mt_old.
+    APPEND iv_old TO mt_old.
+  ENDMETHOD.
 
-    lv_old = iv_old.
-    APPEND lv_old TO mt_old.
+  METHOD add_beacon.
+    APPEND iv_beacon TO mt_beacons.
   ENDMETHOD.
 
   METHOD add_expected.
@@ -79,6 +79,7 @@ CLASS ltcl_diff IMPLEMENTATION.
   METHOD setup.
     CLEAR mt_new.
     CLEAR mt_old.
+    CLEAR mt_beacons.
     CLEAR mt_expected.
   ENDMETHOD.
 
@@ -100,12 +101,18 @@ CLASS ltcl_diff IMPLEMENTATION.
     lv_xnew = zcl_abapgit_convert=>string_to_xstring_utf8( lv_new ).
     lv_xold = zcl_abapgit_convert=>string_to_xstring_utf8( lv_old ).
 
-    CREATE OBJECT lo_diff EXPORTING iv_new = lv_xnew
-                                    iv_old = lv_xold
-                                    iv_ignore_indentation = iv_ignore_indentation
-                                    iv_ignore_comments = iv_ignore_comments
-                                    iv_ignore_case = iv_ignore_case.
+    lo_diff = NEW #( iv_new = lv_xnew
+                     iv_old = lv_xold
+                     iv_ignore_indentation = iv_ignore_indentation
+                     iv_ignore_comments = iv_ignore_comments
+                     iv_ignore_case = iv_ignore_case ).
 
+    IF iv_check_beacons = abap_true.
+      cl_abap_unit_assert=>assert_equals(
+        act = lo_diff->get_beacons( )
+        exp = mt_beacons ).
+      RETURN.
+    ENDIF.
 
     lt_diff = lo_diff->get( ).
 
@@ -121,7 +128,7 @@ CLASS ltcl_diff IMPLEMENTATION.
   METHOD diff01.
 
     "insert
-    add_new( iv_new = 'A' ).
+    add_new( 'A' ).
 
     add_expected( iv_new_num = '    1'
                   iv_new     = 'A'
@@ -135,8 +142,8 @@ CLASS ltcl_diff IMPLEMENTATION.
   METHOD diff02.
 
     " identical
-    add_new( iv_new = 'A' ).
-    add_old( iv_old = 'A' ).
+    add_new( 'A' ).
+    add_old( 'A' ).
 
     add_expected( iv_new_num = '    1'
                   iv_new     = 'A'
@@ -150,7 +157,7 @@ CLASS ltcl_diff IMPLEMENTATION.
   METHOD diff03.
 
     " delete
-    add_old( iv_old = 'A' ).
+    add_old( 'A' ).
 
     add_expected( iv_new_num = ''
                   iv_new     = ''
@@ -164,9 +171,9 @@ CLASS ltcl_diff IMPLEMENTATION.
   METHOD diff04.
 
     " update
-    add_new( iv_new = 'A+' ).
+    add_new( 'A+' ).
 
-    add_old( iv_old = 'A' ).
+    add_old( 'A' ).
 
     add_expected( iv_new_num = '    1'
                   iv_new     = 'A+'
@@ -180,11 +187,11 @@ CLASS ltcl_diff IMPLEMENTATION.
   METHOD diff05.
 
     " identical
-    add_new( iv_new = 'A' ).
-    add_new( iv_new = 'B' ).
+    add_new( 'A' ).
+    add_new( 'B' ).
 
-    add_old( iv_old = 'A' ).
-    add_old( iv_old = 'B' ).
+    add_old( 'A' ).
+    add_old( 'B' ).
 
     add_expected( iv_new_num = '    1'
                   iv_new     = 'A'
@@ -203,16 +210,16 @@ CLASS ltcl_diff IMPLEMENTATION.
   METHOD diff06.
 
     " mixed
-    add_new( iv_new = 'A' ).
-    add_new( iv_new = 'B' ).
-    add_new( iv_new = 'inserted' ).
-    add_new( iv_new = 'C' ).
-    add_new( iv_new = 'D update' ).
+    add_new( 'A' ).
+    add_new( 'B' ).
+    add_new( 'inserted' ).
+    add_new( 'C' ).
+    add_new( 'D update' ).
 
-    add_old( iv_old = 'A' ).
-    add_old( iv_old = 'B' ).
-    add_old( iv_old = 'C' ).
-    add_old( iv_old = 'D' ).
+    add_old( 'A' ).
+    add_old( 'B' ).
+    add_old( 'C' ).
+    add_old( 'D' ).
 
     add_expected( iv_new_num = '    1'
                   iv_new     = 'A'
@@ -247,15 +254,15 @@ CLASS ltcl_diff IMPLEMENTATION.
   METHOD diff07.
 
     " ignore indentation
-    add_new( iv_new = 'A' ).
-    add_new( iv_new = ' B' ). " changed indent
-    add_new( iv_new = 'C' ).
-    add_new( iv_new = '    D' ). " changed indent
+    add_new( 'A' ).
+    add_new( ' B' ). " changed indent
+    add_new( 'C' ).
+    add_new( '    D' ). " changed indent
 
-    add_old( iv_old = 'A' ).
-    add_old( iv_old = 'B' ).
-    add_old( iv_old = 'C' ).
-    add_old( iv_old = 'D' ).
+    add_old( 'A' ).
+    add_old( 'B' ).
+    add_old( 'C' ).
+    add_old( 'D' ).
 
     add_expected( iv_new_num = '    1'
                   iv_new     = 'A'
@@ -285,15 +292,15 @@ CLASS ltcl_diff IMPLEMENTATION.
   METHOD diff08.
 
     " ignore comments
-    add_new( iv_new = 'A' ).
-    add_new( iv_new = '* X' ). " changed comment
-    add_new( iv_new = 'C' ).
-    add_new( iv_new = 'D " new' ). " changed comment
+    add_new( 'A' ).
+    add_new( '* X' ). " changed comment
+    add_new( 'C' ).
+    add_new( 'D " new' ). " changed comment
 
-    add_old( iv_old = 'A' ).
-    add_old( iv_old = '* B' ).
-    add_old( iv_old = 'C' ).
-    add_old( iv_old = 'D " old' ).
+    add_old( 'A' ).
+    add_old( '* B' ).
+    add_old( 'C' ).
+    add_old( 'D " old' ).
 
     add_expected( iv_new_num = '    1'
                   iv_new     = 'A'
@@ -323,15 +330,15 @@ CLASS ltcl_diff IMPLEMENTATION.
   METHOD diff09.
 
     " ignore case
-    add_new( iv_new = 'A' ).
-    add_new( iv_new = 'b' ). " changed case
-    add_new( iv_new = 'c' ).
-    add_new( iv_new = 'D' ). " changed case
+    add_new( 'A' ).
+    add_new( 'b' ). " changed case
+    add_new( 'c' ).
+    add_new( 'D' ). " changed case
 
-    add_old( iv_old = 'A' ).
-    add_old( iv_old = 'B' ).
-    add_old( iv_old = 'c' ).
-    add_old( iv_old = 'd' ).
+    add_old( 'A' ).
+    add_old( 'B' ).
+    add_old( 'c' ).
+    add_old( 'd' ).
 
     add_expected( iv_new_num = '    1'
                   iv_new     = 'A'
@@ -361,9 +368,9 @@ CLASS ltcl_diff IMPLEMENTATION.
   METHOD diff10.
 
     " ignore case should NOT ignore changed literals
-    add_new( iv_new = `WRITE 'TEST'` ).
+    add_new( `WRITE 'TEST'` ).
 
-    add_old( iv_old = `WRITE 'test'` ).
+    add_old( `WRITE 'test'` ).
 
     add_expected( iv_new_num = '    1'
                   iv_new     = `WRITE 'TEST'`
@@ -378,11 +385,11 @@ CLASS ltcl_diff IMPLEMENTATION.
   METHOD diff11.
 
     " ignore case should ignore changed keywords, variables, types
-    add_new( iv_new = `write 'test'` ).
-    add_new( iv_new = `DATA FOO TYPE I.` ).
+    add_new( `write 'test'` ).
+    add_new( `DATA FOO TYPE I.` ).
 
-    add_old( iv_old = `WRITE 'test'` ).
-    add_old( iv_old = `DATA foo TYPE i.` ).
+    add_old( `WRITE 'test'` ).
+    add_old( `DATA foo TYPE i.` ).
 
     add_expected( iv_new_num = '    1'
                   iv_new     = `write 'test'`
@@ -402,16 +409,16 @@ CLASS ltcl_diff IMPLEMENTATION.
   METHOD diff12.
 
     " adjusted diffs for insert (workaround for kernel issue)
-    add_new( iv_new = `REPORT zprog_diff.` ).
-    add_new( iv_new = `*` ).
-    add_new( iv_new = `FORM t_1.` ).
-    add_new( iv_new = `ENDFORM.` ).
-    add_new( iv_new = `FORM t_2.` ).
-    add_new( iv_new = `ENDFORM.` ).
+    add_new( `REPORT zprog_diff.` ).
+    add_new( `*` ).
+    add_new( `FORM t_1.` ).
+    add_new( `ENDFORM.` ).
+    add_new( `FORM t_2.` ).
+    add_new( `ENDFORM.` ).
 
-    add_old( iv_old = `REPORT zprog_diff.` ).
-    add_old( iv_old = `FORM t_1.` ).
-    add_old( iv_old = `ENDFORM.` ).
+    add_old( `REPORT zprog_diff.` ).
+    add_old( `FORM t_1.` ).
+    add_old( `ENDFORM.` ).
 
     add_expected( iv_new_num = '    1'
                   iv_new     = `REPORT zprog_diff.`
@@ -457,16 +464,16 @@ CLASS ltcl_diff IMPLEMENTATION.
   METHOD diff13.
 
     " adjusted diffs for delete (workaround for kernel issue)
-    add_old( iv_old = `REPORT zprog_diff.` ).
-    add_old( iv_old = `*` ).
-    add_old( iv_old = `FORM t_1.` ).
-    add_old( iv_old = `ENDFORM.` ).
-    add_old( iv_old = `FORM t_2.` ).
-    add_old( iv_old = `ENDFORM.` ).
+    add_old( `REPORT zprog_diff.` ).
+    add_old( `*` ).
+    add_old( `FORM t_1.` ).
+    add_old( `ENDFORM.` ).
+    add_old( `FORM t_2.` ).
+    add_old( `ENDFORM.` ).
 
-    add_new( iv_new = `REPORT zprog_diff.` ).
-    add_new( iv_new = `FORM t_1.` ).
-    add_new( iv_new = `ENDFORM.` ).
+    add_new( `REPORT zprog_diff.` ).
+    add_new( `FORM t_1.` ).
+    add_new( `ENDFORM.` ).
 
     add_expected( iv_old_num = '    1'
                   iv_old     = `REPORT zprog_diff.`
@@ -512,17 +519,17 @@ CLASS ltcl_diff IMPLEMENTATION.
   METHOD diff14.
 
     " lines with different whitespace
-    add_new( iv_new = 'A' ).
-    add_new( iv_new = `` ). " empty line
-    add_new( iv_new = ` ` ). " one space
-    add_new( iv_new = `   ` ). " some spaces
-    add_new( iv_new = 'E' ).
+    add_new( 'A' ).
+    add_new( `` ). " empty line
+    add_new( ` ` ). " one space
+    add_new( `   ` ). " some spaces
+    add_new( 'E' ).
 
-    add_old( iv_old = 'A' ).
-    add_old( iv_old = `     ` ). " some spaces
-    add_old( iv_old = `  ` ). " two spaces
-    add_old( iv_old = `` ). " empty line
-    add_old( iv_old = 'E' ).
+    add_old( 'A' ).
+    add_old( `     ` ). " some spaces
+    add_old( `  ` ). " two spaces
+    add_old( `` ). " empty line
+    add_old( 'E' ).
 
     add_expected( iv_new_num = '    1'
                   iv_new     = 'A'
@@ -554,4 +561,44 @@ CLASS ltcl_diff IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD map_beacons.
+
+    add_new( `REPORT ztest_beacon.` ).
+    add_new( `` ).
+    add_new( `DATA report TYPE string.` ).
+    add_new( `report = 'TEST'.` ).
+    add_new( `` ).
+    add_new( `CLASS lcl_test DEFINITION.` ).
+    add_new( `  PUBLIC SECTION.` ).
+    add_new( `    CLASS-METHODS test.` ).
+    add_new( `ENDCLASS.` ).
+    add_new( `` ).
+    add_new( `CLASS lcl_test IMPLEMENTATION.` ).
+    add_new( `  METHOD test.` ).
+    add_new( `    DATA method TYPE i.` ).
+    add_new( `    method = 10.` ).
+    add_new( `  ENDMETHOD.` ).
+    add_new( `ENDCLASS.` ).
+    add_new( `` ).
+    add_new( `TYPE-POOLS abap.` ).
+    add_new( `` ).
+    add_new( `START-OF-SELECTION.` ).
+    add_new( `  CALL METHOD lcl_test=>test.` ).
+    add_new( `` ).
+    add_new( `AT SELECTION-SCREEN.` ).
+    add_new( `  BREAK-POINT.` ).
+
+    add_old( '' ).
+
+    add_beacon( `REPORT ztest_beacon` ).
+    add_beacon( `CLASS lcl_test DEFINITION` ).
+    add_beacon( `CLASS lcl_test PUBLIC SECTION` ).
+    add_beacon( `CLASS lcl_test IMPLEMENTATION` ).
+    add_beacon( `CLASS lcl_test => METHOD test` ).
+    add_beacon( `START-OF-SELECTION` ).
+    add_beacon( `AT SELECTION-SCREEN` ).
+
+    test( iv_check_beacons = abap_true ).
+
+  ENDMETHOD.
 ENDCLASS.
