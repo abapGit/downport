@@ -29,6 +29,7 @@ CLASS zcl_abapgit_gui_page_sett_locl DEFINITION
       BEGIN OF c_id,
         local                        TYPE string VALUE 'local',
         display_name                 TYPE string VALUE 'display_name',
+        transport_request            TYPE string VALUE 'transport_request',
         labels                       TYPE string VALUE 'labels',
         ignore_subpackages           TYPE string VALUE 'ignore_subpackages',
         write_protected              TYPE string VALUE 'write_protected',
@@ -40,9 +41,10 @@ CLASS zcl_abapgit_gui_page_sett_locl DEFINITION
       END OF c_id .
     CONSTANTS:
       BEGIN OF c_event,
-        save                 TYPE string VALUE 'save',
-        choose_labels        TYPE string VALUE 'choose-labels',
-        choose_check_variant TYPE string VALUE 'choose_check_variant',
+        save                     TYPE string VALUE 'save',
+        choose_transport_request TYPE string VALUE 'choose_transport_request',
+        choose_labels            TYPE string VALUE 'choose-labels',
+        choose_check_variant     TYPE string VALUE 'choose_check_variant',
       END OF c_event .
 
     DATA mo_form TYPE REF TO zcl_abapgit_html_form .
@@ -77,6 +79,9 @@ CLASS zcl_abapgit_gui_page_sett_locl DEFINITION
     METHODS choose_check_variant
       RAISING
         zcx_abapgit_exception.
+    METHODS choose_transport_request
+      RAISING
+        zcx_abapgit_exception.
 
 ENDCLASS.
 
@@ -88,8 +93,8 @@ CLASS zcl_abapgit_gui_page_sett_locl IMPLEMENTATION.
   METHOD constructor.
 
     super->constructor( ).
-    CREATE OBJECT mo_validation_log.
-    CREATE OBJECT mo_form_data.
+    mo_validation_log = NEW #( ).
+    mo_form_data = NEW #( ).
     mo_repo = io_repo.
     mo_form = get_form_schema( ).
     mo_form_util = zcl_abapgit_html_form_utils=>create( mo_form ).
@@ -103,7 +108,7 @@ CLASS zcl_abapgit_gui_page_sett_locl IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_sett_locl.
 
-    CREATE OBJECT lo_component EXPORTING io_repo = io_repo.
+    lo_component = NEW #( io_repo = io_repo ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Local Settings & Checks'
@@ -117,6 +122,10 @@ CLASS zcl_abapgit_gui_page_sett_locl IMPLEMENTATION.
 
   METHOD get_form_schema.
 
+    DATA: li_package TYPE REF TO zif_abapgit_sap_package.
+
+    li_package = zcl_abapgit_factory=>get_sap_package( mo_repo->get_package( ) ).
+
     ro_form = zcl_abapgit_html_form=>create(
       iv_form_id   = 'repo-local-settings-form'
       iv_help_page = 'https://docs.abapgit.org/settings-local.html' ).
@@ -128,8 +137,17 @@ CLASS zcl_abapgit_gui_page_sett_locl IMPLEMENTATION.
     )->text(
       iv_name        = c_id-display_name
       iv_label       = 'Display Name'
-      iv_hint        = 'Name to show instead of original repo name (optional)'
-    )->text(
+      iv_hint        = 'Name to show instead of original repo name (optional)' ).
+
+    IF li_package->are_changes_recorded_in_tr_req( ) = abap_true.
+      ro_form->text(
+        iv_name        = c_id-transport_request
+        iv_side_action = c_event-choose_transport_request
+        iv_label       = |Transport request|
+        iv_hint        = 'Transport request; All changes are recorded therein and no transport popup appears|' ).
+    ENDIF.
+
+    ro_form->text(
       iv_name        = c_id-labels
       iv_side_action = c_event-choose_labels
       iv_label       = |Labels (comma-separated, allowed chars: "{ zcl_abapgit_repo_labels=>c_allowed_chars }")|
@@ -184,26 +202,29 @@ CLASS zcl_abapgit_gui_page_sett_locl IMPLEMENTATION.
       iv_key = c_id-display_name
       iv_val = ms_settings-display_name ).
     mo_form_data->set(
+      iv_key = c_id-transport_request
+      iv_val = ms_settings-transport_request ).
+    mo_form_data->set(
       iv_key = c_id-labels
       iv_val = ms_settings-labels ).
     mo_form_data->set(
       iv_key = c_id-ignore_subpackages
-      iv_val = boolc( ms_settings-ignore_subpackages = abap_true ) ) ##TYPE.
+      iv_val = xsdbool( ms_settings-ignore_subpackages = abap_true ) ) ##TYPE.
     mo_form_data->set(
       iv_key = c_id-main_language_only
-      iv_val = boolc( ms_settings-main_language_only = abap_true ) ) ##TYPE.
+      iv_val = xsdbool( ms_settings-main_language_only = abap_true ) ) ##TYPE.
     mo_form_data->set(
       iv_key = c_id-write_protected
-      iv_val = boolc( ms_settings-write_protected = abap_true ) ) ##TYPE.
+      iv_val = xsdbool( ms_settings-write_protected = abap_true ) ) ##TYPE.
     mo_form_data->set(
       iv_key = c_id-only_local_objects
-      iv_val = boolc( ms_settings-only_local_objects = abap_true ) ) ##TYPE.
+      iv_val = xsdbool( ms_settings-only_local_objects = abap_true ) ) ##TYPE.
     mo_form_data->set(
       iv_key = c_id-code_inspector_check_variant
       iv_val = |{ ms_settings-code_inspector_check_variant }| ).
     mo_form_data->set(
       iv_key = c_id-block_commit
-      iv_val = boolc( ms_settings-block_commit = abap_true ) ) ##TYPE.
+      iv_val = xsdbool( ms_settings-block_commit = abap_true ) ) ##TYPE.
 
     " Set for is_dirty check
     mo_form_util->set_data( mo_form_data ).
@@ -214,6 +235,7 @@ CLASS zcl_abapgit_gui_page_sett_locl IMPLEMENTATION.
   METHOD save_settings.
 
     ms_settings-display_name                 = mo_form_data->get( c_id-display_name ).
+    ms_settings-transport_request            = mo_form_data->get( c_id-transport_request ).
     ms_settings-labels                       = zcl_abapgit_repo_labels=>normalize( mo_form_data->get( c_id-labels ) ).
     ms_settings-ignore_subpackages           = mo_form_data->get( c_id-ignore_subpackages ).
     ms_settings-main_language_only           = mo_form_data->get( c_id-main_language_only ).
@@ -236,10 +258,22 @@ CLASS zcl_abapgit_gui_page_sett_locl IMPLEMENTATION.
   METHOD validate_form.
 
     DATA:
-      lx_error         TYPE REF TO zcx_abapgit_exception,
-      lv_check_variant TYPE sci_chkv.
+      lx_error             TYPE REF TO zcx_abapgit_exception,
+      lv_transport_request TYPE trkorr,
+      lv_check_variant     TYPE sci_chkv.
 
     ro_validation_log = mo_form_util->validate( io_form_data ).
+
+    lv_transport_request = io_form_data->get( c_id-transport_request ).
+    IF lv_transport_request IS NOT INITIAL.
+      TRY.
+          zcl_abapgit_transport=>validate_transport_request( lv_transport_request ).
+        CATCH zcx_abapgit_exception INTO lx_error.
+          ro_validation_log->set(
+            iv_key = c_id-transport_request
+            iv_val = lx_error->get_text( ) ).
+      ENDTRY.
+    ENDIF.
 
     lv_check_variant = to_upper( io_form_data->get( c_id-code_inspector_check_variant ) ).
     IF lv_check_variant IS NOT INITIAL.
@@ -277,6 +311,11 @@ CLASS zcl_abapgit_gui_page_sett_locl IMPLEMENTATION.
       WHEN zif_abapgit_definitions=>c_action-go_back.
         rs_handled-state = mo_form_util->exit( mo_form_data ).
 
+      WHEN c_event-choose_transport_request.
+
+        choose_transport_request( ).
+        rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
+
       WHEN c_event-choose_labels.
 
         choose_labels( ).
@@ -311,7 +350,7 @@ CLASS zcl_abapgit_gui_page_sett_locl IMPLEMENTATION.
       read_settings( ).
     ENDIF.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( `<div class="repo">` ).
 
@@ -356,6 +395,21 @@ CLASS zcl_abapgit_gui_page_sett_locl IMPLEMENTATION.
       mo_form_data->set(
         iv_key = c_id-code_inspector_check_variant
         iv_val = lv_check_variant ).
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD choose_transport_request.
+
+    DATA: lv_transport_request TYPE trkorr.
+
+    lv_transport_request = zcl_abapgit_ui_factory=>get_popups( )->popup_transport_request( ).
+
+    IF lv_transport_request IS NOT INITIAL.
+      mo_form_data->set(
+          iv_key = c_id-transport_request
+          iv_val = lv_transport_request ).
     ENDIF.
 
   ENDMETHOD.

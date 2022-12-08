@@ -29,7 +29,7 @@ CLASS zcl_abapgit_exit IMPLEMENTATION.
       ENDTRY.
     ENDIF.
 
-    CREATE OBJECT ri_exit TYPE zcl_abapgit_exit.
+    ri_exit = NEW zcl_abapgit_exit( ).
 
   ENDMETHOD.
 
@@ -323,4 +323,22 @@ CLASS zcl_abapgit_exit IMPLEMENTATION.
     ENDIF.
 
   ENDMETHOD.
+
+
+  METHOD zif_abapgit_exit~determine_transport_request.
+
+    IF gi_exit IS NOT INITIAL.
+      TRY.
+          gi_exit->determine_transport_request(
+            EXPORTING
+              io_repo              = io_repo
+              iv_transport_type    = iv_transport_type
+            CHANGING
+              cv_transport_request = cv_transport_request ).
+        CATCH cx_sy_ref_is_initial cx_sy_dyn_call_illegal_method ##NO_HANDLER.
+      ENDTRY.
+    ENDIF.
+
+  ENDMETHOD.
+
 ENDCLASS.
