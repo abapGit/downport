@@ -38,6 +38,7 @@ ENDCLASS.
 
 CLASS zcl_abapgit_gui_hotkey_ctl IMPLEMENTATION.
 
+
   METHOD constructor.
 
     super->constructor( ).
@@ -67,7 +68,7 @@ CLASS zcl_abapgit_gui_hotkey_ctl IMPLEMENTATION.
 
     lv_json = lv_json && `}`.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
     ri_html->set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
     ri_html->add( |setKeyBindings({ lv_json });| ).
 
@@ -88,7 +89,7 @@ CLASS zcl_abapgit_gui_hotkey_ctl IMPLEMENTATION.
 
     ls_hotkey-ui_component = 'Hotkeys'.
     ls_hotkey-action       = c_showhotkeys_action.
-    ls_hotkey-description  = 'Show hotkeys help'.
+    ls_hotkey-description  = 'Show Hotkeys Help'.
     ls_hotkey-hotkey       = '?'.
     INSERT ls_hotkey INTO TABLE rt_hotkey_actions.
 
@@ -128,6 +129,13 @@ CLASS zcl_abapgit_gui_hotkey_ctl IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD zif_abapgit_gui_hotkey_ctl~set_visible.
+
+    mv_visible = iv_visible.
+
+  ENDMETHOD.
+
+
   METHOD zif_abapgit_gui_renderable~render.
 
     DATA:
@@ -140,7 +148,7 @@ CLASS zcl_abapgit_gui_hotkey_ctl IMPLEMENTATION.
 
     zif_abapgit_gui_hotkey_ctl~register_hotkeys( zif_abapgit_gui_hotkeys~get_hotkey_actions( ) ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     lt_registered_hotkeys = zif_abapgit_gui_hotkey_ctl~get_registered_hotkeys( ).
     SORT lt_registered_hotkeys BY ui_component description.
@@ -203,12 +211,4 @@ CLASS zcl_abapgit_gui_hotkey_ctl IMPLEMENTATION.
     mv_visible = abap_false.
 
   ENDMETHOD.
-
-
-  METHOD zif_abapgit_gui_hotkey_ctl~set_visible.
-
-    mv_visible = iv_visible.
-
-  ENDMETHOD.
-
 ENDCLASS.
