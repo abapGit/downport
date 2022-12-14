@@ -114,6 +114,8 @@ CLASS zcl_abapgit_object_docv IMPLEMENTATION.
       zcx_abapgit_exception=>raise_t100( ).
     ENDIF.
 
+    corr_insert( iv_package ).
+
   ENDMETHOD.
 
 
@@ -147,7 +149,7 @@ CLASS zcl_abapgit_object_docv IMPLEMENTATION.
       WHERE id     = mv_id
         AND object = mv_doc_object.                     "#EC CI_GENBUFF
 
-    rv_bool = boolc( sy-subrc = 0 ).
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 

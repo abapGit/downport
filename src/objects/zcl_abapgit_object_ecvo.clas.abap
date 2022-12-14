@@ -22,7 +22,7 @@ CLASS zcl_abapgit_object_ecvo IMPLEMENTATION.
 
   METHOD get_download.
 
-    CREATE OBJECT ro_download TYPE zcl_abapgit_ecatt_val_obj_down.
+    ro_download = NEW zcl_abapgit_ecatt_val_obj_down( ).
 
   ENDMETHOD.
 
@@ -44,7 +44,7 @@ CLASS zcl_abapgit_object_ecvo IMPLEMENTATION.
 
   METHOD get_upload.
 
-    CREATE OBJECT ro_upload TYPE zcl_abapgit_ecatt_val_obj_upl.
+    ro_upload = NEW zcl_abapgit_ecatt_val_obj_upl( ).
 
   ENDMETHOD.
 ENDCLASS.
