@@ -37,7 +37,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_FILE_DESERIALIZE IMPLEMENTATION.
+CLASS zcl_abapgit_file_deserialize IMPLEMENTATION.
 
 
   METHOD filter_files_to_deserialize.
@@ -173,7 +173,7 @@ CLASS ZCL_ABAPGIT_FILE_DESERIALIZE IMPLEMENTATION.
 
     lt_items = map_results_to_items( it_results ).
 
-    CREATE OBJECT lo_graph EXPORTING it_items = lt_items.
+    lo_graph = NEW #( it_items = lt_items ).
 
     LOOP AT lt_items INTO ls_item.
       CLEAR lt_requires.
@@ -239,7 +239,7 @@ CLASS ZCL_ABAPGIT_FILE_DESERIALIZE IMPLEMENTATION.
           DELETE lt_requires WHERE obj_type <> 'ENHO'.
         WHEN 'ENHO'.
           lt_requires = lt_items.
-          DELETE lt_requires WHERE obj_type <> 'ENSC'.
+          DELETE lt_requires WHERE obj_type <> 'ENSC' AND obj_type <> 'ENHS'.
         WHEN 'ENSC'.
           lt_requires = lt_items.
           DELETE lt_requires WHERE obj_type <> 'ENHS'.
