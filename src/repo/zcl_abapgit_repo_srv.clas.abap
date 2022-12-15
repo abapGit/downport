@@ -114,7 +114,7 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
 
   METHOD get_instance.
     IF gi_ref IS INITIAL.
-      CREATE OBJECT gi_ref TYPE zcl_abapgit_repo_srv.
+      gi_ref = NEW zcl_abapgit_repo_srv( ).
     ENDIF.
     ri_srv = gi_ref.
   ENDMETHOD.
@@ -128,9 +128,9 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
   METHOD instantiate_and_add.
 
     IF is_repo_meta-offline = abap_false.
-      CREATE OBJECT ri_repo TYPE zcl_abapgit_repo_online EXPORTING is_data = is_repo_meta.
+      ri_repo = NEW zcl_abapgit_repo_online( is_data = is_repo_meta ).
     ELSE.
-      CREATE OBJECT ri_repo TYPE zcl_abapgit_repo_offline EXPORTING is_data = is_repo_meta.
+      ri_repo = NEW zcl_abapgit_repo_offline( is_data = is_repo_meta ).
     ENDIF.
     add( ri_repo ).
 
@@ -327,6 +327,38 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD zif_abapgit_repo_srv~get_label_list.
+
+    DATA:
+      lt_repo           TYPE zif_abapgit_repo_srv=>ty_repo_list,
+      ls_local_settings TYPE zif_abapgit_persistence=>ty_repo-local_settings,
+      lt_labels         TYPE string_table,
+      ls_label          LIKE LINE OF rt_labels.
+
+    FIELD-SYMBOLS:
+      <ls_repo>  TYPE REF TO zif_abapgit_repo,
+      <lv_label> TYPE LINE OF string_table.
+
+    lt_repo = zif_abapgit_repo_srv~list( ).
+
+    LOOP AT lt_repo ASSIGNING <ls_repo>.
+
+      ls_local_settings = <ls_repo>->get_local_settings( ).
+      lt_labels = zcl_abapgit_repo_labels=>split( ls_local_settings-labels ).
+
+      LOOP AT lt_labels ASSIGNING <lv_label>.
+        ls_label-label = <lv_label>.
+        INSERT ls_label INTO TABLE rt_labels.
+      ENDLOOP.
+
+    ENDLOOP.
+
+    SORT rt_labels.
+    DELETE ADJACENT DUPLICATES FROM rt_labels.
+
+  ENDMETHOD.
+
+
   METHOD zif_abapgit_repo_srv~get_repo_from_package.
 
     DATA:
@@ -484,7 +516,9 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
       zcx_abapgit_exception=>raise( 'Not authorized' ).
     ENDIF.
 
-    zif_abapgit_repo_srv~validate_package( iv_package ).
+    zif_abapgit_repo_srv~validate_package(
+      iv_package    = iv_package
+      iv_ign_subpkg = iv_ign_subpkg ).
 
     IF iv_url IS INITIAL.
       zcx_abapgit_exception=>raise( 'Missing display name for repo' ).
@@ -508,8 +542,12 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
 
     lo_repo ?= instantiate_and_add( ls_repo ).
 
+    IF ls_repo-local_settings-ignore_subpackages <> iv_ign_subpkg.
+      ls_repo-local_settings-ignore_subpackages = iv_ign_subpkg.
+    ENDIF.
     ls_repo-local_settings-main_language_only = iv_main_lang_only.
     ls_repo-local_settings-labels = iv_labels.
+
     lo_repo->set_local_settings( ls_repo-local_settings ).
     lo_repo->check_and_create_package( iv_package ).
 
@@ -537,8 +575,9 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
       zcx_abapgit_exception=>raise( 'Not authorized' ).
     ENDIF.
 
-    zif_abapgit_repo_srv~validate_package( iv_package    = iv_package
-                      iv_ign_subpkg = iv_ign_subpkg ).
+    zif_abapgit_repo_srv~validate_package(
+      iv_package    = iv_package
+      iv_ign_subpkg = iv_ign_subpkg ).
 
     zif_abapgit_repo_srv~validate_url( lv_url ).
 
@@ -556,6 +595,7 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
       iv_package      = iv_package
       iv_offline      = abap_false
       is_dot_abapgit  = ls_dot_abapgit ).
+
     TRY.
         ls_repo = zcl_abapgit_persist_factory=>get_repo( )->read( lv_key ).
       CATCH zcx_abapgit_not_found.
@@ -569,8 +609,8 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
     ENDIF.
     ls_repo-local_settings-main_language_only = iv_main_lang_only.
     ls_repo-local_settings-labels = iv_labels.
-    lo_repo->set_local_settings( ls_repo-local_settings ).
 
+    lo_repo->set_local_settings( ls_repo-local_settings ).
     lo_repo->refresh( ).
     lo_repo->find_remote_dot_abapgit( ).
     lo_repo->check_and_create_package( iv_package ).
@@ -672,37 +712,4 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
     ENDIF.
 
   ENDMETHOD.
-
-
-  METHOD zif_abapgit_repo_srv~get_label_list.
-
-    DATA:
-      lt_repo           TYPE zif_abapgit_repo_srv=>ty_repo_list,
-      ls_local_settings TYPE zif_abapgit_persistence=>ty_repo-local_settings,
-      lt_labels         TYPE string_table,
-      ls_label          LIKE LINE OF rt_labels.
-
-    FIELD-SYMBOLS:
-      <ls_repo>  TYPE REF TO zif_abapgit_repo,
-      <lv_label> TYPE LINE OF string_table.
-
-    lt_repo = zif_abapgit_repo_srv~list( ).
-
-    LOOP AT lt_repo ASSIGNING <ls_repo>.
-
-      ls_local_settings = <ls_repo>->get_local_settings( ).
-      lt_labels = zcl_abapgit_repo_labels=>split( ls_local_settings-labels ).
-
-      LOOP AT lt_labels ASSIGNING <lv_label>.
-        ls_label-label = <lv_label>.
-        INSERT ls_label INTO TABLE rt_labels.
-      ENDLOOP.
-
-    ENDLOOP.
-
-    SORT rt_labels.
-    DELETE ADJACENT DUPLICATES FROM rt_labels.
-
-  ENDMETHOD.
-
 ENDCLASS.
