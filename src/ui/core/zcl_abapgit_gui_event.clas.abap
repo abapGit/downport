@@ -50,7 +50,7 @@ CLASS zcl_abapgit_gui_event IMPLEMENTATION.
   METHOD fields_to_map.
     FIELD-SYMBOLS <ls_field> LIKE LINE OF it_fields.
 
-    ro_string_map = NEW #( iv_case_insensitive = abap_true ).
+    CREATE OBJECT ro_string_map EXPORTING iv_case_insensitive = abap_true.
     LOOP AT it_fields ASSIGNING <ls_field>.
       ro_string_map->set(
         iv_key = <ls_field>-name
