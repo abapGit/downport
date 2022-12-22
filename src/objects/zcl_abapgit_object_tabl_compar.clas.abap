@@ -71,6 +71,10 @@ CLASS ZCL_ABAPGIT_OBJECT_TABL_COMPAR IMPLEMENTATION.
 
     FIELD-SYMBOLS: <ls_found> TYPE rsfindlst.
 
+    IF iv_object_name IS INITIAL.
+      RETURN.
+    ENDIF.
+
     lt_scope = it_scope.
 
     lv_findstring = iv_object_name.
@@ -136,7 +140,7 @@ CLASS ZCL_ABAPGIT_OBJECT_TABL_COMPAR IMPLEMENTATION.
 
     DELETE lt_founds WHERE object_cls <> 'DT'.
 
-    rv_is_structure_used_in_db_tab = boolc( lines( lt_founds ) > 0 ).
+    rv_is_structure_used_in_db_tab = xsdbool( lines( lt_founds ) > 0 ).
 
   ENDMETHOD.
 

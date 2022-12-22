@@ -20,6 +20,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
     mv_json = |\{\n| &&
       |  "name": "DUMMY",\n| &&
+      |  "skip_initial": false,\n| &&
       |  "type": "TABU",\n| &&
       |  "where": [\n| &&
       |    "DUMMY"\n| &&
@@ -37,7 +38,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA li_config TYPE REF TO zif_abapgit_data_config.
     DATA ls_config TYPE zif_abapgit_data_config=>ty_config.
 
-    CREATE OBJECT li_config TYPE zcl_abapgit_data_config.
+    li_config = NEW zcl_abapgit_data_config( ).
 
     ls_config-name = 'HELLO'.
     ls_config-type = zif_abapgit_data_config=>c_data_type-tabu.
@@ -63,7 +64,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lv_json TYPE string.
 
 
-    CREATE OBJECT li_config TYPE zcl_abapgit_data_config.
+    li_config = NEW zcl_abapgit_data_config( ).
     li_config->add_config( ms_config ).
 
     lt_files = li_config->to_json( ).
@@ -91,7 +92,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
     DATA li_config TYPE REF TO zif_abapgit_data_config.
 
-    CREATE OBJECT li_config TYPE zcl_abapgit_data_config.
+    li_config = NEW zcl_abapgit_data_config( ).
 
     li_config->from_json( it_files ).
 
