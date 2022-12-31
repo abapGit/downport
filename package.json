@@ -1,5 +1,5 @@
 {
   "dependencies": {
-    "@abaplint/cli": "^2.94.12"
+    "@abaplint/cli": "^2.94.13"
   }
 }
