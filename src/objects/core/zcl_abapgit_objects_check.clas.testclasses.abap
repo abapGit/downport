@@ -35,7 +35,7 @@ CLASS ltcl_warning_overwrite_find IMPLEMENTATION.
 
   METHOD setup.
 
-    CREATE OBJECT mo_objects.
+    mo_objects = NEW #( ).
 
   ENDMETHOD.
 
