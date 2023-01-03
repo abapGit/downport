@@ -88,7 +88,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_JSON_HANDLER IMPLEMENTATION.
+CLASS zcl_abapgit_json_handler IMPLEMENTATION.
 
 
   METHOD deserialize.
@@ -248,7 +248,7 @@ CLASS ZCL_ABAPGIT_JSON_HANDLER IMPLEMENTATION.
 
     lo_mapping = zcl_abapgit_ajson_mapping=>create_camel_case( iv_first_json_upper = abap_false ).
 
-    lo_ajson = zcl_abapgit_ajson=>create_empty( lo_mapping ).
+    lo_ajson = zcl_abapgit_ajson=>create_empty( ii_custom_mapping = lo_mapping ).
 
     lo_ajson->keep_item_order( ).
     lo_ajson->set(
@@ -260,7 +260,7 @@ CLASS ZCL_ABAPGIT_JSON_HANDLER IMPLEMENTATION.
     map2json_custom_enum( EXPORTING it_enum_mappings = iv_enum_mappings
                           CHANGING co_ajson          = lo_ajson ).
 
-    CREATE OBJECT lo_filter EXPORTING iv_skip_paths = iv_skip_paths.
+    lo_filter = NEW #( iv_skip_paths = iv_skip_paths ).
     lo_ajson_filtered = zcl_abapgit_ajson=>create_from(
                           ii_source_json = lo_ajson
                           ii_filter      = lo_filter ).
