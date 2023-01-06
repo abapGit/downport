@@ -93,7 +93,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_SYNTAX_CSS IMPLEMENTATION.
+CLASS zcl_abapgit_syntax_css IMPLEMENTATION.
 
 
   METHOD class_constructor.
@@ -107,8 +107,10 @@ CLASS ZCL_ABAPGIT_SYNTAX_CSS IMPLEMENTATION.
 
     super->constructor( ).
 
-    " Initialize instances of regular expression
+    " Reset indicator for multi-line comments
+    CLEAR gv_comment.
 
+    " Initialize instances of regular expression
     add_rule( iv_regex = c_regex-keyword
               iv_token = c_token-keyword
               iv_style = c_css-keyword ).
@@ -363,7 +365,7 @@ CLASS ZCL_ABAPGIT_SYNTAX_CSS IMPLEMENTATION.
 
     lv_str = to_lower( iv_chunk ).
     READ TABLE gt_keywords WITH TABLE KEY keyword = lv_str TRANSPORTING NO FIELDS.
-    rv_yes = boolc( sy-subrc = 0 ).
+    rv_yes = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 

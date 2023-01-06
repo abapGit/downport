@@ -14,7 +14,8 @@ CLASS ltcl_abapgit_syntax_xml DEFINITION FINAL FOR TESTING
       empty_attributes FOR TESTING RAISING cx_static_check,
       open_tags FOR TESTING RAISING cx_static_check,
       attributes_only FOR TESTING RAISING cx_static_check,
-      attribute_value_equal_signs FOR TESTING RAISING cx_static_check.
+      attribute_value_equal_signs FOR TESTING RAISING cx_static_check,
+      multi_line_comments FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -23,7 +24,7 @@ CLASS ltcl_abapgit_syntax_xml IMPLEMENTATION.
 
   METHOD setup.
 
-    CREATE OBJECT mo_cut.
+    mo_cut = NEW #( ).
 
   ENDMETHOD.
 
@@ -98,7 +99,6 @@ CLASS ltcl_abapgit_syntax_xml IMPLEMENTATION.
          && |<span class="attr_val">"1.5"</span>|
       act = mo_cut->process_line( |<ECTD SAPRL="751" VERSION="1.5"| ) ).
 
-
   ENDMETHOD.
 
   METHOD attribute_value_equal_signs.
@@ -114,6 +114,20 @@ CLASS ltcl_abapgit_syntax_xml IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD multi_line_comments.
+
+    cl_abap_unit_assert=>assert_equals(
+      exp = |<span class="comment">&lt;!-- comment</span>|
+      act = mo_cut->process_line( |<!-- comment| ) ).
+
+    " New instance (i.e. different file)
+    mo_cut = NEW #( ).
+
+    cl_abap_unit_assert=>assert_equals(
+      exp = |<span class="xml_tag">&lt;tag&gt;</span>|
+      act = mo_cut->process_line( |<tag>| ) ).
+
+  ENDMETHOD.
 
 ENDCLASS.
 
@@ -169,7 +183,7 @@ CLASS ltcl_syntax_cases IMPLEMENTATION.
           lo_syntax      TYPE REF TO zcl_abapgit_syntax_xml.
 
 
-    CREATE OBJECT lo_syntax.
+    lo_syntax = NEW #( ).
     lt_matches_act = lo_syntax->parse_line( iv_line ).
 
     SORT lt_matches_act BY offset.
