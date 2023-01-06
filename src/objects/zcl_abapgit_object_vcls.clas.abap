@@ -150,7 +150,7 @@ CLASS zcl_abapgit_object_vcls IMPLEMENTATION.
     SELECT SINGLE changedate INTO lv_changedate FROM vcldir
       WHERE vclname = ms_item-obj_name.
 
-    rv_bool = boolc( sy-subrc = 0 ).
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -167,7 +167,6 @@ CLASS zcl_abapgit_object_vcls IMPLEMENTATION.
 
   METHOD zif_abapgit_object~get_metadata.
     rs_metadata = get_metadata( ).
-    rs_metadata-delete_tadir = abap_true.
   ENDMETHOD.
 
 
@@ -179,7 +178,7 @@ CLASS zcl_abapgit_object_vcls IMPLEMENTATION.
       WHERE vclname = ms_item-obj_name.
 
 * see logic in function module VIEWCLUSTER_GET_DEFINITION
-    rv_active = boolc( lv_changedate IS NOT INITIAL ).
+    rv_active = xsdbool( lv_changedate IS NOT INITIAL ).
 
   ENDMETHOD.
 

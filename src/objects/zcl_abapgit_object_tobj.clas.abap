@@ -104,6 +104,7 @@ CLASS zcl_abapgit_object_tobj IMPLEMENTATION.
 
     CALL FUNCTION 'OBJ_GENERATE'
       EXPORTING
+        iv_korrnum            = iv_transport
         iv_objectname         = ls_objh-objectname
         iv_objecttype         = ls_objh-objecttype
         iv_maint_mode         = 'D'
@@ -146,6 +147,7 @@ CLASS zcl_abapgit_object_tobj IMPLEMENTATION.
 
     CALL FUNCTION 'OBJ_GENERATE'
       EXPORTING
+        iv_korrnum            = iv_transport
         iv_objectname         = ls_objh-objectname
         iv_objecttype         = ls_objh-objecttype
         iv_maint_mode         = 'I'
@@ -212,7 +214,7 @@ CLASS zcl_abapgit_object_tobj IMPLEMENTATION.
     SELECT SINGLE objectname FROM objh INTO lv_objectname
       WHERE objectname = ms_item-obj_name(lv_type_pos)
       AND objecttype = ms_item-obj_name+lv_type_pos.    "#EC CI_GENBUFF
-    rv_bool = boolc( sy-subrc = 0 ).
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -229,7 +231,6 @@ CLASS zcl_abapgit_object_tobj IMPLEMENTATION.
 
   METHOD zif_abapgit_object~get_metadata.
     rs_metadata = get_metadata( ).
-    rs_metadata-delete_tadir = abap_true.
   ENDMETHOD.
 
 
@@ -258,7 +259,7 @@ CLASS zcl_abapgit_object_tobj IMPLEMENTATION.
         jump_not_possible = 1
         OTHERS            = 2.
 
-    rv_exit = boolc( sy-subrc = 0 ).
+    rv_exit = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 

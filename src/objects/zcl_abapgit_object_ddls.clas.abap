@@ -354,7 +354,7 @@ CLASS zcl_abapgit_object_ddls IMPLEMENTATION.
             name      = ms_item-obj_name
           IMPORTING
             got_state = lv_state.
-        rv_bool = boolc( NOT lv_state IS INITIAL ).
+        rv_bool = xsdbool( NOT lv_state IS INITIAL ).
       CATCH cx_root.
         rv_bool = abap_false.
     ENDTRY.
@@ -374,7 +374,6 @@ CLASS zcl_abapgit_object_ddls IMPLEMENTATION.
 
   METHOD zif_abapgit_object~get_metadata.
     rs_metadata = get_metadata( ).
-    rs_metadata-delete_tadir = abap_true.
   ENDMETHOD.
 
 

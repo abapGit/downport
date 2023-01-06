@@ -191,7 +191,7 @@ CLASS zcl_abapgit_object_susc IMPLEMENTATION.
 
     SELECT SINGLE oclss FROM tobc INTO lv_oclss
       WHERE oclss = ms_item-obj_name.
-    rv_bool = boolc( sy-subrc = 0 ).
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -208,7 +208,6 @@ CLASS zcl_abapgit_object_susc IMPLEMENTATION.
 
   METHOD zif_abapgit_object~get_metadata.
     rs_metadata = get_metadata( ).
-    rs_metadata-delete_tadir = abap_true.
   ENDMETHOD.
 
 

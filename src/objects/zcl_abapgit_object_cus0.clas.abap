@@ -110,7 +110,7 @@ CLASS zcl_abapgit_object_cus0 IMPLEMENTATION.
       IMPORTING
         message      = ls_message.
 
-    rv_bool = boolc( ls_message IS INITIAL ).
+    rv_bool = xsdbool( ls_message IS INITIAL ).
 
   ENDMETHOD.
 
@@ -127,7 +127,6 @@ CLASS zcl_abapgit_object_cus0 IMPLEMENTATION.
 
   METHOD zif_abapgit_object~get_metadata.
     rs_metadata = get_metadata( ).
-    rs_metadata-delete_tadir = abap_true.
   ENDMETHOD.
 
 

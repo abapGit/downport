@@ -149,7 +149,7 @@ CLASS zcl_abapgit_object_docv IMPLEMENTATION.
       WHERE id     = mv_id
         AND object = mv_doc_object.                     "#EC CI_GENBUFF
 
-    rv_bool = boolc( sy-subrc = 0 ).
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -166,7 +166,6 @@ CLASS zcl_abapgit_object_docv IMPLEMENTATION.
 
   METHOD zif_abapgit_object~get_metadata.
     rs_metadata = get_metadata( ).
-    rs_metadata-delete_tadir = abap_true.
   ENDMETHOD.
 
 

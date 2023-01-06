@@ -159,6 +159,22 @@ CLASS zcl_abapgit_objects_generic IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD apply_clear_logic.
+    IF mo_field_rules IS BOUND.
+      mo_field_rules->apply_clear_logic( EXPORTING iv_table = |{ iv_table }|
+                                         CHANGING  ct_data  = ct_data ).
+    ENDIF.
+  ENDMETHOD.
+
+
+  METHOD apply_fill_logic.
+    IF mo_field_rules IS BOUND.
+      mo_field_rules->apply_fill_logic( EXPORTING iv_table = |{ iv_table }|
+                                        CHANGING  ct_data  = ct_data ).
+    ENDIF.
+  ENDMETHOD.
+
+
   METHOD before_export.
 
     DATA: lt_cts_object_entry TYPE STANDARD TABLE OF e071 WITH DEFAULT KEY,
@@ -403,7 +419,7 @@ CLASS zcl_abapgit_objects_generic IMPLEMENTATION.
     ASSIGN lr_table_line->* TO <lg_table_line>.
 
     SELECT SINGLE * FROM (lv_primary) INTO <lg_table_line> WHERE (lv_where_clause).
-    rv_bool = boolc( sy-dbcnt > 0 ).
+    rv_bool = xsdbool( sy-dbcnt > 0 ).
 
   ENDMETHOD.
 
@@ -710,20 +726,4 @@ CLASS zcl_abapgit_objects_generic IMPLEMENTATION.
     ENDIF.
 
   ENDMETHOD.
-
-  METHOD apply_clear_logic.
-    IF mo_field_rules IS BOUND.
-      mo_field_rules->apply_clear_logic( EXPORTING iv_table = |{ iv_table }|
-                                         CHANGING  ct_data  = ct_data ).
-    ENDIF.
-  ENDMETHOD.
-
-
-  METHOD apply_fill_logic.
-    IF mo_field_rules IS BOUND.
-      mo_field_rules->apply_fill_logic( EXPORTING iv_table = |{ iv_table }|
-                                        CHANGING  ct_data  = ct_data ).
-    ENDIF.
-  ENDMETHOD.
-
 ENDCLASS.

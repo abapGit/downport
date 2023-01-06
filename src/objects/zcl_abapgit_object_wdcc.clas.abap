@@ -271,14 +271,7 @@ CLASS zcl_abapgit_object_wdcc IMPLEMENTATION.
 
 
   METHOD zif_abapgit_object~get_metadata.
-
-    DATA ls_meta_data TYPE zif_abapgit_definitions=>ty_metadata.
-
-    ls_meta_data = get_metadata( ).
-    ls_meta_data-delete_tadir = abap_true.
-
-    rs_metadata = ls_meta_data.
-
+    rs_metadata = get_metadata( ).
   ENDMETHOD.
 
 
@@ -311,7 +304,7 @@ CLASS zcl_abapgit_object_wdcc IMPLEMENTATION.
       zcx_abapgit_exception=>raise( 'Error check object lock WDCC: ' && ms_item-obj_name ).
     ENDIF.
 
-    rv_is_locked = boolc( lines( lt_enq ) > 0 ).
+    rv_is_locked = xsdbool( lines( lt_enq ) > 0 ).
 
   ENDMETHOD.
 

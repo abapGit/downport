@@ -21,7 +21,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_OBJECT_IWSG IMPLEMENTATION.
+CLASS zcl_abapgit_object_iwsg IMPLEMENTATION.
 
 
   METHOD get_field_rules.
@@ -49,9 +49,9 @@ CLASS ZCL_ABAPGIT_OBJECT_IWSG IMPLEMENTATION.
 
   METHOD get_generic.
 
-    CREATE OBJECT ro_generic EXPORTING io_field_rules = get_field_rules( )
-                                       is_item = ms_item
-                                       iv_language = mv_language.
+    ro_generic = NEW #( io_field_rules = get_field_rules( )
+                        is_item = ms_item
+                        iv_language = mv_language ).
 
   ENDMETHOD.
 
@@ -101,10 +101,7 @@ CLASS ZCL_ABAPGIT_OBJECT_IWSG IMPLEMENTATION.
 
 
   METHOD zif_abapgit_object~get_metadata.
-
     rs_metadata = get_metadata( ).
-    rs_metadata-delete_tadir = abap_true.
-
   ENDMETHOD.
 
 
