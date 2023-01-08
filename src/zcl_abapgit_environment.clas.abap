@@ -67,7 +67,7 @@ CLASS zcl_abapgit_environment IMPLEMENTATION.
     " Changes to repository objects are not permitted in this client (TK 729)
     " Shadow system
     " Running upgrade
-    rv_result = xsdbool(
+    rv_result = boolc(
       lv_systemedit <> 'N' AND
       lv_sys_cliinddep_edit NA '23' AND
       lv_is_shadow <> abap_true AND
@@ -209,7 +209,7 @@ CLASS zcl_abapgit_environment IMPLEMENTATION.
     " Memory is set in LSVARF08 / EXPORT_SCREEN_TABLES.
     IMPORT variscreens = lt_variscreens FROM MEMORY ID '%_SCRNR_%'.
 
-    rv_is_variant_maintenance = xsdbool( lines( lt_variscreens ) > 0 ).
+    rv_is_variant_maintenance = boolc( lines( lt_variscreens ) > 0 ).
 
   ENDMETHOD.
 
