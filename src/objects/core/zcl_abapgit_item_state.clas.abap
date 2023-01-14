@@ -50,7 +50,7 @@ CLASS ZCL_ABAPGIT_ITEM_STATE IMPLEMENTATION.
 
 
   METHOD is_unchanged.
-    rv_is_unchanged = boolc( mv_is_reassigned = abap_false
+    rv_is_unchanged = xsdbool( mv_is_reassigned = abap_false
       AND mv_lstate = zif_abapgit_definitions=>c_state-unchanged
       AND mv_rstate = zif_abapgit_definitions=>c_state-unchanged ).
   ENDMETHOD.
@@ -88,7 +88,7 @@ CLASS ZCL_ABAPGIT_ITEM_STATE IMPLEMENTATION.
     mv_rstate = reduce(
       iv_prev = mv_rstate
       iv_cur  = is_repo_item-rstate ).
-    mv_is_reassigned = boolc( mv_is_reassigned = abap_true OR is_repo_item-packmove = abap_true ).
+    mv_is_reassigned = xsdbool( mv_is_reassigned = abap_true OR is_repo_item-packmove = abap_true ).
 
   ENDMETHOD.
 
@@ -101,7 +101,7 @@ CLASS ZCL_ABAPGIT_ITEM_STATE IMPLEMENTATION.
     mv_rstate = reduce(
       iv_prev = mv_rstate
       iv_cur  = is_status_item-rstate ).
-    mv_is_reassigned = boolc( mv_is_reassigned = abap_true OR is_status_item-packmove = abap_true ).
+    mv_is_reassigned = xsdbool( mv_is_reassigned = abap_true OR is_status_item-packmove = abap_true ).
 
   ENDMETHOD.
 ENDCLASS.

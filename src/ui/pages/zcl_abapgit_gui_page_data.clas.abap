@@ -131,7 +131,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DATA IMPLEMENTATION.
 
   METHOD build_menu.
 
-    CREATE OBJECT ro_menu.
+    ro_menu = NEW #( ).
 
     ro_menu->add( iv_txt = 'Add via transport'
                   iv_act = c_event-add_via_transport ).
@@ -253,8 +253,8 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DATA IMPLEMENTATION.
     DATA lo_form TYPE REF TO zcl_abapgit_html_form.
     DATA lo_form_data TYPE REF TO zcl_abapgit_string_map.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
-    CREATE OBJECT lo_form_data.
+    ri_html = NEW zcl_abapgit_html( ).
+    lo_form_data = NEW #( ).
 
     lo_form = zcl_abapgit_html_form=>create( ).
     lo_form->text(
@@ -282,7 +282,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DATA IMPLEMENTATION.
 
   METHOD render_content.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
     ri_html->add( '<div class="repo">' ).
     ri_html->add( render_existing( ) ).
     ri_html->add( render_add( ) ).
@@ -298,14 +298,14 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DATA IMPLEMENTATION.
     DATA lt_configs TYPE zif_abapgit_data_config=>ty_config_tt.
     DATA ls_config LIKE LINE OF lt_configs.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
-    CREATE OBJECT lo_form_data.
+    ri_html = NEW zcl_abapgit_html( ).
+    lo_form_data = NEW #( ).
 
     lt_configs = mi_config->get_configs( ).
 
     LOOP AT lt_configs INTO ls_config.
       lo_form = zcl_abapgit_html_form=>create(  ).
-      CREATE OBJECT lo_form_data.
+      lo_form_data = NEW #( ).
 
       lo_form_data->set(
         iv_key = c_id-table
