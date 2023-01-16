@@ -186,6 +186,13 @@ CLASS zcl_abapgit_objects_activation IMPLEMENTATION.
 
       lv_logname = |ABAPGIT_{ sy-datum }_{ sy-uzeit }|.
 
+      IF lines( lt_gentab ) = 1.
+        ii_log->add_info( |> Mass activating 1 DDIC object| ).
+      ELSE.
+        ii_log->add_info( |> Mass activating { lines( lt_gentab ) } DDIC objects| ).
+      ENDIF.
+      ii_log->add_info( |Log name: { lv_logname }| ).
+
       CALL FUNCTION 'DD_MASS_ACT_C3'
         EXPORTING
           ddmode         = 'O'         " activate changes in Original System
@@ -277,6 +284,15 @@ CLASS zcl_abapgit_objects_activation IMPLEMENTATION.
       ENDIF.
 
       lv_no_ui = xsdbool( lv_popup = abap_false ).
+
+      IF iv_ddic = abap_true.
+        lv_msg = |(with DDIC)|.
+      ENDIF.
+      IF lines( gt_objects ) = 1.
+        ii_log->add_info( |> Activating 1 object { lv_msg }| ).
+      ELSE.
+        ii_log->add_info( |> Activating { lines( gt_objects ) } objects { lv_msg }| ).
+      ENDIF.
 
       TRY.
           CALL FUNCTION 'RS_WORKING_OBJECTS_ACTIVATE'
@@ -374,6 +390,8 @@ CLASS zcl_abapgit_objects_activation IMPLEMENTATION.
       IF strlen( <ls_message>-object_text ) > 5.
         ls_item-obj_type = <ls_message>-object_text(4).
         ls_item-obj_name = <ls_message>-object_text+5(*).
+      ELSE.
+        ls_item-obj_name = <ls_message>-show_req->object_name.
       ENDIF.
       LOOP AT <ls_message>-mtext ASSIGNING <lv_msg>.
         ii_log->add_error(
@@ -420,6 +438,8 @@ CLASS zcl_abapgit_objects_activation IMPLEMENTATION.
       ii_log->add( iv_msg  = <ls_line>-line
                    iv_type = <ls_line>-severity ).
     ENDLOOP.
+
+    ii_log->add_info( |View complete activation log in program RSPUTPRT (type D, log name { iv_logname })| ).
 
   ENDMETHOD.
 
@@ -516,7 +536,7 @@ CLASS zcl_abapgit_objects_activation IMPLEMENTATION.
         illegal_input = 1
         OTHERS        = 2.
 
-    rv_active = boolc( sy-subrc = 0 AND ( lv_state = '' OR lv_state = 'A' ) ).
+    rv_active = xsdbool( sy-subrc = 0 AND ( lv_state = '' OR lv_state = 'A' ) ).
 
   ENDMETHOD.
 
@@ -559,7 +579,7 @@ CLASS zcl_abapgit_objects_activation IMPLEMENTATION.
         p_e071                    = lt_e071
         p_xmsg                    = lt_messages.
 
-    rv_active = boolc( lt_messages IS INITIAL ).
+    rv_active = xsdbool( lt_messages IS INITIAL ).
 
   ENDMETHOD.
 
@@ -581,8 +601,8 @@ CLASS zcl_abapgit_objects_activation IMPLEMENTATION.
           lv_include = cl_oo_classname_service=>get_interfacepool_name( ls_class-clsname ).
       ENDCASE.
 
-      CREATE OBJECT lo_cross EXPORTING p_name = lv_include
-                                       p_include = lv_include.
+      lo_cross = NEW #( p_name = lv_include
+                        p_include = lv_include ).
 
       lo_cross->index_actualize( IMPORTING p_error = lv_error ).
 
