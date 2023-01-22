@@ -132,8 +132,10 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
 
 
   METHOD create_empty.
-    CREATE OBJECT ro_instance EXPORTING iv_format_datetime = iv_format_datetime
-                                        iv_keep_item_order = iv_keep_item_order.
+    CREATE OBJECT ro_instance
+      EXPORTING
+        iv_format_datetime = iv_format_datetime
+        iv_keep_item_order = iv_keep_item_order.
     ro_instance->mi_custom_mapping = ii_custom_mapping.
   ENDMETHOD.
 
@@ -146,8 +148,10 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
       zcx_abapgit_ajson_error=>raise( 'Source not bound' ).
     ENDIF.
 
-    CREATE OBJECT ro_instance EXPORTING iv_format_datetime = ii_source_json->opts( )-format_datetime
-                                        iv_keep_item_order = ii_source_json->opts( )-keep_item_order.
+    CREATE OBJECT ro_instance
+      EXPORTING
+        iv_format_datetime = ii_source_json->opts( )-format_datetime
+        iv_keep_item_order = ii_source_json->opts( )-keep_item_order.
 
     IF ii_filter IS NOT BOUND AND ii_mapper IS NOT BOUND.
       ro_instance->mt_json_tree = ii_source_json->mt_json_tree.
@@ -222,8 +226,10 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
 
 
   METHOD new.
-    CREATE OBJECT ro_instance EXPORTING iv_format_datetime = iv_format_datetime
-                                        iv_keep_item_order = iv_keep_item_order.
+    CREATE OBJECT ro_instance
+      EXPORTING
+        iv_format_datetime = iv_format_datetime
+        iv_keep_item_order = iv_keep_item_order.
   ENDMETHOD.
 
 
@@ -913,7 +919,9 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
     DATA lo_to_abap TYPE REF TO lcl_json_to_abap.
 
     CLEAR ev_container.
-    CREATE OBJECT lo_to_abap EXPORTING ii_custom_mapping = mi_custom_mapping.
+    CREATE OBJECT lo_to_abap
+      EXPORTING
+        ii_custom_mapping = mi_custom_mapping.
 
     lo_to_abap->to_abap(
       EXPORTING

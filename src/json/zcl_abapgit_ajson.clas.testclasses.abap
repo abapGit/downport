@@ -1889,7 +1889,9 @@ CLASS ltcl_json_to_abap IMPLEMENTATION.
 
     ls_exp-a  = 'test'.
 
-    CREATE OBJECT lo_cut EXPORTING iv_corresponding = abap_true.
+    CREATE OBJECT lo_cut
+      EXPORTING
+        iv_corresponding = abap_true.
 
     lo_cut->to_abap(
       EXPORTING

@@ -334,7 +334,9 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_sett_remo.
 
-    CREATE OBJECT lo_component EXPORTING io_repo = io_repo.
+    CREATE OBJECT lo_component
+      EXPORTING
+        io_repo = io_repo.
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Remote Settings'
@@ -986,7 +988,9 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
     IF rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
       mo_form = get_form_schema( is_settings  = ms_settings_old
                                  io_form_data = mo_form_data ).
-      CREATE OBJECT mo_form_util EXPORTING io_form = mo_form.
+      CREATE OBJECT mo_form_util
+        EXPORTING
+          io_form = mo_form.
 
       IF mo_form_data IS NOT BOUND.
         CREATE OBJECT mo_form_data.

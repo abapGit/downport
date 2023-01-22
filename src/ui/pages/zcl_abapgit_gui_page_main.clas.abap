@@ -68,7 +68,9 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_MAIN IMPLEMENTATION.
     ms_control-page_menu  = build_main_menu( ).
     ms_control-page_title = 'Repository List'.
 
-    CREATE OBJECT mo_repo_overview EXPORTING iv_only_favorites = iv_only_favorites.
+    CREATE OBJECT mo_repo_overview
+      EXPORTING
+        iv_only_favorites = iv_only_favorites.
 
   ENDMETHOD.
 

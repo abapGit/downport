@@ -189,7 +189,7 @@ CLASS zcl_abapgit_cts_api IMPLEMENTATION.
       IMPORTING
         pe_result = lv_type_check_result.
 
-    rv_lockable = xsdbool( lv_type_check_result = 'L' ).
+    rv_lockable = boolc( lv_type_check_result = 'L' ).
   ENDMETHOD.
 
 

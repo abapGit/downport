@@ -137,7 +137,9 @@ CLASS zcl_abapgit_gui_page_tags IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_tags.
 
-    CREATE OBJECT lo_component EXPORTING ii_repo = ii_repo.
+    CREATE OBJECT lo_component
+      EXPORTING
+        ii_repo = ii_repo.
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Create Tag'
@@ -384,7 +386,9 @@ CLASS zcl_abapgit_gui_page_tags IMPLEMENTATION.
     " If staying on form, initialize it with current settings
     IF rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
       mo_form = get_form_schema( mo_form_data ).
-      CREATE OBJECT mo_form_util EXPORTING io_form = mo_form.
+      CREATE OBJECT mo_form_util
+        EXPORTING
+          io_form = mo_form.
     ENDIF.
 
   ENDMETHOD.

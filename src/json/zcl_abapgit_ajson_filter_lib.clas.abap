@@ -37,7 +37,9 @@ CLASS zcl_abapgit_ajson_filter_lib IMPLEMENTATION.
 
 
   METHOD create_and_filter.
-    CREATE OBJECT ri_filter TYPE lcl_and_filter EXPORTING it_filters = it_filters.
+    CREATE OBJECT ri_filter TYPE lcl_and_filter
+      EXPORTING
+        it_filters = it_filters.
   ENDMETHOD.
 
 
@@ -47,8 +49,10 @@ CLASS zcl_abapgit_ajson_filter_lib IMPLEMENTATION.
 
 
   METHOD create_path_filter.
-    CREATE OBJECT ri_filter TYPE lcl_paths_filter EXPORTING iv_pattern_search = iv_pattern_search
-                                                            it_skip_paths = it_skip_paths
-                                                            iv_skip_paths = iv_skip_paths.
+    CREATE OBJECT ri_filter TYPE lcl_paths_filter
+      EXPORTING
+        iv_pattern_search = iv_pattern_search
+        it_skip_paths = it_skip_paths
+        iv_skip_paths = iv_skip_paths.
   ENDMETHOD.
 ENDCLASS.

@@ -147,9 +147,11 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_COMMIT IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_commit.
 
-    CREATE OBJECT lo_component EXPORTING io_repo = io_repo
-                                         io_stage = io_stage
-                                         iv_sci_result = iv_sci_result.
+    CREATE OBJECT lo_component
+      EXPORTING
+        io_repo       = io_repo
+        io_stage      = io_stage
+        iv_sci_result = iv_sci_result.
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Commit'

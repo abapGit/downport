@@ -353,8 +353,10 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_STAGE IMPLEMENTATION.
     DELETE lt_files WHERE method <> zif_abapgit_definitions=>c_method-add
                     AND   method <> zif_abapgit_definitions=>c_method-rm.
 
-    CREATE OBJECT lo_page EXPORTING iv_key = lv_key
-                                    it_files = lt_files.
+    CREATE OBJECT lo_page
+      EXPORTING
+        iv_key   = lv_key
+        it_files = lt_files.
 
     ri_page = lo_page.
 
