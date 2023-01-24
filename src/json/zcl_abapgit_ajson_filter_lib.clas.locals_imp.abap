@@ -10,7 +10,7 @@ ENDCLASS.
 CLASS lcl_empty_filter IMPLEMENTATION.
   METHOD zif_abapgit_ajson_filter~keep_node.
 
-    rv_keep = boolc(
+    rv_keep = xsdbool(
       ( iv_visit = zif_abapgit_ajson_filter=>visit_type-value AND is_node-value IS NOT INITIAL ) OR
       ( iv_visit <> zif_abapgit_ajson_filter=>visit_type-value AND is_node-children > 0 ) ).
     " children = 0 on open for initially empty nodes and on close for filtered ones
@@ -56,7 +56,7 @@ CLASS lcl_paths_filter IMPLEMENTATION.
       ENDLOOP.
     ELSE.
       READ TABLE mt_skip_paths WITH KEY table_line = lv_full_path TRANSPORTING NO FIELDS.
-      rv_keep = boolc( sy-subrc <> 0 ).
+      rv_keep = xsdbool( sy-subrc <> 0 ).
     ENDIF.
 
   ENDMETHOD.
@@ -67,7 +67,7 @@ CLASS lcl_paths_filter IMPLEMENTATION.
     DATA lt_tab TYPE string_table.
     FIELD-SYMBOLS <s> TYPE string.
 
-    IF boolc( iv_skip_paths IS INITIAL ) = boolc( it_skip_paths IS INITIAL ). " XOR
+    IF xsdbool( iv_skip_paths IS INITIAL ) = xsdbool( it_skip_paths IS INITIAL ). " XOR
       zcx_abapgit_ajson_error=>raise( 'no filter path specified' ).
     ENDIF.
 
