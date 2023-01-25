@@ -145,9 +145,9 @@ CLASS ltcl_general IMPLEMENTATION.
   METHOD text_from_exception.
     DATA: lx_previous TYPE REF TO cx_sy_dyn_call_illegal_method.
 
-    CREATE OBJECT lx_previous TYPE cx_sy_dyn_call_illegal_method EXPORTING textid = cx_sy_dyn_call_illegal_method=>private_method
-                                                                           classname = 'CLASS'
-                                                                           methodname = 'METHOD'.
+    lx_previous = NEW cx_sy_dyn_call_illegal_method( textid = cx_sy_dyn_call_illegal_method=>private_method
+                                                     classname = 'CLASS'
+                                                     methodname = 'METHOD' ).
 
     given_the_previous_exception( lx_previous ).
 
@@ -293,11 +293,10 @@ CLASS ltcl_get_t100_longtext IMPLEMENTATION.
   METHOD test01.
 
     DATA: lx_err    TYPE REF TO zcx_abapgit_exception,
-          lv_dummy  TYPE string,
           lv_result TYPE string.
 
     TRY.
-        MESSAGE e058(00) WITH 'Value_1' 'Value_2' 'Value_3' 'Value_4' INTO lv_dummy.
+        MESSAGE e058(00) WITH 'Value_1' 'Value_2' 'Value_3' 'Value_4' INTO zcx_abapgit_exception=>null.
         zcx_abapgit_exception=>raise_t100( ).
       CATCH zcx_abapgit_exception INTO lx_err.
         lv_result = lx_err->get_longtext( ).
@@ -493,7 +492,7 @@ CLASS ltcl_longtext IMPLEMENTATION.
   METHOD text_from_previous_exception.
     DATA: lx_previous TYPE REF TO cx_sy_dyn_call_illegal_method.
 
-    CREATE OBJECT lx_previous.
+    lx_previous = NEW #( ).
 
     given_the_previous_exception( lx_previous ).
     given_the_longtext( gs_longtext_test_data-longtext_500 ).
