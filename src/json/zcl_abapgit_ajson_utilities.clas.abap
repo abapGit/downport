@@ -308,7 +308,7 @@ CLASS zcl_abapgit_ajson_utilities IMPLEMENTATION.
         eo_delete = li_del
         eo_change = li_mod ).
 
-    rv_yes = xsdbool(
+    rv_yes = boolc(
       li_ins->is_empty( ) = abap_true AND
       li_del->is_empty( ) = abap_true AND
       li_mod->is_empty( ) = abap_true ).
@@ -342,13 +342,13 @@ CLASS zcl_abapgit_ajson_utilities IMPLEMENTATION.
 
 
   METHOD new.
-    ro_instance = NEW #( ).
+    CREATE OBJECT ro_instance.
   ENDMETHOD.
 
 
   METHOD normalize_input.
 
-    IF xsdbool( iv_json IS INITIAL ) = xsdbool( io_json IS INITIAL ).
+    IF boolc( iv_json IS INITIAL ) = boolc( io_json IS INITIAL ).
       zcx_abapgit_ajson_error=>raise( 'Either supply JSON string or instance, but not both' ).
     ENDIF.
 
