@@ -11,8 +11,8 @@
    <TPOOL>
     <item>
      <ID>R</ID>
-     <ENTRY>Include ZABAPGIT_FORMS</ENTRY>
-     <LENGTH>22</LENGTH>
+     <ENTRY>abapGit - Form Routines</ENTRY>
+     <LENGTH>23</LENGTH>
     </item>
    </TPOOL>
   </asx:values>

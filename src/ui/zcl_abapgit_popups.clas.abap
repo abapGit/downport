@@ -161,7 +161,7 @@ CLASS zcl_abapgit_popups IMPLEMENTATION.
   METHOD commit_list_build.
 
     DATA:
-      lv_unix_time   TYPE zcl_abapgit_time=>ty_unixtime,
+      lv_unix_time   TYPE zcl_abapgit_git_time=>ty_unixtime,
       lv_date        TYPE d,
       lv_date_string TYPE c LENGTH 12,
       lv_time        TYPE t,
@@ -190,7 +190,7 @@ CLASS zcl_abapgit_popups IMPLEMENTATION.
       <ls_value_tab>-commit  = <ls_commit>-sha1.
       <ls_value_tab>-message = <ls_commit>-message.
       lv_unix_time = <ls_commit>-time.
-      zcl_abapgit_time=>get_utc(
+      zcl_abapgit_git_time=>get_utc(
         EXPORTING
           iv_unix = lv_unix_time
         IMPORTING
@@ -1054,7 +1054,7 @@ CLASS zcl_abapgit_popups IMPLEMENTATION.
         p_object_data    = es_package_data
       EXCEPTIONS
         action_cancelled = 1.
-    ev_create = boolc( sy-subrc = 0 ).
+    ev_create = xsdbool( sy-subrc = 0 ).
   ENDMETHOD.
 
 
@@ -1173,7 +1173,7 @@ CLASS zcl_abapgit_popups IMPLEMENTATION.
         ENDIF.
 
         IF iv_header_text CN ' _0'.
-          CREATE OBJECT lo_table_header EXPORTING text = iv_header_text.
+          lo_table_header = NEW #( text = iv_header_text ).
           mo_select_list_popup->set_top_of_list( lo_table_header ).
         ENDIF.
 
