@@ -27,14 +27,14 @@ CLASS ZCL_ABAPGIT_DATA_FACTORY IMPLEMENTATION.
 
 
   METHOD get_config.
-    CREATE OBJECT ri_config TYPE zcl_abapgit_data_config.
+    ri_config = NEW zcl_abapgit_data_config( ).
   ENDMETHOD.
 
 
   METHOD get_deserializer.
 
     IF gi_deserializer IS INITIAL.
-      CREATE OBJECT gi_deserializer TYPE zcl_abapgit_data_deserializer.
+      gi_deserializer = NEW zcl_abapgit_data_deserializer( ).
     ENDIF.
 
     ri_deserializer = gi_deserializer.
@@ -45,7 +45,7 @@ CLASS ZCL_ABAPGIT_DATA_FACTORY IMPLEMENTATION.
   METHOD get_serializer.
 
     IF gi_serializer IS INITIAL.
-      CREATE OBJECT gi_serializer TYPE zcl_abapgit_data_serializer.
+      gi_serializer = NEW zcl_abapgit_data_serializer( ).
     ENDIF.
 
     ri_serializer = gi_serializer.
