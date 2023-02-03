@@ -18,7 +18,7 @@ CLASS zcl_abapgit_transport_2_branch DEFINITION
       IMPORTING
         !is_transport_to_branch TYPE zif_abapgit_definitions=>ty_transport_to_branch
       RETURNING
-        VALUE(rs_comment)       TYPE zif_abapgit_definitions=>ty_comment .
+        VALUE(rs_comment)       TYPE zif_abapgit_git_definitions=>ty_comment .
     METHODS stage_transport_objects
       IMPORTING
         !it_transport_objects TYPE zif_abapgit_definitions=>ty_tadir_tt
@@ -38,7 +38,7 @@ CLASS ZCL_ABAPGIT_TRANSPORT_2_BRANCH IMPLEMENTATION.
   METHOD create.
     DATA:
       lv_branch_name     TYPE string,
-      ls_comment         TYPE zif_abapgit_definitions=>ty_comment,
+      ls_comment         TYPE zif_abapgit_git_definitions=>ty_comment,
       lo_stage           TYPE REF TO zcl_abapgit_stage,
       ls_stage_objects   TYPE zif_abapgit_definitions=>ty_stage_files,
       lt_object_statuses TYPE zif_abapgit_definitions=>ty_results_tt.
@@ -48,7 +48,7 @@ CLASS ZCL_ABAPGIT_TRANSPORT_2_BRANCH IMPLEMENTATION.
 
     io_repository->create_branch( lv_branch_name ).
 
-    CREATE OBJECT lo_stage.
+    lo_stage = NEW #( ).
 
     ls_stage_objects = zcl_abapgit_factory=>get_stage_logic( )->get( io_repository ).
 
@@ -76,7 +76,7 @@ CLASS ZCL_ABAPGIT_TRANSPORT_2_BRANCH IMPLEMENTATION.
 
   METHOD stage_transport_objects.
     DATA lo_transport_objects TYPE REF TO zcl_abapgit_transport_objects.
-    CREATE OBJECT lo_transport_objects EXPORTING it_transport_objects = it_transport_objects.
+    lo_transport_objects = NEW #( it_transport_objects = it_transport_objects ).
 
     lo_transport_objects->to_stage(
       io_stage           = io_stage

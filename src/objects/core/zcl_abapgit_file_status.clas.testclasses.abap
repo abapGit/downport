@@ -127,7 +127,7 @@ CLASS ltcl_run_checks IMPLEMENTATION.
 
   METHOD setup.
 
-    CREATE OBJECT mi_log TYPE zcl_abapgit_log.
+    mi_log = NEW zcl_abapgit_log( ).
 
     mo_dot = zcl_abapgit_dot_abapgit=>build_default( ).
     mo_dot->set_starting_folder( '/' ).  " assumed by unit tests
@@ -619,12 +619,12 @@ CLASS ltcl_status_helper DEFINITION FOR TESTING.
         IMPORTING
           iv_path     TYPE string DEFAULT '/'
           iv_filename TYPE string
-          iv_sha1     TYPE zif_abapgit_definitions=>ty_sha1,
+          iv_sha1     TYPE zif_abapgit_git_definitions=>ty_sha1,
       add_local
         IMPORTING
           iv_path     TYPE string DEFAULT '/'
           iv_filename TYPE string
-          iv_sha1     TYPE zif_abapgit_definitions=>ty_sha1
+          iv_sha1     TYPE zif_abapgit_git_definitions=>ty_sha1
           iv_obj_type TYPE tadir-object OPTIONAL
           iv_obj_name TYPE tadir-obj_name OPTIONAL
           iv_devclass TYPE devclass DEFAULT '$Z$',
@@ -632,7 +632,7 @@ CLASS ltcl_status_helper DEFINITION FOR TESTING.
         IMPORTING
           iv_path     TYPE string DEFAULT '/'
           iv_filename TYPE string
-          iv_sha1     TYPE zif_abapgit_definitions=>ty_sha1,
+          iv_sha1     TYPE zif_abapgit_git_definitions=>ty_sha1,
       run
         IMPORTING
           iv_devclass      TYPE devclass DEFAULT '$Z$'
@@ -652,8 +652,8 @@ CLASS ltcl_status_helper DEFINITION FOR TESTING.
     DATA:
       mt_tadir  TYPE STANDARD TABLE OF ty_tadir WITH DEFAULT KEY,
       mt_local  TYPE zif_abapgit_definitions=>ty_files_item_tt,
-      mt_remote TYPE zif_abapgit_definitions=>ty_files_tt,
-      mt_state  TYPE zif_abapgit_definitions=>ty_file_signatures_tt.
+      mt_remote TYPE zif_abapgit_git_definitions=>ty_files_tt,
+      mt_state  TYPE zif_abapgit_git_definitions=>ty_file_signatures_tt.
 
 ENDCLASS.
 
@@ -751,7 +751,7 @@ CLASS ltcl_status_helper IMPLEMENTATION.
       it_remote    = mt_remote
       it_cur_state = mt_state ).
 
-    CREATE OBJECT ro_result EXPORTING it_results = lt_results.
+    ro_result = NEW #( it_results = lt_results ).
 
   ENDMETHOD.
 
@@ -789,7 +789,7 @@ CLASS ltcl_calculate_status IMPLEMENTATION.
 
   METHOD setup.
 
-    CREATE OBJECT mo_helper.
+    mo_helper = NEW #( ).
 
   ENDMETHOD.
 

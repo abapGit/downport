@@ -21,13 +21,13 @@ CLASS ltcl_repo_online IMPLEMENTATION.
 
     DATA: ls_provider_urls TYPE ty_show_url_test,
           lt_test_urls     TYPE ty_show_url_tests,
-          lv_testhash      TYPE zif_abapgit_definitions=>ty_sha1 VALUE 'my-SHA1-hash',
+          lv_testhash      TYPE zif_abapgit_git_definitions=>ty_sha1 VALUE 'my-SHA1-hash',
           lo_cut           TYPE REF TO zcl_abapgit_git_url,
           lv_show_url      TYPE zif_abapgit_persistence=>ty_repo-url.
 
     FIELD-SYMBOLS <ls_provider_urls> TYPE ty_show_url_test.
 
-    CREATE OBJECT lo_cut.
+    lo_cut = NEW #( ).
 
     ls_provider_urls-repo_url = |https://github.com/abapGit/abapGit.git|.
     ls_provider_urls-show_url = |https://github.com/abapGit/abapGit/commit/{ lv_testhash }|.

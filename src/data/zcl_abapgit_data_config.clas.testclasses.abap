@@ -8,7 +8,7 @@ CLASS ltcl_test DEFINITION FOR TESTING DURATION SHORT RISK LEVEL HARMLESS FINAL.
     METHODS double_add_config FOR TESTING RAISING cx_static_check.
     METHODS to_json FOR TESTING RAISING cx_static_check.
     METHODS from_json
-      IMPORTING it_files TYPE zif_abapgit_definitions=>ty_files_tt
+      IMPORTING it_files TYPE zif_abapgit_git_definitions=>ty_files_tt
       RAISING   cx_static_check.
 
 ENDCLASS.
@@ -38,7 +38,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA li_config TYPE REF TO zif_abapgit_data_config.
     DATA ls_config TYPE zif_abapgit_data_config=>ty_config.
 
-    CREATE OBJECT li_config TYPE zcl_abapgit_data_config.
+    li_config = NEW zcl_abapgit_data_config( ).
 
     ls_config-name = 'HELLO'.
     ls_config-type = zif_abapgit_data_config=>c_data_type-tabu.
@@ -59,12 +59,12 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD to_json.
 
     DATA li_config TYPE REF TO zif_abapgit_data_config.
-    DATA lt_files TYPE zif_abapgit_definitions=>ty_files_tt.
+    DATA lt_files TYPE zif_abapgit_git_definitions=>ty_files_tt.
     DATA ls_file LIKE LINE OF lt_files.
     DATA lv_json TYPE string.
 
 
-    CREATE OBJECT li_config TYPE zcl_abapgit_data_config.
+    li_config = NEW zcl_abapgit_data_config( ).
     li_config->add_config( ms_config ).
 
     lt_files = li_config->to_json( ).
@@ -92,7 +92,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
     DATA li_config TYPE REF TO zif_abapgit_data_config.
 
-    CREATE OBJECT li_config TYPE zcl_abapgit_data_config.
+    li_config = NEW zcl_abapgit_data_config( ).
 
     li_config->from_json( it_files ).
 

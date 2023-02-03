@@ -42,7 +42,7 @@ CLASS zcl_abapgit_object_smim IMPLEMENTATION.
   METHOD find_content.
 
     DATA: lv_filename TYPE string,
-          lt_files    TYPE zif_abapgit_definitions=>ty_files_tt.
+          lt_files    TYPE zif_abapgit_git_definitions=>ty_files_tt.
 
     FIELD-SYMBOLS: <ls_file> LIKE LINE OF lt_files.
 
@@ -259,7 +259,7 @@ CLASS zcl_abapgit_object_smim IMPLEMENTATION.
 
     SELECT SINGLE loio_id FROM smimloio INTO lv_loio
       WHERE loio_id = lv_loio.                          "#EC CI_GENBUFF
-    rv_bool = boolc( sy-subrc = 0 ).
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -300,7 +300,7 @@ CLASS zcl_abapgit_object_smim IMPLEMENTATION.
           lv_folder   TYPE abap_bool,
           lv_filename TYPE string,
           lv_class    TYPE smimloio-lo_class,
-          ls_file     TYPE zif_abapgit_definitions=>ty_file,
+          ls_file     TYPE zif_abapgit_git_definitions=>ty_file,
           lv_content  TYPE xstring,
           li_api      TYPE REF TO if_mr_api,
           lv_loio     TYPE sdok_docid.

@@ -55,7 +55,7 @@ CLASS zcl_abapgit_gui_page_tags DEFINITION
     DATA mo_validation_log TYPE REF TO zcl_abapgit_string_map.
     DATA mo_repo TYPE REF TO zcl_abapgit_repo_online.
     DATA mo_settings TYPE REF TO zcl_abapgit_settings.
-    DATA ms_tag TYPE zif_abapgit_definitions=>ty_git_tag.
+    DATA ms_tag TYPE zif_abapgit_git_definitions=>ty_git_tag.
 
     METHODS get_form_schema
       IMPORTING
@@ -118,8 +118,8 @@ CLASS zcl_abapgit_gui_page_tags IMPLEMENTATION.
   METHOD constructor.
 
     super->constructor( ).
-    CREATE OBJECT mo_form_data.
-    CREATE OBJECT mo_validation_log.
+    mo_form_data = NEW #( ).
+    mo_validation_log = NEW #( ).
     mo_repo ?= ii_repo.
 
     " Get settings from DB
@@ -137,7 +137,7 @@ CLASS zcl_abapgit_gui_page_tags IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_tags.
 
-    CREATE OBJECT lo_component EXPORTING ii_repo = ii_repo.
+    lo_component = NEW #( ii_repo = ii_repo ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Create Tag'
@@ -288,7 +288,7 @@ CLASS zcl_abapgit_gui_page_tags IMPLEMENTATION.
   METHOD validate_form.
 
     DATA:
-      lt_tags         TYPE zif_abapgit_definitions=>ty_git_branch_list_tt,
+      lt_tags         TYPE zif_abapgit_git_definitions=>ty_git_branch_list_tt,
       lv_new_tag_name TYPE string.
 
     ro_validation_log = mo_form_util->validate( io_form_data ).
@@ -321,7 +321,7 @@ CLASS zcl_abapgit_gui_page_tags IMPLEMENTATION.
 
     DATA:
       lx_error  TYPE REF TO zcx_abapgit_exception,
-      lv_commit TYPE zif_abapgit_definitions=>ty_sha1,
+      lv_commit TYPE zif_abapgit_git_definitions=>ty_sha1,
       lv_text   TYPE string.
 
     mo_form_data = mo_form_util->normalize( ii_event->form_data( ) ).
@@ -384,7 +384,7 @@ CLASS zcl_abapgit_gui_page_tags IMPLEMENTATION.
     " If staying on form, initialize it with current settings
     IF rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
       mo_form = get_form_schema( mo_form_data ).
-      CREATE OBJECT mo_form_util EXPORTING io_form = mo_form.
+      mo_form_util = NEW #( io_form = mo_form ).
     ENDIF.
 
   ENDMETHOD.
@@ -394,7 +394,7 @@ CLASS zcl_abapgit_gui_page_tags IMPLEMENTATION.
 
     gui_services( )->register_event_handler( me ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( `<div class="repo">` ).
 

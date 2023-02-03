@@ -65,7 +65,7 @@ CLASS ZCL_ABAPGIT_BACKGROUND_PUSH_FI IMPLEMENTATION.
 
   METHOD push_fixed.
 
-    DATA: ls_comment TYPE zif_abapgit_definitions=>ty_comment,
+    DATA: ls_comment TYPE zif_abapgit_git_definitions=>ty_comment,
           ls_files   TYPE zif_abapgit_definitions=>ty_stage_files,
           lo_stage   TYPE REF TO zcl_abapgit_stage.
 
@@ -77,7 +77,7 @@ CLASS ZCL_ABAPGIT_BACKGROUND_PUSH_FI IMPLEMENTATION.
     ASSERT lines( ls_files-local ) > 0
         OR lines( ls_files-remote ) > 0.
 
-    CREATE OBJECT lo_stage.
+    lo_stage = NEW #( ).
 
     LOOP AT ls_files-local ASSIGNING <ls_local>.
       mi_log->add_info( |stage: { <ls_local>-file-path } { <ls_local>-file-filename }| ).

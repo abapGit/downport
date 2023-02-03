@@ -40,7 +40,7 @@ CLASS zcl_abapgit_zip DEFINITION
       IMPORTING
         !iv_xstr        TYPE xstring
       RETURNING
-        VALUE(rt_files) TYPE zif_abapgit_definitions=>ty_files_tt
+        VALUE(rt_files) TYPE zif_abapgit_git_definitions=>ty_files_tt
       RAISING
         zcx_abapgit_exception .
     CLASS-METHODS save_binstring_to_localfile
@@ -64,14 +64,14 @@ CLASS zcl_abapgit_zip DEFINITION
         zcx_abapgit_exception .
     CLASS-METHODS normalize_path
       CHANGING
-        !ct_files TYPE zif_abapgit_definitions=>ty_files_tt
+        !ct_files TYPE zif_abapgit_git_definitions=>ty_files_tt
       RAISING
         zcx_abapgit_exception .
     CLASS-METHODS unzip_file
       IMPORTING
         !iv_xstr        TYPE xstring
       RETURNING
-        VALUE(rt_files) TYPE zif_abapgit_definitions=>ty_files_tt
+        VALUE(rt_files) TYPE zif_abapgit_git_definitions=>ty_files_tt
       RAISING
         zcx_abapgit_exception .
 ENDCLASS.
@@ -89,7 +89,7 @@ CLASS ZCL_ABAPGIT_ZIP IMPLEMENTATION.
     FIELD-SYMBOLS: <ls_file> LIKE LINE OF it_files.
 
 
-    CREATE OBJECT lo_zip.
+    lo_zip = NEW #( ).
 
     LOOP AT it_files ASSIGNING <ls_file>.
       CONCATENATE <ls_file>-file-path+1 <ls_file>-file-filename INTO lv_filename.
@@ -108,15 +108,15 @@ CLASS ZCL_ABAPGIT_ZIP IMPLEMENTATION.
     DATA lt_zip       TYPE zif_abapgit_definitions=>ty_files_item_tt.
     DATA lo_serialize TYPE REF TO zcl_abapgit_serialize.
 
-    CREATE OBJECT li_log TYPE zcl_abapgit_log.
+    li_log = NEW zcl_abapgit_log( ).
     li_log->set_title( 'Zip Export Log' ).
 
     IF zcl_abapgit_factory=>get_sap_package( iv_package )->exists( ) = abap_false.
       zcx_abapgit_exception=>raise( |Package { iv_package } doesn't exist| ).
     ENDIF.
 
-    CREATE OBJECT lo_serialize EXPORTING io_dot_abapgit = io_dot_abapgit
-                                         is_local_settings = is_local_settings.
+    lo_serialize = NEW #( io_dot_abapgit = io_dot_abapgit
+                          is_local_settings = is_local_settings ).
 
     lt_zip = lo_serialize->files_local(
       iv_package = iv_package
@@ -315,7 +315,7 @@ CLASS ZCL_ABAPGIT_ZIP IMPLEMENTATION.
                    <ls_file>    LIKE LINE OF rt_files.
 
 
-    CREATE OBJECT lo_zip.
+    lo_zip = NEW #( ).
     lo_zip->load( EXPORTING
                     zip             = iv_xstr
                   EXCEPTIONS
