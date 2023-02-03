@@ -116,7 +116,7 @@ CLASS zcl_abapgit_services_repo IMPLEMENTATION.
 
     lo_repo ?= zcl_abapgit_repo_srv=>get_instance( )->get( iv_key ).
 
-    CREATE OBJECT lo_browser EXPORTING io_repo = lo_repo.
+    lo_browser = NEW #( io_repo = lo_repo ).
 
     lt_repo_items = lo_browser->list( '/' ).
 
@@ -376,13 +376,13 @@ CLASS zcl_abapgit_services_repo IMPLEMENTATION.
 
   METHOD popup_overwrite.
 
-    DATA: lt_columns  TYPE zif_abapgit_definitions=>ty_alv_column_tt,
+    DATA: lt_columns  TYPE zif_abapgit_popups=>ty_alv_column_tt,
           lt_selected LIKE ct_overwrite,
           li_popups   TYPE REF TO zif_abapgit_popups.
     DATA lt_preselected_rows TYPE zif_abapgit_popups=>ty_rows.
 
     FIELD-SYMBOLS: <ls_overwrite> LIKE LINE OF ct_overwrite,
-                   <ls_column>    TYPE zif_abapgit_definitions=>ty_alv_column.
+                   <ls_column>    TYPE zif_abapgit_popups=>ty_alv_column.
 
 
     IF lines( ct_overwrite ) = 0.
@@ -435,12 +435,12 @@ CLASS zcl_abapgit_services_repo IMPLEMENTATION.
 
   METHOD popup_package_overwrite.
 
-    DATA: lt_columns  TYPE zif_abapgit_definitions=>ty_alv_column_tt,
+    DATA: lt_columns  TYPE zif_abapgit_popups=>ty_alv_column_tt,
           lt_selected LIKE ct_overwrite,
           li_popups   TYPE REF TO zif_abapgit_popups.
 
     FIELD-SYMBOLS: <ls_overwrite> LIKE LINE OF ct_overwrite,
-                   <ls_column>    TYPE zif_abapgit_definitions=>ty_alv_column.
+                   <ls_column>    TYPE zif_abapgit_popups=>ty_alv_column.
 
     IF lines( ct_overwrite ) = 0.
       RETURN.
@@ -676,7 +676,7 @@ CLASS zcl_abapgit_services_repo IMPLEMENTATION.
     ls_transport_to_branch = zcl_abapgit_ui_factory=>get_popups( )->popup_to_create_transp_branch(
       lt_transport_headers ).
 
-    CREATE OBJECT lo_transport_to_branch.
+    lo_transport_to_branch = NEW #( ).
     lo_transport_to_branch->create(
       io_repository          = lo_repository
       is_transport_to_branch = ls_transport_to_branch
