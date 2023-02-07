@@ -53,7 +53,7 @@ CLASS zcl_abapgit_objects_activation DEFINITION
       c_sqsc       TYPE c LENGTH 4  VALUE 'SQSC',
       c_stob       TYPE c LENGTH 4  VALUE 'STOB',
       c_ntab       TYPE c LENGTH 14 VALUE 'NTTT NTTB NTDT',
-      c_ddls       TYPE c LENGTH 14 VALUE 'DDLS DRUL DTDC',
+      c_ddls       TYPE c LENGTH 24 VALUE 'DDLS DRUL DTDC DTEB',
       c_switches   TYPE c LENGTH 24 VALUE 'SF01 SF02 SFSW SFBS SFBF',
       c_para       TYPE c LENGTH 4  VALUE 'PARA', " can be referenced by DTEL
       c_enhd       TYPE c LENGTH 4  VALUE 'ENHD'.
@@ -536,7 +536,7 @@ CLASS zcl_abapgit_objects_activation IMPLEMENTATION.
         illegal_input = 1
         OTHERS        = 2.
 
-    rv_active = boolc( sy-subrc = 0 AND ( lv_state = '' OR lv_state = 'A' ) ).
+    rv_active = xsdbool( sy-subrc = 0 AND ( lv_state = '' OR lv_state = 'A' ) ).
 
   ENDMETHOD.
 
@@ -579,7 +579,7 @@ CLASS zcl_abapgit_objects_activation IMPLEMENTATION.
         p_e071                    = lt_e071
         p_xmsg                    = lt_messages.
 
-    rv_active = boolc( lt_messages IS INITIAL ).
+    rv_active = xsdbool( lt_messages IS INITIAL ).
 
   ENDMETHOD.
 
@@ -601,8 +601,8 @@ CLASS zcl_abapgit_objects_activation IMPLEMENTATION.
           lv_include = cl_oo_classname_service=>get_interfacepool_name( ls_class-clsname ).
       ENDCASE.
 
-      CREATE OBJECT lo_cross EXPORTING p_name = lv_include
-                                       p_include = lv_include.
+      lo_cross = NEW #( p_name = lv_include
+                        p_include = lv_include ).
 
       lo_cross->index_actualize( IMPORTING p_error = lv_error ).
 
