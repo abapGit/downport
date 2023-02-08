@@ -1,15 +1,19 @@
 CLASS zcl_abapgit_gui_page_repo_view DEFINITION
   PUBLIC
-  INHERITING FROM zcl_abapgit_gui_page
+  INHERITING FROM zcl_abapgit_gui_component
   FINAL
-  CREATE PUBLIC .
+  CREATE PRIVATE.
 
   PUBLIC SECTION.
-    INTERFACES zif_abapgit_gui_hotkeys .
+
+    INTERFACES:
+      zif_abapgit_gui_event_handler,
+      zif_abapgit_gui_hotkeys,
+      zif_abapgit_gui_menu_provider,
+      zif_abapgit_gui_renderable.
 
     CONSTANTS:
       BEGIN OF c_actions,
-        repo_list         TYPE string VALUE 'abapgit_home' ##NO_TEXT,
         change_dir        TYPE string VALUE 'change_dir' ##NO_TEXT,
         toggle_hide_files TYPE string VALUE 'toggle_hide_files' ##NO_TEXT,
         toggle_folders    TYPE string VALUE 'toggle_folders' ##NO_TEXT,
@@ -20,16 +24,20 @@ CLASS zcl_abapgit_gui_page_repo_view DEFINITION
         go_unit           TYPE string VALUE 'go_unit',
       END OF c_actions .
 
+    CLASS-METHODS create
+      IMPORTING
+        !iv_key        TYPE zif_abapgit_persistence=>ty_repo-key
+      RETURNING
+        VALUE(ri_page) TYPE REF TO zif_abapgit_gui_renderable
+      RAISING
+        zcx_abapgit_exception.
+
     METHODS constructor
       IMPORTING
         !iv_key TYPE zif_abapgit_persistence=>ty_repo-key
       RAISING
         zcx_abapgit_exception .
 
-    METHODS zif_abapgit_gui_event_handler~on_event
-        REDEFINITION .
-  PROTECTED SECTION.
-    METHODS render_content REDEFINITION.
   PRIVATE SECTION.
 
     DATA mo_repo TYPE REF TO zcl_abapgit_repo .
@@ -151,9 +159,6 @@ CLASS zcl_abapgit_gui_page_repo_view DEFINITION
         VALUE(ro_toolbar) TYPE REF TO zcl_abapgit_html_toolbar
       RAISING
         zcx_abapgit_exception .
-    METHODS build_main_menu
-      RETURNING
-        VALUE(ro_menu) TYPE REF TO zcl_abapgit_html_toolbar .
     METHODS render_scripts
       RETURNING
         VALUE(ri_html) TYPE REF TO zif_abapgit_html
@@ -269,7 +274,7 @@ CLASS zcl_abapgit_gui_page_repo_view IMPLEMENTATION.
 
   METHOD build_advanced_dropdown.
 
-    CREATE OBJECT ro_advanced_dropdown.
+    ro_advanced_dropdown = NEW #( ).
 
     ro_advanced_dropdown->add( iv_txt = 'Activate Objects'
                                iv_act = |{ zif_abapgit_definitions=>c_action-repo_activate_objects }?key={ mv_key }| ).
@@ -341,7 +346,7 @@ CLASS zcl_abapgit_gui_page_repo_view IMPLEMENTATION.
 
   METHOD build_branch_dropdown.
 
-    CREATE OBJECT ro_branch_dropdown.
+    ro_branch_dropdown = NEW #( ).
 
     IF mo_repo->is_offline( ) = abap_true.
       RETURN.
@@ -365,7 +370,7 @@ CLASS zcl_abapgit_gui_page_repo_view IMPLEMENTATION.
     DATA lv_encode TYPE string.
     DATA li_html TYPE REF TO zif_abapgit_html.
 
-    CREATE OBJECT li_html TYPE zcl_abapgit_html.
+    li_html = NEW zcl_abapgit_html( ).
 
     lv_path = iv_path.
     REPLACE FIRST OCCURRENCE OF mv_cur_dir IN lv_path WITH ''.
@@ -402,27 +407,12 @@ CLASS zcl_abapgit_gui_page_repo_view IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD build_main_menu.
-
-    CREATE OBJECT ro_menu EXPORTING iv_id = 'toolbar-main'.
-
-    ro_menu->add(
-      iv_txt = zcl_abapgit_gui_buttons=>repo_list( )
-      iv_act = zif_abapgit_definitions=>c_action-abapgit_home
-    )->add(
-      iv_txt = zcl_abapgit_gui_buttons=>help( )
-      iv_title = 'Help'
-      io_sub = zcl_abapgit_gui_chunk_lib=>help_submenu( ) ).
-
-  ENDMETHOD.
-
-
   METHOD build_main_toolbar.
 
     DATA:
       li_log TYPE REF TO zif_abapgit_log.
 
-    CREATE OBJECT ro_toolbar EXPORTING iv_id = 'toolbar-repo'.
+    ro_toolbar = NEW #( iv_id = 'toolbar-repo' ).
 
     IF mo_repo->is_offline( ) = abap_false.
       " online repo
@@ -505,7 +495,7 @@ CLASS zcl_abapgit_gui_page_repo_view IMPLEMENTATION.
     DATA lv_encode TYPE string.
     DATA li_html TYPE REF TO zif_abapgit_html.
 
-    CREATE OBJECT li_html TYPE zcl_abapgit_html.
+    li_html = NEW zcl_abapgit_html( ).
 
     lv_encode = zcl_abapgit_html_action_utils=>jump_encode(
       iv_obj_type = is_item-obj_type
@@ -532,7 +522,7 @@ CLASS zcl_abapgit_gui_page_repo_view IMPLEMENTATION.
 
   METHOD build_tag_dropdown.
 
-    CREATE OBJECT ro_tag_dropdown.
+    ro_tag_dropdown = NEW #( ).
 
     IF mo_repo->is_offline( ) = abap_true.
       RETURN.
@@ -551,7 +541,7 @@ CLASS zcl_abapgit_gui_page_repo_view IMPLEMENTATION.
 
   METHOD build_view_dropdown.
 
-    CREATE OBJECT ro_toolbar.
+    ro_toolbar = NEW #( ).
 
     ro_toolbar->add(
       iv_txt = 'Changes First'
@@ -565,7 +555,7 @@ CLASS zcl_abapgit_gui_page_repo_view IMPLEMENTATION.
 
     ro_toolbar->add(
       iv_txt = 'File Paths'
-      iv_chk = boolc( NOT mv_hide_files = abap_true )
+      iv_chk = xsdbool( NOT mv_hide_files = abap_true )
       iv_act = c_actions-toggle_hide_files ).
 
     ro_toolbar->add(
@@ -610,9 +600,6 @@ CLASS zcl_abapgit_gui_page_repo_view IMPLEMENTATION.
         mv_diff_first = lo_persistence_user->get_diff_first( ).
         mv_show_folders = lo_persistence_user->get_show_folders( ).
 
-        ms_control-page_title = 'Repository'.
-        ms_control-page_menu = build_main_menu( ).
-
         " Read global settings to get max # of objects to be listed
         lo_settings = zcl_abapgit_persist_factory=>get_settings( )->read( ).
         mv_max_lines = lo_settings->get_max_lines( ).
@@ -625,6 +612,20 @@ CLASS zcl_abapgit_gui_page_repo_view IMPLEMENTATION.
 
         RAISE EXCEPTION lx_error.
     ENDTRY.
+
+  ENDMETHOD.
+
+
+  METHOD create.
+
+    DATA lo_component TYPE REF TO zcl_abapgit_gui_page_repo_view.
+
+    lo_component = NEW #( iv_key = iv_key ).
+
+    ri_page = zcl_abapgit_gui_page_hoc=>create(
+      iv_page_title         = 'Repository'
+      ii_page_menu_provider = lo_component
+      ii_child_component    = lo_component ).
 
   ENDMETHOD.
 
@@ -695,7 +696,7 @@ CLASS zcl_abapgit_gui_page_repo_view IMPLEMENTATION.
 
 
   METHOD is_repo_lang_logon_lang.
-    rv_repo_lang_is_logon_lang = boolc( mo_repo->get_dot_abapgit( )->get_main_language( ) = sy-langu ).
+    rv_repo_lang_is_logon_lang = xsdbool( mo_repo->get_dot_abapgit( )->get_main_language( ) = sy-langu ).
   ENDMETHOD.
 
 
@@ -786,7 +787,479 @@ CLASS zcl_abapgit_gui_page_repo_view IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD render_content.
+  METHOD render_file_command.
+
+    DATA: lv_difflink TYPE string.
+
+    ri_html = NEW zcl_abapgit_html( ).
+
+    ri_html->add( '<div>' ).
+    IF is_file-is_changed = abap_true.
+      lv_difflink = zcl_abapgit_html_action_utils=>file_encode(
+        iv_key  = mo_repo->get_key( )
+        ig_file = is_file ).
+      ri_html->add_a( iv_txt = 'diff'
+                      iv_act = |{ zif_abapgit_definitions=>c_action-go_file_diff }?{ lv_difflink }| ).
+      ri_html->add( zcl_abapgit_gui_chunk_lib=>render_item_state( iv_lstate = is_file-lstate
+                                                                  iv_rstate = is_file-rstate ) ).
+    ELSE.
+      ri_html->add( '&nbsp;' ).
+    ENDIF.
+    ri_html->add( '</div>' ).
+
+  ENDMETHOD.
+
+
+  METHOD render_head_line.
+
+    DATA:
+      lo_toolbar      TYPE REF TO zcl_abapgit_html_toolbar,
+      ls_settings     TYPE zif_abapgit_definitions=>ty_s_user_settings,
+      lo_label_colors TYPE REF TO zcl_abapgit_string_map,
+      lt_labels       TYPE string_table.
+
+    ri_html = NEW zcl_abapgit_html( ).
+    lo_toolbar = build_main_toolbar( ).
+
+    ri_html->add( '<div class="paddings">' ).
+    ri_html->add( '<table class="w100"><tr>' ).
+
+    IF mv_show_folders = abap_true.
+      ri_html->add( '<td class="current_dir">' ).
+      ri_html->add( zcl_abapgit_gui_chunk_lib=>render_path( mv_cur_dir ) ).
+      ri_html->add( '</td>' ).
+    ENDIF.
+
+    lt_labels = zcl_abapgit_repo_labels=>split( mo_repo->ms_data-local_settings-labels ).
+
+    IF lines( lt_labels ) > 0.
+      ls_settings = zcl_abapgit_persist_factory=>get_settings( )->read( )->get_user_settings( ).
+      lo_label_colors = zcl_abapgit_repo_labels=>split_colors_into_map( ls_settings-label_colors ).
+
+      ri_html->td(
+        iv_content = zcl_abapgit_gui_chunk_lib=>render_label_list(
+                       it_labels = lt_labels
+                       io_label_colors = lo_label_colors )
+        iv_class   = 'labels' ).
+    ENDIF.
+
+    ri_html->add( '<td class="right">' ).
+    ri_html->add( lo_toolbar->render( iv_right = abap_true ) ).
+    ri_html->add( '</td>' ).
+    ri_html->add( '</tr></table>' ).
+    ri_html->add( '</div>' ).
+
+  ENDMETHOD.
+
+
+  METHOD render_item.
+
+    DATA: lv_link    TYPE string.
+
+    ri_html = NEW zcl_abapgit_html( ).
+
+    ri_html->add( |<tr{ get_item_class( is_item = is_item
+                                        iv_is_object_row = abap_true ) }>| ).
+
+    IF is_item-obj_name IS INITIAL AND is_item-is_dir = abap_false.
+      ri_html->add( |<td colspan="2"></td>|
+                 && '<td class="object">'
+                 && '<i class="grey">non-code and meta files</i>'
+                 && '</td>' ).
+    ELSE.
+      ri_html->add( |<td class="icon">{ get_item_icon( is_item ) }</td>| ).
+
+      IF is_item-is_dir = abap_true. " Subdir
+        lv_link = build_dir_jump_link( is_item-path ).
+        ri_html->add( |<td class="dir" colspan="2">{ lv_link }</td>| ).
+      ELSE.
+        lv_link = build_obj_jump_link( is_item ).
+        ri_html->add( |<td class="type">{ is_item-obj_type }</td>| ).
+        ri_html->add( |<td class="object">{ lv_link } { build_inactive_object_code( is_item )
+                      } { build_srcsystem_code( is_item ) }</td>| ).
+      ENDIF.
+    ENDIF.
+
+    " Changed by
+    ri_html->add( '<td class="user">' ).
+    ri_html->add( render_item_changed_by( is_item ) ).
+    ri_html->add( '</td>' ).
+
+    IF iv_render_transports = abap_true.
+      ri_html->add( render_item_transport( is_item ) ).
+    ENDIF.
+
+    " Command
+    ri_html->add( '<td class="cmd">' ).
+    IF mo_repo->has_remote_source( ) = abap_true.
+      ri_html->add( render_item_command( is_item ) ).
+    ENDIF.
+    ri_html->add( '</td>' ).
+
+    ri_html->add( '</tr>' ).
+
+    ri_html->add( render_item_files( is_item ) ).
+
+  ENDMETHOD.
+
+
+  METHOD render_item_changed_by.
+    ri_html = NEW zcl_abapgit_html( ).
+
+    IF is_item-changes = 0 OR is_item-changed_by IS INITIAL.
+      ri_html->add( '&nbsp;' ).
+    ELSE.
+      ri_html->add( zcl_abapgit_gui_chunk_lib=>render_user_name( is_item-changed_by ) ).
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD render_item_command.
+
+    DATA: lv_difflink TYPE string,
+          ls_file     LIKE LINE OF is_item-files.
+
+    ri_html = NEW zcl_abapgit_html( ).
+
+    IF is_item-is_dir = abap_true. " Directory
+      ri_html->add( '<div>' ).
+      ri_html->add( |<span class="grey">{ is_item-changes } changes</span>| ).
+      ri_html->add( zcl_abapgit_gui_chunk_lib=>render_item_state( iv_lstate = is_item-lstate
+                                                                  iv_rstate = is_item-rstate ) ).
+      ri_html->add( '</div>' ).
+
+    ELSEIF is_item-changes > 0.
+      IF mv_hide_files = abap_true AND is_item-obj_name IS NOT INITIAL.
+
+        lv_difflink = zcl_abapgit_html_action_utils=>obj_encode(
+          iv_key    = mo_repo->get_key( )
+          ig_object = is_item ).
+
+        ri_html->add( '<div>' ).
+        ri_html->add_a( iv_txt = |diff ({ is_item-changes })|
+                        iv_act = |{ zif_abapgit_definitions=>c_action-go_file_diff }?{ lv_difflink }| ).
+        ri_html->add( zcl_abapgit_gui_chunk_lib=>render_item_state( iv_lstate = is_item-lstate
+                                                                    iv_rstate = is_item-rstate ) ).
+        ri_html->add( '</div>' ).
+
+      ENDIF.
+
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD render_item_files.
+
+    DATA: ls_file LIKE LINE OF is_item-files.
+    DATA li_exit TYPE REF TO zif_abapgit_exit.
+
+    ri_html = NEW zcl_abapgit_html( ).
+
+    IF mv_hide_files = abap_true AND is_item-obj_type IS NOT INITIAL.
+      RETURN.
+    ENDIF.
+
+    li_exit = zcl_abapgit_exit=>get_instance( ).
+
+    LOOP AT is_item-files INTO ls_file.
+      ri_html->add( |<tr{ get_item_class( is_item ) }>| ).
+
+      ri_html->add( |<td class="icon"></td>| ).
+
+      ri_html->add( |<td class="type"></td>| ).
+      ri_html->add( |<td class="filename darkgrey">| ).
+
+      IF mv_show_folders = abap_true.
+        ri_html->add( |<div>{ li_exit->adjust_display_filename( ls_file-filename ) }</div>| ).
+      ELSE.
+        ri_html->add( |<div>{ li_exit->adjust_display_filename( ls_file-path && ls_file-filename ) }</div>| ).
+      ENDIF.
+
+      ri_html->add( |</td>| ).
+
+      " Changed by (not applicable to file)
+      ri_html->add( '<td class="user">' ).
+      ri_html->add( '</td>' ).
+
+      " Transport (not applicable to file)
+      IF mv_are_changes_recorded_in_tr = abap_true.
+        ri_html->add( `<td></td>` ).
+      ENDIF.
+
+      " Command
+      ri_html->add( '<td class="cmd">' ).
+      IF mo_repo->has_remote_source( ) = abap_true.
+        ri_html->add( render_file_command( ls_file ) ).
+      ENDIF.
+      ri_html->add( '</td>' ).
+
+      ri_html->add( '</tr>' ).
+
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD render_item_transport.
+
+    ri_html = NEW zcl_abapgit_html( ).
+
+    ri_html->add( '<td class="transport">' ).
+
+    ri_html->add( zcl_abapgit_gui_chunk_lib=>render_transport( is_item-transport ) ).
+
+    ri_html->add( '</td>' ).
+
+  ENDMETHOD.
+
+
+  METHOD render_order_by.
+
+    DATA:
+      lv_icon     TYPE string,
+      lt_col_spec TYPE zif_abapgit_definitions=>ty_col_spec_tt,
+      ls_col_spec TYPE zif_abapgit_definitions=>ty_col_spec.
+
+    ri_html = NEW zcl_abapgit_html( ).
+
+    " icon
+    APPEND INITIAL LINE TO lt_col_spec.
+
+    ls_col_spec-tech_name = 'OBJ_TYPE'.
+    ls_col_spec-display_name = 'Type'.
+    ls_col_spec-allow_order_by = abap_true.
+    APPEND ls_col_spec TO lt_col_spec.
+
+    ls_col_spec-tech_name = 'OBJ_NAME'.
+    ls_col_spec-display_name = 'Name'.
+    ls_col_spec-allow_order_by = abap_true.
+    APPEND ls_col_spec TO lt_col_spec.
+
+    ls_col_spec-tech_name = 'CHANGED_BY'.
+    ls_col_spec-display_name = 'Changed by'.
+    ls_col_spec-allow_order_by = abap_true.
+    APPEND ls_col_spec TO lt_col_spec.
+
+    IF mv_are_changes_recorded_in_tr = abap_true.
+      ls_col_spec-tech_name = 'TRANSPORT'.
+      ls_col_spec-display_name = 'Transport'.
+      ls_col_spec-allow_order_by = abap_true.
+      APPEND ls_col_spec TO lt_col_spec.
+    ENDIF.
+
+    ls_col_spec-tech_name = 'LSTATE'.
+    ls_col_spec-display_name = 'Status'.
+    ls_col_spec-allow_order_by = abap_true.
+    ls_col_spec-css_class = 'cmd'.
+    APPEND ls_col_spec TO lt_col_spec.
+
+    ri_html->add( |<thead>| ).
+    ri_html->add( |<tr>| ).
+
+    ri_html->add( zcl_abapgit_gui_chunk_lib=>render_order_by_header_cells(
+      it_col_spec         = lt_col_spec
+      iv_order_by         = mv_order_by
+      iv_order_descending = mv_order_descending ) ).
+
+    IF mv_diff_first = abap_true.
+      lv_icon = 'check/blue'.
+    ELSE.
+      lv_icon = 'check/grey'.
+    ENDIF.
+
+    ri_html->add( '</tr>' ).
+    ri_html->add( '</thead>' ).
+
+  ENDMETHOD.
+
+
+  METHOD render_parent_dir.
+
+    ri_html = NEW zcl_abapgit_html( ).
+
+    ri_html->add( '<tr class="folder">' ).
+    ri_html->add( |<td class="icon">{ ri_html->icon( 'folder' ) }</td>| ).
+    ri_html->add( |<td class="dir" colspan="4">{ build_dir_jump_link( '..' ) }</td>| ).
+    IF mo_repo->has_remote_source( ) = abap_true.
+      ri_html->add( |<td colspan="1"></td>| ). " Dummy for online
+    ENDIF.
+    ri_html->add( '</tr>' ).
+
+  ENDMETHOD.
+
+
+  METHOD render_scripts.
+
+    ri_html = NEW zcl_abapgit_html( ).
+
+    ri_html->set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
+    ri_html->add( zcl_abapgit_gui_chunk_lib=>render_repo_palette(
+      iv_action = zif_abapgit_definitions=>c_action-go_repo ) ).
+
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_gui_event_handler~on_event.
+
+    DATA lv_path TYPE string.
+    DATA lv_key TYPE zif_abapgit_persistence=>ty_value.
+
+    lv_key = ii_event->query( )->get( 'KEY' ).
+
+    CASE ii_event->mv_action.
+      WHEN zif_abapgit_definitions=>c_action-go_repo. " Switch to another repo
+        rs_handled-page  = create( |{ ii_event->query( )->get( 'KEY' ) }| ).
+        rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page_replacing.
+
+      WHEN c_actions-go_data.
+        rs_handled-page = NEW zcl_abapgit_gui_page_data( iv_key = |{ ii_event->query( )->get( 'KEY' ) }| ).
+        rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page.
+
+      WHEN c_actions-go_unit.
+        rs_handled-page = NEW zcl_abapgit_gui_page_runit( iv_devclass = mo_repo->get_package( ) ).
+        rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page.
+
+      WHEN c_actions-toggle_hide_files. " Toggle file diplay
+        mv_hide_files    = zcl_abapgit_persistence_user=>get_instance( )->toggle_hide_files( ).
+        rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
+
+      WHEN c_actions-change_dir.        " Change dir
+        lv_path         = ii_event->query( )->get( 'PATH' ).
+        mv_cur_dir = zcl_abapgit_path=>change_dir(
+          iv_cur_dir = mv_cur_dir
+          iv_cd      = lv_path ).
+        rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
+
+      WHEN c_actions-toggle_folders.    " Toggle folder view
+        mv_show_folders = zcl_abapgit_persistence_user=>get_instance( )->toggle_show_folders( ).
+        mv_cur_dir      = '/'. " Root
+        rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
+
+      WHEN c_actions-toggle_changes.    " Toggle changes only view
+        mv_changes_only = zcl_abapgit_persistence_user=>get_instance( )->toggle_changes_only( ).
+        rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
+
+      WHEN c_actions-toggle_diff_first.
+        mv_diff_first = zcl_abapgit_persistence_user=>get_instance( )->set_diff_first(
+          boolc( mv_diff_first = abap_false ) ).
+        rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
+
+      WHEN c_actions-display_more.      " Increase MAX lines limit
+        mv_max_lines    = mv_max_lines + mv_max_setting.
+        rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
+
+      WHEN zif_abapgit_definitions=>c_action-change_order_by.
+        mv_order_by = zcl_abapgit_persistence_user=>get_instance( )->set_order_by(
+          ii_event->query( )->get( 'ORDERBY' ) ).
+        mv_order_descending = zcl_abapgit_persistence_user=>get_instance( )->set_order_descending( abap_false ).
+        rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
+
+      WHEN zif_abapgit_definitions=>c_action-direction.
+        mv_order_descending = zcl_abapgit_persistence_user=>get_instance( )->set_order_descending(
+          boolc( ii_event->query( )->get( 'DIRECTION' ) = 'DESCENDING' ) ).
+        rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
+
+      WHEN zif_abapgit_definitions=>c_action-repo_open_in_master_lang.
+        open_in_main_language( ).
+        rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
+
+      WHEN zif_abapgit_definitions=>c_action-go_patch.
+        rs_handled-page = NEW zcl_abapgit_gui_page_patch( iv_key = lv_key ).
+        rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page_w_bookmark.
+
+    ENDCASE.
+
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_gui_hotkeys~get_hotkey_actions.
+
+    DATA: ls_hotkey_action LIKE LINE OF rt_hotkey_actions.
+    ls_hotkey_action-ui_component = 'Repo'.
+
+    ls_hotkey_action-description   = |Stage|.
+    ls_hotkey_action-action = zif_abapgit_definitions=>c_action-go_stage.
+    ls_hotkey_action-hotkey = |s|.
+    INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
+
+    ls_hotkey_action-description   = |Switch Branch|.
+    ls_hotkey_action-action = zif_abapgit_definitions=>c_action-git_branch_switch.
+    ls_hotkey_action-hotkey = |b|.
+    INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
+
+    ls_hotkey_action-description   = |Repository List|.
+    ls_hotkey_action-action = zif_abapgit_definitions=>c_action-abapgit_home.
+    ls_hotkey_action-hotkey = |o|.
+    INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
+
+    ls_hotkey_action-description   = |Refresh Repository|.
+    ls_hotkey_action-action = zif_abapgit_definitions=>c_action-repo_refresh.
+    ls_hotkey_action-hotkey = |r|.
+    INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
+
+    ls_hotkey_action-description   = |Pull|.
+    ls_hotkey_action-action = zif_abapgit_definitions=>c_action-git_pull.
+    ls_hotkey_action-hotkey = |p|.
+    INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
+
+    ls_hotkey_action-description = |Patch|.
+    ls_hotkey_action-action = zif_abapgit_definitions=>c_action-go_patch.
+    ls_hotkey_action-hotkey = |a|.
+    INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
+
+    ls_hotkey_action-description   = |Diff|.
+    ls_hotkey_action-action = zif_abapgit_definitions=>c_action-go_repo_diff.
+    ls_hotkey_action-hotkey = |d|.
+    INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
+
+    ls_hotkey_action-description   = |Uninstall Repository|.
+    ls_hotkey_action-action = zif_abapgit_definitions=>c_action-repo_purge.
+    ls_hotkey_action-hotkey = |u|.
+    INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
+
+    ls_hotkey_action-description   = |Run Syntax Check|.
+    ls_hotkey_action-action = zif_abapgit_definitions=>c_action-repo_syntax_check.
+    ls_hotkey_action-hotkey = |c|.
+    INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
+
+    ls_hotkey_action-description   = |Run Code Inspector|.
+    ls_hotkey_action-action = zif_abapgit_definitions=>c_action-repo_code_inspector.
+    ls_hotkey_action-hotkey = |i|.
+    INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
+
+    ls_hotkey_action-description   = |Show Log|.
+    ls_hotkey_action-action = zif_abapgit_definitions=>c_action-repo_log.
+    ls_hotkey_action-hotkey = |l|.
+    INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
+
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_gui_menu_provider~get_menu.
+
+    ro_toolbar = NEW #( iv_id = 'toolbar-main' ).
+
+    ro_toolbar->add(
+      iv_txt = zcl_abapgit_gui_buttons=>repo_list( )
+      iv_act = zif_abapgit_definitions=>c_action-abapgit_home
+    )->add(
+      iv_txt = zcl_abapgit_gui_buttons=>help( )
+      iv_title = 'Help'
+      io_sub = zcl_abapgit_gui_chunk_lib=>help_submenu( ) ).
+
+    IF zcl_abapgit_persist_factory=>get_settings( )->read( )->get_experimental_features( ) = abap_true.
+      ro_toolbar->add(
+        iv_txt   = zcl_abapgit_gui_buttons=>experimental( )
+        iv_title = 'Experimental Features are Enabled'
+        iv_act   = zif_abapgit_definitions=>c_action-go_settings ).
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_gui_renderable~render.
 
     DATA: lt_repo_items TYPE zif_abapgit_definitions=>ty_repo_item_tt,
           lo_browser    TYPE REF TO zcl_abapgit_repo_content_list,
@@ -800,11 +1273,11 @@ CLASS zcl_abapgit_gui_page_repo_view IMPLEMENTATION.
 
     FIELD-SYMBOLS <ls_item> LIKE LINE OF lt_repo_items.
 
-    gui_services( )->get_hotkeys_ctl( )->register_hotkeys( zif_abapgit_gui_hotkeys~get_hotkey_actions( ) ).
     gui_services( )->register_event_handler( me ).
-    CREATE OBJECT mo_repo_aggregated_state.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    mo_repo_aggregated_state = NEW #( ).
+
+    ri_html = NEW zcl_abapgit_html( ).
 
     TRY.
         " Reinit, for the case of type change
@@ -830,7 +1303,7 @@ CLASS zcl_abapgit_gui_page_repo_view IMPLEMENTATION.
           is_repo_meta = mo_repo->ms_data
           ii_html      = ri_html ).
 
-        CREATE OBJECT lo_browser EXPORTING io_repo = mo_repo.
+        lo_browser = NEW #( io_repo = mo_repo ).
 
         lt_repo_items = lo_browser->list( iv_path         = mv_cur_dir
                                           iv_by_folders   = mv_show_folders
@@ -940,460 +1413,6 @@ CLASS zcl_abapgit_gui_page_repo_view IMPLEMENTATION.
     ENDTRY.
 
     register_deferred_script( render_scripts( ) ).
-
-  ENDMETHOD.
-
-
-  METHOD render_file_command.
-
-    DATA: lv_difflink TYPE string.
-
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
-
-    ri_html->add( '<div>' ).
-    IF is_file-is_changed = abap_true.
-      lv_difflink = zcl_abapgit_html_action_utils=>file_encode(
-        iv_key  = mo_repo->get_key( )
-        ig_file = is_file ).
-      ri_html->add_a( iv_txt = 'diff'
-                      iv_act = |{ zif_abapgit_definitions=>c_action-go_file_diff }?{ lv_difflink }| ).
-      ri_html->add( zcl_abapgit_gui_chunk_lib=>render_item_state( iv_lstate = is_file-lstate
-                                                                  iv_rstate = is_file-rstate ) ).
-    ELSE.
-      ri_html->add( '&nbsp;' ).
-    ENDIF.
-    ri_html->add( '</div>' ).
-
-  ENDMETHOD.
-
-
-  METHOD render_head_line.
-
-    DATA:
-      lo_toolbar      TYPE REF TO zcl_abapgit_html_toolbar,
-      ls_settings     TYPE zif_abapgit_definitions=>ty_s_user_settings,
-      lo_label_colors TYPE REF TO zcl_abapgit_string_map,
-      lt_labels       TYPE string_table.
-
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
-    lo_toolbar = build_main_toolbar( ).
-
-    ri_html->add( '<div class="paddings">' ).
-    ri_html->add( '<table class="w100"><tr>' ).
-
-    IF mv_show_folders = abap_true.
-      ri_html->add( '<td class="current_dir">' ).
-      ri_html->add( zcl_abapgit_gui_chunk_lib=>render_path( mv_cur_dir ) ).
-      ri_html->add( '</td>' ).
-    ENDIF.
-
-    lt_labels = zcl_abapgit_repo_labels=>split( mo_repo->ms_data-local_settings-labels ).
-
-    IF lines( lt_labels ) > 0.
-      ls_settings = zcl_abapgit_persist_factory=>get_settings( )->read( )->get_user_settings( ).
-      lo_label_colors = zcl_abapgit_repo_labels=>split_colors_into_map( ls_settings-label_colors ).
-
-      ri_html->td(
-        iv_content = zcl_abapgit_gui_chunk_lib=>render_label_list(
-                       it_labels = lt_labels
-                       io_label_colors = lo_label_colors )
-        iv_class   = 'labels' ).
-    ENDIF.
-
-    ri_html->add( '<td class="right">' ).
-    ri_html->add( lo_toolbar->render( iv_right = abap_true ) ).
-    ri_html->add( '</td>' ).
-    ri_html->add( '</tr></table>' ).
-    ri_html->add( '</div>' ).
-
-  ENDMETHOD.
-
-
-  METHOD render_item.
-
-    DATA: lv_link    TYPE string.
-
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
-
-    ri_html->add( |<tr{ get_item_class( is_item = is_item
-                                        iv_is_object_row = abap_true ) }>| ).
-
-    IF is_item-obj_name IS INITIAL AND is_item-is_dir = abap_false.
-      ri_html->add( |<td colspan="2"></td>|
-                 && '<td class="object">'
-                 && '<i class="grey">non-code and meta files</i>'
-                 && '</td>' ).
-    ELSE.
-      ri_html->add( |<td class="icon">{ get_item_icon( is_item ) }</td>| ).
-
-      IF is_item-is_dir = abap_true. " Subdir
-        lv_link = build_dir_jump_link( is_item-path ).
-        ri_html->add( |<td class="dir" colspan="2">{ lv_link }</td>| ).
-      ELSE.
-        lv_link = build_obj_jump_link( is_item ).
-        ri_html->add( |<td class="type">{ is_item-obj_type }</td>| ).
-        ri_html->add( |<td class="object">{ lv_link } { build_inactive_object_code( is_item )
-                      } { build_srcsystem_code( is_item ) }</td>| ).
-      ENDIF.
-    ENDIF.
-
-    " Changed by
-    ri_html->add( '<td class="user">' ).
-    ri_html->add( render_item_changed_by( is_item ) ).
-    ri_html->add( '</td>' ).
-
-    IF iv_render_transports = abap_true.
-      ri_html->add( render_item_transport( is_item ) ).
-    ENDIF.
-
-    " Command
-    ri_html->add( '<td class="cmd">' ).
-    IF mo_repo->has_remote_source( ) = abap_true.
-      ri_html->add( render_item_command( is_item ) ).
-    ENDIF.
-    ri_html->add( '</td>' ).
-
-    ri_html->add( '</tr>' ).
-
-    ri_html->add( render_item_files( is_item ) ).
-
-  ENDMETHOD.
-
-
-  METHOD render_item_changed_by.
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
-
-    IF is_item-changes = 0 OR is_item-changed_by IS INITIAL.
-      ri_html->add( '&nbsp;' ).
-    ELSE.
-      ri_html->add( zcl_abapgit_gui_chunk_lib=>render_user_name( is_item-changed_by ) ).
-    ENDIF.
-
-  ENDMETHOD.
-
-
-  METHOD render_item_command.
-
-    DATA: lv_difflink TYPE string,
-          ls_file     LIKE LINE OF is_item-files.
-
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
-
-    IF is_item-is_dir = abap_true. " Directory
-      ri_html->add( '<div>' ).
-      ri_html->add( |<span class="grey">{ is_item-changes } changes</span>| ).
-      ri_html->add( zcl_abapgit_gui_chunk_lib=>render_item_state( iv_lstate = is_item-lstate
-                                                                  iv_rstate = is_item-rstate ) ).
-      ri_html->add( '</div>' ).
-
-    ELSEIF is_item-changes > 0.
-      IF mv_hide_files = abap_true AND is_item-obj_name IS NOT INITIAL.
-
-        lv_difflink = zcl_abapgit_html_action_utils=>obj_encode(
-          iv_key    = mo_repo->get_key( )
-          ig_object = is_item ).
-
-        ri_html->add( '<div>' ).
-        ri_html->add_a( iv_txt = |diff ({ is_item-changes })|
-                        iv_act = |{ zif_abapgit_definitions=>c_action-go_file_diff }?{ lv_difflink }| ).
-        ri_html->add( zcl_abapgit_gui_chunk_lib=>render_item_state( iv_lstate = is_item-lstate
-                                                                    iv_rstate = is_item-rstate ) ).
-        ri_html->add( '</div>' ).
-
-      ENDIF.
-
-    ENDIF.
-
-  ENDMETHOD.
-
-
-  METHOD render_item_files.
-
-    DATA: ls_file LIKE LINE OF is_item-files.
-    DATA li_exit TYPE REF TO zif_abapgit_exit.
-
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
-
-    IF mv_hide_files = abap_true AND is_item-obj_type IS NOT INITIAL.
-      RETURN.
-    ENDIF.
-
-    li_exit = zcl_abapgit_exit=>get_instance( ).
-
-    LOOP AT is_item-files INTO ls_file.
-      ri_html->add( |<tr{ get_item_class( is_item ) }>| ).
-
-      ri_html->add( |<td class="icon"></td>| ).
-
-      ri_html->add( |<td class="type"></td>| ).
-      ri_html->add( |<td class="filename darkgrey">| ).
-
-      IF mv_show_folders = abap_true.
-        ri_html->add( |<div>{ li_exit->adjust_display_filename( ls_file-filename ) }</div>| ).
-      ELSE.
-        ri_html->add( |<div>{ li_exit->adjust_display_filename( ls_file-path && ls_file-filename ) }</div>| ).
-      ENDIF.
-
-      ri_html->add( |</td>| ).
-
-      " Changed by (not applicable to file)
-      ri_html->add( '<td class="user">' ).
-      ri_html->add( '</td>' ).
-
-      " Transport (not applicable to file)
-      IF mv_are_changes_recorded_in_tr = abap_true.
-        ri_html->add( `<td></td>` ).
-      ENDIF.
-
-      " Command
-      ri_html->add( '<td class="cmd">' ).
-      IF mo_repo->has_remote_source( ) = abap_true.
-        ri_html->add( render_file_command( ls_file ) ).
-      ENDIF.
-      ri_html->add( '</td>' ).
-
-      ri_html->add( '</tr>' ).
-
-    ENDLOOP.
-
-  ENDMETHOD.
-
-
-  METHOD render_item_transport.
-
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
-
-    ri_html->add( '<td class="transport">' ).
-
-    ri_html->add( zcl_abapgit_gui_chunk_lib=>render_transport( is_item-transport ) ).
-
-    ri_html->add( '</td>' ).
-
-  ENDMETHOD.
-
-
-  METHOD render_order_by.
-
-    DATA:
-      lv_icon     TYPE string,
-      lt_col_spec TYPE zif_abapgit_definitions=>ty_col_spec_tt,
-      ls_col_spec TYPE zif_abapgit_definitions=>ty_col_spec.
-
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
-
-    " icon
-    APPEND INITIAL LINE TO lt_col_spec.
-
-    ls_col_spec-tech_name = 'OBJ_TYPE'.
-    ls_col_spec-display_name = 'Type'.
-    ls_col_spec-allow_order_by = abap_true.
-    APPEND ls_col_spec TO lt_col_spec.
-
-    ls_col_spec-tech_name = 'OBJ_NAME'.
-    ls_col_spec-display_name = 'Name'.
-    ls_col_spec-allow_order_by = abap_true.
-    APPEND ls_col_spec TO lt_col_spec.
-
-    ls_col_spec-tech_name = 'CHANGED_BY'.
-    ls_col_spec-display_name = 'Changed by'.
-    ls_col_spec-allow_order_by = abap_true.
-    APPEND ls_col_spec TO lt_col_spec.
-
-    IF mv_are_changes_recorded_in_tr = abap_true.
-      ls_col_spec-tech_name = 'TRANSPORT'.
-      ls_col_spec-display_name = 'Transport'.
-      ls_col_spec-allow_order_by = abap_true.
-      APPEND ls_col_spec TO lt_col_spec.
-    ENDIF.
-
-    ls_col_spec-tech_name = 'LSTATE'.
-    ls_col_spec-display_name = 'Status'.
-    ls_col_spec-allow_order_by = abap_true.
-    ls_col_spec-css_class = 'cmd'.
-    APPEND ls_col_spec TO lt_col_spec.
-
-    ri_html->add( |<thead>| ).
-    ri_html->add( |<tr>| ).
-
-    ri_html->add( zcl_abapgit_gui_chunk_lib=>render_order_by_header_cells(
-      it_col_spec         = lt_col_spec
-      iv_order_by         = mv_order_by
-      iv_order_descending = mv_order_descending ) ).
-
-    IF mv_diff_first = abap_true.
-      lv_icon = 'check/blue'.
-    ELSE.
-      lv_icon = 'check/grey'.
-    ENDIF.
-
-    ri_html->add( '</tr>' ).
-    ri_html->add( '</thead>' ).
-
-  ENDMETHOD.
-
-
-  METHOD render_parent_dir.
-
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
-
-    ri_html->add( '<tr class="folder">' ).
-    ri_html->add( |<td class="icon">{ ri_html->icon( 'folder' ) }</td>| ).
-    ri_html->add( |<td class="dir" colspan="4">{ build_dir_jump_link( '..' ) }</td>| ).
-    IF mo_repo->has_remote_source( ) = abap_true.
-      ri_html->add( |<td colspan="1"></td>| ). " Dummy for online
-    ENDIF.
-    ri_html->add( '</tr>' ).
-
-  ENDMETHOD.
-
-
-  METHOD render_scripts.
-
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
-
-    ri_html->set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
-    ri_html->add( zcl_abapgit_gui_chunk_lib=>render_repo_palette(
-      iv_action = zif_abapgit_definitions=>c_action-go_repo ) ).
-
-  ENDMETHOD.
-
-
-  METHOD zif_abapgit_gui_event_handler~on_event.
-
-    DATA lv_path TYPE string.
-    DATA lv_key TYPE zif_abapgit_persistence=>ty_value.
-
-    lv_key = ii_event->query( )->get( 'KEY' ).
-
-    CASE ii_event->mv_action.
-      WHEN zif_abapgit_definitions=>c_action-go_repo. " Switch to another repo
-        CREATE OBJECT rs_handled-page TYPE zcl_abapgit_gui_page_repo_view EXPORTING iv_key = |{ ii_event->query( )->get( 'KEY' ) }|.
-        rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page_replacing.
-
-      WHEN c_actions-go_data.
-        CREATE OBJECT rs_handled-page TYPE zcl_abapgit_gui_page_data EXPORTING iv_key = |{ ii_event->query( )->get( 'KEY' ) }|.
-        rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page.
-
-      WHEN c_actions-go_unit.
-        CREATE OBJECT rs_handled-page TYPE zcl_abapgit_gui_page_runit EXPORTING iv_devclass = mo_repo->get_package( ).
-        rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page.
-
-      WHEN c_actions-toggle_hide_files. " Toggle file diplay
-        mv_hide_files    = zcl_abapgit_persistence_user=>get_instance( )->toggle_hide_files( ).
-        rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
-
-      WHEN c_actions-change_dir.        " Change dir
-        lv_path         = ii_event->query( )->get( 'PATH' ).
-        mv_cur_dir = zcl_abapgit_path=>change_dir(
-          iv_cur_dir = mv_cur_dir
-          iv_cd      = lv_path ).
-        rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
-
-      WHEN c_actions-toggle_folders.    " Toggle folder view
-        mv_show_folders = zcl_abapgit_persistence_user=>get_instance( )->toggle_show_folders( ).
-        mv_cur_dir      = '/'. " Root
-        rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
-
-      WHEN c_actions-toggle_changes.    " Toggle changes only view
-        mv_changes_only = zcl_abapgit_persistence_user=>get_instance( )->toggle_changes_only( ).
-        rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
-
-      WHEN c_actions-toggle_diff_first.
-        mv_diff_first = zcl_abapgit_persistence_user=>get_instance( )->set_diff_first(
-          boolc( mv_diff_first = abap_false ) ).
-        rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
-
-      WHEN c_actions-display_more.      " Increase MAX lines limit
-        mv_max_lines    = mv_max_lines + mv_max_setting.
-        rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
-
-      WHEN zif_abapgit_definitions=>c_action-change_order_by.
-        mv_order_by = zcl_abapgit_persistence_user=>get_instance( )->set_order_by(
-          ii_event->query( )->get( 'ORDERBY' ) ).
-        mv_order_descending = zcl_abapgit_persistence_user=>get_instance( )->set_order_descending( abap_false ).
-        rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
-
-      WHEN zif_abapgit_definitions=>c_action-direction.
-        mv_order_descending = zcl_abapgit_persistence_user=>get_instance( )->set_order_descending(
-          boolc( ii_event->query( )->get( 'DIRECTION' ) = 'DESCENDING' ) ).
-        rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
-
-      WHEN zif_abapgit_definitions=>c_action-repo_open_in_master_lang.
-        open_in_main_language( ).
-        rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
-
-      WHEN zif_abapgit_definitions=>c_action-go_patch.
-        CREATE OBJECT rs_handled-page TYPE zcl_abapgit_gui_page_patch EXPORTING iv_key = lv_key.
-        rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page_w_bookmark.
-
-      WHEN OTHERS.
-
-        rs_handled = super->zif_abapgit_gui_event_handler~on_event( ii_event ). " TODO refactor, move to HOC components
-
-    ENDCASE.
-
-  ENDMETHOD.
-
-
-  METHOD zif_abapgit_gui_hotkeys~get_hotkey_actions.
-
-    DATA: ls_hotkey_action LIKE LINE OF rt_hotkey_actions.
-    ls_hotkey_action-ui_component = 'Repo'.
-
-    ls_hotkey_action-description   = |Stage|.
-    ls_hotkey_action-action = zif_abapgit_definitions=>c_action-go_stage.
-    ls_hotkey_action-hotkey = |s|.
-    INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
-
-    ls_hotkey_action-description   = |Switch Branch|.
-    ls_hotkey_action-action = zif_abapgit_definitions=>c_action-git_branch_switch.
-    ls_hotkey_action-hotkey = |b|.
-    INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
-
-    ls_hotkey_action-description   = |Repository List|.
-    ls_hotkey_action-action = zif_abapgit_definitions=>c_action-abapgit_home.
-    ls_hotkey_action-hotkey = |o|.
-    INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
-
-    ls_hotkey_action-description   = |Refresh Repository|.
-    ls_hotkey_action-action = zif_abapgit_definitions=>c_action-repo_refresh.
-    ls_hotkey_action-hotkey = |r|.
-    INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
-
-    ls_hotkey_action-description   = |Pull|.
-    ls_hotkey_action-action = zif_abapgit_definitions=>c_action-git_pull.
-    ls_hotkey_action-hotkey = |p|.
-    INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
-
-    ls_hotkey_action-description = |Patch|.
-    ls_hotkey_action-action = zif_abapgit_definitions=>c_action-go_patch.
-    ls_hotkey_action-hotkey = |a|.
-    INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
-
-    ls_hotkey_action-description   = |Diff|.
-    ls_hotkey_action-action = zif_abapgit_definitions=>c_action-go_repo_diff.
-    ls_hotkey_action-hotkey = |d|.
-    INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
-
-    ls_hotkey_action-description   = |Uninstall Repository|.
-    ls_hotkey_action-action = zif_abapgit_definitions=>c_action-repo_purge.
-    ls_hotkey_action-hotkey = |u|.
-    INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
-
-    ls_hotkey_action-description   = |Run Syntax Check|.
-    ls_hotkey_action-action = zif_abapgit_definitions=>c_action-repo_syntax_check.
-    ls_hotkey_action-hotkey = |c|.
-    INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
-
-    ls_hotkey_action-description   = |Run Code Inspector|.
-    ls_hotkey_action-action = zif_abapgit_definitions=>c_action-repo_code_inspector.
-    ls_hotkey_action-hotkey = |i|.
-    INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
-
-    ls_hotkey_action-description   = |Show Log|.
-    ls_hotkey_action-action = zif_abapgit_definitions=>c_action-repo_log.
-    ls_hotkey_action-hotkey = |l|.
-    INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
 
   ENDMETHOD.
 ENDCLASS.

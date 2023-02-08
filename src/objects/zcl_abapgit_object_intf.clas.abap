@@ -253,7 +253,7 @@ CLASS zcl_abapgit_object_intf IMPLEMENTATION.
     lv_json_data = zif_abapgit_object~mo_files->read_raw( iv_ext = 'json' ).
     ls_intf_aff = lcl_aff_metadata_handler=>deserialize( lv_json_data ).
 
-    CREATE OBJECT lo_aff_mapper TYPE lcl_aff_type_mapping.
+    lo_aff_mapper = NEW lcl_aff_type_mapping( ).
     lo_aff_mapper->to_abapgit( EXPORTING iv_data = ls_intf_aff
                                          iv_object_name = ms_item-obj_name
                                IMPORTING es_data = rs_intf ).
@@ -545,6 +545,8 @@ CLASS zcl_abapgit_object_intf IMPLEMENTATION.
         deserialize_pre_ddic(
           ii_xml     = io_xml
           iv_package = iv_package ).
+      ELSE.
+        corr_insert( iv_package ).
       ENDIF.
 
     ENDIF.
