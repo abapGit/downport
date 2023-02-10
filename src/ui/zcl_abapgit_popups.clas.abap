@@ -973,6 +973,10 @@ CLASS zcl_abapgit_popups IMPLEMENTATION.
       zcx_abapgit_exception=>raise( 'No Request Found' ).
     ENDIF.
 
+    IF lines( lt_request ) > 10000.
+      zcx_abapgit_exception=>raise( 'Too many requests selected (max 10000)' ).
+    ENDIF.
+
     LOOP AT lt_request REFERENCE INTO lr_request.
       ls_r_trkorr-sign = 'I'.
       ls_r_trkorr-option = 'EQ'.
@@ -1054,7 +1058,7 @@ CLASS zcl_abapgit_popups IMPLEMENTATION.
         p_object_data    = es_package_data
       EXCEPTIONS
         action_cancelled = 1.
-    ev_create = boolc( sy-subrc = 0 ).
+    ev_create = xsdbool( sy-subrc = 0 ).
   ENDMETHOD.
 
 
@@ -1173,7 +1177,7 @@ CLASS zcl_abapgit_popups IMPLEMENTATION.
         ENDIF.
 
         IF iv_header_text CN ' _0'.
-          CREATE OBJECT lo_table_header EXPORTING text = iv_header_text.
+          lo_table_header = NEW #( text = iv_header_text ).
           mo_select_list_popup->set_top_of_list( lo_table_header ).
         ENDIF.
 
