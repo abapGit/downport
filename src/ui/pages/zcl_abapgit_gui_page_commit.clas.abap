@@ -114,7 +114,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_GUI_PAGE_COMMIT IMPLEMENTATION.
+CLASS zcl_abapgit_gui_page_commit IMPLEMENTATION.
 
 
   METHOD branch_name_to_internal.
@@ -135,8 +135,8 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_COMMIT IMPLEMENTATION.
     " Get settings from DB
     mo_settings = zcl_abapgit_persist_factory=>get_settings( )->read( ).
 
-    CREATE OBJECT mo_validation_log.
-    CREATE OBJECT mo_form_data.
+    mo_validation_log = NEW #( ).
+    mo_form_data = NEW #( ).
     mo_form = get_form_schema( ).
     mo_form_util = zcl_abapgit_html_form_utils=>create( mo_form ).
 
@@ -147,9 +147,9 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_COMMIT IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_commit.
 
-    CREATE OBJECT lo_component EXPORTING io_repo = io_repo
-                                         io_stage = io_stage
-                                         iv_sci_result = iv_sci_result.
+    lo_component = NEW #( io_repo = io_repo
+                          io_stage = io_stage
+                          iv_sci_result = iv_sci_result ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Commit'
@@ -353,7 +353,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_COMMIT IMPLEMENTATION.
 
     FIELD-SYMBOLS <ls_stage> LIKE LINE OF mt_stage.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<table class="stage_tab">' ).
     ri_html->add( '<thead>' ).
@@ -396,7 +396,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_COMMIT IMPLEMENTATION.
 
     FIELD-SYMBOLS <ls_stage> LIKE LINE OF mt_stage.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     LOOP AT mt_stage ASSIGNING <ls_stage>.
       ls_sum-method = <ls_stage>-method.
@@ -486,9 +486,9 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_COMMIT IMPLEMENTATION.
           mo_form_data->to_abap( CHANGING cs_container = ms_commit ).
 
           REPLACE ALL OCCURRENCES
-            OF zif_abapgit_definitions=>c_crlf
+            OF cl_abap_char_utilities=>cr_lf
             IN ms_commit-body
-            WITH zif_abapgit_definitions=>c_newline.
+            WITH cl_abap_char_utilities=>newline.
 
           lv_new_branch_name = mo_form_data->get( c_id-new_branch_name ).
           " create new branch and commit to it if branch name is not empty
@@ -523,7 +523,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_COMMIT IMPLEMENTATION.
       get_defaults( ).
     ENDIF.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div class="repo">' ).
     ri_html->add( '<div id="top" class="paddings">' ).

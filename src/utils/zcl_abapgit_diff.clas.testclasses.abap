@@ -97,17 +97,17 @@ CLASS ltcl_diff IMPLEMENTATION.
     FIELD-SYMBOLS: <ls_diff> LIKE LINE OF lt_diff.
 
 
-    CONCATENATE LINES OF mt_new INTO lv_new SEPARATED BY zif_abapgit_definitions=>c_newline.
-    CONCATENATE LINES OF mt_old INTO lv_old SEPARATED BY zif_abapgit_definitions=>c_newline.
+    CONCATENATE LINES OF mt_new INTO lv_new SEPARATED BY cl_abap_char_utilities=>newline.
+    CONCATENATE LINES OF mt_old INTO lv_old SEPARATED BY cl_abap_char_utilities=>newline.
 
     lv_xnew = zcl_abapgit_convert=>string_to_xstring_utf8( lv_new ).
     lv_xold = zcl_abapgit_convert=>string_to_xstring_utf8( lv_old ).
 
-    CREATE OBJECT lo_diff EXPORTING iv_new = lv_xnew
-                                    iv_old = lv_xold
-                                    iv_ignore_indentation = iv_ignore_indentation
-                                    iv_ignore_comments = iv_ignore_comments
-                                    iv_ignore_case = iv_ignore_case.
+    lo_diff = NEW #( iv_new = lv_xnew
+                     iv_old = lv_xold
+                     iv_ignore_indentation = iv_ignore_indentation
+                     iv_ignore_comments = iv_ignore_comments
+                     iv_ignore_case = iv_ignore_case ).
 
     IF iv_check_beacons = abap_true.
       cl_abap_unit_assert=>assert_equals(

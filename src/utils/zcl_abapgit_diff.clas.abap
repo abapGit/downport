@@ -315,8 +315,8 @@ CLASS zcl_abapgit_diff IMPLEMENTATION.
     APPEND '^\s*(DEFINE|ENHANCEMENT)\s' TO lt_regex.
 
     LOOP AT lt_regex INTO lv_regex.
-      CREATE OBJECT lo_regex EXPORTING pattern = lv_regex
-                                       ignore_case = abap_true.
+      lo_regex = NEW #( pattern = lv_regex
+                        ignore_case = abap_true ).
       APPEND lo_regex TO rt_regex_set.
     ENDLOOP.
 
@@ -523,16 +523,16 @@ CLASS zcl_abapgit_diff IMPLEMENTATION.
         off = strlen( lv_old ) - 1 ).
     ENDIF.
 
-    IF lv_new_last = zif_abapgit_definitions=>c_newline AND lv_old_last <> zif_abapgit_definitions=>c_newline
+    IF lv_new_last = cl_abap_char_utilities=>newline AND lv_old_last <> cl_abap_char_utilities=>newline
       AND lv_old IS NOT INITIAL.
       lv_old = lv_old && cl_abap_char_utilities=>form_feed.
-    ELSEIF lv_new_last <> zif_abapgit_definitions=>c_newline AND lv_old_last = zif_abapgit_definitions=>c_newline
+    ELSEIF lv_new_last <> cl_abap_char_utilities=>newline AND lv_old_last = cl_abap_char_utilities=>newline
       AND lv_new IS NOT INITIAL.
       lv_new = lv_new && cl_abap_char_utilities=>form_feed.
     ENDIF.
 
-    SPLIT lv_new AT zif_abapgit_definitions=>c_newline INTO TABLE et_new.
-    SPLIT lv_old AT zif_abapgit_definitions=>c_newline INTO TABLE et_old.
+    SPLIT lv_new AT cl_abap_char_utilities=>newline INTO TABLE et_new.
+    SPLIT lv_old AT cl_abap_char_utilities=>newline INTO TABLE et_old.
 
   ENDMETHOD.
 ENDCLASS.

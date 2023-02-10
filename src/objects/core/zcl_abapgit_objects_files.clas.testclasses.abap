@@ -50,7 +50,7 @@ CLASS ltcl_objects_files IMPLEMENTATION.
     " filenames are lower case
     APPEND INITIAL LINE TO lt_files ASSIGNING <ls_files>.
     <ls_files>-filename = 'zlf.prog.abap'.
-    <ls_files>-data = get_program_data( zif_abapgit_definitions=>c_newline ).
+    <ls_files>-data = get_program_data( cl_abap_char_utilities=>newline ).
     APPEND INITIAL LINE TO lt_files ASSIGNING <ls_files>.
     <ls_files>-filename = 'zlf.prog.xml'.
     <ls_files>-data = get_xml_data( ).
@@ -58,7 +58,7 @@ CLASS ltcl_objects_files IMPLEMENTATION.
     " object type and name are upper case
     ls_item-obj_type = 'PROG'.
     ls_item-obj_name = 'ZLF'.
-    CREATE OBJECT mo_cut EXPORTING is_item = ls_item.
+    mo_cut = NEW #( is_item = ls_item ).
     mo_cut->set_files( lt_files ).
 
   ENDMETHOD.
@@ -145,7 +145,7 @@ CLASS ltcl_objects_files IMPLEMENTATION.
     ls_item-obj_type = 'PROG'.
     ls_item-obj_name = '/TEST/ZLF'.
 
-    CREATE OBJECT mo_cut EXPORTING is_item = ls_item.
+    mo_cut = NEW #( is_item = ls_item ).
 
     " filenames are lower case
     cl_abap_unit_assert=>assert_equals(
@@ -163,7 +163,7 @@ CLASS ltcl_objects_files IMPLEMENTATION.
     ls_item-obj_type = 'CHKO'.
     ls_item-obj_name = 'Z_AFF_EXAMPLE_CHKO'.
 
-    CREATE OBJECT mo_cut EXPORTING is_item = ls_item.
+    mo_cut = NEW #( is_item = ls_item ).
 
     mo_cut->add_raw( iv_data = lv_data
                      iv_ext  = 'json' ).

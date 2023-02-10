@@ -32,7 +32,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_BACKGROUND_PUSH_FI IMPLEMENTATION.
+CLASS zcl_abapgit_background_push_fi IMPLEMENTATION.
 
 
   METHOD build_comment.
@@ -56,7 +56,7 @@ CLASS ZCL_ABAPGIT_BACKGROUND_PUSH_FI IMPLEMENTATION.
     ELSE.
       rv_comment = 'BG: Multiple objects'.
       LOOP AT lt_objects INTO lv_str.
-        CONCATENATE rv_comment zif_abapgit_definitions=>c_newline lv_str INTO rv_comment.
+        CONCATENATE rv_comment cl_abap_char_utilities=>newline lv_str INTO rv_comment.
       ENDLOOP.
     ENDIF.
 
@@ -77,7 +77,7 @@ CLASS ZCL_ABAPGIT_BACKGROUND_PUSH_FI IMPLEMENTATION.
     ASSERT lines( ls_files-local ) > 0
         OR lines( ls_files-remote ) > 0.
 
-    CREATE OBJECT lo_stage.
+    lo_stage = NEW #( ).
 
     LOOP AT ls_files-local ASSIGNING <ls_local>.
       mi_log->add_info( |stage: { <ls_local>-file-path } { <ls_local>-file-filename }| ).

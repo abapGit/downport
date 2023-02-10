@@ -118,8 +118,8 @@ CLASS zcl_abapgit_gui_page_tags IMPLEMENTATION.
   METHOD constructor.
 
     super->constructor( ).
-    CREATE OBJECT mo_form_data.
-    CREATE OBJECT mo_validation_log.
+    mo_form_data = NEW #( ).
+    mo_validation_log = NEW #( ).
     mo_repo ?= ii_repo.
 
     " Get settings from DB
@@ -137,7 +137,7 @@ CLASS zcl_abapgit_gui_page_tags IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_tags.
 
-    CREATE OBJECT lo_component EXPORTING ii_repo = ii_repo.
+    lo_component = NEW #( ii_repo = ii_repo ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Create Tag'
@@ -356,9 +356,9 @@ CLASS zcl_abapgit_gui_page_tags IMPLEMENTATION.
           mo_form_data->to_abap( CHANGING cs_container = ms_tag ).
 
           REPLACE ALL OCCURRENCES
-            OF zif_abapgit_definitions=>c_crlf
+            OF cl_abap_char_utilities=>cr_lf
             IN ms_tag-body
-            WITH zif_abapgit_definitions=>c_newline.
+            WITH cl_abap_char_utilities=>newline.
 
           ms_tag-name = zcl_abapgit_git_tag=>add_tag_prefix( ms_tag-name ).
           ASSERT ms_tag-name CP zif_abapgit_definitions=>c_git_branch-tags.
@@ -384,7 +384,7 @@ CLASS zcl_abapgit_gui_page_tags IMPLEMENTATION.
     " If staying on form, initialize it with current settings
     IF rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
       mo_form = get_form_schema( mo_form_data ).
-      CREATE OBJECT mo_form_util EXPORTING io_form = mo_form.
+      mo_form_util = NEW #( io_form = mo_form ).
     ENDIF.
 
   ENDMETHOD.
@@ -394,7 +394,7 @@ CLASS zcl_abapgit_gui_page_tags IMPLEMENTATION.
 
     gui_services( )->register_event_handler( me ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( `<div class="repo">` ).
 

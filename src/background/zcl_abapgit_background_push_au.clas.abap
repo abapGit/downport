@@ -60,7 +60,7 @@ CLASS zcl_abapgit_background_push_au IMPLEMENTATION.
     ELSE.
       rv_comment = 'BG: Multiple objects'.
       LOOP AT lt_objects INTO lv_str.
-        CONCATENATE rv_comment zif_abapgit_definitions=>c_newline lv_str INTO rv_comment.
+        CONCATENATE rv_comment cl_abap_char_utilities=>newline lv_str INTO rv_comment.
       ENDLOOP.
     ENDIF.
 
@@ -130,7 +130,7 @@ CLASS zcl_abapgit_background_push_au IMPLEMENTATION.
 *     Fill user details
       ls_comment-committer = determine_user_details( lv_changed_by ).
 
-      CREATE OBJECT lo_stage.
+      lo_stage = NEW #( ).
 
       CLEAR ls_user_files.
 
@@ -191,7 +191,7 @@ CLASS zcl_abapgit_background_push_au IMPLEMENTATION.
 
     ASSERT lines( is_files-remote ) > 0.
 
-    CREATE OBJECT lo_stage.
+    lo_stage = NEW #( ).
 
     ls_comment-comment = 'BG: Deletion'.
 
@@ -202,7 +202,7 @@ CLASS zcl_abapgit_background_push_au IMPLEMENTATION.
       lo_stage->rm( iv_path     = <ls_remote>-path
                     iv_filename = <ls_remote>-filename ).
 
-      CONCATENATE ls_comment-comment zif_abapgit_definitions=>c_newline <ls_remote>-filename
+      CONCATENATE ls_comment-comment cl_abap_char_utilities=>newline <ls_remote>-filename
         INTO ls_comment-comment.
 
     ENDLOOP.
