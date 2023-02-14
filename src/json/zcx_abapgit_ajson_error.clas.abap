@@ -67,7 +67,7 @@ ENDCLASS.
 CLASS zcx_abapgit_ajson_error IMPLEMENTATION.
 
 
-  method CONSTRUCTOR.
+method CONSTRUCTOR.
 CALL METHOD SUPER->CONSTRUCTOR
 EXPORTING
 PREVIOUS = PREVIOUS
@@ -85,14 +85,14 @@ if textid is initial.
 else.
   IF_T100_MESSAGE~T100KEY = TEXTID.
 endif.
-  endmethod.
+endmethod.
 
 
 method raise.
 
   data lx type ref to zcx_abapgit_ajson_error.
 
-  CREATE OBJECT lx EXPORTING message = iv_msg.
+  lx = NEW #( message = iv_msg ).
   lx->set_location(
     iv_location = iv_location
     is_node     = is_node ).
