@@ -67,7 +67,7 @@ CLASS ltcl_simple_dependency_inject IMPLEMENTATION.
 
     DATA: lo_tadir_mock  TYPE REF TO ltcl_abapgit_tadir_mock.
 
-    lo_tadir_mock = NEW #( ).
+    CREATE OBJECT lo_tadir_mock.
 
     zcl_abapgit_injector=>set_tadir( lo_tadir_mock ).
 
