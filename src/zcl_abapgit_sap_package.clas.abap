@@ -79,7 +79,7 @@ CLASS zcl_abapgit_sap_package IMPLEMENTATION.
         rv_are_changes_rec_in_tr_req = li_package->wbo_korr_flag.
       WHEN 1.
         " For new packages, derive from package name
-        rv_are_changes_rec_in_tr_req = boolc( mv_package(1) <> '$' ).
+        rv_are_changes_rec_in_tr_req = xsdbool( mv_package(1) <> '$' ).
       WHEN OTHERS.
         zcx_abapgit_exception=>raise_t100( ).
     ENDCASE.
@@ -256,7 +256,7 @@ CLASS zcl_abapgit_sap_package IMPLEMENTATION.
         intern_err                 = 3
         no_access                  = 4
         object_locked_and_modified = 5 ).
-    rv_bool = boolc( sy-subrc <> 1 ).
+    rv_bool = xsdbool( sy-subrc <> 1 ).
 
   ENDMETHOD.
 
@@ -378,6 +378,14 @@ CLASS zcl_abapgit_sap_package IMPLEMENTATION.
       lt_list = zcl_abapgit_factory=>get_sap_package( lv_parent )->list_superpackages( ).
       APPEND LINES OF lt_list TO rt_list.
     ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_sap_package~read_description.
+
+    SELECT SINGLE ctext FROM tdevct INTO rv_description
+      WHERE devclass = mv_package AND spras = sy-langu ##SUBRC_OK.
 
   ENDMETHOD.
 
