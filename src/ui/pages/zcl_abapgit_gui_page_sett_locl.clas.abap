@@ -87,14 +87,61 @@ ENDCLASS.
 
 
 
-CLASS zcl_abapgit_gui_page_sett_locl IMPLEMENTATION.
+CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_LOCL IMPLEMENTATION.
+
+
+  METHOD choose_check_variant.
+
+    DATA: lv_check_variant TYPE sci_chkv.
+
+    lv_check_variant = zcl_abapgit_ui_factory=>get_popups( )->choose_code_insp_check_variant( ).
+
+    IF lv_check_variant IS NOT INITIAL.
+      mo_form_data->set(
+        iv_key = c_id-code_inspector_check_variant
+        iv_val = lv_check_variant ).
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD choose_labels.
+
+    DATA:
+      lv_old_labels TYPE string,
+      lv_new_labels TYPE string.
+
+    lv_old_labels = mo_form_data->get( c_id-labels ).
+
+    lv_new_labels = zcl_abapgit_ui_factory=>get_popups( )->popup_to_select_labels( lv_old_labels ).
+
+    mo_form_data->set(
+      iv_key = c_id-labels
+      iv_val = lv_new_labels ).
+
+  ENDMETHOD.
+
+
+  METHOD choose_transport_request.
+
+    DATA: lv_transport_request TYPE trkorr.
+
+    lv_transport_request = zcl_abapgit_ui_factory=>get_popups( )->popup_transport_request( ).
+
+    IF lv_transport_request IS NOT INITIAL.
+      mo_form_data->set(
+          iv_key = c_id-transport_request
+          iv_val = lv_transport_request ).
+    ENDIF.
+
+  ENDMETHOD.
 
 
   METHOD constructor.
 
     super->constructor( ).
-    CREATE OBJECT mo_validation_log.
-    CREATE OBJECT mo_form_data.
+    mo_validation_log = NEW #( ).
+    mo_form_data = NEW #( ).
     mo_repo = io_repo.
     mo_form = get_form_schema( ).
     mo_form_util = zcl_abapgit_html_form_utils=>create( mo_form ).
@@ -108,7 +155,7 @@ CLASS zcl_abapgit_gui_page_sett_locl IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_sett_locl.
 
-    CREATE OBJECT lo_component EXPORTING io_repo = io_repo.
+    lo_component = NEW #( io_repo = io_repo ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Local Settings & Checks'
@@ -209,22 +256,22 @@ CLASS zcl_abapgit_gui_page_sett_locl IMPLEMENTATION.
       iv_val = ms_settings-labels ).
     mo_form_data->set(
       iv_key = c_id-ignore_subpackages
-      iv_val = boolc( ms_settings-ignore_subpackages = abap_true ) ) ##TYPE.
+      iv_val = xsdbool( ms_settings-ignore_subpackages = abap_true ) ) ##TYPE.
     mo_form_data->set(
       iv_key = c_id-main_language_only
-      iv_val = boolc( ms_settings-main_language_only = abap_true ) ) ##TYPE.
+      iv_val = xsdbool( ms_settings-main_language_only = abap_true ) ) ##TYPE.
     mo_form_data->set(
       iv_key = c_id-write_protected
-      iv_val = boolc( ms_settings-write_protected = abap_true ) ) ##TYPE.
+      iv_val = xsdbool( ms_settings-write_protected = abap_true ) ) ##TYPE.
     mo_form_data->set(
       iv_key = c_id-only_local_objects
-      iv_val = boolc( ms_settings-only_local_objects = abap_true ) ) ##TYPE.
+      iv_val = xsdbool( ms_settings-only_local_objects = abap_true ) ) ##TYPE.
     mo_form_data->set(
       iv_key = c_id-code_inspector_check_variant
       iv_val = |{ ms_settings-code_inspector_check_variant }| ).
     mo_form_data->set(
       iv_key = c_id-block_commit
-      iv_val = boolc( ms_settings-block_commit = abap_true ) ) ##TYPE.
+      iv_val = xsdbool( ms_settings-block_commit = abap_true ) ) ##TYPE.
 
     " Set for is_dirty check
     mo_form_util->set_data( mo_form_data ).
@@ -344,13 +391,13 @@ CLASS zcl_abapgit_gui_page_sett_locl IMPLEMENTATION.
 
   METHOD zif_abapgit_gui_renderable~render.
 
-    gui_services( )->register_event_handler( me ).
+    register_handlers( ).
 
     IF mo_form_util->is_empty( mo_form_data ) = abap_true.
       read_settings( ).
     ENDIF.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( `<div class="repo">` ).
 
@@ -366,52 +413,4 @@ CLASS zcl_abapgit_gui_page_sett_locl IMPLEMENTATION.
     ri_html->add( `</div>` ).
 
   ENDMETHOD.
-
-
-  METHOD choose_labels.
-
-    DATA:
-      lv_old_labels TYPE string,
-      lv_new_labels TYPE string.
-
-    lv_old_labels = mo_form_data->get( c_id-labels ).
-
-    lv_new_labels = zcl_abapgit_ui_factory=>get_popups( )->popup_to_select_labels( lv_old_labels ).
-
-    mo_form_data->set(
-      iv_key = c_id-labels
-      iv_val = lv_new_labels ).
-
-  ENDMETHOD.
-
-
-  METHOD choose_check_variant.
-
-    DATA: lv_check_variant TYPE sci_chkv.
-
-    lv_check_variant = zcl_abapgit_ui_factory=>get_popups( )->choose_code_insp_check_variant( ).
-
-    IF lv_check_variant IS NOT INITIAL.
-      mo_form_data->set(
-        iv_key = c_id-code_inspector_check_variant
-        iv_val = lv_check_variant ).
-    ENDIF.
-
-  ENDMETHOD.
-
-
-  METHOD choose_transport_request.
-
-    DATA: lv_transport_request TYPE trkorr.
-
-    lv_transport_request = zcl_abapgit_ui_factory=>get_popups( )->popup_transport_request( ).
-
-    IF lv_transport_request IS NOT INITIAL.
-      mo_form_data->set(
-          iv_key = c_id-transport_request
-          iv_val = lv_transport_request ).
-    ENDIF.
-
-  ENDMETHOD.
-
 ENDCLASS.

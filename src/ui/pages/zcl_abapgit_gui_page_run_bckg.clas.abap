@@ -26,7 +26,7 @@ ENDCLASS.
 
 
 
-CLASS zcl_abapgit_gui_page_run_bckg IMPLEMENTATION.
+CLASS ZCL_ABAPGIT_GUI_PAGE_RUN_BCKG IMPLEMENTATION.
 
 
   METHOD constructor.
@@ -40,7 +40,7 @@ CLASS zcl_abapgit_gui_page_run_bckg IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_run_bckg.
 
-    CREATE OBJECT lo_component.
+    lo_component = NEW #( ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Background Run'
@@ -84,11 +84,11 @@ CLASS zcl_abapgit_gui_page_run_bckg IMPLEMENTATION.
 
     DATA: lv_text LIKE LINE OF mt_text.
 
-    gui_services( )->register_event_handler( me ).
+    register_handlers( ).
 
     run( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div id="toc">' ).
     LOOP AT mt_text INTO lv_text.

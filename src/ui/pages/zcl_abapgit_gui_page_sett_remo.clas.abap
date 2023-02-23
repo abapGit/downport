@@ -183,7 +183,7 @@ ENDCLASS.
 
 
 
-CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
+CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_REMO IMPLEMENTATION.
 
 
   METHOD check_protection.
@@ -318,8 +318,8 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
 
     super->constructor( ).
     init( io_repo ).
-    CREATE OBJECT mo_validation_log.
-    CREATE OBJECT mo_form_data.
+    mo_validation_log = NEW #( ).
+    mo_form_data = NEW #( ).
 
     mo_form = get_form_schema( ms_settings_old ).
     mo_form_util = zcl_abapgit_html_form_utils=>create( mo_form ).
@@ -334,7 +334,7 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_sett_remo.
 
-    CREATE OBJECT lo_component EXPORTING io_repo = io_repo.
+    lo_component = NEW #( io_repo = io_repo ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Remote Settings'
@@ -693,7 +693,7 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
           lv_url         TYPE ty_remote_settings-url,
           lv_branch      TYPE ty_remote_settings-branch.
 
-    lv_offline_new = boolc( mo_form_data->get( c_id-offline ) = abap_false ).
+    lv_offline_new = xsdbool( mo_form_data->get( c_id-offline ) = abap_false ).
     mo_form_data->set(
       iv_key = c_id-offline
       iv_val = lv_offline_new ).
@@ -824,7 +824,7 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
             iv_validate = abap_true ).
 
           " Provider-specific URL check
-          CREATE OBJECT lo_url.
+          lo_url = NEW #( ).
           lo_url->validate_url( lv_url ).
         CATCH zcx_abapgit_exception INTO lx_error.
           ro_validation_log->set(
@@ -986,10 +986,10 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
     IF rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
       mo_form = get_form_schema( is_settings  = ms_settings_old
                                  io_form_data = mo_form_data ).
-      CREATE OBJECT mo_form_util EXPORTING io_form = mo_form.
+      mo_form_util = NEW #( io_form = mo_form ).
 
       IF mo_form_data IS NOT BOUND.
-        CREATE OBJECT mo_form_data.
+        mo_form_data = NEW #( ).
         initialize_form_data( io_form_data = mo_form_data
                               is_settings  = ms_settings_old
                               io_form_util = mo_form_util ).
@@ -1070,9 +1070,9 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
 
   METHOD zif_abapgit_gui_renderable~render.
 
-    gui_services( )->register_event_handler( me ).
+    register_handlers( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( `<div class="repo">` ).
 
@@ -1086,8 +1086,6 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
       io_validation_log = mo_validation_log ) ).
 
     ri_html->add( `</div>` ).
-
-    gui_services( )->get_hotkeys_ctl( )->register_hotkeys( zif_abapgit_gui_hotkeys~get_hotkey_actions( ) ).
 
   ENDMETHOD.
 ENDCLASS.
