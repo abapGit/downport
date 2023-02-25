@@ -127,7 +127,7 @@ CLASS zcl_abapgit_object_cus1 IMPLEMENTATION.
         activity_exists_not = 1
         OTHERS              = 2.
 
-    rv_bool = boolc( sy-subrc = 0 ).
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -206,6 +206,10 @@ CLASS zcl_abapgit_object_cus1 IMPLEMENTATION.
     IF io_xml->i18n_params( )-main_language_only = abap_true.
       DELETE ls_customzing_activity-activity_title WHERE spras <> mv_language.
     ENDIF.
+
+    SORT ls_customzing_activity-activity_title.
+    SORT ls_customzing_activity-objects.
+    SORT ls_customzing_activity-objects_title.
 
     io_xml->add( iv_name = 'CUS1'
                  ig_data = ls_customzing_activity ).

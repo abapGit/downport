@@ -110,7 +110,7 @@ CLASS zcl_abapgit_object_cus0 IMPLEMENTATION.
       IMPORTING
         message      = ls_message.
 
-    rv_bool = boolc( ls_message IS INITIAL ).
+    rv_bool = xsdbool( ls_message IS INITIAL ).
 
   ENDMETHOD.
 
@@ -179,6 +179,8 @@ CLASS zcl_abapgit_object_cus0 IMPLEMENTATION.
     IF io_xml->i18n_params( )-main_language_only = abap_true.
       DELETE ls_img_activity-texts WHERE spras <> mv_language.
     ENDIF.
+
+    SORT ls_img_activity-texts.
 
     io_xml->add( iv_name = 'CUS0'
                  ig_data = ls_img_activity ).
