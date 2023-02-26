@@ -94,7 +94,6 @@ CLASS zcl_abapgit_json_handler IMPLEMENTATION.
   METHOD deserialize.
     DATA lv_json    TYPE string.
     DATA lo_ajson   TYPE REF TO zif_abapgit_ajson.
-    DATA lo_mapping TYPE REF TO zif_abapgit_ajson_mapping.
 
     CLEAR ev_data.
 
@@ -233,7 +232,6 @@ CLASS zcl_abapgit_json_handler IMPLEMENTATION.
 
   METHOD serialize.
     DATA: lt_st_source      TYPE abap_trans_srcbind_tab,
-          lo_mapping        TYPE REF TO zif_abapgit_ajson_mapping,
           lv_json           TYPE string,
           lo_ajson          TYPE REF TO zif_abapgit_ajson,
           lo_filter         TYPE REF TO lcl_aff_filter.
@@ -253,7 +251,7 @@ CLASS zcl_abapgit_json_handler IMPLEMENTATION.
     map2json_custom_enum( EXPORTING it_enum_mappings = iv_enum_mappings
                           CHANGING co_ajson          = lo_ajson ).
 
-    CREATE OBJECT lo_filter EXPORTING iv_skip_paths = iv_skip_paths.
+    lo_filter = NEW #( iv_skip_paths = iv_skip_paths ).
 
     " files end with an empty line (EOF)
     lv_json = lo_ajson->clone( )->filter( lo_filter )->stringify( 2 ) && cl_abap_char_utilities=>newline.

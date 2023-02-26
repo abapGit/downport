@@ -34,7 +34,7 @@ CLASS zcl_abapgit_git_transport DEFINITION
         !iv_old         TYPE zif_abapgit_git_definitions=>ty_sha1
         !iv_new         TYPE zif_abapgit_git_definitions=>ty_sha1
         !iv_branch_name TYPE string
-        !iv_pack        TYPE xstring
+        !iv_pack        TYPE xstring OPTIONAL
       RAISING
         zcx_abapgit_exception .
     CLASS-METHODS branches
@@ -99,7 +99,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_GIT_TRANSPORT IMPLEMENTATION.
+CLASS zcl_abapgit_git_transport IMPLEMENTATION.
 
 
   METHOD branches.
@@ -141,7 +141,7 @@ CLASS ZCL_ABAPGIT_GIT_TRANSPORT IMPLEMENTATION.
 
     lv_data = eo_client->get_cdata( ).
 
-    CREATE OBJECT eo_branch_list EXPORTING iv_data = lv_data.
+    eo_branch_list = NEW #( iv_data = lv_data ).
 
   ENDMETHOD.
 
