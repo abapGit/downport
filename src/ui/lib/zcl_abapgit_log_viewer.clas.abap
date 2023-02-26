@@ -91,7 +91,7 @@ ENDCLASS.
 
 
 
-CLASS zcl_abapgit_log_viewer IMPLEMENTATION.
+CLASS ZCL_ABAPGIT_LOG_VIEWER IMPLEMENTATION.
 
 
   METHOD calculate_cell_type.
@@ -162,7 +162,7 @@ CLASS zcl_abapgit_log_viewer IMPLEMENTATION.
     ASSERT is_log-exception IS BOUND.
     lx_abapgit ?= is_log-exception.
 
-    CREATE OBJECT ro_exception_viewer EXPORTING ix_error = lx_abapgit.
+    ro_exception_viewer = NEW #( ix_error = lx_abapgit ).
 
   ENDMETHOD.
 
@@ -287,7 +287,7 @@ CLASS zcl_abapgit_log_viewer IMPLEMENTATION.
           lo_columns     TYPE REF TO cl_salv_columns_table,
           lo_column      TYPE REF TO cl_salv_column,
           lo_functions   TYPE REF TO cl_salv_functions_list,
-          ls_position    TYPE zcl_abapgit_popups=>ty_popup_position,
+          ls_position    TYPE zif_abapgit_popups=>ty_popup_position,
           lv_add_obj_col TYPE abap_bool,
           lo_event       TYPE REF TO cl_salv_events_table.
 
@@ -394,7 +394,7 @@ CLASS zcl_abapgit_log_viewer IMPLEMENTATION.
                                   start_line   = ls_position-start_row
                                   end_line     = ls_position-end_row ).
 
-        CREATE OBJECT lo_form_header EXPORTING text = ii_log->get_title( ).
+        lo_form_header = NEW #( text = ii_log->get_title( ) ).
 
         lo_alv->set_top_of_list( lo_form_header ).
 
@@ -469,7 +469,7 @@ CLASS zcl_abapgit_log_viewer IMPLEMENTATION.
           lv_class   TYPE string,
           lv_icon    TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     IF ii_log->count( ) = 0.
       RETURN.

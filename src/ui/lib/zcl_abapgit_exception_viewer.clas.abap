@@ -74,7 +74,7 @@ ENDCLASS.
 
 
 
-CLASS zcl_abapgit_exception_viewer IMPLEMENTATION.
+CLASS ZCL_ABAPGIT_EXCEPTION_VIEWER IMPLEMENTATION.
 
 
   METHOD add_row.
@@ -96,7 +96,7 @@ CLASS zcl_abapgit_exception_viewer IMPLEMENTATION.
 
     DATA: lo_grid TYPE REF TO cl_salv_form_layout_grid.
 
-    CREATE OBJECT lo_grid EXPORTING columns = 2.
+    lo_grid = NEW #( columns = 2 ).
 
     add_row( io_grid  = lo_grid
              iv_col_1 = 'Main program:'
@@ -281,7 +281,7 @@ CLASS zcl_abapgit_exception_viewer IMPLEMENTATION.
           lo_event   TYPE REF TO cl_salv_events_table,
           lo_columns TYPE REF TO cl_salv_columns_table,
           lo_alv     TYPE REF TO cl_salv_table.
-    DATA  ls_position TYPE zcl_abapgit_popups=>ty_popup_position.
+    DATA  ls_position TYPE zif_abapgit_popups=>ty_popup_position.
 
     TRY.
         cl_salv_table=>factory(
