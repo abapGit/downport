@@ -253,7 +253,7 @@ CLASS zcl_abapgit_gui_chunk_lib IMPLEMENTATION.
 
     lv_supports_ie_devtools = zcl_abapgit_ui_factory=>get_frontend_services( )->is_sapgui_for_windows( ).
 
-    CREATE OBJECT ro_menu.
+    ro_menu = NEW #( ).
 
     ro_menu->add(
       iv_txt = 'Database Utility'
@@ -282,7 +282,7 @@ CLASS zcl_abapgit_gui_chunk_lib IMPLEMENTATION.
 
   METHOD back_toolbar.
 
-    CREATE OBJECT ro_menu EXPORTING iv_id = 'toolbar-back'.
+    ro_menu = NEW #( iv_id = 'toolbar-back' ).
 
     ro_menu->add(
       iv_txt = 'Back'
@@ -318,7 +318,7 @@ CLASS zcl_abapgit_gui_chunk_lib IMPLEMENTATION.
 
   METHOD help_submenu.
 
-    CREATE OBJECT ro_menu.
+    ro_menu = NEW #( ).
 
     ro_menu->add(
       iv_txt = 'Tutorial'
@@ -356,6 +356,8 @@ CLASS zcl_abapgit_gui_chunk_lib IMPLEMENTATION.
       lv_selected_commit  TYPE string,
       lv_commit_short_sha TYPE string,
       lv_text             TYPE string,
+      lv_icon             TYPE string,
+      lv_hint             TYPE string,
       lv_class            TYPE string.
 
     IF iv_repo_key IS NOT INITIAL.
@@ -383,16 +385,26 @@ CLASS zcl_abapgit_gui_chunk_lib IMPLEMENTATION.
       zcx_abapgit_exception=>raise( 'Either iv_branch or io_repo must be supplied' ).
     ENDIF.
 
-    IF zcl_abapgit_git_branch_list=>get_type( lv_branch ) = zif_abapgit_definitions=>c_git_branch_type-branch.
-      lv_class = 'branch branch_branch'.
-    ELSE.
-      lv_class = 'branch'.
-    ENDIF.
+    CASE zcl_abapgit_git_branch_list=>get_type( lv_branch ).
+      WHEN zif_abapgit_definitions=>c_git_branch_type-branch.
+        lv_class = 'branch branch_branch'.
+        lv_icon  = 'code-branch/grey70'.
+        lv_hint  = 'Current branch'.
+      WHEN zif_abapgit_definitions=>c_git_branch_type-annotated_tag
+        OR zif_abapgit_definitions=>c_git_branch_type-lightweight_tag.
+        lv_class = 'branch'.
+        lv_icon  = 'tag-solid/grey70'.
+        lv_hint  = 'Current tag'.
+      WHEN OTHERS.
+        lv_class = 'branch branch_branch'.
+        lv_icon  = 'code-branch/grey70'.
+        lv_hint  = 'Current commit'.
+    ENDCASE.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
     ri_html->add( |<span class="{ lv_class }">| ).
-    ri_html->add_icon( iv_name = 'code-branch/grey70'
-                       iv_hint = 'Current branch' ).
+    ri_html->add_icon( iv_name = lv_icon
+                       iv_hint = lv_hint ).
     IF iv_interactive = abap_true.
       ri_html->add_a( iv_act = |{ zif_abapgit_definitions=>c_action-git_branch_switch }?key={ lv_key }|
                       iv_txt = lv_text ).
@@ -406,7 +418,7 @@ CLASS zcl_abapgit_gui_chunk_lib IMPLEMENTATION.
 
   METHOD render_commit_popup.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<ul class="hotkeys">' ).
     ri_html->add( |<li>| && |<span>{ iv_content }</span>| && |</li>| ).
@@ -431,7 +443,7 @@ CLASS zcl_abapgit_gui_chunk_lib IMPLEMENTATION.
       lv_class = lv_class && ` ` && iv_extra_style.
     ENDIF.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     IF ix_error IS BOUND.
       lv_error = ix_error->get_text( ).
@@ -459,7 +471,7 @@ CLASS zcl_abapgit_gui_chunk_lib IMPLEMENTATION.
       <lv_longtext_paragraph> TYPE string.
 
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     lv_error_text = ix_error->get_text( ).
     lv_longtext = ix_error->if_message~get_longtext( abap_true ).
@@ -561,7 +573,7 @@ CLASS zcl_abapgit_gui_chunk_lib IMPLEMENTATION.
 
   METHOD render_event_as_form.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add(
       |<form id='form_{ is_event-name }' method={ is_event-method } action='sapevent:{ is_event-name }'></form>| ).
@@ -596,7 +608,7 @@ CLASS zcl_abapgit_gui_chunk_lib IMPLEMENTATION.
     DATA lv_display TYPE string.
     DATA lv_class TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     IF iv_hide = abap_true. " Initially hide
       lv_display = 'display:none'.
@@ -677,7 +689,7 @@ CLASS zcl_abapgit_gui_chunk_lib IMPLEMENTATION.
 
 
   METHOD render_js_error_banner.
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
     ri_html->add( '<div id="js-error-banner" class="dummydiv error">' ).
     ri_html->add( |{ ri_html->icon( 'exclamation-triangle/red' ) }| &&
                   ' If this does not disappear soon,' &&
@@ -748,7 +760,7 @@ CLASS zcl_abapgit_gui_chunk_lib IMPLEMENTATION.
 
     FIELD-SYMBOLS: <ls_line> LIKE LINE OF lt_log.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     IF io_news IS NOT BOUND OR io_news->has_news( ) = abap_false.
       RETURN.
@@ -805,7 +817,7 @@ CLASS zcl_abapgit_gui_chunk_lib IMPLEMENTATION.
 
     FIELD-SYMBOLS <ls_col> LIKE LINE OF it_col_spec.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     LOOP AT it_col_spec ASSIGNING <ls_col>.
       " e.g. <th class="ro-detail">Created at [{ gv_time_zone }]</th>
@@ -864,7 +876,7 @@ CLASS zcl_abapgit_gui_chunk_lib IMPLEMENTATION.
       lv_jump     TYPE string,
       lv_title    TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     IF iv_package IS INITIAL.
       RETURN.
@@ -902,7 +914,7 @@ CLASS zcl_abapgit_gui_chunk_lib IMPLEMENTATION.
       lv_folder  TYPE string,
       lt_folders TYPE STANDARD TABLE OF string WITH DEFAULT KEY.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     IF iv_path IS INITIAL.
       RETURN.
@@ -961,7 +973,7 @@ CLASS zcl_abapgit_gui_chunk_lib IMPLEMENTATION.
     lv_size = lines( lt_repo_list ).
     SORT lt_repo_list BY local_settings-display_name AS TEXT.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( 'var repoCatalog = [' ). " Maybe separate this into another method if needed in more places
     LOOP AT lt_repo_list ASSIGNING <ls_repo>.
@@ -992,8 +1004,8 @@ CLASS zcl_abapgit_gui_chunk_lib IMPLEMENTATION.
           lv_hint        TYPE string,
           lv_icon        TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
-    CREATE OBJECT lo_pback.
+    ri_html = NEW zcl_abapgit_html( ).
+    lo_pback = NEW #( ).
 
     IF io_repo->is_offline( ) = abap_true.
       lv_icon = 'plug/darkgrey'.
@@ -1128,7 +1140,7 @@ CLASS zcl_abapgit_gui_chunk_lib IMPLEMENTATION.
                                     iv_class = 'pad-sides'
                                     iv_hint  = 'Commit' ).
 
-    CREATE OBJECT lo_url.
+    lo_url = NEW #( ).
 
     TRY.
         lv_display_url = lo_url->get_commit_display_url( io_repo_online ).
@@ -1190,7 +1202,7 @@ CLASS zcl_abapgit_gui_chunk_lib IMPLEMENTATION.
 
     DATA lv_attrs TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     IF iv_value IS NOT INITIAL.
       lv_attrs = | value="{ iv_value }"|.
@@ -1231,7 +1243,7 @@ CLASS zcl_abapgit_gui_chunk_lib IMPLEMENTATION.
       lv_title TYPE string,
       lv_jump  TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     IF iv_transport IS INITIAL.
       RETURN.
@@ -1271,7 +1283,7 @@ CLASS zcl_abapgit_gui_chunk_lib IMPLEMENTATION.
       lv_title        TYPE string,
       lv_jump         TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     IF iv_username IS INITIAL.
       RETURN.
@@ -1318,7 +1330,7 @@ CLASS zcl_abapgit_gui_chunk_lib IMPLEMENTATION.
 
   METHOD render_warning_banner.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
     ri_html->add( '<div class="dummydiv warning">' ).
     ri_html->add( |{ ri_html->icon( 'exclamation-triangle/yellow' ) } { iv_text }| ).
     ri_html->add( '</div>' ).
@@ -1328,7 +1340,7 @@ CLASS zcl_abapgit_gui_chunk_lib IMPLEMENTATION.
 
   METHOD settings_repo_toolbar.
 
-    CREATE OBJECT ro_menu EXPORTING iv_id = 'toolbar-repo-settings'.
+    ro_menu = NEW #( iv_id = 'toolbar-repo-settings' ).
 
     ro_menu->add(
       iv_txt = 'Repository'
@@ -1356,7 +1368,7 @@ CLASS zcl_abapgit_gui_chunk_lib IMPLEMENTATION.
 
   METHOD settings_toolbar.
 
-    CREATE OBJECT ro_menu EXPORTING iv_id = 'toolbar-settings'.
+    ro_menu = NEW #( iv_id = 'toolbar-settings' ).
 
     ro_menu->add(
       iv_txt = 'Global'

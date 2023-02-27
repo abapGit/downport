@@ -69,7 +69,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_POPUPS IMPLEMENTATION.
+CLASS zcl_abapgit_popups IMPLEMENTATION.
 
 
   METHOD add_field.
@@ -673,7 +673,7 @@ CLASS ZCL_ABAPGIT_POPUPS IMPLEMENTATION.
         p_object_data    = es_package_data
       EXCEPTIONS
         action_cancelled = 1.
-    ev_create = boolc( sy-subrc = 0 ).
+    ev_create = xsdbool( sy-subrc = 0 ).
   ENDMETHOD.
 
 
@@ -734,16 +734,16 @@ CLASS ZCL_ABAPGIT_POPUPS IMPLEMENTATION.
       iv_width  = iv_end_column - iv_start_column
       iv_height = iv_end_line - iv_start_line ).
 
-    CREATE OBJECT lo_popup EXPORTING it_list = it_list
-                                     iv_title = iv_title
-                                     iv_header_text = iv_header_text
-                                     is_position = ms_position
-                                     iv_striped_pattern = iv_striped_pattern
-                                     iv_optimize_col_width = iv_optimize_col_width
-                                     iv_selection_mode = iv_selection_mode
-                                     iv_select_column_text = iv_select_column_text
-                                     it_columns_to_display = it_columns_to_display
-                                     it_preselected_rows = it_preselected_rows.
+    lo_popup = NEW #( it_list = it_list
+                      iv_title = iv_title
+                      iv_header_text = iv_header_text
+                      is_position = ms_position
+                      iv_striped_pattern = iv_striped_pattern
+                      iv_optimize_col_width = iv_optimize_col_width
+                      iv_selection_mode = iv_selection_mode
+                      iv_select_column_text = iv_select_column_text
+                      it_columns_to_display = it_columns_to_display
+                      it_preselected_rows = it_preselected_rows ).
 
     lo_popup->display( ).
     lo_popup->get_selected( IMPORTING et_list = et_list ).
@@ -911,7 +911,7 @@ CLASS ZCL_ABAPGIT_POPUPS IMPLEMENTATION.
     lo_branches = zcl_abapgit_git_transport=>branches( iv_url ).
     lt_tags     = lo_branches->get_tags_only( ).
 
-    LOOP AT lt_tags ASSIGNING <ls_tag> WHERE name NP '*^{}'.
+    LOOP AT lt_tags ASSIGNING <ls_tag> WHERE name NP '*' && zif_abapgit_definitions=>c_git_branch-peel.
 
       APPEND INITIAL LINE TO lt_selection ASSIGNING <ls_sel>.
       <ls_sel>-varoption = zcl_abapgit_git_tag=>remove_tag_prefix( <ls_tag>-name ).
