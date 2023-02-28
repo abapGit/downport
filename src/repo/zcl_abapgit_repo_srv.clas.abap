@@ -114,7 +114,7 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
 
   METHOD get_instance.
     IF gi_ref IS INITIAL.
-      CREATE OBJECT gi_ref TYPE zcl_abapgit_repo_srv.
+      gi_ref = NEW zcl_abapgit_repo_srv( ).
     ENDIF.
     ri_srv = gi_ref.
   ENDMETHOD.
@@ -128,9 +128,9 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
   METHOD instantiate_and_add.
 
     IF is_repo_meta-offline = abap_false.
-      CREATE OBJECT ri_repo TYPE zcl_abapgit_repo_online EXPORTING is_data = is_repo_meta.
+      ri_repo = NEW zcl_abapgit_repo_online( is_data = is_repo_meta ).
     ELSE.
-      CREATE OBJECT ri_repo TYPE zcl_abapgit_repo_offline EXPORTING is_data = is_repo_meta.
+      ri_repo = NEW zcl_abapgit_repo_offline( is_data = is_repo_meta ).
     ENDIF.
     add( ri_repo ).
 
@@ -662,7 +662,7 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
           li_repo    TYPE REF TO zif_abapgit_repo,
           lv_reason  TYPE string.
 
-    zcl_abapgit_sap_package=>validate_name( iv_package ).
+    zcl_abapgit_factory=>get_sap_package( iv_package )->validate_name( ).
 
     " Check if package owned by SAP is allowed (new packages are ok, since they are created automatically)
     lv_as4user = zcl_abapgit_factory=>get_sap_package( iv_package )->read_responsible( ).
