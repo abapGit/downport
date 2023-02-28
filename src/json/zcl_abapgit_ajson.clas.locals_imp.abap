@@ -211,7 +211,7 @@ CLASS lcl_json_parser DEFINITION FINAL.
       RETURNING
         VALUE(rt_json_tree) TYPE zif_abapgit_ajson_types=>ty_nodes_tt
       RAISING
-        zcx_abapgit_ajson_error cx_sxml_error.
+        zcx_abapgit_ajson_error cx_dynamic_check. " cx_sxml_error is not released on Steampunk #153
 
     METHODS _get_location
       IMPORTING
@@ -226,7 +226,7 @@ CLASS lcl_json_parser IMPLEMENTATION.
 
   METHOD parse.
     DATA lx_sxml_parse TYPE REF TO cx_sxml_parse_error.
-    DATA lx_sxml TYPE REF TO cx_sxml_error.
+    DATA lx_sxml TYPE REF TO cx_dynamic_check.
     DATA lv_location TYPE string.
     TRY.
       " TODO sane JSON check:
@@ -240,7 +240,7 @@ CLASS lcl_json_parser IMPLEMENTATION.
         zcx_abapgit_ajson_error=>raise(
         iv_msg      = |Json parsing error (SXML): { lx_sxml_parse->get_text( ) }|
         iv_location = lv_location ).
-      CATCH cx_sxml_error INTO lx_sxml.
+      CATCH cx_dynamic_check INTO lx_sxml. " cx_sxml_error
         zcx_abapgit_ajson_error=>raise(
         iv_msg      = |Json parsing error (SXML): { lx_sxml->get_text( ) }|
         iv_location = '@PARSER' ).
@@ -450,7 +450,7 @@ CLASS lcl_json_serializer IMPLEMENTATION.
   METHOD stringify.
 
     DATA lo TYPE REF TO lcl_json_serializer.
-    CREATE OBJECT lo.
+    lo = NEW #( ).
     lo->mt_json_tree = it_json_tree.
     lo->mv_indent_step = iv_indent.
     lo->mv_keep_item_order = iv_keep_item_order.
@@ -965,7 +965,7 @@ CLASS lcl_json_to_abap IMPLEMENTATION.
         " Do nothing
       WHEN zif_abapgit_ajson_types=>node_type-boolean.
         " TODO: check type ?
-        <container> = boolc( is_node-value = 'true' ).
+        <container> = xsdbool( is_node-value = 'true' ).
       WHEN zif_abapgit_ajson_types=>node_type-number.
         " TODO: check type ?
         <container> = is_node-value.
@@ -1247,7 +1247,7 @@ CLASS lcl_abap_to_json IMPLEMENTATION.
 
     lo_type = cl_abap_typedescr=>describe_by_data( iv_data ).
 
-    CREATE OBJECT lo_converter.
+    lo_converter = NEW #( ).
     lo_converter->mi_custom_mapping  = ii_custom_mapping.
     lo_converter->mv_keep_item_order = is_opts-keep_item_order.
     lo_converter->mv_format_datetime = is_opts-format_datetime.
@@ -1644,7 +1644,7 @@ CLASS lcl_abap_to_json IMPLEMENTATION.
 
     lo_type = cl_abap_typedescr=>describe_by_data( iv_data ).
 
-    CREATE OBJECT lo_converter.
+    lo_converter = NEW #( ).
     lo_converter->mi_custom_mapping  = ii_custom_mapping.
     lo_converter->mv_keep_item_order = is_opts-keep_item_order.
     lo_converter->mv_format_datetime = is_opts-format_datetime.
@@ -1760,7 +1760,7 @@ ENDCLASS.
 CLASS lcl_filter_runner IMPLEMENTATION.
 
   METHOD new.
-    CREATE OBJECT ro_instance EXPORTING ii_filter = ii_filter.
+    ro_instance = NEW #( ii_filter = ii_filter ).
   ENDMETHOD.
 
   METHOD constructor.
@@ -1867,7 +1867,7 @@ ENDCLASS.
 CLASS lcl_mapper_runner IMPLEMENTATION.
 
   METHOD new.
-    CREATE OBJECT ro_instance EXPORTING ii_mapper = ii_mapper.
+    ro_instance = NEW #( ii_mapper = ii_mapper ).
   ENDMETHOD.
 
   METHOD constructor.
@@ -1975,7 +1975,7 @@ CLASS lcl_mutator_queue IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD new.
-    CREATE OBJECT ro_instance.
+    ro_instance = NEW #( ).
   ENDMETHOD.
 
   METHOD lif_mutator_runner~run.
