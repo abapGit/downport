@@ -123,7 +123,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_INFO IMPLEMENTATION.
   METHOD constructor.
 
     super->constructor( ).
-    CREATE OBJECT mo_form_data.
+    mo_form_data = NEW #( ).
     mo_repo = io_repo.
     mo_form = get_form_schema( ).
 
@@ -134,7 +134,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_INFO IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_sett_info.
 
-    CREATE OBJECT lo_component EXPORTING io_repo = io_repo.
+    lo_component = NEW #( io_repo = io_repo ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Repository Stats'
@@ -372,9 +372,11 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_INFO IMPLEMENTATION.
 
   METHOD read_stats_file.
 
+    TYPES ty_char255 TYPE c LENGTH 255.
+
     DATA:
       lv_code TYPE string,
-      lt_code TYPE abaptxt255_tab.
+      lt_code TYPE STANDARD TABLE OF ty_char255 WITH DEFAULT KEY.
 
     FIELD-SYMBOLS:
       <ls_code> LIKE LINE OF lt_code.
@@ -392,8 +394,8 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_INFO IMPLEMENTATION.
       rs_info-line = lines( lt_code ).
 
       LOOP AT lt_code ASSIGNING <ls_code> WHERE table_line IS NOT INITIAL AND table_line(1) <> '*'.
-        SHIFT <ls_code>-line LEFT DELETING LEADING space.
-        IF <ls_code>-line(1) <> '"'.
+        SHIFT <ls_code> LEFT DELETING LEADING space.
+        IF <ls_code>(1) <> '"'.
           rs_info-sloc = rs_info-sloc + 1.
         ENDIF.
       ENDLOOP.
@@ -592,7 +594,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_INFO IMPLEMENTATION.
 
     read_settings( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( `<div class="repo">` ).
 

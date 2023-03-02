@@ -129,7 +129,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_STAGE IMPLEMENTATION.
 
   METHOD build_menu.
 
-    CREATE OBJECT ro_menu EXPORTING iv_id = 'toolbar-main'.
+    ro_menu = NEW #( iv_id = 'toolbar-main' ).
 
     IF lines( ms_files-local ) > 0
     OR lines( ms_files-remote ) > 0.
@@ -243,7 +243,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_STAGE IMPLEMENTATION.
           lt_changed_by_remote LIKE rt_changed_by,
           ls_item              TYPE zif_abapgit_definitions=>ty_item,
           lv_transport         LIKE LINE OF it_transports,
-          lv_user              TYPE e070-as4user.
+          lv_user              TYPE uname.
 
     FIELD-SYMBOLS: <ls_changed_by> LIKE LINE OF rt_changed_by.
 
@@ -279,9 +279,8 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_STAGE IMPLEMENTATION.
         obj_name = <ls_changed_by>-item-obj_name
         INTO lv_transport.
       IF sy-subrc = 0.
-        SELECT SINGLE as4user FROM e070 INTO lv_user
-          WHERE trkorr = lv_transport-trkorr.
-        IF sy-subrc = 0.
+        lv_user = zcl_abapgit_factory=>get_cts_api( )->read_user( lv_transport-trkorr ).
+        IF lv_user IS NOT INITIAL.
           <ls_changed_by>-name = lv_user.
         ENDIF.
       ENDIF.
@@ -353,8 +352,8 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_STAGE IMPLEMENTATION.
     DELETE lt_files WHERE method <> zif_abapgit_definitions=>c_method-add
                     AND   method <> zif_abapgit_definitions=>c_method-rm.
 
-    CREATE OBJECT lo_page EXPORTING iv_key = lv_key
-                                    it_files = lt_files.
+    lo_page = NEW #( iv_key = lv_key
+                     it_files = lt_files ).
 
     ri_page = lo_page.
 
@@ -377,7 +376,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_STAGE IMPLEMENTATION.
     DATA: lv_local_count TYPE i,
           lv_add_all_txt TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
     lv_local_count = count_default_files_to_commit( ).
     IF lv_local_count > 0.
       lv_add_all_txt = |Add All and Commit ({ lv_local_count })|.
@@ -424,7 +423,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_STAGE IMPLEMENTATION.
 
   METHOD render_content.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div class="repo">' ).
     ri_html->add( zcl_abapgit_gui_chunk_lib=>render_repo_top(
@@ -466,7 +465,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_STAGE IMPLEMENTATION.
     DATA: lv_param    TYPE string,
           lv_filename TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     lv_filename = is_file-path && is_file-filename.
     " make sure whitespace is preserved in the DOM
@@ -524,7 +523,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_STAGE IMPLEMENTATION.
                    <ls_status> LIKE LINE OF ms_files-status,
                    <ls_local>  LIKE LINE OF ms_files-local.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<table id="stageTab" class="stage_tab w100">' ).
 
@@ -634,7 +633,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_STAGE IMPLEMENTATION.
 
     DATA lv_main_language TYPE spras.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     lv_main_language = mo_repo->get_dot_abapgit( )->get_main_language( ).
 
@@ -649,7 +648,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_STAGE IMPLEMENTATION.
 
   METHOD render_scripts.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
 
@@ -681,7 +680,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_STAGE IMPLEMENTATION.
     FIELD-SYMBOLS <ls_remote> LIKE LINE OF ms_files-remote.
     FIELD-SYMBOLS <ls_status> LIKE LINE OF ms_files-status.
 
-    CREATE OBJECT ro_stage.
+    ro_stage = NEW #( ).
 
     LOOP AT ms_files-local ASSIGNING <ls_local>.
       READ TABLE ms_files-status ASSIGNING <ls_status>
@@ -736,7 +735,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_STAGE IMPLEMENTATION.
 
     check_selected( lo_files ).
 
-    CREATE OBJECT ro_stage.
+    ro_stage = NEW #( ).
 
     LOOP AT lo_files->mt_entries ASSIGNING <ls_item>
       "Ignore Files that we don't want to stage, so any errors don't stop the staging process
