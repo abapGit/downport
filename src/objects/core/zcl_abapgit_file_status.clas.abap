@@ -168,7 +168,7 @@ CLASS zcl_abapgit_file_status IMPLEMENTATION.
     rs_result-path     = is_local-file-path.
     rs_result-filename = is_local-file-filename.
 
-    rs_result-match    = xsdbool( is_local-file-sha1 = is_remote-sha1 ).
+    rs_result-match    = boolc( is_local-file-sha1 = is_remote-sha1 ).
     IF rs_result-match = abap_true.
       RETURN.
     ENDIF.
@@ -821,8 +821,8 @@ CLASS zcl_abapgit_file_status IMPLEMENTATION.
         ct_local  = lt_local
         ct_remote = lt_remote ).
 
-    lo_instance = NEW #( iv_root_package = io_repo->get_package( )
-                         io_dot = io_repo->get_dot_abapgit( ) ).
+    CREATE OBJECT lo_instance EXPORTING iv_root_package = io_repo->get_package( )
+                                        io_dot = io_repo->get_dot_abapgit( ).
 
     rt_results = lo_instance->calculate_status(
       it_local     = lt_local
