@@ -217,7 +217,7 @@ CLASS lcl_object_descision_list IMPLEMENTATION.
         ENDIF.
 
         IF iv_header_text CN ' _0'.
-          lo_table_header = NEW #( text = iv_header_text ).
+          CREATE OBJECT lo_table_header EXPORTING text = iv_header_text.
           mo_alv->set_top_of_list( lo_table_header ).
         ENDIF.
 
@@ -576,7 +576,7 @@ CLASS lcl_object_descision_list IMPLEMENTATION.
 
       ASSIGN COMPONENT c_fieldname_selected OF STRUCTURE <ls_line> TO <lv_selected>.
       ASSERT sy-subrc = 0.
-      <lv_selected> = xsdbool( <lv_selected> = abap_false ).
+      <lv_selected> = boolc( <lv_selected> = abap_false ).
 
     ENDIF.
 
