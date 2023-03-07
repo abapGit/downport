@@ -33,7 +33,7 @@ ENDCLASS.
 CLASS zcl_abapgit_field_rules IMPLEMENTATION.
 
   METHOD create.
-    CREATE OBJECT ro_result TYPE zcl_abapgit_field_rules.
+    ro_result = NEW zcl_abapgit_field_rules( ).
   ENDMETHOD.
 
   METHOD zif_abapgit_field_rules~add.
