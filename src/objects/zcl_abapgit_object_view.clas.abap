@@ -63,7 +63,7 @@ ENDCLASS.
 
 
 
-CLASS zcl_abapgit_object_view IMPLEMENTATION.
+CLASS ZCL_ABAPGIT_OBJECT_VIEW IMPLEMENTATION.
 
 
   METHOD deserialize_texts.
@@ -299,8 +299,13 @@ CLASS zcl_abapgit_object_view IMPLEMENTATION.
       zcx_abapgit_exception=>raise_t100( ).
     ENDIF.
 
-    deserialize_texts( io_xml   = io_xml
-                       is_dd25v = ls_dd25v ).
+    IF io_xml->i18n_params( )-translation_languages IS INITIAL.
+      deserialize_texts(
+        io_xml   = io_xml
+        is_dd25v = ls_dd25v ).
+    ELSE.
+      deserialize_lxe_texts( io_xml ).
+    ENDIF.
 
     deserialize_longtexts( ii_xml         = io_xml
                            iv_longtext_id = c_longtext_id_view ).
@@ -317,7 +322,7 @@ CLASS zcl_abapgit_object_view IMPLEMENTATION.
 
     SELECT SINGLE viewname FROM dd25l INTO lv_viewname
       WHERE viewname = ms_item-obj_name.
-    rv_bool = boolc( sy-subrc = 0 ).
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
     IF rv_bool = abap_true.
       TRY.
@@ -447,7 +452,11 @@ CLASS zcl_abapgit_object_view IMPLEMENTATION.
     io_xml->add( ig_data = lt_dd28v
                  iv_name = 'DD28V_TABLE' ).
 
-    serialize_texts( io_xml ).
+    IF io_xml->i18n_params( )-translation_languages IS INITIAL.
+      serialize_texts( io_xml ).
+    ELSE.
+      serialize_lxe_texts( io_xml ).
+    ENDIF.
 
     serialize_longtexts( ii_xml         = io_xml
                          iv_longtext_id = c_longtext_id_view ).
