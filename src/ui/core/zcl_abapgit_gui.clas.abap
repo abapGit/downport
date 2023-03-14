@@ -109,7 +109,7 @@ ENDCLASS.
 
 
 
-CLASS zcl_abapgit_gui IMPLEMENTATION.
+CLASS ZCL_ABAPGIT_GUI IMPLEMENTATION.
 
 
   METHOD back.
@@ -189,7 +189,7 @@ CLASS zcl_abapgit_gui IMPLEMENTATION.
       ENDIF.
     ENDIF.
 
-    CREATE OBJECT mo_html_parts.
+    mo_html_parts = NEW #( ).
 
     mv_rollback_on_error = iv_rollback_on_error.
     mi_asset_man      = ii_asset_man.
@@ -245,10 +245,10 @@ CLASS zcl_abapgit_gui IMPLEMENTATION.
       li_event     TYPE REF TO zif_abapgit_gui_event,
       ls_handled   TYPE zif_abapgit_gui_event_handler=>ty_handling_result.
 
-    CREATE OBJECT li_event TYPE zcl_abapgit_gui_event EXPORTING ii_gui_services = me
-                                                                iv_action = iv_action
-                                                                iv_getdata = iv_getdata
-                                                                it_postdata = it_postdata.
+    li_event = NEW zcl_abapgit_gui_event( ii_gui_services = me
+                                          iv_action = iv_action
+                                          iv_getdata = iv_getdata
+                                          it_postdata = it_postdata ).
 
     TRY.
         LOOP AT mt_event_handlers INTO li_handler.
@@ -492,7 +492,7 @@ CLASS zcl_abapgit_gui IMPLEMENTATION.
   METHOD zif_abapgit_gui_services~get_log.
 
     IF iv_create_new = abap_true OR mi_common_log IS NOT BOUND.
-      CREATE OBJECT mi_common_log TYPE zcl_abapgit_log.
+      mi_common_log = NEW zcl_abapgit_log( ).
     ENDIF.
 
     ri_log = mi_common_log.
@@ -503,5 +503,20 @@ CLASS zcl_abapgit_gui IMPLEMENTATION.
   METHOD zif_abapgit_gui_services~register_event_handler.
     ASSERT ii_event_handler IS BOUND.
     INSERT ii_event_handler INTO mt_event_handlers INDEX 1.
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_gui_services~register_page_asset.
+
+    " Maybe forbid registering cachable existing assets, maybe this is the right place (see also asset_man commments)
+
+    mi_asset_man->register_asset(
+      iv_url = iv_url
+      iv_type = iv_type
+      iv_mime_name = iv_mime_name
+      iv_inline = iv_inline
+      " This registering will happen after initialization so all cachable already cached
+      iv_cachable = abap_false ).
+
   ENDMETHOD.
 ENDCLASS.

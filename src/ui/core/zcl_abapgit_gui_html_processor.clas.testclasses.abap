@@ -31,6 +31,8 @@ CLASS ltcl_gui_mock IMPLEMENTATION.
   ENDMETHOD.
   METHOD zif_abapgit_gui_services~get_log.
   ENDMETHOD.
+  METHOD zif_abapgit_gui_services~register_page_asset.
+  ENDMETHOD.
 
   METHOD get_asset.
     rs_asset = ms_last_cache_signature.
@@ -77,7 +79,7 @@ CLASS ltcl_html_processor_test IMPLEMENTATION.
 
     DATA lo_asset_man TYPE REF TO zcl_abapgit_gui_asset_manager.
 
-    CREATE OBJECT lo_asset_man.
+    lo_asset_man = NEW #( ).
     lo_asset_man->register_asset( iv_url = 'css/style1.css'
                                   iv_type = 'text/css'
                                   iv_inline = 'dummy1' ).
@@ -88,9 +90,9 @@ CLASS ltcl_html_processor_test IMPLEMENTATION.
                                   iv_type = 'text/css'
                                   iv_inline = 'dummy3' ).
 
-    CREATE OBJECT mo_cut EXPORTING ii_asset_man = lo_asset_man.
+    mo_cut = NEW #( ii_asset_man = lo_asset_man ).
 
-    CREATE OBJECT mo_gui_mock.
+    mo_gui_mock = NEW #( ).
 
     mv_source = render_html(
       `<html>\n` &&

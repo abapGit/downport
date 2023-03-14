@@ -93,8 +93,8 @@ CLASS zcl_abapgit_html IMPLEMENTATION.
 
 
   METHOD class_constructor.
-    CREATE OBJECT go_single_tags_re EXPORTING pattern = '<(AREA|BASE|BR|COL|COMMAND|EMBED|HR|IMG|INPUT|LINK|META|PARAM|SOURCE|!)'
-                                              ignore_case = abap_false.
+    go_single_tags_re = NEW #( pattern = '<(AREA|BASE|BR|COL|COMMAND|EMBED|HR|IMG|INPUT|LINK|META|PARAM|SOURCE|!)'
+                               ignore_case = abap_false ).
 
     gv_spaces = repeat(
       val = ` `
@@ -104,7 +104,7 @@ CLASS zcl_abapgit_html IMPLEMENTATION.
 
 
   METHOD create.
-    CREATE OBJECT ri_instance TYPE zcl_abapgit_html.
+    ri_instance = NEW zcl_abapgit_html( ).
   ENDMETHOD.
 
 
@@ -431,7 +431,7 @@ CLASS zcl_abapgit_html IMPLEMENTATION.
 
 
   METHOD zif_abapgit_html~is_empty.
-    rv_yes = boolc( lines( mt_buffer ) = 0 ).
+    rv_yes = xsdbool( lines( mt_buffer ) = 0 ).
   ENDMETHOD.
 
 
@@ -463,6 +463,7 @@ CLASS zcl_abapgit_html IMPLEMENTATION.
 
   METHOD zif_abapgit_html~td.
     zif_abapgit_html~wrap(
+      iv_format_single_line = iv_format_single_line
       iv_tag   = 'td'
       iv_content = iv_content
       ii_content = ii_content
@@ -475,6 +476,7 @@ CLASS zcl_abapgit_html IMPLEMENTATION.
 
   METHOD zif_abapgit_html~th.
     zif_abapgit_html~wrap(
+      iv_format_single_line = iv_format_single_line
       iv_tag   = 'th'
       iv_content = iv_content
       ii_content = ii_content
@@ -514,14 +516,18 @@ CLASS zcl_abapgit_html IMPLEMENTATION.
       CLEAR lv_close_tag.
     ENDIF.
 
-    zif_abapgit_html~add( lv_open_tag ).
-    IF ii_content IS BOUND.
-      zif_abapgit_html~add( ii_content ).
-    ELSEIF iv_content IS NOT INITIAL.
-      zif_abapgit_html~add( iv_content ).
-    ENDIF.
-    IF lv_close_tag IS NOT INITIAL.
-      zif_abapgit_html~add( `</` && iv_tag && `>` ).
+    IF iv_format_single_line = abap_true AND iv_content IS NOT INITIAL.
+      zif_abapgit_html~add( lv_open_tag && iv_content && lv_close_tag ).
+    ELSE.
+      zif_abapgit_html~add( lv_open_tag ).
+      IF ii_content IS BOUND.
+        zif_abapgit_html~add( ii_content ).
+      ELSEIF iv_content IS NOT INITIAL.
+        zif_abapgit_html~add( iv_content ).
+      ENDIF.
+      IF lv_close_tag IS NOT INITIAL.
+        zif_abapgit_html~add( lv_close_tag ).
+      ENDIF.
     ENDIF.
 
     ri_self = me.
