@@ -55,9 +55,9 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_EX_OBJECT IMPLEMENTATION.
 
   METHOD constructor.
     super->constructor( ).
-    CREATE OBJECT mo_validation_log.
+    mo_validation_log = NEW #( ).
 
-    CREATE OBJECT mo_form_data.
+    mo_form_data = NEW #( ).
     mo_form_data->set(
       iv_key = c_id-only_main
       iv_val = abap_true ).
@@ -69,7 +69,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_EX_OBJECT IMPLEMENTATION.
 
   METHOD create.
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_ex_object.
-    CREATE OBJECT lo_component.
+    lo_component = NEW #( ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Export Objects to Files'
@@ -166,7 +166,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_EX_OBJECT IMPLEMENTATION.
   METHOD zif_abapgit_gui_renderable~render.
     register_handlers( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div class="form-container">' ).
     ri_html->add( mo_form->render(
