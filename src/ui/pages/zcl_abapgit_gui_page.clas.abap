@@ -115,7 +115,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE IMPLEMENTATION.
   METHOD footer.
 
     DATA lv_version_detail TYPE string.
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     IF zcl_abapgit_factory=>get_environment( )->is_merged( ) = abap_true.
       lv_version_detail = ` - Standalone Version`.
@@ -188,7 +188,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE IMPLEMENTATION.
 
   METHOD html_head.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<head>' ).
 
@@ -240,7 +240,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE IMPLEMENTATION.
     " You should remember that the we have to instantiate ro_html even
     " it's overwritten further down. Because ADD checks whether it's
     " bound.
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     " You should remember that we render the message panel only
     " if we have an error.
@@ -252,7 +252,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE IMPLEMENTATION.
 
     " You should remember that the exception viewer dispatches the events of
     " error message panel
-    CREATE OBJECT mo_exception_viewer EXPORTING ix_error = mx_error.
+    mo_exception_viewer = NEW #( ix_error = mx_error ).
 
     " You should remember that we render the message panel just once
     " for each exception/error text.
@@ -291,7 +291,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE IMPLEMENTATION.
 
   METHOD scripts.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     render_deferred_parts(
       ii_html          = ri_html
@@ -318,7 +318,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE IMPLEMENTATION.
       lv_page_title = ms_control-page_title_provider->get_page_title( ).
     ENDIF.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div id="header">' ).
 
@@ -394,7 +394,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE IMPLEMENTATION.
     GET RUN TIME FIELD lv_start.
 
     " Real page
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<!DOCTYPE html>' ).
     ri_html->add( '<html lang="en">' ).

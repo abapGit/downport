@@ -65,7 +65,7 @@ CLASS lcl_status_consistency_checks IMPLEMENTATION.
 
   METHOD run_checks.
 
-    CREATE OBJECT mi_log TYPE zcl_abapgit_log.
+    mi_log = NEW zcl_abapgit_log( ).
 
     " Find all objects which were assigned to a different package
     check_package_move( it_results ).
@@ -180,9 +180,14 @@ CLASS lcl_status_consistency_checks IMPLEMENTATION.
 
     FIELD-SYMBOLS <ls_result> LIKE LINE OF it_results.
 
-    " Collect all namespaces based on name of xml-files
+    " Collect all namespaces based on name of xml- and json-files
     LOOP AT it_results ASSIGNING <ls_result>.
       FIND REGEX '^#([a-zA-Z0-9]+)#.*\..*\.xml$' IN <ls_result>-filename SUBMATCHES lv_namespace.
+      IF sy-subrc = 0.
+        lv_namespace = '/' && to_upper( lv_namespace ) && '/'.
+        COLLECT lv_namespace INTO lt_namespace.
+      ENDIF.
+      FIND REGEX '^\(([a-zA-Z0-9]+)\).*\..*\.json$' IN <ls_result>-filename SUBMATCHES lv_namespace.
       IF sy-subrc = 0.
         lv_namespace = '/' && to_upper( lv_namespace ) && '/'.
         COLLECT lv_namespace INTO lt_namespace.
