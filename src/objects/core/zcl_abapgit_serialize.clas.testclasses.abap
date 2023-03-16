@@ -19,7 +19,7 @@ CLASS ltcl_determine_max_threads IMPLEMENTATION.
 
   METHOD setup.
     TRY.
-        CREATE OBJECT mo_cut.
+        mo_cut = NEW #( ).
       CATCH zcx_abapgit_exception.
         cl_abap_unit_assert=>fail( 'Error creating serializer' ).
     ENDTRY.
@@ -74,7 +74,7 @@ CLASS ltcl_serialize IMPLEMENTATION.
     mo_dot = zcl_abapgit_dot_abapgit=>build_default( ).
 
     TRY.
-        CREATE OBJECT mo_cut EXPORTING io_dot_abapgit = mo_dot.
+        mo_cut = NEW #( io_dot_abapgit = mo_dot ).
       CATCH zcx_abapgit_exception.
         cl_abap_unit_assert=>fail( 'Error creating serializer' ).
     ENDTRY.
@@ -124,13 +124,13 @@ CLASS ltcl_serialize IMPLEMENTATION.
     <ls_tadir>-object   = 'ABCD'.
     <ls_tadir>-obj_name = 'OBJECT'.
 
-    CREATE OBJECT li_log1 TYPE zcl_abapgit_log.
+    li_log1 = NEW zcl_abapgit_log( ).
     mo_cut->serialize(
       it_tadir            = lt_tadir
       ii_log              = li_log1
       iv_force_sequential = abap_true ).
 
-    CREATE OBJECT li_log2 TYPE zcl_abapgit_log.
+    li_log2 = NEW zcl_abapgit_log( ).
     mo_cut->serialize(
       it_tadir            = lt_tadir
       ii_log              = li_log2
@@ -178,14 +178,14 @@ CLASS ltcl_serialize IMPLEMENTATION.
     <ls_tadir>-obj_name = 'ZCL_TEST_IGNORE'.
     <ls_tadir>-devclass = '$ZTEST'.
 
-    CREATE OBJECT li_log1 TYPE zcl_abapgit_log.
+    li_log1 = NEW zcl_abapgit_log( ).
     mo_cut->serialize(
       iv_package          = '$ZTEST'
       it_tadir            = lt_tadir
       ii_log              = li_log1
       iv_force_sequential = abap_true ).
 
-    CREATE OBJECT li_log2 TYPE zcl_abapgit_log.
+    li_log2 = NEW zcl_abapgit_log( ).
     mo_cut->serialize(
       iv_package          = '$ZTEST'
       it_tadir            = lt_tadir
@@ -215,6 +215,10 @@ ENDCLASS.
 CLASS ltcl_i18n DEFINITION FOR TESTING DURATION SHORT RISK LEVEL HARMLESS FINAL.
 
   PRIVATE SECTION.
+    CONSTANTS:
+      c_english TYPE sy-langu VALUE 'E',
+      c_german  TYPE sy-langu VALUE 'D'.
+
     DATA:
       mo_dot_abapgit TYPE REF TO zcl_abapgit_dot_abapgit,
       mo_cut         TYPE REF TO zcl_abapgit_serialize.
@@ -233,13 +237,13 @@ CLASS ltcl_i18n IMPLEMENTATION.
     DATA ls_data TYPE zif_abapgit_dot_abapgit=>ty_dot_abapgit.
 
     " Main language: English, Translations: German
-    ls_data-master_language = 'E'.
-    INSERT 'DE' INTO TABLE ls_data-i18n_languages.
+    ls_data-master_language = c_english.
+    " ls_data-i18n_languages needs to be initial to get classic I18N data
 
     TRY.
-        CREATE OBJECT mo_dot_abapgit EXPORTING is_data = ls_data.
+        mo_dot_abapgit = NEW #( is_data = ls_data ).
 
-        CREATE OBJECT mo_cut EXPORTING io_dot_abapgit = mo_dot_abapgit.
+        mo_cut = NEW #( io_dot_abapgit = mo_dot_abapgit ).
       CATCH zcx_abapgit_exception.
         cl_abap_unit_assert=>fail( 'Error creating serializer' ).
     ENDTRY.
@@ -276,21 +280,21 @@ CLASS ltcl_i18n IMPLEMENTATION.
 
     lv_xml = zcl_abapgit_convert=>xstring_to_string_utf8( <ls_result>-file-data ).
 
-    CREATE OBJECT lo_input EXPORTING iv_xml = lv_xml.
+    lo_input = NEW #( iv_xml = lv_xml ).
 
     lo_input->zif_abapgit_xml_input~read( EXPORTING iv_name = 'DD02V'
                                           CHANGING  cg_data = ls_dd02v ).
 
     cl_abap_unit_assert=>assert_equals(
       act = ls_dd02v-ddlanguage
-      exp = 'E' ).
+      exp = c_english ).
 
     lo_input->zif_abapgit_xml_input~read( EXPORTING iv_name = 'I18N_LANGS'
                                           CHANGING  cg_data = lt_i18n_langs ).
 
     cl_abap_unit_assert=>assert_not_initial( lt_i18n_langs ).
 
-    READ TABLE lt_i18n_langs ASSIGNING <ls_i18n_langs> WITH KEY table_line = 'D'.
+    READ TABLE lt_i18n_langs ASSIGNING <ls_i18n_langs> WITH KEY table_line = c_german.
     cl_abap_unit_assert=>assert_subrc( ).
 
   ENDMETHOD.
