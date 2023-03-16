@@ -37,7 +37,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_GUI_PAGE_SYNTAX IMPLEMENTATION.
+CLASS zcl_abapgit_gui_page_syntax IMPLEMENTATION.
 
 
   METHOD build_menu.
@@ -57,7 +57,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SYNTAX IMPLEMENTATION.
 
   METHOD render_content.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( `<div class="repo">` ).
     ri_html->add( zcl_abapgit_gui_chunk_lib=>render_repo_top( io_repo        = mo_repo
@@ -66,7 +66,9 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SYNTAX IMPLEMENTATION.
 
     ri_html->add( '<div class="toc">' ).
 
-    ri_html->add( render_variant( c_variant ) ).
+    ri_html->add( render_variant(
+      iv_variant = c_variant
+      iv_summary = mv_summary ) ).
 
     IF lines( mt_result ) = 0.
       ri_html->add( '<div class="dummydiv success">' ).
@@ -93,6 +95,8 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SYNTAX IMPLEMENTATION.
         " Variant SYNTAX_CHECK does not exist in 702
         mt_result = li_syntax_check->run( 'VERI_' && c_variant ).
     ENDTRY.
+
+    mv_summary = li_syntax_check->get_summary( ).
 
   ENDMETHOD.
 

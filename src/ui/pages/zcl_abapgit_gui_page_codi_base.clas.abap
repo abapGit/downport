@@ -17,10 +17,12 @@ CLASS zcl_abapgit_gui_page_codi_base DEFINITION PUBLIC ABSTRACT INHERITING FROM 
       END OF c_actions .
     DATA mo_repo TYPE REF TO zcl_abapgit_repo .
     DATA mt_result TYPE scit_alvlist .
+    DATA mv_summary TYPE string.
 
     METHODS render_variant
       IMPORTING
         !iv_variant    TYPE sci_chkv
+        !iv_summary    TYPE string
       RETURNING
         VALUE(ri_html) TYPE REF TO zif_abapgit_html .
     METHODS render_result
@@ -61,7 +63,7 @@ CLASS zcl_abapgit_gui_page_codi_base IMPLEMENTATION.
     DATA:
       lo_sort_menu TYPE REF TO zcl_abapgit_html_toolbar.
 
-    CREATE OBJECT lo_sort_menu.
+    lo_sort_menu = NEW #( ).
 
     lo_sort_menu->add(
       iv_txt = 'By Object, Check, Sub-object'
@@ -73,7 +75,7 @@ CLASS zcl_abapgit_gui_page_codi_base IMPLEMENTATION.
       iv_txt = 'By Check, Object, Sub-object'
       iv_act = c_actions-sort_3 ).
 
-    CREATE OBJECT ro_menu.
+    ro_menu = NEW #( ).
 
     ro_menu->add( iv_txt = 'Sort'
                   io_sub = lo_sort_menu ).
@@ -274,10 +276,11 @@ CLASS zcl_abapgit_gui_page_codi_base IMPLEMENTATION.
 
   METHOD render_variant.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div class="ci-head">' ).
-    ri_html->add( |Code inspector check variant: <span class="ci-variant">{ iv_variant }</span>| ).
+    ri_html->add( |Code inspector check variant <span class="ci-variant">{ iv_variant }</span>|
+               && | completed ({ iv_summary })| ).
     ri_html->add( `</div>` ).
 
   ENDMETHOD.
