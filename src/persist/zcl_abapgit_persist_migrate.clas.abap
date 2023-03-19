@@ -194,7 +194,7 @@ CLASS zcl_abapgit_persist_migrate IMPLEMENTATION.
 
     SELECT SINGLE viewname FROM dd25l INTO lv_viewname
       WHERE viewname = zcl_abapgit_persistence_db=>c_lock.
-    rv_exists = boolc( sy-subrc = 0 ).
+    rv_exists = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -315,7 +315,7 @@ CLASS zcl_abapgit_persist_migrate IMPLEMENTATION.
 
     SELECT SINGLE tabname FROM dd02l INTO lv_tabname
       WHERE tabname = zcl_abapgit_persistence_db=>c_tabname.
-    rv_exists = boolc( sy-subrc = 0 ).
+    rv_exists = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 ENDCLASS.
