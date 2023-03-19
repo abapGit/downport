@@ -18,8 +18,8 @@ ENDCLASS.
 CLASS ltcl_test IMPLEMENTATION.
 
   METHOD setup.
-    CREATE OBJECT mi_cut TYPE zcl_abapgit_data_serializer.
-    CREATE OBJECT mi_config TYPE zcl_abapgit_data_config.
+    mi_cut = NEW zcl_abapgit_data_serializer( ).
+    mi_config = NEW zcl_abapgit_data_config( ).
   ENDMETHOD.
 
   METHOD serialize.
@@ -77,8 +77,8 @@ CLASS ltcl_test IMPLEMENTATION.
 
     TRY.
         mi_cut->serialize( mi_config ).
-      CATCH zcx_abapgit_exception.
         cl_abap_unit_assert=>fail( ).
+      CATCH zcx_abapgit_exception.
     ENDTRY.
 
   ENDMETHOD.
