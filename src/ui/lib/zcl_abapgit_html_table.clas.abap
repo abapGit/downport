@@ -74,7 +74,7 @@ CLASS ZCL_ABAPGIT_HTML_TABLE IMPLEMENTATION.
 
   METHOD create.
     ASSERT ii_renderer IS BOUND.
-    ro_instance = NEW #( ).
+    CREATE OBJECT ro_instance.
     ro_instance->mi_renderer = ii_renderer.
   ENDMETHOD.
 
@@ -106,7 +106,7 @@ CLASS ZCL_ABAPGIT_HTML_TABLE IMPLEMENTATION.
       lv_attrs = lv_attrs && | class="{ iv_css_class }"|.
     ENDIF.
 
-    mi_html = NEW zcl_abapgit_html( ).
+    CREATE OBJECT mi_html TYPE zcl_abapgit_html.
     ri_html = mi_html.
 
     mi_html->add( |<table{ lv_attrs }>| ).
