@@ -1,4 +1,4 @@
-CLASS zcl_abapgit_object_asfc DEFINITION
+CLASS zcl_abapgit_object_aqqu DEFINITION
   PUBLIC
   INHERITING FROM zcl_abapgit_objects_super
   CREATE PUBLIC .
@@ -14,16 +14,30 @@ CLASS zcl_abapgit_object_asfc DEFINITION
         VALUE(ro_generic) TYPE REF TO zcl_abapgit_objects_generic
       RAISING
         zcx_abapgit_exception .
+
+    METHODS get_field_rules
+      RETURNING
+        VALUE(ro_result) TYPE REF TO zif_abapgit_field_rules.
 ENDCLASS.
 
 
 
-CLASS zcl_abapgit_object_asfc IMPLEMENTATION.
+CLASS zcl_abapgit_object_aqqu IMPLEMENTATION.
+
+
+  METHOD get_field_rules.
+
+    ro_result = zcl_abapgit_field_rules=>create( ).
+
+* add rules here if needed
+
+  ENDMETHOD.
 
 
   METHOD get_generic.
-
+    " transaction SQ01
     ro_generic = NEW #( is_item = ms_item
+                        io_field_rules = get_field_rules( )
                         iv_language = mv_language ).
 
   ENDMETHOD.
@@ -36,16 +50,12 @@ CLASS zcl_abapgit_object_asfc IMPLEMENTATION.
 
   METHOD zif_abapgit_object~delete.
 
-    set_default_transport( iv_transport ).
-
     get_generic( )->delete( iv_package ).
 
   ENDMETHOD.
 
 
   METHOD zif_abapgit_object~deserialize.
-
-    set_default_transport( iv_transport ).
 
     get_generic( )->deserialize(
       iv_package = iv_package
@@ -67,7 +77,7 @@ CLASS zcl_abapgit_object_asfc IMPLEMENTATION.
 
 
   METHOD zif_abapgit_object~get_deserialize_steps.
-    APPEND zif_abapgit_object=>gc_step_id-abap TO rt_steps.
+    APPEND zif_abapgit_object=>gc_step_id-late TO rt_steps.
   ENDMETHOD.
 
 
@@ -82,19 +92,16 @@ CLASS zcl_abapgit_object_asfc IMPLEMENTATION.
 
 
   METHOD zif_abapgit_object~is_locked.
-
     rv_is_locked = abap_false.
-
   ENDMETHOD.
 
 
   METHOD zif_abapgit_object~jump.
+    RETURN.
   ENDMETHOD.
 
 
   METHOD zif_abapgit_object~serialize.
-
     get_generic( )->serialize( io_xml ).
-
   ENDMETHOD.
 ENDCLASS.
