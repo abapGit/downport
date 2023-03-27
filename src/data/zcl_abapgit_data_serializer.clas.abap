@@ -82,7 +82,7 @@ CLASS ZCL_ABAPGIT_DATA_SERIALIZER IMPLEMENTATION.
       EXCEPTIONS
         type_not_found = 1
         OTHERS         = 2 ).
-    rv_exists = xsdbool( sy-subrc = 0 ).
+    rv_exists = boolc( sy-subrc = 0 ).
 
   ENDMETHOD.
 
