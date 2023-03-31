@@ -18,15 +18,15 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lt_files TYPE zif_abapgit_git_definitions=>ty_files_tt.
     DATA ls_config TYPE zif_abapgit_data_config=>ty_config.
 
-    CREATE OBJECT li_cut TYPE zcl_abapgit_data_deserializer.
-    CREATE OBJECT li_config TYPE zcl_abapgit_data_config.
+    li_cut = NEW zcl_abapgit_data_deserializer( ).
+    li_config = NEW zcl_abapgit_data_config( ).
 
     ls_config-type = zif_abapgit_data_config=>c_data_type-tabu.
     ls_config-name = 'T100'.
 
     li_config->add_config( ls_config ).
 
-* this does not change the database,
+    " this does not change the database. it just gives a preview of changes
     li_cut->deserialize(
       ii_config = li_config
       it_files  = lt_files ).
