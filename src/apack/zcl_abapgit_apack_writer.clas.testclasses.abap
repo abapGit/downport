@@ -22,15 +22,15 @@ CLASS ltcl_apack_manifest_writer IMPLEMENTATION.
     lv_actual_xml = lo_manifest_writer->serialize( ).
     cl_abap_unit_assert=>assert_not_initial( lv_actual_xml ).
 
-    lv_bool = xsdbool( contains( val = lv_actual_xml
+    lv_bool = boolc( contains( val = lv_actual_xml
                                sub = '<ARTIFACT_ID>abapGit</ARTIFACT_ID>' ) ).
     cl_abap_unit_assert=>assert_equals( act = lv_bool
                                         exp = abap_true ).
-    lv_bool = xsdbool( contains( val = lv_actual_xml
+    lv_bool = boolc( contains( val = lv_actual_xml
                                sub = '<GROUP_ID>github.com/larshp</GROUP_ID>' ) ).
     cl_abap_unit_assert=>assert_equals( act = lv_bool
                                         exp = abap_true ).
-    lv_bool = xsdbool( contains( val = lv_actual_xml
+    lv_bool = boolc( contains( val = lv_actual_xml
                                sub = '<REPOSITORY_TYPE>abapGit</REPOSITORY_TYPE>' ) ).
     cl_abap_unit_assert=>assert_equals( act = lv_bool
                                         exp = abap_true ).
