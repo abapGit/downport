@@ -171,7 +171,7 @@ CLASS ZCL_ABAPGIT_CTS_API IMPLEMENTATION.
       zcx_abapgit_exception=>raise_t100( ).
     ENDIF.
 
-    rv_locked = boolc( lv_lock_flag <> space ).
+    rv_locked = xsdbool( lv_lock_flag <> space ).
   ENDMETHOD.
 
 
@@ -189,7 +189,7 @@ CLASS ZCL_ABAPGIT_CTS_API IMPLEMENTATION.
       IMPORTING
         pe_result = lv_type_check_result.
 
-    rv_lockable = boolc( lv_type_check_result = 'L' ).
+    rv_lockable = xsdbool( lv_type_check_result = 'L' ).
   ENDMETHOD.
 
 
@@ -207,7 +207,7 @@ CLASS ZCL_ABAPGIT_CTS_API IMPLEMENTATION.
       IMPORTING
         pe_result = lv_type_check_result.
 
-    rv_transportable = boolc( lv_type_check_result CA 'RTL' ).
+    rv_transportable = xsdbool( lv_type_check_result CA 'RTL' ).
   ENDMETHOD.
 
 
@@ -343,4 +343,29 @@ CLASS ZCL_ABAPGIT_CTS_API IMPLEMENTATION.
       WHERE trkorr = iv_trkorr ##SUBRC_OK.
 
   ENDMETHOD.
+
+  METHOD zif_abapgit_cts_api~create_transport_entries.
+
+    DATA lt_tables        TYPE tredt_objects.
+    DATA lt_table_keys    TYPE STANDARD TABLE OF e071k.
+    DATA lt_tadir_entries TYPE scts_tadir.
+
+    cl_table_utilities_brf=>create_transport_entries(
+      EXPORTING
+        it_table_ins = it_table_ins
+        it_table_upd = it_table_upd
+        it_table_del = it_table_del
+        iv_tabname   = iv_tabname
+      CHANGING
+        ct_e071      = lt_tables
+        ct_e071k     = lt_table_keys ).
+
+    cl_table_utilities_brf=>write_transport_entries(
+      CHANGING
+        ct_e071  = lt_tables
+        ct_e071k = lt_table_keys
+        ct_tadir = lt_tadir_entries ).
+
+  ENDMETHOD.
+
 ENDCLASS.
