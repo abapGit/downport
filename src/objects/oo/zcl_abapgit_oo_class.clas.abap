@@ -620,6 +620,9 @@ CLASS zcl_abapgit_oo_class IMPLEMENTATION.
     zcl_abapgit_sotr_handler=>create_sotr(
       iv_package = iv_package
       io_xml     = ii_xml ).
+    zcl_abapgit_sots_handler=>create_sots(
+      iv_package = iv_package
+      io_xml     = ii_xml ).
   ENDMETHOD.
 
 
@@ -759,7 +762,7 @@ CLASS zcl_abapgit_oo_class IMPLEMENTATION.
         no_text       = 4
         inconsistent  = 5
         OTHERS        = 6.
-    rv_exists = boolc( sy-subrc = 0 OR sy-subrc = 4 ).
+    rv_exists = xsdbool( sy-subrc = 0 OR sy-subrc = 4 ).
   ENDMETHOD.
 
 
@@ -896,6 +899,11 @@ CLASS zcl_abapgit_oo_class IMPLEMENTATION.
 
   METHOD zif_abapgit_oo_object_fnc~read_sotr.
     zcl_abapgit_sotr_handler=>read_sotr(
+      iv_pgmid    = 'LIMU'
+      iv_object   = 'CPUB'
+      iv_obj_name = iv_object_name
+      io_xml      = ii_xml ).
+    zcl_abapgit_sots_handler=>read_sots(
       iv_pgmid    = 'LIMU'
       iv_object   = 'CPUB'
       iv_obj_name = iv_object_name

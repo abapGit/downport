@@ -278,7 +278,7 @@ CLASS zcl_abapgit_settings IMPLEMENTATION.
     DATA: li_output TYPE REF TO zif_abapgit_xml_output.
 
 
-    CREATE OBJECT li_output TYPE zcl_abapgit_xml_output.
+    li_output = NEW zcl_abapgit_xml_output( ).
 
     li_output->add( iv_name = zcl_abapgit_persistence_db=>c_type_settings
                     ig_data = ms_settings ).
@@ -294,13 +294,16 @@ CLASS zcl_abapgit_settings IMPLEMENTATION.
 
 
   METHOD get_ui_theme.
-    DATA: lv_frontend_theme TYPE string.
+    DATA lv_frontend_theme TYPE string.
+    DATA lv_cl_gui TYPE string.
+
+    lv_cl_gui = 'CL_GUI_RESOURCES'.
 
     rv_ui_theme = ms_user_settings-ui_theme.
 
     IF rv_ui_theme = c_ui_theme-synced_with_gui AND iv_resolve_synced = abap_true.
       TRY.
-          CALL METHOD ('CL_GUI_RESOURCES')=>get_themename
+          CALL METHOD (lv_cl_gui)=>get_themename
             IMPORTING
               themename              = lv_frontend_theme
             EXCEPTIONS
@@ -473,7 +476,7 @@ CLASS zcl_abapgit_settings IMPLEMENTATION.
     DATA: lo_input TYPE REF TO zif_abapgit_xml_input.
 
 
-    CREATE OBJECT lo_input TYPE zcl_abapgit_xml_input EXPORTING iv_xml = iv_settings_xml.
+    lo_input = NEW zcl_abapgit_xml_input( iv_xml = iv_settings_xml ).
 
     CLEAR ms_settings.
 

@@ -129,11 +129,8 @@ CLASS ZCL_ABAPGIT_PERSISTENCE_REPO IMPLEMENTATION.
       ENDIF.
     ENDLOOP.
 
-    CALL FUNCTION 'CONVERSION_EXIT_ALPHA_INPUT'
-      EXPORTING
-        input  = rv_next_repo_id
-      IMPORTING
-        output = rv_next_repo_id.
+    SHIFT rv_next_repo_id RIGHT DELETING TRAILING space.
+    TRANSLATE rv_next_repo_id USING ' 0'.
 
   ENDMETHOD.
 
@@ -241,7 +238,7 @@ CLASS ZCL_ABAPGIT_PERSISTENCE_REPO IMPLEMENTATION.
 
     DATA: lo_background TYPE REF TO zcl_abapgit_persist_background.
 
-    CREATE OBJECT lo_background.
+    lo_background = NEW #( ).
     lo_background->delete( iv_key ).
 
     mo_db->delete( iv_type  = zcl_abapgit_persistence_db=>c_type_repo
@@ -261,7 +258,7 @@ CLASS ZCL_ABAPGIT_PERSISTENCE_REPO IMPLEMENTATION.
       it_keys = lt_keys
       iv_type = zcl_abapgit_persistence_db=>c_type_repo ).
 
-    rv_yes = boolc( lines( lt_content ) > 0 ).
+    rv_yes = xsdbool( lines( lt_content ) > 0 ).
 
   ENDMETHOD.
 

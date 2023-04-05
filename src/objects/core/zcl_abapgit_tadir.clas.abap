@@ -325,7 +325,9 @@ CLASS zcl_abapgit_tadir IMPLEMENTATION.
       " Check if there are any texts related to objects that do not serialize these texts (yet)
       " If yes, we need to keep processing SOTS
       SELECT COUNT(*) FROM sotr_useu INTO lv_count
-        FOR ALL ENTRIES IN lt_concepts WHERE concept = lt_concepts-table_line AND object <> 'SICF'.
+        FOR ALL ENTRIES IN lt_concepts WHERE concept = lt_concepts-table_line
+        AND NOT ( pgmid = 'R3TR' AND object = 'SICF' )
+        AND NOT ( pgmid = 'LIMU' AND object = 'CPUB' ).
       IF lv_count > 0.
         RETURN.
       ENDIF.
@@ -398,7 +400,7 @@ CLASS zcl_abapgit_tadir IMPLEMENTATION.
 
     DATA lo_skip_objects TYPE REF TO zcl_abapgit_skip_objects.
 
-    CREATE OBJECT lo_skip_objects.
+    lo_skip_objects = NEW #( ).
 
     ct_tadir = lo_skip_objects->skip_sadl_generated_objects(
       it_tadir = ct_tadir
