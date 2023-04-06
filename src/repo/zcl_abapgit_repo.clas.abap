@@ -56,7 +56,7 @@ CLASS zcl_abapgit_repo DEFINITION
       RAISING
         zcx_abapgit_exception .
     METHODS has_remote_source
-          ABSTRACT
+      ABSTRACT
       RETURNING
         VALUE(rv_yes) TYPE abap_bool .
     METHODS status
@@ -101,7 +101,7 @@ CLASS zcl_abapgit_repo DEFINITION
         zcx_abapgit_exception .
     METHODS check_and_create_package
       IMPORTING
-         iv_package TYPE devclass
+        iv_package TYPE devclass
       RAISING
         zcx_abapgit_exception .
   PROTECTED SECTION.
@@ -143,6 +143,29 @@ CLASS zcl_abapgit_repo DEFINITION
     METHODS reset_remote .
   PRIVATE SECTION.
 
+    METHODS deserialize_dot_abapgit
+      CHANGING
+        ct_files TYPE zif_abapgit_git_definitions=>ty_file_signatures_tt
+      RAISING
+        zcx_abapgit_exception.
+
+    METHODS deserialize_objects
+      IMPORTING
+        !is_checks TYPE zif_abapgit_definitions=>ty_deserialize_checks
+        !ii_log    TYPE REF TO zif_abapgit_log
+      CHANGING
+        ct_files   TYPE zif_abapgit_git_definitions=>ty_file_signatures_tt
+      RAISING
+        zcx_abapgit_exception.
+
+    METHODS deserialize_data
+      IMPORTING
+        !is_checks TYPE zif_abapgit_definitions=>ty_deserialize_checks
+      CHANGING
+        ct_files   TYPE zif_abapgit_git_definitions=>ty_file_signatures_tt
+      RAISING
+        zcx_abapgit_exception.
+
     METHODS notify_listener
       IMPORTING
         !is_change_mask TYPE zif_abapgit_persistence=>ty_repo_meta_mask
@@ -165,7 +188,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_REPO IMPLEMENTATION.
+CLASS zcl_abapgit_repo IMPLEMENTATION.
 
 
   METHOD bind_listener.
@@ -277,7 +300,7 @@ CLASS ZCL_ABAPGIT_REPO IMPLEMENTATION.
 
   METHOD create_new_log.
 
-    CREATE OBJECT mi_log TYPE zcl_abapgit_log.
+    mi_log = NEW zcl_abapgit_log( ).
     mi_log->set_title( iv_title ).
 
     ri_log = mi_log.
@@ -296,6 +319,55 @@ CLASS ZCL_ABAPGIT_REPO IMPLEMENTATION.
 
     li_package = zcl_abapgit_factory=>get_sap_package( get_package( ) ).
     rs_checks-transport-required = li_package->are_changes_recorded_in_tr_req( ).
+
+  ENDMETHOD.
+
+
+  METHOD deserialize_data.
+
+    DATA:
+      lt_updated_files TYPE zif_abapgit_git_definitions=>ty_file_signatures_tt,
+      lt_result        TYPE zif_abapgit_data_deserializer=>ty_results.
+
+    "Deserialize data
+    lt_result = zcl_abapgit_data_factory=>get_deserializer( )->deserialize(
+      ii_config  = get_data_config( )
+      it_files   = get_files_remote( ) ).
+
+    "Save deserialized data to DB and add entries to transport requests
+    lt_updated_files = zcl_abapgit_data_factory=>get_deserializer( )->actualize(
+      it_result = lt_result
+      is_checks = is_checks ).
+
+    INSERT LINES OF lt_updated_files INTO TABLE ct_files.
+
+  ENDMETHOD.
+
+
+  METHOD deserialize_dot_abapgit.
+    INSERT get_dot_abapgit( )->get_signature( ) INTO TABLE ct_files.
+  ENDMETHOD.
+
+
+  METHOD deserialize_objects.
+
+    DATA:
+      lt_updated_files TYPE zif_abapgit_git_definitions=>ty_file_signatures_tt,
+      lx_error         TYPE REF TO zcx_abapgit_exception.
+
+    TRY.
+        lt_updated_files = zcl_abapgit_objects=>deserialize(
+          io_repo   = me
+          is_checks = is_checks
+          ii_log    = ii_log ).
+      CATCH zcx_abapgit_exception INTO lx_error.
+        " Ensure to reset default transport request task
+        zcl_abapgit_default_transport=>get_instance( )->reset( ).
+        refresh( iv_drop_log = abap_false ).
+        RAISE EXCEPTION lx_error.
+    ENDTRY.
+
+    INSERT LINES OF lt_updated_files INTO TABLE ct_files.
 
   ENDMETHOD.
 
@@ -347,7 +419,7 @@ CLASS ZCL_ABAPGIT_REPO IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    CREATE OBJECT ri_config TYPE zcl_abapgit_data_config.
+    ri_config = NEW zcl_abapgit_data_config( ).
     mi_data_config = ri_config.
 
     " Assume remote data has been loaded already
@@ -453,7 +525,7 @@ CLASS ZCL_ABAPGIT_REPO IMPLEMENTATION.
     CLEAR lt_tadir.
     INSERT ls_tadir INTO TABLE lt_tadir.
 
-    CREATE OBJECT lo_serialize.
+    lo_serialize = NEW #( ).
     lt_new_local_files = lo_serialize->serialize(
       iv_package = ms_data-package
       it_tadir   = lt_tadir ).
@@ -645,16 +717,14 @@ CLASS ZCL_ABAPGIT_REPO IMPLEMENTATION.
 
   METHOD zif_abapgit_repo~checksums.
 
-    CREATE OBJECT ri_checksums TYPE zcl_abapgit_repo_checksums EXPORTING iv_repo_key = ms_data-key.
+    ri_checksums = NEW zcl_abapgit_repo_checksums( iv_repo_key = ms_data-key ).
 
   ENDMETHOD.
 
 
   METHOD zif_abapgit_repo~deserialize.
 
-    DATA: lt_updated_files TYPE zif_abapgit_git_definitions=>ty_file_signatures_tt,
-          lt_result        TYPE zif_abapgit_data_deserializer=>ty_results,
-          lx_error         TYPE REF TO zcx_abapgit_exception.
+    DATA lt_updated_files TYPE zif_abapgit_git_definitions=>ty_file_signatures_tt.
 
     find_remote_dot_abapgit( ).
     find_remote_dot_apack( ).
@@ -674,32 +744,22 @@ CLASS ZCL_ABAPGIT_REPO IMPLEMENTATION.
       zcx_abapgit_exception=>raise( |No transport request was supplied| ).
     ENDIF.
 
-    " Deserialize objects
-    TRY.
-        lt_updated_files = zcl_abapgit_objects=>deserialize(
-          io_repo   = me
-          is_checks = is_checks
-          ii_log    = ii_log ).
-      CATCH zcx_abapgit_exception INTO lx_error.
-        " Ensure to reset default transport request task
-        zcl_abapgit_default_transport=>get_instance( )->reset( ).
-        refresh( iv_drop_log = abap_false ).
-        RAISE EXCEPTION lx_error.
-    ENDTRY.
+    deserialize_dot_abapgit( CHANGING ct_files = lt_updated_files ).
 
-    APPEND get_dot_abapgit( )->get_signature( ) TO lt_updated_files.
+    deserialize_objects(
+      EXPORTING
+        is_checks = is_checks
+        ii_log    = ii_log
+      CHANGING
+        ct_files  = lt_updated_files ).
+
+    deserialize_data(
+      EXPORTING
+        is_checks = is_checks
+      CHANGING
+        ct_files  = lt_updated_files ).
 
     zif_abapgit_repo~checksums( )->update( lt_updated_files ).
-
-    "Deserialize data
-    lt_result = zcl_abapgit_data_factory=>get_deserializer( )->deserialize(
-      ii_config  = get_data_config( )
-      it_files   = get_files_remote( ) ).
-
-    "Save deserialized data to DB and add entries to transport requests)
-    zcl_abapgit_data_factory=>get_deserializer( )->actualize(
-      it_result = lt_result
-      is_checks = is_checks ).
 
     CLEAR: mt_local.
 
@@ -732,11 +792,15 @@ CLASS ZCL_ABAPGIT_REPO IMPLEMENTATION.
     lt_dependencies = get_dot_apack( )->get_manifest_descriptor( )-dependencies.
     rs_checks-dependencies-met = zcl_abapgit_apack_helper=>are_dependencies_met( lt_dependencies ).
 
+    rs_checks-customizing = zcl_abapgit_data_factory=>get_deserializer( )->deserialize_check(
+      io_repo   = me
+      ii_config = get_data_config( ) ).
+
   ENDMETHOD.
 
 
   METHOD zif_abapgit_repo~get_dot_abapgit.
-    CREATE OBJECT ro_dot_abapgit EXPORTING is_data = ms_data-dot_abapgit.
+    ro_dot_abapgit = NEW #( is_data = ms_data-dot_abapgit ).
   ENDMETHOD.
 
 
@@ -750,8 +814,8 @@ CLASS ZCL_ABAPGIT_REPO IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    CREATE OBJECT lo_serialize EXPORTING io_dot_abapgit = get_dot_abapgit( )
-                                         is_local_settings = get_local_settings( ).
+    lo_serialize = NEW #( io_dot_abapgit = get_dot_abapgit( )
+                          is_local_settings = get_local_settings( ) ).
 
     IF ii_obj_filter IS NOT INITIAL.
       lt_filter = ii_obj_filter->get_filter( ).
@@ -777,7 +841,7 @@ CLASS ZCL_ABAPGIT_REPO IMPLEMENTATION.
     IF ii_obj_filter IS NOT INITIAL.
       lt_filter = ii_obj_filter->get_filter( ).
 
-      CREATE OBJECT lr_filter.
+      lr_filter = NEW #( ).
       lr_filter->apply_object_filter(
         EXPORTING
           it_filter   = lt_filter

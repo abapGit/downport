@@ -673,7 +673,7 @@ CLASS zcl_abapgit_popups IMPLEMENTATION.
         p_object_data    = es_package_data
       EXCEPTIONS
         action_cancelled = 1.
-    ev_create = boolc( sy-subrc = 0 ).
+    ev_create = xsdbool( sy-subrc = 0 ).
   ENDMETHOD.
 
 
@@ -734,16 +734,16 @@ CLASS zcl_abapgit_popups IMPLEMENTATION.
       iv_width  = iv_end_column - iv_start_column
       iv_height = iv_end_line - iv_start_line ).
 
-    CREATE OBJECT lo_popup EXPORTING it_list = it_list
-                                     iv_title = iv_title
-                                     iv_header_text = iv_header_text
-                                     is_position = ms_position
-                                     iv_striped_pattern = iv_striped_pattern
-                                     iv_optimize_col_width = iv_optimize_col_width
-                                     iv_selection_mode = iv_selection_mode
-                                     iv_select_column_text = iv_select_column_text
-                                     it_columns_to_display = it_columns_to_display
-                                     it_preselected_rows = it_preselected_rows.
+    lo_popup = NEW #( it_list = it_list
+                      iv_title = iv_title
+                      iv_header_text = iv_header_text
+                      is_position = ms_position
+                      iv_striped_pattern = iv_striped_pattern
+                      iv_optimize_col_width = iv_optimize_col_width
+                      iv_selection_mode = iv_selection_mode
+                      iv_select_column_text = iv_select_column_text
+                      it_columns_to_display = it_columns_to_display
+                      it_preselected_rows = it_preselected_rows ).
 
     lo_popup->display( ).
     lo_popup->get_selected( IMPORTING et_list = et_list ).
@@ -858,6 +858,7 @@ CLASS zcl_abapgit_popups IMPLEMENTATION.
           lt_e071k   TYPE STANDARD TABLE OF e071k,
           lv_order   TYPE trkorr,
           ls_e070use TYPE e070use.
+    DATA lv_category TYPE e070-korrdev.
 
     " If default transport is set and its type matches, then use it as default for the popup
     ls_e070use = zcl_abapgit_default_transport=>get_instance( )->get( ).
@@ -867,10 +868,18 @@ CLASS zcl_abapgit_popups IMPLEMENTATION.
       lv_order = ls_e070use-ordernum.
     ENDIF.
 
+    " Differentiate between customizing and WB requests
+    IF is_transport_type-request = zif_abapgit_cts_api=>c_transport_type-cust_request.
+      lv_category = zif_abapgit_cts_api=>c_transport_category-customizing.
+    ELSE.
+      lv_category = zif_abapgit_cts_api=>c_transport_category-workbench.
+    ENDIF.
+
     CALL FUNCTION 'TRINT_ORDER_CHOICE'
       EXPORTING
         wi_order_type          = is_transport_type-request
         wi_task_type           = is_transport_type-task
+        wi_category            = lv_category
         wi_order               = lv_order
       IMPORTING
         we_order               = rv_transport

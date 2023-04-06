@@ -129,7 +129,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_SERIALIZE IMPLEMENTATION.
+CLASS zcl_abapgit_serialize IMPLEMENTATION.
 
 
   METHOD add_apack.
@@ -173,7 +173,7 @@ CLASS ZCL_ABAPGIT_SERIALIZE IMPLEMENTATION.
         IMPORTING
           es_item     = <ls_return>-item ).
 
-      <ls_return>-item-obj_type = zif_abapgit_data_config=>c_data_type-tabu.
+      <ls_return>-item-obj_type = zif_abapgit_data_config=>c_data_type-tabu. " todo
     ENDLOOP.
 
     lt_files = zcl_abapgit_data_factory=>get_serializer( )->serialize( ii_data_config ).
@@ -218,7 +218,7 @@ CLASS ZCL_ABAPGIT_SERIALIZE IMPLEMENTATION.
       io_dot                = mo_dot_abapgit
       ii_log                = ii_log ).
 
-    CREATE OBJECT lo_filter.
+    lo_filter = NEW #( ).
 
     lo_filter->apply( EXPORTING it_filter = it_filter
                       CHANGING  ct_tadir  = lt_tadir ).
@@ -226,7 +226,7 @@ CLASS ZCL_ABAPGIT_SERIALIZE IMPLEMENTATION.
 * if there are less than 10 objects run in single thread
 * this helps a lot when debugging, plus performance gain
 * with low number of objects does not matter much
-    lv_force = boolc( lines( lt_tadir ) < 10 ).
+    lv_force = xsdbool( lines( lt_tadir ) < 10 ).
 
     lt_found = serialize(
       iv_package          = iv_package

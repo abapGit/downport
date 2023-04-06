@@ -85,7 +85,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_GUI_PAGE_DATA IMPLEMENTATION.
+CLASS zcl_abapgit_gui_page_data IMPLEMENTATION.
 
 
   METHOD add_via_transport.
@@ -131,10 +131,12 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DATA IMPLEMENTATION.
 
   METHOD build_menu.
 
-    CREATE OBJECT ro_menu.
+    ro_menu = NEW #( ).
 
-    ro_menu->add( iv_txt = 'Add via transport'
+    ro_menu->add( iv_txt = 'Add Via Transport'
                   iv_act = c_event-add_via_transport ).
+    ro_menu->add( iv_txt = 'Back'
+                  iv_act = zif_abapgit_definitions=>c_action-go_back ).
 
   ENDMETHOD.
 
@@ -206,10 +208,10 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DATA IMPLEMENTATION.
 
     lo_map = ii_event->form_data( ).
 
-    ls_config-type = zif_abapgit_data_config=>c_data_type-tabu.
-    ls_config-name = to_upper( lo_map->get( c_id-table ) ).
+    ls_config-type         = zif_abapgit_data_config=>c_data_type-tabu.
+    ls_config-name         = to_upper( lo_map->get( c_id-table ) ).
     ls_config-skip_initial = lo_map->get( c_id-skip_initial ).
-    ls_config-where = build_where( lo_map ).
+    ls_config-where        = build_where( lo_map ).
 
     mi_config->add_config( ls_config ).
 
@@ -238,10 +240,10 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DATA IMPLEMENTATION.
 
     lo_map = ii_event->form_data( ).
 
-    ls_config-type = zif_abapgit_data_config=>c_data_type-tabu.
-    ls_config-name = to_upper( lo_map->get( c_id-table ) ).
+    ls_config-type         = zif_abapgit_data_config=>c_data_type-tabu.
+    ls_config-name         = to_upper( lo_map->get( c_id-table ) ).
     ls_config-skip_initial = lo_map->has( to_upper( c_id-skip_initial ) ).
-    ls_config-where = build_where( lo_map ).
+    ls_config-where        = build_where( lo_map ).
 
     mi_config->update_config( ls_config ).
 
@@ -253,8 +255,8 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DATA IMPLEMENTATION.
     DATA lo_form TYPE REF TO zcl_abapgit_html_form.
     DATA lo_form_data TYPE REF TO zcl_abapgit_string_map.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
-    CREATE OBJECT lo_form_data.
+    ri_html = NEW zcl_abapgit_html( ).
+    lo_form_data = NEW #( ).
 
     lo_form = zcl_abapgit_html_form=>create( ).
     lo_form->text(
@@ -263,7 +265,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DATA IMPLEMENTATION.
       iv_required = abap_true ).
 
     lo_form->checkbox(
-      iv_label = 'Skip initial values'
+      iv_label = 'Skip Initial Values'
       iv_name  = c_id-skip_initial ).
 
     lo_form->textarea(
@@ -282,7 +284,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DATA IMPLEMENTATION.
 
   METHOD render_content.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
     ri_html->add( '<div class="repo">' ).
     ri_html->add( render_existing( ) ).
     ri_html->add( render_add( ) ).
@@ -298,14 +300,14 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DATA IMPLEMENTATION.
     DATA lt_configs TYPE zif_abapgit_data_config=>ty_config_tt.
     DATA ls_config LIKE LINE OF lt_configs.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
-    CREATE OBJECT lo_form_data.
+    ri_html = NEW zcl_abapgit_html( ).
+    lo_form_data = NEW #( ).
 
     lt_configs = mi_config->get_configs( ).
 
     LOOP AT lt_configs INTO ls_config.
       lo_form = zcl_abapgit_html_form=>create(  ).
-      CREATE OBJECT lo_form_data.
+      lo_form_data = NEW #( ).
 
       lo_form_data->set(
         iv_key = c_id-table
@@ -319,7 +321,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DATA IMPLEMENTATION.
         iv_key = c_id-skip_initial
         iv_val = ls_config-skip_initial ).
       lo_form->checkbox(
-        iv_label = 'Skip initial values'
+        iv_label = 'Skip Initial Values'
         iv_name  = c_id-skip_initial ).
 
       lo_form_data->set(
