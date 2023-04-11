@@ -93,8 +93,8 @@ CLASS zcl_abapgit_html IMPLEMENTATION.
 
 
   METHOD class_constructor.
-    CREATE OBJECT go_single_tags_re EXPORTING pattern = '<(AREA|BASE|BR|COL|COMMAND|EMBED|HR|IMG|INPUT|LINK|META|PARAM|SOURCE|!)'
-                                              ignore_case = abap_false.
+    go_single_tags_re = NEW #( pattern = '<(AREA|BASE|BR|COL|COMMAND|EMBED|HR|IMG|INPUT|LINK|META|PARAM|SOURCE|!)'
+                               ignore_case = abap_false ).
 
     gv_spaces = repeat(
       val = ` `
@@ -104,7 +104,7 @@ CLASS zcl_abapgit_html IMPLEMENTATION.
 
 
   METHOD create.
-    CREATE OBJECT ri_instance TYPE zcl_abapgit_html.
+    ri_instance = NEW zcl_abapgit_html( ).
   ENDMETHOD.
 
 
@@ -352,7 +352,7 @@ CLASS zcl_abapgit_html IMPLEMENTATION.
 
     FIELD-SYMBOLS: <lt_tab> TYPE string_table.
 
-    DESCRIBE FIELD ig_chunk TYPE lv_type. " Describe is faster than RTTI classes
+    lv_type = cl_abap_typedescr=>describe_by_data( ig_chunk )->type_kind.
 
     CASE lv_type.
       WHEN 'C' OR 'g'.  " Char or string
@@ -431,7 +431,7 @@ CLASS zcl_abapgit_html IMPLEMENTATION.
 
 
   METHOD zif_abapgit_html~is_empty.
-    rv_yes = boolc( lines( mt_buffer ) = 0 ).
+    rv_yes = xsdbool( lines( mt_buffer ) = 0 ).
   ENDMETHOD.
 
 
