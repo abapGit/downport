@@ -306,7 +306,7 @@ CLASS zcl_abapgit_code_inspector IMPLEMENTATION.
           FROM trdir
           WHERE name = is_obj-objname.
 
-        rv_skip = boolc( ls_program_type = 'I' ). " Include program.
+        rv_skip = xsdbool( ls_program_type = 'I' ). " Include program.
 
       WHEN OTHERS.
         rv_skip = abap_false.
@@ -351,6 +351,9 @@ CLASS zcl_abapgit_code_inspector IMPLEMENTATION.
     DATA: lo_set     TYPE REF TO cl_ci_objectset,
           lo_variant TYPE REF TO cl_ci_checkvariant,
           lv_count   TYPE i,
+          lt_list    TYPE scit_alvlist,
+          ls_list    LIKE LINE OF lt_list,
+          ls_result  LIKE LINE OF rt_list,
           lo_timer   TYPE REF TO zcl_abapgit_timer,
           lx_error   TYPE REF TO zcx_abapgit_exception.
 
@@ -371,13 +374,18 @@ CLASS zcl_abapgit_code_inspector IMPLEMENTATION.
           io_set     = lo_set
           io_variant = lo_variant ).
 
-        rt_list = run_inspection( mo_inspection ).
+        lt_list = run_inspection( mo_inspection ).
 
         cleanup( lo_set ).
 
+        LOOP AT lt_list INTO ls_list.
+          MOVE-CORRESPONDING ls_list TO ls_result.
+          INSERT ls_result INTO TABLE rt_list.
+        ENDLOOP.
+
         IF iv_save = abap_true.
           READ TABLE rt_list TRANSPORTING NO FIELDS WITH KEY kind = 'E'.
-          mv_success = boolc( sy-subrc <> 0 ).
+          mv_success = xsdbool( sy-subrc <> 0 ).
         ENDIF.
 
       CATCH zcx_abapgit_exception INTO lx_error.
