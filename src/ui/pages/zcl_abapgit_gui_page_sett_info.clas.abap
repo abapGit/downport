@@ -117,13 +117,13 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_INFO IMPLEMENTATION.
+CLASS zcl_abapgit_gui_page_sett_info IMPLEMENTATION.
 
 
   METHOD constructor.
 
     super->constructor( ).
-    CREATE OBJECT mo_form_data.
+    mo_form_data = NEW #( ).
     mo_repo = io_repo.
     mo_form = get_form_schema( ).
 
@@ -134,7 +134,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_INFO IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_sett_info.
 
-    CREATE OBJECT lo_component EXPORTING io_repo = io_repo.
+    lo_component = NEW #( io_repo = io_repo ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Repository Stats'
@@ -169,20 +169,18 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_INFO IMPLEMENTATION.
 
   METHOD format_timestamp.
 
-    DATA lv_temp TYPE c LENGTH 30.
+    DATA lv_short TYPE timestamp.
 
     IF iv_timestamp IS INITIAL.
       rv_timestamp = 'n/a'.
       RETURN.
     ENDIF.
 
-    CALL FUNCTION 'CONVERSION_EXIT_TIMES_OUTPUT'
-      EXPORTING
-        input  = iv_timestamp
-      IMPORTING
-        output = lv_temp.
+    cl_abap_tstmp=>move(
+      EXPORTING tstmp_src = iv_timestamp
+      IMPORTING tstmp_tgt = lv_short ).
 
-    rv_timestamp = lv_temp.
+    rv_timestamp = |{ lv_short TIMESTAMP = ISO }|.
 
   ENDMETHOD.
 
@@ -594,7 +592,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_INFO IMPLEMENTATION.
 
     read_settings( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( `<div class="repo">` ).
 
