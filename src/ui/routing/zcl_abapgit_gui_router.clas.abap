@@ -236,7 +236,7 @@ CLASS ZCL_ABAPGIT_GUI_ROUTER IMPLEMENTATION.
 
         lo_repo ?= zcl_abapgit_repo_srv=>get_instance( )->get( lv_key ).
 
-        CREATE OBJECT lo_obj_filter_trans.
+        lo_obj_filter_trans = NEW #( ).
         lo_obj_filter_trans->set_filter_values( iv_package  = lo_repo->get_package( )
                                                 it_r_trkorr = lt_r_trkorr ).
 
@@ -284,9 +284,9 @@ CLASS ZCL_ABAPGIT_GUI_ROUTER IMPLEMENTATION.
     ls_object-obj_type = ii_event->query( )->get( 'OBJ_TYPE' ).
     ls_object-obj_name = ii_event->query( )->get( 'OBJ_NAME' ). " unescape ?
 
-    CREATE OBJECT lo_page EXPORTING iv_key = lv_key
-                                    is_file = ls_file
-                                    is_object = ls_object.
+    lo_page = NEW #( iv_key = lv_key
+                     is_file = ls_file
+                     is_object = ls_object ).
 
     ri_page = lo_page.
 
@@ -316,15 +316,15 @@ CLASS ZCL_ABAPGIT_GUI_ROUTER IMPLEMENTATION.
 
     IF lo_repo->get_local_settings( )-code_inspector_check_variant IS NOT INITIAL.
 
-      CREATE OBJECT lo_code_inspector_page EXPORTING io_repo = lo_repo.
+      lo_code_inspector_page = NEW #( io_repo = lo_repo ).
 
       IF lo_code_inspector_page->is_nothing_to_display( ) = abap_true.
         " force refresh on stage, to make sure the latest local and remote files are used
         lo_repo->refresh( ).
-        CREATE OBJECT lo_stage_page EXPORTING io_repo = lo_repo
-                                              iv_seed = lv_seed
-                                              iv_sci_result = zif_abapgit_definitions=>c_sci_result-passed
-                                              ii_obj_filter = ii_obj_filter.
+        lo_stage_page = NEW #( io_repo = lo_repo
+                               iv_seed = lv_seed
+                               iv_sci_result = zif_abapgit_definitions=>c_sci_result-passed
+                               ii_obj_filter = ii_obj_filter ).
 
         ri_page = lo_stage_page.
       ELSE.
@@ -348,9 +348,9 @@ CLASS ZCL_ABAPGIT_GUI_ROUTER IMPLEMENTATION.
       " force refresh on stage, to make sure the latest local and remote files are used
       lo_repo->refresh( ).
 
-      CREATE OBJECT lo_stage_page EXPORTING io_repo = lo_repo
-                                            iv_seed = lv_seed
-                                            ii_obj_filter = ii_obj_filter.
+      lo_stage_page = NEW #( io_repo = lo_repo
+                             iv_seed = lv_seed
+                             ii_obj_filter = ii_obj_filter ).
 
       ri_page = lo_stage_page.
 
@@ -551,10 +551,10 @@ CLASS ZCL_ABAPGIT_GUI_ROUTER IMPLEMENTATION.
         zcl_abapgit_services_repo=>refresh( lv_key ).
         rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
       WHEN zif_abapgit_definitions=>c_action-repo_syntax_check.
-        CREATE OBJECT rs_handled-page TYPE zcl_abapgit_gui_page_syntax EXPORTING io_repo = lo_repo.
+        rs_handled-page = NEW zcl_abapgit_gui_page_syntax( io_repo = lo_repo ).
         rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page.
       WHEN zif_abapgit_definitions=>c_action-repo_code_inspector.             " Code inspector
-        CREATE OBJECT rs_handled-page TYPE zcl_abapgit_gui_page_code_insp EXPORTING io_repo = lo_repo.
+        rs_handled-page = NEW zcl_abapgit_gui_page_code_insp( io_repo = lo_repo ).
         rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page.
       WHEN zif_abapgit_definitions=>c_action-repo_purge.                      " Repo purge all objects (uninstall)
         zcl_abapgit_services_repo=>purge( lv_key ).
@@ -772,7 +772,7 @@ CLASS ZCL_ABAPGIT_GUI_ROUTER IMPLEMENTATION.
         lt_r_trkorr = zcl_abapgit_ui_factory=>get_popups( )->popup_select_wb_tc_tr_and_tsk( ).
         lo_repo ?= zcl_abapgit_repo_srv=>get_instance( )->get( lv_key ).
         lo_repo->refresh( ).
-        CREATE OBJECT lo_obj_filter_trans.
+        lo_obj_filter_trans = NEW #( ).
         lo_obj_filter_trans->set_filter_values( iv_package  = lo_repo->get_package( )
                                                 it_r_trkorr = lt_r_trkorr ).
 
