@@ -359,7 +359,7 @@ CLASS ZCL_ABAPGIT_OBJECT_SHI3 IMPLEMENTATION.
         structure_header     = ls_header
         structure_tadir      = ls_tadir.
 
-    rv_bool = boolc( ls_header-id IS NOT INITIAL ).
+    rv_bool = xsdbool( ls_header-id IS NOT INITIAL ).
 
   ENDMETHOD.
 
