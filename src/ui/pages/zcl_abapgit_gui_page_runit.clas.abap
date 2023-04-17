@@ -86,7 +86,7 @@ CLASS zcl_abapgit_gui_page_runit IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_runit.
 
-    CREATE OBJECT lo_component EXPORTING io_repo = io_repo.
+    lo_component = NEW #( io_repo = io_repo ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title         = |Unit Tests|
@@ -142,7 +142,11 @@ CLASS zcl_abapgit_gui_page_runit IMPLEMENTATION.
 
 
   METHOD zif_abapgit_gui_event_handler~on_event.
-    RETURN.
+
+    IF ii_event->mv_action = zif_abapgit_definitions=>c_action-go_back.
+      rs_handled-state = zcl_abapgit_gui=>c_event_state-go_back.
+    ENDIF.
+
   ENDMETHOD.
 
 
@@ -177,7 +181,9 @@ CLASS zcl_abapgit_gui_page_runit IMPLEMENTATION.
     FIELD-SYMBOLS <lt_params>         TYPE string_table.
 
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    register_handlers( ).
+
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div class="repo">' ).
     ri_html->add( zcl_abapgit_gui_chunk_lib=>render_repo_top( io_repo        = mo_repo

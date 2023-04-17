@@ -188,7 +188,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_REPO IMPLEMENTATION.
+CLASS zcl_abapgit_repo IMPLEMENTATION.
 
 
   METHOD bind_listener.
@@ -251,9 +251,8 @@ CLASS ZCL_ABAPGIT_REPO IMPLEMENTATION.
       lv_error_message  TYPE string,
       lv_error_longtext TYPE string.
 
-    " assumes find_remote_dot_abapgit has been called before
+    " for deserialize, assumes find_remote_dot_abapgit has been called before (or language won't be defined)
     lv_main_language = get_dot_abapgit( )->get_main_language( ).
-
 
     IF lv_main_language <> sy-langu.
 
@@ -300,7 +299,7 @@ CLASS ZCL_ABAPGIT_REPO IMPLEMENTATION.
 
   METHOD create_new_log.
 
-    CREATE OBJECT mi_log TYPE zcl_abapgit_log.
+    mi_log = NEW zcl_abapgit_log( ).
     mi_log->set_title( iv_title ).
 
     ri_log = mi_log.
@@ -311,8 +310,6 @@ CLASS ZCL_ABAPGIT_REPO IMPLEMENTATION.
   METHOD delete_checks.
 
     DATA: li_package TYPE REF TO zif_abapgit_sap_package.
-
-    find_remote_dot_abapgit( ).
 
     check_write_protect( ).
     check_language( ).
@@ -419,7 +416,7 @@ CLASS ZCL_ABAPGIT_REPO IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    CREATE OBJECT ri_config TYPE zcl_abapgit_data_config.
+    ri_config = NEW zcl_abapgit_data_config( ).
     mi_data_config = ri_config.
 
     " Assume remote data has been loaded already
@@ -525,7 +522,7 @@ CLASS ZCL_ABAPGIT_REPO IMPLEMENTATION.
     CLEAR lt_tadir.
     INSERT ls_tadir INTO TABLE lt_tadir.
 
-    CREATE OBJECT lo_serialize.
+    lo_serialize = NEW #( ).
     lt_new_local_files = lo_serialize->serialize(
       iv_package = ms_data-package
       it_tadir   = lt_tadir ).
@@ -717,7 +714,7 @@ CLASS ZCL_ABAPGIT_REPO IMPLEMENTATION.
 
   METHOD zif_abapgit_repo~checksums.
 
-    CREATE OBJECT ri_checksums TYPE zcl_abapgit_repo_checksums EXPORTING iv_repo_key = ms_data-key.
+    ri_checksums = NEW zcl_abapgit_repo_checksums( iv_repo_key = ms_data-key ).
 
   ENDMETHOD.
 
@@ -800,7 +797,7 @@ CLASS ZCL_ABAPGIT_REPO IMPLEMENTATION.
 
 
   METHOD zif_abapgit_repo~get_dot_abapgit.
-    CREATE OBJECT ro_dot_abapgit EXPORTING is_data = ms_data-dot_abapgit.
+    ro_dot_abapgit = NEW #( is_data = ms_data-dot_abapgit ).
   ENDMETHOD.
 
 
@@ -814,8 +811,8 @@ CLASS ZCL_ABAPGIT_REPO IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    CREATE OBJECT lo_serialize EXPORTING io_dot_abapgit = get_dot_abapgit( )
-                                         is_local_settings = get_local_settings( ).
+    lo_serialize = NEW #( io_dot_abapgit = get_dot_abapgit( )
+                          is_local_settings = get_local_settings( ) ).
 
     IF ii_obj_filter IS NOT INITIAL.
       lt_filter = ii_obj_filter->get_filter( ).
@@ -841,7 +838,7 @@ CLASS ZCL_ABAPGIT_REPO IMPLEMENTATION.
     IF ii_obj_filter IS NOT INITIAL.
       lt_filter = ii_obj_filter->get_filter( ).
 
-      CREATE OBJECT lr_filter.
+      lr_filter = NEW #( ).
       lr_filter->apply_object_filter(
         EXPORTING
           it_filter   = lt_filter
