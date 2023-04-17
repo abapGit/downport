@@ -116,7 +116,7 @@ CLASS zcl_abapgit_gui_jumper IMPLEMENTATION.
         jump_not_possible = 1
         OTHERS            = 2.
 
-    rv_exit = boolc( sy-subrc = 0 ).
+    rv_exit = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -135,7 +135,7 @@ CLASS zcl_abapgit_gui_jumper IMPLEMENTATION.
         invalid_object_type = 2
         OTHERS              = 3.
 
-    rv_exit = boolc( sy-subrc = 0 ).
+    rv_exit = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -160,7 +160,7 @@ CLASS zcl_abapgit_gui_jumper IMPLEMENTATION.
           invalid_object_type = 2
           OTHERS              = 3.
 
-      rv_exit = boolc( sy-subrc = 0 ).
+      rv_exit = xsdbool( sy-subrc = 0 ).
 
     ENDIF.
 
@@ -281,6 +281,51 @@ CLASS zcl_abapgit_gui_jumper IMPLEMENTATION.
       WHEN 3 OR 4.
         zcx_abapgit_exception=>raise( |Batch input error for transaction { iv_tcode }| ).
     ENDCASE.
+
+  ENDMETHOD.
+
+  METHOD zif_abapgit_gui_jumper~jump_abapgit.
+
+    DATA lt_spagpa        TYPE STANDARD TABLE OF rfc_spagpa.
+    DATA ls_spagpa        LIKE LINE OF lt_spagpa.
+    DATA lv_save_sy_langu TYPE sy-langu.
+    DATA lv_subrc         TYPE syst-subrc.
+    DATA lv_tcode         TYPE tcode.
+
+    " https://blogs.sap.com/2017/01/13/logon-language-sy-langu-and-rfc/
+
+    lv_tcode = zcl_abapgit_services_abapgit=>get_abapgit_tcode( ).
+
+    lv_save_sy_langu = sy-langu.
+    SET LOCALE LANGUAGE iv_language.
+
+    ls_spagpa-parid  = zif_abapgit_definitions=>c_spagpa_param_repo_key.
+    ls_spagpa-parval = iv_key.
+    INSERT ls_spagpa INTO TABLE lt_spagpa.
+
+    CALL FUNCTION 'ABAP4_CALL_TRANSACTION'
+      DESTINATION 'NONE'
+      STARTING NEW TASK 'ABAPGIT'
+      EXPORTING
+        tcode                   = lv_tcode
+      TABLES
+        spagpa_tab              = lt_spagpa
+      EXCEPTIONS
+        call_transaction_denied = 1
+        tcode_invalid           = 2
+        communication_failure   = 3
+        system_failure          = 4
+        OTHERS                  = 5.
+
+    lv_subrc = sy-subrc.
+
+    SET LOCALE LANGUAGE lv_save_sy_langu.
+
+    IF lv_subrc <> 0.
+      zcx_abapgit_exception=>raise( |Error from ABAP4_CALL_TRANSACTION. Subrc = { lv_subrc }| ).
+    ENDIF.
+
+    MESSAGE 'Repository opened in a new window' TYPE 'S'.
 
   ENDMETHOD.
 ENDCLASS.
