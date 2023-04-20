@@ -149,12 +149,17 @@ CLASS zcl_abapgit_object_docv IMPLEMENTATION.
       WHERE id     = mv_id
         AND object = mv_doc_object.                     "#EC CI_GENBUFF
 
-    rv_bool = boolc( sy-subrc = 0 ).
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
 
   METHOD zif_abapgit_object~get_comparator.
+    RETURN.
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~get_deserialize_order.
     RETURN.
   ENDMETHOD.
 
@@ -180,6 +185,16 @@ CLASS zcl_abapgit_object_docv IMPLEMENTATION.
 
 
   METHOD zif_abapgit_object~jump.
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~map_filename_to_object.
+    RETURN.
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~map_object_to_filename.
+    RETURN.
   ENDMETHOD.
 
 

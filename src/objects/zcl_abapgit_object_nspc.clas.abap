@@ -46,7 +46,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_OBJECT_NSPC IMPLEMENTATION.
+CLASS zcl_abapgit_object_nspc IMPLEMENTATION.
 
 
   METHOD add_to_transport.
@@ -250,12 +250,17 @@ CLASS ZCL_ABAPGIT_OBJECT_NSPC IMPLEMENTATION.
         namespace_not_valid = 1
         OTHERS              = 2.
 
-    rv_bool = boolc( sy-subrc = 0 ).
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
 
   METHOD zif_abapgit_object~get_comparator.
+    RETURN.
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~get_deserialize_order.
     RETURN.
   ENDMETHOD.
 
@@ -304,16 +309,26 @@ CLASS ZCL_ABAPGIT_OBJECT_NSPC IMPLEMENTATION.
         view_not_found               = 13
         OTHERS                       = 14.
 
-    rv_exit = boolc( sy-subrc = 0 ).
+    rv_exit = xsdbool( sy-subrc = 0 ).
 
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~map_filename_to_object.
+    RETURN.
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~map_object_to_filename.
+    RETURN.
   ENDMETHOD.
 
 
   METHOD zif_abapgit_object~serialize.
 
     DATA:
-      ls_nspc       TYPE ty_nspc,
-      ls_nspc_text  TYPE ty_nspc_text.
+      ls_nspc      TYPE ty_nspc,
+      ls_nspc_text TYPE ty_nspc_text.
 
     SELECT SINGLE * FROM trnspacet INTO CORRESPONDING FIELDS OF ls_nspc
       WHERE namespace = ms_item-obj_name.

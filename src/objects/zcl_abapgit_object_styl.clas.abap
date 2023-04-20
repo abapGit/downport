@@ -100,12 +100,17 @@ CLASS zcl_abapgit_object_styl IMPLEMENTATION.
         strings    = ls_style-strings
         tabs       = ls_style-tabs.
 
-    rv_bool = boolc( lv_found = abap_true ).
+    rv_bool = xsdbool( lv_found = abap_true ).
 
   ENDMETHOD.
 
 
   METHOD zif_abapgit_object~get_comparator.
+    RETURN.
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~get_deserialize_order.
     RETURN.
   ENDMETHOD.
 
@@ -166,6 +171,16 @@ CLASS zcl_abapgit_object_styl IMPLEMENTATION.
 
     rv_exit = abap_true.
 
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~map_filename_to_object.
+    RETURN.
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~map_object_to_filename.
+    RETURN.
   ENDMETHOD.
 
 

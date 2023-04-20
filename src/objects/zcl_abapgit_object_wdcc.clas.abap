@@ -265,6 +265,11 @@ CLASS zcl_abapgit_object_wdcc IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD zif_abapgit_object~get_deserialize_order.
+    RETURN.
+  ENDMETHOD.
+
+
   METHOD zif_abapgit_object~get_deserialize_steps.
     APPEND zif_abapgit_object=>gc_step_id-abap TO rt_steps.
   ENDMETHOD.
@@ -304,13 +309,23 @@ CLASS zcl_abapgit_object_wdcc IMPLEMENTATION.
       zcx_abapgit_exception=>raise( 'Error check object lock WDCC: ' && ms_item-obj_name ).
     ENDIF.
 
-    rv_is_locked = boolc( lines( lt_enq ) > 0 ).
+    rv_is_locked = xsdbool( lines( lt_enq ) > 0 ).
 
   ENDMETHOD.
 
 
   METHOD zif_abapgit_object~jump.
     " Covered by ZCL_ABAPGIT_OBJECTS=>JUMP
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~map_filename_to_object.
+    RETURN.
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~map_object_to_filename.
+    RETURN.
   ENDMETHOD.
 
 

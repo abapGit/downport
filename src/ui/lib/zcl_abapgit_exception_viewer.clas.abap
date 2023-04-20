@@ -42,7 +42,7 @@ CLASS zcl_abapgit_exception_viewer DEFINITION
 
       on_double_click FOR EVENT double_click OF cl_salv_events_table
         IMPORTING
-            row column,
+          row column,
 
       set_text
         IMPORTING
@@ -74,7 +74,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_EXCEPTION_VIEWER IMPLEMENTATION.
+CLASS zcl_abapgit_exception_viewer IMPLEMENTATION.
 
 
   METHOD add_row.
@@ -96,7 +96,7 @@ CLASS ZCL_ABAPGIT_EXCEPTION_VIEWER IMPLEMENTATION.
 
     DATA: lo_grid TYPE REF TO cl_salv_form_layout_grid.
 
-    CREATE OBJECT lo_grid EXPORTING columns = 2.
+    lo_grid = NEW #( columns = 2 ).
 
     add_row( io_grid  = lo_grid
              iv_col_1 = 'Main program:'
@@ -208,6 +208,7 @@ CLASS ZCL_ABAPGIT_EXCEPTION_VIEWER IMPLEMENTATION.
 
     DATA:
       ls_item      TYPE zif_abapgit_definitions=>ty_item,
+      ls_sub_item  TYPE zif_abapgit_definitions=>ty_item,
       lv_classname LIKE ls_item-obj_name.
 
     " you should remember that we distinct two cases
@@ -225,11 +226,13 @@ CLASS ZCL_ABAPGIT_EXCEPTION_VIEWER IMPLEMENTATION.
       ls_item-obj_type = lc_obj_type-program.
     ENDIF.
 
+    ls_sub_item-obj_name = is_callstack-include.
+    ls_sub_item-obj_type = lc_obj_type-program.
+
     zcl_abapgit_objects=>jump(
-        is_item         = ls_item
-        iv_line_number  = is_callstack-line
-        iv_sub_obj_name = is_callstack-include
-        iv_sub_obj_type = lc_obj_type-program ).
+      is_item        = ls_item
+      is_sub_item    = ls_sub_item
+      iv_line_number = is_callstack-line ).
 
   ENDMETHOD.
 

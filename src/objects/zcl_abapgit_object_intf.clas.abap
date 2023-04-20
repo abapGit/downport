@@ -253,7 +253,7 @@ CLASS zcl_abapgit_object_intf IMPLEMENTATION.
     lv_json_data = zif_abapgit_object~mo_files->read_raw( iv_ext = 'json' ).
     ls_intf_aff = lcl_aff_metadata_handler=>deserialize( lv_json_data ).
 
-    CREATE OBJECT lo_aff_mapper TYPE lcl_aff_type_mapping.
+    lo_aff_mapper = NEW lcl_aff_type_mapping( ).
     lo_aff_mapper->to_abapgit( EXPORTING iv_data = ls_intf_aff
                                          iv_object_name = ms_item-obj_name
                                IMPORTING es_data = rs_intf ).
@@ -496,9 +496,9 @@ CLASS zcl_abapgit_object_intf IMPLEMENTATION.
 
 
   METHOD zif_abapgit_object~deserialize.
-    DATA: lt_source     TYPE rswsourcet,
-          ls_clskey     TYPE seoclskey,
-          ls_intf       TYPE ty_intf.
+    DATA: lt_source TYPE rswsourcet,
+          ls_clskey TYPE seoclskey,
+          ls_intf   TYPE ty_intf.
 
     IF iv_step = zif_abapgit_object=>gc_step_id-abap.
       " HERE: switch with feature flag between XML and JSON file format
@@ -581,6 +581,11 @@ CLASS zcl_abapgit_object_intf IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD zif_abapgit_object~get_deserialize_order.
+    RETURN.
+  ENDMETHOD.
+
+
   METHOD zif_abapgit_object~get_deserialize_steps.
     APPEND zif_abapgit_object=>gc_step_id-early TO rt_steps.
     APPEND zif_abapgit_object=>gc_step_id-abap TO rt_steps.
@@ -613,6 +618,16 @@ CLASS zcl_abapgit_object_intf IMPLEMENTATION.
 
   METHOD zif_abapgit_object~jump.
     " Covered by ZCL_ABAPGIT_OBJECTS=>JUMP
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~map_filename_to_object.
+    RETURN.
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~map_object_to_filename.
+    RETURN.
   ENDMETHOD.
 
 

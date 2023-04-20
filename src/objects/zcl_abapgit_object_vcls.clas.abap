@@ -150,12 +150,17 @@ CLASS zcl_abapgit_object_vcls IMPLEMENTATION.
     SELECT SINGLE changedate INTO lv_changedate FROM vcldir
       WHERE vclname = ms_item-obj_name.
 
-    rv_bool = boolc( sy-subrc = 0 ).
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
 
   METHOD zif_abapgit_object~get_comparator.
+    RETURN.
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~get_deserialize_order.
     RETURN.
   ENDMETHOD.
 
@@ -178,7 +183,7 @@ CLASS zcl_abapgit_object_vcls IMPLEMENTATION.
       WHERE vclname = ms_item-obj_name.
 
 * see logic in function module VIEWCLUSTER_GET_DEFINITION
-    rv_active = boolc( lv_changedate IS NOT INITIAL ).
+    rv_active = xsdbool( lv_changedate IS NOT INITIAL ).
 
   ENDMETHOD.
 
@@ -257,6 +262,16 @@ CLASS zcl_abapgit_object_vcls IMPLEMENTATION.
 
     rv_exit = abap_true.
 
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~map_filename_to_object.
+    RETURN.
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~map_object_to_filename.
+    RETURN.
   ENDMETHOD.
 
 

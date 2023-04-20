@@ -317,12 +317,17 @@ CLASS zcl_abapgit_object_sprx IMPLEMENTATION.
         status      = lv_status
         status_text = lv_status_text ).
 
-    rv_bool = boolc( lv_status = if_proxy=>c_state_active ).
+    rv_bool = xsdbool( lv_status = if_proxy=>c_state_active ).
 
   ENDMETHOD.
 
 
   METHOD zif_abapgit_object~get_comparator.
+    RETURN.
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~get_deserialize_order.
     RETURN.
   ENDMETHOD.
 
@@ -349,6 +354,16 @@ CLASS zcl_abapgit_object_sprx IMPLEMENTATION.
 
   METHOD zif_abapgit_object~jump.
     " Covered by ZCL_ABAPGIT_OBJECTS=>JUMP
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~map_filename_to_object.
+    RETURN.
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~map_object_to_filename.
+    RETURN.
   ENDMETHOD.
 
 

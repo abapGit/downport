@@ -25,23 +25,23 @@ CLASS zcl_abapgit_object_enho IMPLEMENTATION.
 
     CASE iv_tool.
       WHEN cl_enh_tool_badi_impl=>tooltype.
-        CREATE OBJECT ri_enho TYPE zcl_abapgit_object_enho_badi EXPORTING is_item = ms_item.
+        ri_enho = NEW zcl_abapgit_object_enho_badi( is_item = ms_item ).
       WHEN cl_enh_tool_hook_impl=>tooltype.
-        CREATE OBJECT ri_enho TYPE zcl_abapgit_object_enho_hook EXPORTING is_item = ms_item
-                                                                          io_files = zif_abapgit_object~mo_files.
+        ri_enho = NEW zcl_abapgit_object_enho_hook( is_item = ms_item
+                                                    io_files = zif_abapgit_object~mo_files ).
       WHEN cl_enh_tool_class=>tooltype.
-        CREATE OBJECT ri_enho TYPE zcl_abapgit_object_enho_class EXPORTING is_item = ms_item
-                                                                           io_files = zif_abapgit_object~mo_files.
+        ri_enho = NEW zcl_abapgit_object_enho_class( is_item = ms_item
+                                                     io_files = zif_abapgit_object~mo_files ).
       WHEN cl_enh_tool_intf=>tooltype.
-        CREATE OBJECT ri_enho TYPE zcl_abapgit_object_enho_intf EXPORTING is_item = ms_item
-                                                                          io_files = zif_abapgit_object~mo_files.
+        ri_enho = NEW zcl_abapgit_object_enho_intf( is_item = ms_item
+                                                    io_files = zif_abapgit_object~mo_files ).
       WHEN cl_wdr_cfg_enhancement=>tooltype.
-        CREATE OBJECT ri_enho TYPE zcl_abapgit_object_enho_wdyc EXPORTING is_item = ms_item.
+        ri_enho = NEW zcl_abapgit_object_enho_wdyc( is_item = ms_item ).
       WHEN 'FUGRENH'.
-        CREATE OBJECT ri_enho TYPE zcl_abapgit_object_enho_fugr EXPORTING is_item = ms_item
-                                                                          io_files = zif_abapgit_object~mo_files.
+        ri_enho = NEW zcl_abapgit_object_enho_fugr( is_item = ms_item
+                                                    io_files = zif_abapgit_object~mo_files ).
       WHEN 'WDYENH'.
-        CREATE OBJECT ri_enho TYPE zcl_abapgit_object_enho_wdyn EXPORTING is_item = ms_item.
+        ri_enho = NEW zcl_abapgit_object_enho_wdyn( is_item = ms_item ).
       WHEN OTHERS.
         zcx_abapgit_exception=>raise( |Unsupported ENHO type { iv_tool }| ).
     ENDCASE.
@@ -124,8 +124,8 @@ CLASS zcl_abapgit_object_enho IMPLEMENTATION.
 
   METHOD zif_abapgit_object~deserialize.
 
-    DATA: lv_tool     TYPE enhtooltype,
-          li_enho     TYPE REF TO zif_abapgit_object_enho.
+    DATA: lv_tool TYPE enhtooltype,
+          li_enho TYPE REF TO zif_abapgit_object_enho.
 
     IF zif_abapgit_object~exists( ) = abap_true.
       zif_abapgit_object~delete( iv_package   = iv_package
@@ -173,6 +173,11 @@ CLASS zcl_abapgit_object_enho IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD zif_abapgit_object~get_deserialize_order.
+    RETURN.
+  ENDMETHOD.
+
+
   METHOD zif_abapgit_object~get_deserialize_steps.
     APPEND zif_abapgit_object=>gc_step_id-abap TO rt_steps.
   ENDMETHOD.
@@ -207,12 +212,22 @@ CLASS zcl_abapgit_object_enho IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD zif_abapgit_object~map_filename_to_object.
+    RETURN.
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~map_object_to_filename.
+    RETURN.
+  ENDMETHOD.
+
+
   METHOD zif_abapgit_object~serialize.
 
     DATA: lv_enh_id   TYPE enhname,
           li_enho     TYPE REF TO zif_abapgit_object_enho,
           li_enh_tool TYPE REF TO if_enh_tool,
-          lx_enh_root  TYPE REF TO cx_enh_root.
+          lx_enh_root TYPE REF TO cx_enh_root.
 
     IF zif_abapgit_object~exists( ) = abap_false.
       RETURN.

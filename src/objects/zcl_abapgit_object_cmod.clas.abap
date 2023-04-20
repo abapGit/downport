@@ -14,7 +14,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_OBJECT_CMOD IMPLEMENTATION.
+CLASS zcl_abapgit_object_cmod IMPLEMENTATION.
 
 
   METHOD zif_abapgit_object~changed_by.
@@ -125,12 +125,17 @@ CLASS ZCL_ABAPGIT_OBJECT_CMOD IMPLEMENTATION.
     DATA: lv_name TYPE modact-name.
 
     SELECT SINGLE name FROM modact INTO lv_name WHERE name = ms_item-obj_name.
-    rv_bool = boolc( sy-subrc = 0 ).
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
 
   METHOD zif_abapgit_object~get_comparator.
+    RETURN.
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~get_deserialize_order.
     RETURN.
   ENDMETHOD.
 
@@ -156,6 +161,16 @@ CLASS ZCL_ABAPGIT_OBJECT_CMOD IMPLEMENTATION.
 
 
   METHOD zif_abapgit_object~jump.
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~map_filename_to_object.
+    RETURN.
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~map_object_to_filename.
+    RETURN.
   ENDMETHOD.
 
 

@@ -46,7 +46,7 @@ CLASS zcl_abapgit_object_auth IMPLEMENTATION.
       lo_auth   TYPE REF TO cl_auth_tools.
 
     " authority check
-    CREATE OBJECT lo_auth.
+    lo_auth = NEW #( ).
     IF lo_auth->authority_check_suso( actvt     = '06'
                                       fieldname = mv_fieldname ) <> 0.
       MESSAGE e463(01) WITH mv_fieldname INTO zcx_abapgit_exception=>null.
@@ -88,7 +88,7 @@ CLASS zcl_abapgit_object_auth IMPLEMENTATION.
 
     tadir_insert( iv_package ).
 
-    CREATE OBJECT lo_auth.
+    lo_auth = NEW #( ).
 
     IF lo_auth->add_afield_to_trkorr( ls_authx-fieldname ) <> 0.
       zcx_abapgit_exception=>raise( 'Error deserializing AUTH' ).
@@ -110,12 +110,17 @@ CLASS zcl_abapgit_object_auth IMPLEMENTATION.
     SELECT SINGLE fieldname FROM authx
       INTO mv_fieldname
       WHERE fieldname = ms_item-obj_name.               "#EC CI_GENBUFF
-    rv_bool = boolc( sy-subrc = 0 ).
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
 
   METHOD zif_abapgit_object~get_comparator.
+    RETURN.
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~get_deserialize_order.
     RETURN.
   ENDMETHOD.
 
@@ -155,6 +160,16 @@ CLASS zcl_abapgit_object_auth IMPLEMENTATION.
           id_wbo_mode = abap_false.
       rv_exit = abap_true.
     ENDIF.
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~map_filename_to_object.
+    RETURN.
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~map_object_to_filename.
+    RETURN.
   ENDMETHOD.
 
 

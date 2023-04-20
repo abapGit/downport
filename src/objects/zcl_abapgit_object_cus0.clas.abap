@@ -110,12 +110,17 @@ CLASS zcl_abapgit_object_cus0 IMPLEMENTATION.
       IMPORTING
         message      = ls_message.
 
-    rv_bool = boolc( ls_message IS INITIAL ).
+    rv_bool = xsdbool( ls_message IS INITIAL ).
 
   ENDMETHOD.
 
 
   METHOD zif_abapgit_object~get_comparator.
+    RETURN.
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~get_deserialize_order.
     RETURN.
   ENDMETHOD.
 
@@ -154,6 +159,16 @@ CLASS zcl_abapgit_object_cus0 IMPLEMENTATION.
         img_activity = lv_img_activity.
 
     rv_exit = abap_true.
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~map_filename_to_object.
+    RETURN.
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~map_object_to_filename.
+    RETURN.
   ENDMETHOD.
 
 

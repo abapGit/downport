@@ -47,9 +47,9 @@ CLASS zcl_abapgit_object_otgr IMPLEMENTATION.
     lv_name = ms_item-obj_name.
 
     TRY.
-        CREATE OBJECT ro_otgr EXPORTING im_name = lv_name
-                                        im_new = lv_new
-                                        im_activation_state = lv_state.
+        ro_otgr = NEW #( im_name = lv_name
+                         im_new = lv_new
+                         im_activation_state = lv_state ).
       CATCH cx_pak_invalid_data
           cx_pak_not_authorized
           cx_pak_invalid_state
@@ -212,6 +212,11 @@ CLASS zcl_abapgit_object_otgr IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD zif_abapgit_object~get_deserialize_order.
+    RETURN.
+  ENDMETHOD.
+
+
   METHOD zif_abapgit_object~get_deserialize_steps.
     APPEND zif_abapgit_object=>gc_step_id-abap TO rt_steps.
   ENDMETHOD.
@@ -235,6 +240,16 @@ CLASS zcl_abapgit_object_otgr IMPLEMENTATION.
 
   METHOD zif_abapgit_object~jump.
     " Covered by ZCL_ABAPGIT_OBJECTS=>JUMP
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~map_filename_to_object.
+    RETURN.
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~map_object_to_filename.
+    RETURN.
   ENDMETHOD.
 
 

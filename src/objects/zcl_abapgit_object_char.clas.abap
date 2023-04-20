@@ -43,14 +43,14 @@ CLASS zcl_abapgit_object_char IMPLEMENTATION.
 
 
     SELECT SINGLE name FROM cls_attribute INTO lv_name WHERE name = ms_item-obj_name.
-    lv_new = boolc( sy-subrc <> 0 ).
+    lv_new = xsdbool( sy-subrc <> 0 ).
     lv_name = ms_item-obj_name.
 
     TRY.
-        CREATE OBJECT ro_char EXPORTING im_name = lv_name
-                                        im_type_group = iv_type_group
-                                        im_new = lv_new
-                                        im_activation_state = iv_activation_state.
+        ro_char = NEW #( im_name = lv_name
+                         im_type_group = iv_type_group
+                         im_new = lv_new
+                         im_activation_state = iv_activation_state ).
       CATCH cx_pak_invalid_data
           cx_pak_not_authorized
           cx_pak_invalid_state
@@ -233,6 +233,11 @@ CLASS zcl_abapgit_object_char IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD zif_abapgit_object~get_deserialize_order.
+    RETURN.
+  ENDMETHOD.
+
+
   METHOD zif_abapgit_object~get_deserialize_steps.
     APPEND zif_abapgit_object=>gc_step_id-abap TO rt_steps.
   ENDMETHOD.
@@ -258,6 +263,16 @@ CLASS zcl_abapgit_object_char IMPLEMENTATION.
 
   METHOD zif_abapgit_object~jump.
     " Covered by ZCL_ABAPGIT_OBJECTS=>JUMP
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~map_filename_to_object.
+    RETURN.
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~map_object_to_filename.
+    RETURN.
   ENDMETHOD.
 
 

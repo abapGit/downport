@@ -803,12 +803,12 @@ CLASS zcl_abapgit_object_wdyn IMPLEMENTATION.
           lv_object_name TYPE seu_objkey.
 
 
-    CREATE OBJECT lo_component.
+    lo_component = NEW #( ).
 
     lv_object_name = ms_item-obj_name.
-    CREATE OBJECT lo_request EXPORTING p_object_type = 'YC'
-                                       p_object_name = lv_object_name
-                                       p_operation = swbm_c_op_delete_no_dialog.
+    lo_request = NEW #( p_object_type = 'YC'
+                        p_object_name = lv_object_name
+                        p_operation = swbm_c_op_delete_no_dialog ).
 
     lo_component->if_wb_program~process_wb_request(
       p_wb_request       = lo_request
@@ -877,12 +877,17 @@ CLASS zcl_abapgit_object_wdyn IMPLEMENTATION.
     SELECT SINGLE component_name FROM wdy_component
       INTO lv_component_name
       WHERE component_name = ms_item-obj_name.          "#EC CI_GENBUFF
-    rv_bool = boolc( sy-subrc = 0 ).
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
 
   METHOD zif_abapgit_object~get_comparator.
+    RETURN.
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~get_deserialize_order.
     RETURN.
   ENDMETHOD.
 
@@ -909,6 +914,16 @@ CLASS zcl_abapgit_object_wdyn IMPLEMENTATION.
 
   METHOD zif_abapgit_object~jump.
     " Covered by ZCL_ABAPGIT_OBJECTS=>JUMP
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~map_filename_to_object.
+    RETURN.
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~map_object_to_filename.
+    RETURN.
   ENDMETHOD.
 
 

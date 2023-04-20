@@ -24,9 +24,9 @@ CLASS zcl_abapgit_object_enhs IMPLEMENTATION.
 
     CASE iv_tool.
       WHEN cl_enh_tool_badi_def=>tooltype.
-        CREATE OBJECT ri_enho TYPE zcl_abapgit_object_enhs_badi_d.
+        ri_enho = NEW zcl_abapgit_object_enhs_badi_d( ).
       WHEN cl_enh_tool_hook_def=>tool_type.
-        CREATE OBJECT ri_enho TYPE zcl_abapgit_object_enhs_hook_d.
+        ri_enho = NEW zcl_abapgit_object_enhs_hook_d( ).
       WHEN OTHERS.
         zcx_abapgit_exception=>raise( |ENHS: Unsupported tool { iv_tool }| ).
     ENDCASE.
@@ -153,6 +153,11 @@ CLASS zcl_abapgit_object_enhs IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD zif_abapgit_object~get_deserialize_order.
+    RETURN.
+  ENDMETHOD.
+
+
   METHOD zif_abapgit_object~get_deserialize_steps.
     APPEND zif_abapgit_object=>gc_step_id-abap TO rt_steps.
   ENDMETHOD.
@@ -177,6 +182,16 @@ CLASS zcl_abapgit_object_enhs IMPLEMENTATION.
 
   METHOD zif_abapgit_object~jump.
     " Covered by ZCL_ABAPGIT_OBJECTS=>JUMP
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~map_filename_to_object.
+    RETURN.
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~map_object_to_filename.
+    RETURN.
   ENDMETHOD.
 
 

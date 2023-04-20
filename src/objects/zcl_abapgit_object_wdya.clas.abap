@@ -72,9 +72,9 @@ CLASS zcl_abapgit_object_wdya IMPLEMENTATION.
 
 
     TRY.
-        CREATE OBJECT lo_app EXPORTING name = is_app-application_name
-                                       definition = is_app
-                                       devclass = iv_package.
+        lo_app = NEW #( name = is_app-application_name
+                        definition = is_app
+                        devclass = iv_package ).
 
         LOOP AT it_properties ASSIGNING <ls_property>.
           li_prop = lo_app->if_wdy_md_application~create_property( <ls_property>-name ).
@@ -207,6 +207,11 @@ CLASS zcl_abapgit_object_wdya IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD zif_abapgit_object~get_deserialize_order.
+    RETURN.
+  ENDMETHOD.
+
+
   METHOD zif_abapgit_object~get_deserialize_steps.
     APPEND zif_abapgit_object=>gc_step_id-abap TO rt_steps.
   ENDMETHOD.
@@ -229,6 +234,16 @@ CLASS zcl_abapgit_object_wdya IMPLEMENTATION.
 
   METHOD zif_abapgit_object~jump.
     " Covered by ZCL_ABAPGIT_OBJECTS=>JUMP
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~map_filename_to_object.
+    RETURN.
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~map_object_to_filename.
+    RETURN.
   ENDMETHOD.
 
 

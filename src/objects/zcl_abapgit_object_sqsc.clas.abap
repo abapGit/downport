@@ -152,8 +152,8 @@ CLASS zcl_abapgit_object_sqsc IMPLEMENTATION.
 
     IF zcl_abapgit_objects=>exists( ls_item ) = abap_true.
 
-      CREATE OBJECT lo_interface EXPORTING is_item = ls_item
-                                           iv_language = mv_language.
+      lo_interface = NEW #( is_item = ls_item
+                            iv_language = mv_language ).
 
       lo_interface->zif_abapgit_object~delete( iv_package   = iv_package
                                                iv_transport = iv_transport ).
@@ -249,6 +249,11 @@ CLASS zcl_abapgit_object_sqsc IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD zif_abapgit_object~get_deserialize_order.
+    RETURN.
+  ENDMETHOD.
+
+
   METHOD zif_abapgit_object~get_deserialize_steps.
     APPEND zif_abapgit_object=>gc_step_id-abap TO rt_steps.
   ENDMETHOD.
@@ -271,6 +276,16 @@ CLASS zcl_abapgit_object_sqsc IMPLEMENTATION.
 
   METHOD zif_abapgit_object~jump.
     " Covered by ZCL_ABAPGIT_ADT_LINK=>JUMP
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~map_filename_to_object.
+    RETURN.
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~map_object_to_filename.
+    RETURN.
   ENDMETHOD.
 
 

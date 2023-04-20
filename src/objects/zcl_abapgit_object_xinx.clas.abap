@@ -309,12 +309,17 @@ CLASS zcl_abapgit_object_xinx IMPLEMENTATION.
         illegal_input = 1
         OTHERS        = 2.
 
-    rv_bool = boolc( ls_dd12v IS NOT INITIAL ).
+    rv_bool = xsdbool( ls_dd12v IS NOT INITIAL ).
 
   ENDMETHOD.
 
 
   METHOD zif_abapgit_object~get_comparator.
+    RETURN.
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~get_deserialize_order.
     RETURN.
   ENDMETHOD.
 
@@ -341,6 +346,16 @@ CLASS zcl_abapgit_object_xinx IMPLEMENTATION.
 
   METHOD zif_abapgit_object~jump.
     " Covered by ZCL_ABAPGIT_OBJECTS=>JUMP
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~map_filename_to_object.
+    RETURN.
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~map_object_to_filename.
+    RETURN.
   ENDMETHOD.
 
 

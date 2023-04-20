@@ -129,7 +129,7 @@ CLASS zcl_abapgit_object_form IMPLEMENTATION.
     DATA lv_string TYPE string.
     DATA li_xml TYPE REF TO zif_abapgit_xml_output.
 
-    CREATE OBJECT li_xml TYPE zcl_abapgit_xml_output.
+    li_xml = NEW zcl_abapgit_xml_output( ).
     li_xml->add( iv_name = c_objectname_tdlines
                  ig_data = it_lines ).
     lv_string = li_xml->render( ).
@@ -170,7 +170,7 @@ CLASS zcl_abapgit_object_form IMPLEMENTATION.
 
     ENDTRY.
 
-    CREATE OBJECT li_xml TYPE zcl_abapgit_xml_input EXPORTING iv_xml = lv_string.
+    li_xml = NEW zcl_abapgit_xml_input( iv_xml = lv_string ).
     li_xml->read( EXPORTING iv_name = c_objectname_tdlines
                   CHANGING  cg_data = rt_lines ).
 
@@ -328,6 +328,11 @@ CLASS zcl_abapgit_object_form IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD zif_abapgit_object~get_deserialize_order.
+    RETURN.
+  ENDMETHOD.
+
+
   METHOD zif_abapgit_object~get_deserialize_steps.
     APPEND zif_abapgit_object=>gc_step_id-abap TO rt_steps.
   ENDMETHOD.
@@ -385,6 +390,16 @@ CLASS zcl_abapgit_object_form IMPLEMENTATION.
 
     rv_exit = abap_true.
 
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~map_filename_to_object.
+    RETURN.
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~map_object_to_filename.
+    RETURN.
   ENDMETHOD.
 
 

@@ -138,12 +138,17 @@ CLASS zcl_abapgit_object_acid IMPLEMENTATION.
     lo_aab = create_object( ).
 
     lo_aab->get_state( IMPORTING ex_state = lv_state ).
-    rv_bool = boolc( lv_state = abap_true ).
+    rv_bool = xsdbool( lv_state = abap_true ).
 
   ENDMETHOD.
 
 
   METHOD zif_abapgit_object~get_comparator.
+    RETURN.
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~get_deserialize_order.
     RETURN.
   ENDMETHOD.
 
@@ -172,6 +177,16 @@ CLASS zcl_abapgit_object_acid IMPLEMENTATION.
 
   METHOD zif_abapgit_object~jump.
     " Covered by ZCL_ABAPGIT_OBJECTS=>JUMP
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~map_filename_to_object.
+    RETURN.
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~map_object_to_filename.
+    RETURN.
   ENDMETHOD.
 
 

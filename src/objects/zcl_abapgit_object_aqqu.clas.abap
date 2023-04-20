@@ -36,9 +36,9 @@ CLASS zcl_abapgit_object_aqqu IMPLEMENTATION.
 
   METHOD get_generic.
     " transaction SQ01
-    CREATE OBJECT ro_generic EXPORTING is_item = ms_item
-                                       io_field_rules = get_field_rules( )
-                                       iv_language = mv_language.
+    ro_generic = NEW #( is_item = ms_item
+                        io_field_rules = get_field_rules( )
+                        iv_language = mv_language ).
 
   ENDMETHOD.
 
@@ -72,6 +72,11 @@ CLASS zcl_abapgit_object_aqqu IMPLEMENTATION.
 
 
   METHOD zif_abapgit_object~get_comparator.
+    RETURN.
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~get_deserialize_order.
     RETURN.
   ENDMETHOD.
 
@@ -117,6 +122,16 @@ CLASS zcl_abapgit_object_aqqu IMPLEMENTATION.
 
     rv_exit = abap_true.
 
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~map_filename_to_object.
+    RETURN.
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~map_object_to_filename.
+    RETURN.
   ENDMETHOD.
 
 

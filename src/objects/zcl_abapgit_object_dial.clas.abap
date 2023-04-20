@@ -125,12 +125,17 @@ CLASS zcl_abapgit_object_dial IMPLEMENTATION.
 
     ls_tdct = _read_tdct( ).
 
-    rv_bool = boolc( ls_tdct IS NOT INITIAL ).
+    rv_bool = xsdbool( ls_tdct IS NOT INITIAL ).
 
   ENDMETHOD.
 
 
   METHOD zif_abapgit_object~get_comparator.
+    RETURN.
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~get_deserialize_order.
     RETURN.
   ENDMETHOD.
 
@@ -171,8 +176,18 @@ CLASS zcl_abapgit_object_dial IMPLEMENTATION.
         object_not_found = 1
         OTHERS           = 2.
 
-    rv_exit = boolc( sy-subrc = 0 ).
+    rv_exit = xsdbool( sy-subrc = 0 ).
 
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~map_filename_to_object.
+    RETURN.
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~map_object_to_filename.
+    RETURN.
   ENDMETHOD.
 
 

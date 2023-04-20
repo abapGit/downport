@@ -15,7 +15,7 @@ CLASS zcl_abapgit_object_udmo DEFINITION
   PROTECTED SECTION.
 
     METHODS corr_insert
-         REDEFINITION .
+        REDEFINITION .
   PRIVATE SECTION.
 
     TYPES:
@@ -670,7 +670,7 @@ CLASS zcl_abapgit_object_udmo IMPLEMENTATION.
            WHERE  dmoid     = mv_data_model
            AND    as4local  = mv_activation_state.
 
-    rv_bool = boolc( sy-subrc = 0 ).
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
 
 
@@ -678,6 +678,11 @@ CLASS zcl_abapgit_object_udmo IMPLEMENTATION.
 
 
   METHOD zif_abapgit_object~get_comparator.
+    RETURN.
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~get_deserialize_order.
     RETURN.
   ENDMETHOD.
 
@@ -739,6 +744,16 @@ CLASS zcl_abapgit_object_udmo IMPLEMENTATION.
 
     rv_exit = abap_true.
 
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~map_filename_to_object.
+    RETURN.
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~map_object_to_filename.
+    RETURN.
   ENDMETHOD.
 
 

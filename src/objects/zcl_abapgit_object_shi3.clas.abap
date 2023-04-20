@@ -47,7 +47,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_OBJECT_SHI3 IMPLEMENTATION.
+CLASS zcl_abapgit_object_shi3 IMPLEMENTATION.
 
 
   METHOD clear_fields.
@@ -359,12 +359,17 @@ CLASS ZCL_ABAPGIT_OBJECT_SHI3 IMPLEMENTATION.
         structure_header     = ls_header
         structure_tadir      = ls_tadir.
 
-    rv_bool = boolc( ls_header-id IS NOT INITIAL ).
+    rv_bool = xsdbool( ls_header-id IS NOT INITIAL ).
 
   ENDMETHOD.
 
 
   METHOD zif_abapgit_object~get_comparator.
+    RETURN.
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~get_deserialize_order.
     RETURN.
   ENDMETHOD.
 
@@ -408,6 +413,16 @@ CLASS ZCL_ABAPGIT_OBJECT_SHI3 IMPLEMENTATION.
         rv_exit = abap_true.
     ENDCASE.
 
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~map_filename_to_object.
+    RETURN.
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~map_object_to_filename.
+    RETURN.
   ENDMETHOD.
 
 

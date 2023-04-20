@@ -86,8 +86,8 @@ CLASS zcl_abapgit_object_sxci IMPLEMENTATION.
 
     lv_package = iv_package.
 
-    CREATE OBJECT lo_filter_values_object EXPORTING filter_object = lo_filter_object
-                                                    filter_values = ls_classic_badi_implementation-filters.
+    lo_filter_values_object = NEW #( filter_object = lo_filter_object
+                                     filter_values = ls_classic_badi_implementation-filters ).
 
     CALL FUNCTION 'SXO_IMPL_SAVE'
       EXPORTING
@@ -148,12 +148,17 @@ CLASS zcl_abapgit_object_sxci IMPLEMENTATION.
         data_inconsistency = 2
         OTHERS             = 3.
 
-    rv_bool = boolc( sy-subrc = 0 ).
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
 
   METHOD zif_abapgit_object~get_comparator.
+    RETURN.
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~get_deserialize_order.
     RETURN.
   ENDMETHOD.
 
@@ -186,6 +191,16 @@ CLASS zcl_abapgit_object_sxci IMPLEMENTATION.
 
   METHOD zif_abapgit_object~jump.
     " Covered by ZCL_ABAPGIT_OBJECTS=>JUMP
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~map_filename_to_object.
+    RETURN.
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~map_object_to_filename.
+    RETURN.
   ENDMETHOD.
 
 

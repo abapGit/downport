@@ -240,12 +240,17 @@ CLASS zcl_abapgit_object_sush IMPLEMENTATION.
     SELECT SINGLE * FROM usobhash INTO ls_usobhash "#EC CI_ALL_FIELDS_NEEDED
         WHERE name = ms_item-obj_name.                "#EC CI_SGLSELECT
 
-    rv_bool = boolc( sy-subrc = 0 ).
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
 
   METHOD zif_abapgit_object~get_comparator.
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~get_deserialize_order.
+    RETURN.
   ENDMETHOD.
 
 
@@ -271,6 +276,16 @@ CLASS zcl_abapgit_object_sush IMPLEMENTATION.
 
 
   METHOD zif_abapgit_object~jump.
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~map_filename_to_object.
+    RETURN.
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~map_object_to_filename.
+    RETURN.
   ENDMETHOD.
 
 

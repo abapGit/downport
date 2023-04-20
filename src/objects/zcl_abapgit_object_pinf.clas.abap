@@ -61,7 +61,7 @@ CLASS zcl_abapgit_object_pinf IMPLEMENTATION.
 
   METHOD create_facade.
 
-    CREATE OBJECT ri_facade TYPE lcl_package_interface_facade EXPORTING ii_interface = ii_interface.
+    ri_facade = NEW lcl_package_interface_facade( ii_interface = ii_interface ).
 
   ENDMETHOD.
 
@@ -295,18 +295,23 @@ CLASS zcl_abapgit_object_pinf IMPLEMENTATION.
 
     SELECT SINGLE pack_name FROM intf INTO lv_pack_name
       WHERE intf_name = ms_item-obj_name.
-    rv_bool = boolc( sy-subrc = 0 ).
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
     IF rv_bool = abap_true.
       SELECT SINGLE mainpack FROM tdevc INTO lv_main_pack
         WHERE devclass = lv_pack_name.                  "#EC CI_GENBUFF
-      rv_bool = boolc( sy-subrc = 0 ).
+      rv_bool = xsdbool( sy-subrc = 0 ).
     ENDIF.
 
   ENDMETHOD.
 
 
   METHOD zif_abapgit_object~get_comparator.
+    RETURN.
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~get_deserialize_order.
     RETURN.
   ENDMETHOD.
 
@@ -341,6 +346,16 @@ CLASS zcl_abapgit_object_pinf IMPLEMENTATION.
 
   METHOD zif_abapgit_object~jump.
     " Covered by ZCL_ABAPGIT_OBJECTS=>JUMP
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~map_filename_to_object.
+    RETURN.
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~map_object_to_filename.
+    RETURN.
   ENDMETHOD.
 
 
