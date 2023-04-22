@@ -250,7 +250,7 @@ CLASS zcl_abapgit_object_nspc IMPLEMENTATION.
         namespace_not_valid = 1
         OTHERS              = 2.
 
-    rv_bool = boolc( sy-subrc = 0 ).
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -309,7 +309,7 @@ CLASS zcl_abapgit_object_nspc IMPLEMENTATION.
         view_not_found               = 13
         OTHERS                       = 14.
 
-    rv_exit = boolc( sy-subrc = 0 ).
+    rv_exit = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
