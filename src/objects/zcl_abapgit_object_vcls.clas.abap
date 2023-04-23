@@ -102,27 +102,10 @@ CLASS zcl_abapgit_object_vcls IMPLEMENTATION.
         vclstrudep_tab = lt_vclstrudep
         vclmf_tab      = lt_vclmf.
 
-    CALL FUNCTION 'RS_CORR_INSERT'
-      EXPORTING
-        object              = ms_item-obj_name
-        object_class        = ms_item-obj_type
-        devclass            = iv_package
-        master_language     = mv_language
-        mode                = 'INSERT'
-        global_lock         = abap_true
-        suppress_dialog     = abap_true
-      EXCEPTIONS
-        cancelled           = 1
-        permission_failure  = 2
-        unknown_objectclass = 3
-        OTHERS              = 4.
-    IF sy-subrc = 1.
-      zcx_abapgit_exception=>raise( 'Cancelled' ).
-    ELSEIF sy-subrc <> 0.
-      zcx_abapgit_exception=>raise_t100( ).
-    ENDIF.
+    corr_insert( iv_package ).
 
     lv_objectname = ls_vcldir_entry-vclname.
+
     CALL FUNCTION 'OBJ_GENERATE'
       EXPORTING
         iv_objectname         = lv_objectname
@@ -150,7 +133,7 @@ CLASS zcl_abapgit_object_vcls IMPLEMENTATION.
     SELECT SINGLE changedate INTO lv_changedate FROM vcldir
       WHERE vclname = ms_item-obj_name.
 
-    rv_bool = boolc( sy-subrc = 0 ).
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -183,7 +166,7 @@ CLASS zcl_abapgit_object_vcls IMPLEMENTATION.
       WHERE vclname = ms_item-obj_name.
 
 * see logic in function module VIEWCLUSTER_GET_DEFINITION
-    rv_active = boolc( lv_changedate IS NOT INITIAL ).
+    rv_active = xsdbool( lv_changedate IS NOT INITIAL ).
 
   ENDMETHOD.
 

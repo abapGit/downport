@@ -200,7 +200,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_OBJECTS_PROGRAM IMPLEMENTATION.
+CLASS zcl_abapgit_objects_program IMPLEMENTATION.
 
 
   METHOD add_tpool.
@@ -471,22 +471,11 @@ CLASS ZCL_ABAPGIT_OBJECTS_PROGRAM IMPLEMENTATION.
       lv_progname TYPE reposrc-progname,
       lv_title    TYPE rglif-title.
 
-    CALL FUNCTION 'RS_CORR_INSERT'
-      EXPORTING
-        object              = is_progdir-name
-        object_class        = 'ABAP'
-        devclass            = iv_package
-        master_language     = mv_language
-        mode                = 'I'
-        suppress_dialog     = abap_true
-      EXCEPTIONS
-        cancelled           = 1
-        permission_failure  = 2
-        unknown_objectclass = 3
-        OTHERS              = 4.
-    IF sy-subrc <> 0.
-      zcx_abapgit_exception=>raise_t100( ).
-    ENDIF.
+    zcl_abapgit_factory=>get_cts_api( )->insert_transport_object(
+      iv_object   = 'ABAP'
+      iv_obj_name = is_progdir-name
+      iv_package  = iv_package
+      iv_language = mv_language ).
 
     lv_title = get_program_title( it_tpool ).
 
@@ -933,7 +922,7 @@ CLASS ZCL_ABAPGIT_OBJECTS_PROGRAM IMPLEMENTATION.
     IF io_xml IS BOUND.
       li_xml = io_xml.
     ELSE.
-      CREATE OBJECT li_xml TYPE zcl_abapgit_xml_output.
+      li_xml = NEW zcl_abapgit_xml_output( ).
     ENDIF.
 
     li_xml->add( iv_name = 'PROGDIR'
