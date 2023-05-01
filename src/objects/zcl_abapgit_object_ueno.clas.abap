@@ -440,9 +440,9 @@ CLASS zcl_abapgit_object_ueno IMPLEMENTATION.
 
   METHOD get_generic.
 
-    CREATE OBJECT ro_generic EXPORTING io_field_rules = get_field_rules( )
-                                       is_item = ms_item
-                                       iv_language = mv_language.
+    ro_generic = NEW #( io_field_rules = get_field_rules( )
+                        is_item = ms_item
+                        iv_language = mv_language ).
 
   ENDMETHOD.
 
@@ -458,7 +458,7 @@ CLASS zcl_abapgit_object_ueno IMPLEMENTATION.
         obj_name   = ms_item-obj_name
         obj_type   = ms_item-obj_type
       EXCEPTIONS
-        wrong_type = 01.
+        wrong_type = 1.
 
     IF sy-subrc <> 0.
       zcx_abapgit_exception=>raise_t100( ).
