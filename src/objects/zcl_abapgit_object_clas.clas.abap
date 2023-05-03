@@ -142,7 +142,7 @@ CLASS zcl_abapgit_object_clas IMPLEMENTATION.
     super->constructor( is_item     = is_item
                         iv_language = iv_language ).
 
-    CREATE OBJECT mi_object_oriented_object_fct TYPE zcl_abapgit_oo_class.
+    mi_object_oriented_object_fct = NEW zcl_abapgit_oo_class( ).
 
     mv_classpool_name = cl_oo_classname_service=>get_classpool_name( |{ is_item-obj_name }| ).
 
@@ -903,7 +903,28 @@ CLASS zcl_abapgit_object_clas IMPLEMENTATION.
 
 
   METHOD zif_abapgit_object~jump.
-    " Covered by ZCL_ABAPGIT_OBJECTS=>JUMP
+
+    DATA ls_item TYPE zif_abapgit_definitions=>ty_item.
+
+    ls_item-obj_type = 'PROG'.
+
+    CASE iv_extra.
+      WHEN zif_abapgit_oo_object_fnc=>c_parts-locals_def.
+        ls_item-obj_name = cl_oo_classname_service=>get_ccdef_name( |{ ms_item-obj_name }| ).
+      WHEN zif_abapgit_oo_object_fnc=>c_parts-locals_imp.
+        ls_item-obj_name = cl_oo_classname_service=>get_ccimp_name( |{ ms_item-obj_name }| ).
+      WHEN zif_abapgit_oo_object_fnc=>c_parts-macros.
+        ls_item-obj_name = cl_oo_classname_service=>get_ccmac_name( |{ ms_item-obj_name }| ).
+      WHEN zif_abapgit_oo_object_fnc=>c_parts-testclasses.
+        ls_item-obj_name = cl_oo_classname_service=>get_ccau_name( |{ ms_item-obj_name }| ).
+    ENDCASE.
+
+    IF ls_item-obj_name IS NOT INITIAL.
+      rv_exit = zcl_abapgit_ui_factory=>get_gui_jumper( )->jump( ls_item ).
+    ENDIF.
+
+    " Otherwise covered by ZCL_ABAPGIT_OBJECTS=>JUMP
+
   ENDMETHOD.
 
 
