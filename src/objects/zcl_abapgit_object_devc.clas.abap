@@ -102,7 +102,7 @@ CLASS zcl_abapgit_object_devc IMPLEMENTATION.
            WHERE pgmid = 'R3TR'
            AND NOT ( ( object = 'DEVC' OR object = 'SOTR' ) AND obj_name = iv_package_name )
            AND devclass = iv_package_name.
-    rv_is_empty = boolc( sy-subrc <> 0 ).
+    rv_is_empty = xsdbool( sy-subrc <> 0 ).
 
   ENDMETHOD.
 
@@ -842,6 +842,7 @@ CLASS zcl_abapgit_object_devc IMPLEMENTATION.
     " Clear things related to local installation package
     CLEAR: ls_package_data-namespace,
            ls_package_data-dlvunit,
+           ls_package_data-tpclass,
            ls_package_data-pdevclass.
 
     " Not usable on customer systems
