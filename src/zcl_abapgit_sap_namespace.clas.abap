@@ -17,13 +17,13 @@ CLASS ZCL_ABAPGIT_SAP_NAMESPACE IMPLEMENTATION.
   METHOD zif_abapgit_sap_namespace~exists.
     DATA lv_editflag TYPE trnspace-editflag.
     SELECT SINGLE editflag FROM trnspace INTO lv_editflag WHERE namespace = iv_namespace.
-    rv_yes = xsdbool( sy-subrc = 0 ).
+    rv_yes = boolc( sy-subrc = 0 ).
   ENDMETHOD.
 
 
   METHOD zif_abapgit_sap_namespace~is_editable.
     DATA lv_editflag TYPE trnspace-editflag.
     SELECT SINGLE editflag FROM trnspace INTO lv_editflag WHERE namespace = iv_namespace.
-    rv_yes = xsdbool( sy-subrc = 0 AND lv_editflag = 'X' ).
+    rv_yes = boolc( sy-subrc = 0 AND lv_editflag = 'X' ).
   ENDMETHOD.
 ENDCLASS.
