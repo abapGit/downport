@@ -94,7 +94,7 @@ CLASS zcl_abapgit_object_cus0 IMPLEMENTATION.
       IMPORTING
         message      = ls_message.
 
-    rv_bool = boolc( ls_message IS INITIAL ).
+    rv_bool = xsdbool( ls_message IS INITIAL ).
 
   ENDMETHOD.
 
