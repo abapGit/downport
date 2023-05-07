@@ -110,7 +110,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DB IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_db.
 
-    lo_component = NEW #( ).
+    CREATE OBJECT lo_component.
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title         = 'Database Utility'
@@ -136,7 +136,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DB IMPLEMENTATION.
 
     lt_data = zcl_abapgit_persistence_db=>get_instance( )->list( ).
 
-    lo_zip = NEW #( ).
+    CREATE OBJECT lo_zip.
 
     LOOP AT lt_data ASSIGNING <ls_data>.
       CONCATENATE <ls_data>-type '_' <ls_data>-value '.xml' INTO lv_filename.
@@ -234,7 +234,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DB IMPLEMENTATION.
 
     lv_zip = li_fe_serv->file_upload( lv_path ).
 
-    lo_zip = NEW #( ).
+    CREATE OBJECT lo_zip.
 
     lo_zip->load(
       EXPORTING
@@ -464,7 +464,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DB IMPLEMENTATION.
 
     DATA lo_buf TYPE REF TO zcl_abapgit_string_buffer.
 
-    lo_buf = NEW #( ).
+    CREATE OBJECT lo_buf.
 
     " @@abapmerge include zabapgit_css_page_db.w3mi.data.css > lo_buf->add( '$$' ).
     gui_services( )->register_page_asset(
@@ -518,7 +518,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DB IMPLEMENTATION.
 
   METHOD zif_abapgit_gui_menu_provider~get_menu.
 
-    ro_toolbar = NEW #( ).
+    CREATE OBJECT ro_toolbar.
 
     ro_toolbar->add(
       iv_txt = 'Backup'
@@ -538,7 +538,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DB IMPLEMENTATION.
 
     lt_db_entries = zcl_abapgit_persistence_db=>get_instance( )->list( ).
 
-    ri_html = NEW zcl_abapgit_html( ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
 
     ri_html->add( '<div class="db-list">' ).
     ri_html->add( render_table( lt_db_entries ) ).
