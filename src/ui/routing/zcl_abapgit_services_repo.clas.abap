@@ -100,7 +100,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_SERVICES_REPO IMPLEMENTATION.
+CLASS zcl_abapgit_services_repo IMPLEMENTATION.
 
 
   METHOD activate_objects.
@@ -116,7 +116,7 @@ CLASS ZCL_ABAPGIT_SERVICES_REPO IMPLEMENTATION.
 
     lo_repo ?= zcl_abapgit_repo_srv=>get_instance( )->get( iv_key ).
 
-    CREATE OBJECT lo_browser EXPORTING io_repo = lo_repo.
+    lo_browser = NEW #( io_repo = lo_repo ).
 
     lt_repo_items = lo_browser->list( '/' ).
 
@@ -336,10 +336,16 @@ CLASS ZCL_ABAPGIT_SERVICES_REPO IMPLEMENTATION.
 
     lt_decision = cs_checks-overwrite.
 
-    " Set all new objects to YES
-    LOOP AT lt_decision ASSIGNING <ls_decision> WHERE action = zif_abapgit_objects=>c_deserialize_action-add.
+    " If there's a new namespace, it has to be pulled before all other objects
+    READ TABLE lt_decision ASSIGNING <ls_decision> WITH KEY obj_type = 'NSPC'.
+    IF sy-subrc = 0 AND <ls_decision>-action = zif_abapgit_objects=>c_deserialize_action-add.
       <ls_decision>-decision = zif_abapgit_definitions=>c_yes.
-    ENDLOOP.
+    ELSE.
+      " Set all new objects to YES
+      LOOP AT lt_decision ASSIGNING <ls_decision> WHERE action = zif_abapgit_objects=>c_deserialize_action-add.
+        <ls_decision>-decision = zif_abapgit_definitions=>c_yes.
+      ENDLOOP.
+    ENDIF.
 
     " Ask user what to do
     popup_overwrite( CHANGING ct_overwrite = lt_decision ).
@@ -686,7 +692,7 @@ CLASS ZCL_ABAPGIT_SERVICES_REPO IMPLEMENTATION.
     ls_transport_to_branch = zcl_abapgit_ui_factory=>get_popups( )->popup_to_create_transp_branch(
       lt_transport_headers ).
 
-    CREATE OBJECT lo_transport_to_branch.
+    lo_transport_to_branch = NEW #( ).
     lo_transport_to_branch->create(
       io_repository          = lo_repository
       is_transport_to_branch = ls_transport_to_branch
