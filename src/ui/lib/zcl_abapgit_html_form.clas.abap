@@ -253,7 +253,7 @@ CLASS ZCL_ABAPGIT_HTML_FORM IMPLEMENTATION.
 
     DATA lv_ts TYPE timestampl.
 
-    CREATE OBJECT ro_form.
+    ro_form = NEW #( ).
     ro_form->mv_form_id = iv_form_id.
     ro_form->mv_help_page = iv_help_page.
 
@@ -366,7 +366,7 @@ CLASS ZCL_ABAPGIT_HTML_FORM IMPLEMENTATION.
       EXIT.
     ENDLOOP.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( |<div class="dialog { iv_form_class }">| ). " to center use 'dialog-form-center'
     ri_html->add( |<form method="post"{ ls_form_id }{ ls_form_action }>| ).
@@ -920,7 +920,7 @@ CLASS ZCL_ABAPGIT_HTML_FORM IMPLEMENTATION.
     DATA: ls_hotkey_action LIKE LINE OF rt_hotkey_actions.
     FIELD-SYMBOLS: <ls_command> TYPE zif_abapgit_html_form=>ty_command.
 
-    ls_hotkey_action-ui_component = 'Form'.
+    ls_hotkey_action-ui_component = |Form-{ mv_form_id }|.
 
     READ TABLE mt_commands WITH KEY cmd_type = zif_abapgit_html_form=>c_cmd_type-input_main
                            ASSIGNING <ls_command>.

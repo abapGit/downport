@@ -68,7 +68,9 @@ CLASS zcl_abapgit_gui_page DEFINITION PUBLIC ABSTRACT
       IMPORTING
         !iv_time       TYPE string
       RETURNING
-        VALUE(ri_html) TYPE REF TO zif_abapgit_html .
+        VALUE(ri_html) TYPE REF TO zif_abapgit_html
+      RAISING
+        zcx_abapgit_exception .
     METHODS render_link_hints
       IMPORTING
         !ii_html TYPE REF TO zif_abapgit_html
@@ -99,6 +101,9 @@ CLASS zcl_abapgit_gui_page DEFINITION PUBLIC ABSTRACT
         VALUE(ri_html) TYPE REF TO zif_abapgit_html
       RAISING
         zcx_abapgit_exception .
+    METHODS get_version_details
+      RETURNING
+        VALUE(rv_version) TYPE string.
 ENDCLASS.
 
 
@@ -117,14 +122,7 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
 
   METHOD footer.
 
-    DATA lv_version_detail TYPE string.
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
-
-    IF zcl_abapgit_factory=>get_environment( )->is_merged( ) = abap_true.
-      lv_version_detail = ` - Standalone Version`.
-    ELSE.
-      lv_version_detail = ` - Developer Version`.
-    ENDIF.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div id="footer">' ).
     ri_html->add( '<table class="w100"><tr>' ).
@@ -145,13 +143,44 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
                     iv_txt = ri_html->icon( iv_name = 'abapgit'
                                             iv_hint = iv_time ) ).
     ri_html->add( '</div>' ).
-    ri_html->add( |<div class="version">{ zif_abapgit_version=>c_abap_version }{ lv_version_detail }</div>| ).
+    ri_html->add( |<div id="footer-version" class="version">{ get_version_details( ) }</div>| ).
     ri_html->add( '</td>' ).
 
     ri_html->add( '<td id="debug-output" class="w40"></td>' ).
 
     ri_html->add( '</tr></table>' ).
     ri_html->add( '</div>' ).
+
+  ENDMETHOD.
+
+
+  METHOD get_version_details.
+
+    DATA lo_frontend_serv TYPE REF TO zif_abapgit_frontend_services.
+
+    rv_version = zif_abapgit_version=>c_abap_version.
+
+    IF zcl_abapgit_factory=>get_environment( )->is_merged( ) = abap_true.
+      rv_version = rv_version && ` - Standalone Version`.
+    ELSE.
+      rv_version = rv_version && ` - Developer Version`.
+    ENDIF.
+
+    lo_frontend_serv = zcl_abapgit_ui_factory=>get_frontend_services( ).
+
+    CASE abap_true.
+      WHEN lo_frontend_serv->is_webgui( ).
+        rv_version = rv_version && ` - Web`.
+      WHEN lo_frontend_serv->is_sapgui_for_windows( ).
+        rv_version = rv_version && ` - Win`.
+      WHEN lo_frontend_serv->is_sapgui_for_java( ).
+        rv_version = rv_version && ` - Java`.
+      WHEN OTHERS.
+        ASSERT 1 = 2.
+    ENDCASE.
+
+    " Will be filled by JS method displayBrowserControlFooter
+    rv_version = rv_version && '<span id="browser-control-footer"></span>'.
 
   ENDMETHOD.
 
@@ -191,7 +220,7 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
 
   METHOD html_head.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<head>' ).
 
@@ -211,6 +240,27 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
     ENDCASE.
 
     ri_html->add( '</head>' ).
+
+  ENDMETHOD.
+
+
+  METHOD render_browser_control_warning.
+
+    DATA li_documentation_link TYPE REF TO zif_abapgit_html.
+
+    li_documentation_link = NEW zcl_abapgit_html( ).
+
+    li_documentation_link->add_a(
+        iv_txt = 'Documentation'
+        iv_typ = zif_abapgit_html=>c_action_type-url
+        iv_act =  'https://docs.abapgit.org/guide-sapgui.html#sap-gui-for-windows' ).
+
+    ii_html->add( '<div id="browser-control-warning" class="browser-control-warning">' ).
+    ii_html->add( zcl_abapgit_gui_chunk_lib=>render_warning_banner(
+                    |Attention: You use Edge browser control. |
+                 && |There are several known malfunctions. See |
+                 && li_documentation_link->render( ) ) ).
+    ii_html->add( '</div>' ).
 
   ENDMETHOD.
 
@@ -243,7 +293,7 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
     " You should remember that the we have to instantiate ro_html even
     " it's overwritten further down. Because ADD checks whether it's
     " bound.
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     " You should remember that we render the message panel only
     " if we have an error.
@@ -255,7 +305,7 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
 
     " You should remember that the exception viewer dispatches the events of
     " error message panel
-    CREATE OBJECT mo_exception_viewer EXPORTING ix_error = mx_error.
+    mo_exception_viewer = NEW #( ix_error = mx_error ).
 
     " You should remember that we render the message panel just once
     " for each exception/error text.
@@ -292,30 +342,9 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD render_browser_control_warning.
-
-    DATA li_documentation_link TYPE REF TO zif_abapgit_html.
-
-    CREATE OBJECT li_documentation_link TYPE zcl_abapgit_html.
-
-    li_documentation_link->add_a(
-        iv_txt = 'Documentation'
-        iv_typ = zif_abapgit_html=>c_action_type-url
-        iv_act =  'https://docs.abapgit.org/guide-sapgui.html#sap-gui-for-windows' ).
-
-    ii_html->add( '<div id="browser-control-warning" class="browser-control-warning">' ).
-    ii_html->add( zcl_abapgit_gui_chunk_lib=>render_warning_banner(
-                    |Attention: You use Edge browser control. |
-                 && |There are several known malfunctions. See |
-                 && li_documentation_link->render( ) ) ).
-    ii_html->add( '</div>' ).
-
-  ENDMETHOD.
-
-
   METHOD scripts.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     render_deferred_parts(
       ii_html          = ri_html
@@ -324,6 +353,7 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
     render_link_hints( ri_html ).
     render_command_palettes( ri_html ).
     ri_html->add( |toggleBrowserControlWarning();| ).
+    ri_html->add( |displayBrowserControlFooter();| ).
 
   ENDMETHOD.
 
@@ -343,7 +373,7 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
       lv_page_title = ms_control-page_title_provider->get_page_title( ).
     ENDIF.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div id="header">' ).
 
@@ -419,7 +449,7 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
     lo_timer = zcl_abapgit_timer=>create( )->start( ).
 
     " Real page
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<!DOCTYPE html>' ).
     ri_html->add( '<html lang="en">' ).
