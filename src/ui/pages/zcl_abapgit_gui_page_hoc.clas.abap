@@ -38,7 +38,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_HOC IMPLEMENTATION.
 
     DATA lo_page TYPE REF TO zcl_abapgit_gui_page_hoc.
 
-    CREATE OBJECT lo_page.
+    lo_page = NEW #( ).
     lo_page->ms_control-page_title          = iv_page_title.
     lo_page->ms_control-page_menu           = io_page_menu.
     lo_page->ms_control-page_menu_provider  = ii_page_menu_provider.
