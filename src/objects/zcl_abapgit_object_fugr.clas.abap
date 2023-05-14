@@ -1051,8 +1051,8 @@ CLASS zcl_abapgit_object_fugr IMPLEMENTATION.
 
     LOOP AT it_includes INTO lv_include.
 
-      CREATE OBJECT lo_cross EXPORTING p_name = lv_include
-                                       p_include = lv_include.
+      lo_cross = NEW #( p_name = lv_include
+                        p_include = lv_include ).
 
       lo_cross->index_actualize( ).
 
@@ -1069,10 +1069,16 @@ CLASS zcl_abapgit_object_fugr IMPLEMENTATION.
              time TYPE t,
            END OF ty_stamps.
 
-    DATA: lt_stamps  TYPE STANDARD TABLE OF ty_stamps WITH DEFAULT KEY,
-          lv_program TYPE program.
+    DATA:
+      lt_stamps    TYPE STANDARD TABLE OF ty_stamps WITH DEFAULT KEY,
+      lv_program   TYPE program,
+      lv_found     TYPE abap_bool,
+      lt_functions TYPE ty_rs38l_incl_tt.
 
-    FIELD-SYMBOLS: <ls_stamp> LIKE LINE OF lt_stamps.
+    FIELD-SYMBOLS:
+      <ls_function> LIKE LINE OF lt_functions,
+      <lv_include>  LIKE LINE OF mt_includes_all,
+      <ls_stamp>    LIKE LINE OF lt_stamps.
 
     lv_program = main_name( ).
 
@@ -1091,12 +1097,28 @@ CLASS zcl_abapgit_object_fugr IMPLEMENTATION.
       ENDIF.
     ENDIF.
 
+    " Check if changed_by for include object was requested
+    LOOP AT mt_includes_all ASSIGNING <lv_include> WHERE table_line = to_upper( iv_extra ).
+      lv_program = <lv_include>.
+      lv_found   = abap_true.
+      EXIT.
+    ENDLOOP.
+
+    " Check if changed_by for function module was requested
+    lt_functions = functions( ).
+
+    LOOP AT lt_functions ASSIGNING <ls_function> WHERE funcname = to_upper( iv_extra ).
+      lv_program = <ls_function>-include.
+      lv_found   = abap_true.
+      EXIT.
+    ENDLOOP.
+
     SELECT unam AS user udat AS date utime AS time FROM reposrc
       APPENDING CORRESPONDING FIELDS OF TABLE lt_stamps
       WHERE progname = lv_program
       AND   r3state = 'A'.                                "#EC CI_SUBRC
 
-    IF mt_includes_all IS NOT INITIAL.
+    IF mt_includes_all IS NOT INITIAL AND lv_found = abap_false.
       SELECT unam AS user udat AS date utime AS time FROM reposrc
         APPENDING CORRESPONDING FIELDS OF TABLE lt_stamps
         FOR ALL ENTRIES IN mt_includes_all
@@ -1232,7 +1254,7 @@ CLASS zcl_abapgit_object_fugr IMPLEMENTATION.
         function_pool   = lv_pool
       EXCEPTIONS
         pool_not_exists = 1.
-    rv_bool = boolc( sy-subrc <> 1 ).
+    rv_bool = xsdbool( sy-subrc <> 1 ).
 
   ENDMETHOD.
 

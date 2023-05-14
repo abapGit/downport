@@ -32,11 +32,12 @@ CLASS zcl_abapgit_gui_page_stage DEFINITION
 
     TYPES:
       BEGIN OF ty_changed_by,
-        item TYPE zif_abapgit_definitions=>ty_item,
-        name TYPE syuname,
+        item     TYPE zif_abapgit_definitions=>ty_item,
+        filename TYPE string,
+        name     TYPE syuname,
       END OF ty_changed_by .
     TYPES:
-      ty_changed_by_tt TYPE SORTED TABLE OF ty_changed_by WITH UNIQUE KEY item .
+      ty_changed_by_tt TYPE SORTED TABLE OF ty_changed_by WITH UNIQUE KEY item filename.
 
     DATA mo_repo TYPE REF TO zcl_abapgit_repo_online .
     DATA ms_files TYPE zif_abapgit_definitions=>ty_stage_files .
@@ -124,12 +125,12 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_GUI_PAGE_STAGE IMPLEMENTATION.
+CLASS zcl_abapgit_gui_page_stage IMPLEMENTATION.
 
 
   METHOD build_menu.
 
-    CREATE OBJECT ro_menu EXPORTING iv_id = 'toolbar-main'.
+    ro_menu = NEW #( iv_id = 'toolbar-main' ).
 
     IF lines( ms_files-local ) > 0
     OR lines( ms_files-remote ) > 0.
@@ -245,10 +246,14 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_STAGE IMPLEMENTATION.
           lv_transport         LIKE LINE OF it_transports,
           lv_user              TYPE uname.
 
-    FIELD-SYMBOLS: <ls_changed_by> LIKE LINE OF rt_changed_by.
+    FIELD-SYMBOLS <ls_changed_by> LIKE LINE OF lt_changed_by_remote.
 
     LOOP AT it_files-local INTO ls_local WHERE NOT item IS INITIAL.
       ls_changed_by-item = ls_local-item.
+      ls_changed_by-filename = ls_local-file-filename.
+      ls_changed_by-name = zcl_abapgit_objects=>changed_by(
+        is_item     = ls_local-item
+        iv_filename = ls_local-file-filename ).
       INSERT ls_changed_by INTO TABLE rt_changed_by.
     ENDLOOP.
 
@@ -265,10 +270,6 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_STAGE IMPLEMENTATION.
           INSERT ls_changed_by INTO TABLE lt_changed_by_remote.
         CATCH zcx_abapgit_exception.
       ENDTRY.
-    ENDLOOP.
-
-    LOOP AT rt_changed_by ASSIGNING <ls_changed_by>.
-      <ls_changed_by>-name = zcl_abapgit_objects=>changed_by( <ls_changed_by>-item ).
     ENDLOOP.
 
     LOOP AT lt_changed_by_remote ASSIGNING <ls_changed_by>.
@@ -352,8 +353,8 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_STAGE IMPLEMENTATION.
     DELETE lt_files WHERE method <> zif_abapgit_definitions=>c_method-add
                     AND   method <> zif_abapgit_definitions=>c_method-rm.
 
-    CREATE OBJECT lo_page EXPORTING iv_key = lv_key
-                                    it_files = lt_files.
+    lo_page = NEW #( iv_key = lv_key
+                     it_files = lt_files ).
 
     ri_page = lo_page.
 
@@ -376,7 +377,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_STAGE IMPLEMENTATION.
     DATA: lv_local_count TYPE i,
           lv_add_all_txt TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
     lv_local_count = count_default_files_to_commit( ).
     IF lv_local_count > 0.
       lv_add_all_txt = |Add All and Commit ({ lv_local_count })|.
@@ -423,7 +424,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_STAGE IMPLEMENTATION.
 
   METHOD render_content.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div class="repo">' ).
     ri_html->add( zcl_abapgit_gui_chunk_lib=>render_repo_top(
@@ -465,7 +466,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_STAGE IMPLEMENTATION.
     DATA: lv_param    TYPE string,
           lv_filename TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     lv_filename = is_file-path && is_file-filename.
     " make sure whitespace is preserved in the DOM
@@ -523,7 +524,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_STAGE IMPLEMENTATION.
                    <ls_status> LIKE LINE OF ms_files-status,
                    <ls_local>  LIKE LINE OF ms_files-local.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<table id="stageTab" class="stage_tab w100">' ).
 
@@ -549,7 +550,13 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_STAGE IMPLEMENTATION.
         ri_html->add( '<tbody>' ).
       ENDAT.
 
-      READ TABLE lt_changed_by INTO ls_changed_by WITH KEY item = <ls_local>-item. "#EC CI_SUBRC
+      READ TABLE lt_changed_by INTO ls_changed_by WITH TABLE KEY
+        item     = <ls_local>-item
+        filename = <ls_local>-file-filename.
+      IF sy-subrc <> 0.
+        READ TABLE lt_changed_by INTO ls_changed_by WITH KEY item = <ls_local>-item.
+      ENDIF.
+
       READ TABLE lt_transports INTO ls_transport WITH KEY
         obj_type = <ls_local>-item-obj_type
         obj_name = <ls_local>-item-obj_name.              "#EC CI_SUBRC
@@ -606,7 +613,13 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_STAGE IMPLEMENTATION.
           READ TABLE lt_transports INTO ls_transport WITH KEY
             obj_type = ls_item_remote-obj_type
             obj_name = ls_item_remote-obj_name.
-          READ TABLE lt_changed_by INTO ls_changed_by WITH KEY item = ls_item_remote.
+
+          READ TABLE lt_changed_by INTO ls_changed_by WITH TABLE KEY
+            item     = ls_item_remote
+            filename = <ls_remote>-filename.
+          IF sy-subrc <> 0.
+            READ TABLE lt_changed_by INTO ls_changed_by WITH KEY item = <ls_local>-item.
+          ENDIF.
         CATCH zcx_abapgit_exception.
           CLEAR ls_transport.
       ENDTRY.
@@ -633,7 +646,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_STAGE IMPLEMENTATION.
 
     DATA lv_main_language TYPE spras.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     lv_main_language = mo_repo->get_dot_abapgit( )->get_main_language( ).
 
@@ -648,7 +661,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_STAGE IMPLEMENTATION.
 
   METHOD render_scripts.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
 
@@ -680,7 +693,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_STAGE IMPLEMENTATION.
     FIELD-SYMBOLS <ls_remote> LIKE LINE OF ms_files-remote.
     FIELD-SYMBOLS <ls_status> LIKE LINE OF ms_files-status.
 
-    CREATE OBJECT ro_stage.
+    ro_stage = NEW #( ).
 
     LOOP AT ms_files-local ASSIGNING <ls_local>.
       READ TABLE ms_files-status ASSIGNING <ls_status>
@@ -735,7 +748,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_STAGE IMPLEMENTATION.
 
     check_selected( lo_files ).
 
-    CREATE OBJECT ro_stage.
+    ro_stage = NEW #( ).
 
     LOOP AT lo_files->mt_entries ASSIGNING <ls_item>
       "Ignore Files that we don't want to stage, so any errors don't stop the staging process
