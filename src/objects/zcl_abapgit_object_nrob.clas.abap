@@ -178,6 +178,18 @@ CLASS zcl_abapgit_object_nrob IMPLEMENTATION.
       <lv_any> = sy-uzeit.
     ENDIF.
 
+    ASSIGN COMPONENT 'UNAME' OF STRUCTURE ls_text TO <lv_any>.
+    IF sy-subrc = 0.
+      <lv_any> = sy-uname.
+    ENDIF.
+    ASSIGN COMPONENT 'UDATE' OF STRUCTURE ls_text TO <lv_any>.
+    IF sy-subrc = 0.
+      <lv_any> = sy-datum.
+    ENDIF.
+    ASSIGN COMPONENT 'UTIME' OF STRUCTURE ls_text TO <lv_any>.
+    IF sy-subrc = 0.
+      <lv_any> = sy-uzeit.
+    ENDIF.
     ASSIGN COMPONENT 'ENAME' OF STRUCTURE ls_text TO <lv_any>.
     IF sy-subrc = 0.
       <lv_any> = sy-uname.
@@ -231,7 +243,7 @@ CLASS zcl_abapgit_object_nrob IMPLEMENTATION.
 
     SELECT SINGLE object FROM tnro INTO lv_object
       WHERE object = ms_item-obj_name.
-    rv_bool = boolc( sy-subrc = 0 ).
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -353,6 +365,18 @@ CLASS zcl_abapgit_object_nrob IMPLEMENTATION.
       CLEAR <lv_any>.
     ENDIF.
 
+    ASSIGN COMPONENT 'UNAME' OF STRUCTURE ls_text TO <lv_any>.
+    IF sy-subrc = 0.
+      CLEAR <lv_any>.
+    ENDIF.
+    ASSIGN COMPONENT 'UDATE' OF STRUCTURE ls_text TO <lv_any>.
+    IF sy-subrc = 0.
+      CLEAR <lv_any>.
+    ENDIF.
+    ASSIGN COMPONENT 'UTIME' OF STRUCTURE ls_text TO <lv_any>.
+    IF sy-subrc = 0.
+      CLEAR <lv_any>.
+    ENDIF.
     ASSIGN COMPONENT 'ENAME' OF STRUCTURE ls_text TO <lv_any>.
     IF sy-subrc = 0.
       CLEAR <lv_any>.
