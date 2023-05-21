@@ -4,20 +4,10 @@ CLASS zcl_abapgit_gui_page DEFINITION PUBLIC ABSTRACT
 
   PUBLIC SECTION.
     INTERFACES:
+      zif_abapgit_gui_modal,
       zif_abapgit_gui_renderable,
       zif_abapgit_gui_event_handler,
       zif_abapgit_gui_error_handler.
-
-    METHODS:
-      constructor RAISING zcx_abapgit_exception.
-
-  PROTECTED SECTION.
-
-    CONSTANTS:
-      BEGIN OF c_page_layout,
-        centered   TYPE string VALUE `centered`,
-        full_width TYPE string VALUE `full_width`,
-      END OF c_page_layout.
 
     TYPES:
       BEGIN OF ty_control,
@@ -28,7 +18,18 @@ CLASS zcl_abapgit_gui_page DEFINITION PUBLIC ABSTRACT
         page_title_provider TYPE REF TO zif_abapgit_gui_page_title,
         extra_css_url       TYPE string,
         extra_js_url        TYPE string,
+        show_as_modal       TYPE abap_bool,
       END OF  ty_control .
+
+    METHODS constructor RAISING zcx_abapgit_exception.
+
+  PROTECTED SECTION.
+
+    CONSTANTS:
+      BEGIN OF c_page_layout,
+        centered   TYPE string VALUE `centered`,
+        full_width TYPE string VALUE `full_width`,
+      END OF c_page_layout.
 
     DATA ms_control TYPE ty_control .
 
@@ -108,7 +109,7 @@ ENDCLASS.
 
 
 
-CLASS zcl_abapgit_gui_page IMPLEMENTATION.
+CLASS ZCL_ABAPGIT_GUI_PAGE IMPLEMENTATION.
 
 
   METHOD constructor.
@@ -122,7 +123,7 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
 
   METHOD footer.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div id="footer">' ).
     ri_html->add( '<table class="w100"><tr>' ).
@@ -220,7 +221,7 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
 
   METHOD html_head.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<head>' ).
 
@@ -248,7 +249,7 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
 
     DATA li_documentation_link TYPE REF TO zif_abapgit_html.
 
-    CREATE OBJECT li_documentation_link TYPE zcl_abapgit_html.
+    li_documentation_link = NEW zcl_abapgit_html( ).
 
     li_documentation_link->add_a(
         iv_txt = 'Documentation'
@@ -293,7 +294,7 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
     " You should remember that the we have to instantiate ro_html even
     " it's overwritten further down. Because ADD checks whether it's
     " bound.
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     " You should remember that we render the message panel only
     " if we have an error.
@@ -305,7 +306,7 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
 
     " You should remember that the exception viewer dispatches the events of
     " error message panel
-    CREATE OBJECT mo_exception_viewer EXPORTING ix_error = mx_error.
+    mo_exception_viewer = NEW #( ix_error = mx_error ).
 
     " You should remember that we render the message panel just once
     " for each exception/error text.
@@ -344,7 +345,7 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
 
   METHOD scripts.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     render_deferred_parts(
       ii_html          = ri_html
@@ -373,7 +374,7 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
       lv_page_title = ms_control-page_title_provider->get_page_title( ).
     ENDIF.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div id="header">' ).
 
@@ -438,6 +439,11 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD zif_abapgit_gui_modal~is_modal.
+    rv_yes = xsdbool( ms_control-show_as_modal = abap_true ).
+  ENDMETHOD.
+
+
   METHOD zif_abapgit_gui_renderable~render.
 
     DATA:
@@ -449,7 +455,7 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
     lo_timer = zcl_abapgit_timer=>create( )->start( ).
 
     " Real page
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<!DOCTYPE html>' ).
     ri_html->add( '<html lang="en">' ).

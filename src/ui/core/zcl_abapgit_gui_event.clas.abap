@@ -7,6 +7,14 @@ CLASS zcl_abapgit_gui_event DEFINITION
 
     INTERFACES zif_abapgit_gui_event .
 
+    CLASS-METHODS new
+      IMPORTING
+        !ii_gui_services   TYPE REF TO zif_abapgit_gui_services OPTIONAL
+        !iv_action         TYPE clike
+        !iv_getdata        TYPE clike OPTIONAL
+        !it_postdata       TYPE zif_abapgit_html_viewer=>ty_post_data OPTIONAL
+      RETURNING
+        VALUE(ro_instance) TYPE REF TO zcl_abapgit_gui_event.
     METHODS constructor
       IMPORTING
         !ii_gui_services TYPE REF TO zif_abapgit_gui_services OPTIONAL
@@ -50,12 +58,20 @@ CLASS zcl_abapgit_gui_event IMPLEMENTATION.
   METHOD fields_to_map.
     FIELD-SYMBOLS <ls_field> LIKE LINE OF it_fields.
 
-    CREATE OBJECT ro_string_map EXPORTING iv_case_insensitive = abap_true.
+    ro_string_map = NEW #( iv_case_insensitive = abap_true ).
     LOOP AT it_fields ASSIGNING <ls_field>.
       ro_string_map->set(
         iv_key = <ls_field>-name
         iv_val = <ls_field>-value ).
     ENDLOOP.
+  ENDMETHOD.
+
+
+  METHOD new.
+    ro_instance = NEW #( ii_gui_services = ii_gui_services
+                         iv_action = iv_action
+                         iv_getdata = iv_getdata
+                         it_postdata = it_postdata ).
   ENDMETHOD.
 
 
