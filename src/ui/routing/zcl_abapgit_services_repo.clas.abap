@@ -116,7 +116,7 @@ CLASS zcl_abapgit_services_repo IMPLEMENTATION.
 
     lo_repo ?= zcl_abapgit_repo_srv=>get_instance( )->get( iv_key ).
 
-    CREATE OBJECT lo_browser EXPORTING io_repo = lo_repo.
+    lo_browser = NEW #( io_repo = lo_repo ).
 
     lt_repo_items = lo_browser->list( '/' ).
 
@@ -684,7 +684,10 @@ CLASS zcl_abapgit_services_repo IMPLEMENTATION.
     lo_repository ?= zcl_abapgit_repo_srv=>get_instance( )->get( iv_repository_key ).
 
     lt_transport_headers = zcl_abapgit_ui_factory=>get_popups( )->popup_to_select_transports( ).
-    lt_transport_objects = zcl_abapgit_transport=>to_tadir( lt_transport_headers ).
+    " Also include deleted objects that are included in transport
+    lt_transport_objects = zcl_abapgit_transport=>to_tadir(
+      it_transport_headers = lt_transport_headers
+      iv_deleted_objects   = abap_true ).
     IF lt_transport_objects IS INITIAL.
       zcx_abapgit_exception=>raise( 'Canceled or List of objects is empty ' ).
     ENDIF.
@@ -692,7 +695,7 @@ CLASS zcl_abapgit_services_repo IMPLEMENTATION.
     ls_transport_to_branch = zcl_abapgit_ui_factory=>get_popups( )->popup_to_create_transp_branch(
       lt_transport_headers ).
 
-    CREATE OBJECT lo_transport_to_branch.
+    lo_transport_to_branch = NEW #( ).
     lo_transport_to_branch->create(
       io_repository          = lo_repository
       is_transport_to_branch = ls_transport_to_branch
