@@ -123,7 +123,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE IMPLEMENTATION.
 
   METHOD footer.
 
-    ri_html = NEW zcl_abapgit_html( ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
 
     ri_html->add( '<div id="footer">' ).
     ri_html->add( '<table class="w100"><tr>' ).
@@ -221,7 +221,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE IMPLEMENTATION.
 
   METHOD html_head.
 
-    ri_html = NEW zcl_abapgit_html( ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
 
     ri_html->add( '<head>' ).
 
@@ -249,7 +249,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE IMPLEMENTATION.
 
     DATA li_documentation_link TYPE REF TO zif_abapgit_html.
 
-    li_documentation_link = NEW zcl_abapgit_html( ).
+    CREATE OBJECT li_documentation_link TYPE zcl_abapgit_html.
 
     li_documentation_link->add_a(
         iv_txt = 'Documentation'
@@ -294,7 +294,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE IMPLEMENTATION.
     " You should remember that the we have to instantiate ro_html even
     " it's overwritten further down. Because ADD checks whether it's
     " bound.
-    ri_html = NEW zcl_abapgit_html( ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
 
     " You should remember that we render the message panel only
     " if we have an error.
@@ -306,7 +306,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE IMPLEMENTATION.
 
     " You should remember that the exception viewer dispatches the events of
     " error message panel
-    mo_exception_viewer = NEW #( ix_error = mx_error ).
+    CREATE OBJECT mo_exception_viewer EXPORTING ix_error = mx_error.
 
     " You should remember that we render the message panel just once
     " for each exception/error text.
@@ -345,7 +345,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE IMPLEMENTATION.
 
   METHOD scripts.
 
-    ri_html = NEW zcl_abapgit_html( ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
 
     render_deferred_parts(
       ii_html          = ri_html
@@ -374,7 +374,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE IMPLEMENTATION.
       lv_page_title = ms_control-page_title_provider->get_page_title( ).
     ENDIF.
 
-    ri_html = NEW zcl_abapgit_html( ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
 
     ri_html->add( '<div id="header">' ).
 
@@ -440,7 +440,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE IMPLEMENTATION.
 
 
   METHOD zif_abapgit_gui_modal~is_modal.
-    rv_yes = xsdbool( ms_control-show_as_modal = abap_true ).
+    rv_yes = boolc( ms_control-show_as_modal = abap_true ).
   ENDMETHOD.
 
 
@@ -455,7 +455,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE IMPLEMENTATION.
     lo_timer = zcl_abapgit_timer=>create( )->start( ).
 
     " Real page
-    ri_html = NEW zcl_abapgit_html( ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
 
     ri_html->add( '<!DOCTYPE html>' ).
     ri_html->add( '<html lang="en">' ).
