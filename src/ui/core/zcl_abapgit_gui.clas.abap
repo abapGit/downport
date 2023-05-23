@@ -19,10 +19,9 @@ CLASS zcl_abapgit_gui DEFINITION
       END OF c_event_state .
     CONSTANTS:
       BEGIN OF c_action,
-        go_home TYPE string VALUE 'go_home',
-        go_db   TYPE string VALUE 'go_db',
+        go_home TYPE string VALUE zif_abapgit_definitions=>c_action-go_home,
+        go_db   TYPE string VALUE zif_abapgit_definitions=>c_action-go_db,
       END OF c_action .
-
     METHODS go_home
       RAISING
         zcx_abapgit_exception .
@@ -226,7 +225,7 @@ CLASS zcl_abapgit_gui IMPLEMENTATION.
       ENDIF.
     ENDIF.
 
-    CREATE OBJECT mo_html_parts.
+    mo_html_parts = NEW #( ).
 
     mv_rollback_on_error = iv_rollback_on_error.
     mi_asset_man      = ii_asset_man.
@@ -282,10 +281,10 @@ CLASS zcl_abapgit_gui IMPLEMENTATION.
       li_event     TYPE REF TO zif_abapgit_gui_event,
       ls_handled   TYPE zif_abapgit_gui_event_handler=>ty_handling_result.
 
-    CREATE OBJECT li_event TYPE zcl_abapgit_gui_event EXPORTING ii_gui_services = me
-                                                                iv_action = iv_action
-                                                                iv_getdata = iv_getdata
-                                                                it_postdata = it_postdata.
+    li_event = NEW zcl_abapgit_gui_event( ii_gui_services = me
+                                          iv_action = iv_action
+                                          iv_getdata = iv_getdata
+                                          it_postdata = it_postdata ).
 
     TRY.
         LOOP AT mt_event_handlers INTO li_handler.
@@ -553,7 +552,7 @@ CLASS zcl_abapgit_gui IMPLEMENTATION.
   METHOD zif_abapgit_gui_services~get_log.
 
     IF iv_create_new = abap_true OR mi_common_log IS NOT BOUND.
-      CREATE OBJECT mi_common_log TYPE zcl_abapgit_log.
+      mi_common_log = NEW zcl_abapgit_log( ).
     ENDIF.
 
     ri_log = mi_common_log.
