@@ -118,13 +118,14 @@ CLASS zcl_abapgit_file_status IMPLEMENTATION.
     rs_result-obj_name  = is_local-item-obj_name.
     rs_result-package   = is_local-item-devclass.
     rs_result-srcsystem = is_local-item-srcsystem.
+    rs_result-origlang  = is_local-item-origlang.
     rs_result-inactive  = is_local-item-inactive.
 
     " File
     rs_result-path     = is_local-file-path.
     rs_result-filename = is_local-file-filename.
 
-    rs_result-match    = boolc( is_local-file-sha1 = is_remote-sha1 ).
+    rs_result-match    = xsdbool( is_local-file-sha1 = is_remote-sha1 ).
     IF rs_result-match = abap_true.
       RETURN.
     ENDIF.
@@ -162,6 +163,7 @@ CLASS zcl_abapgit_file_status IMPLEMENTATION.
     rs_result-obj_name  = is_local-item-obj_name.
     rs_result-package   = is_local-item-devclass.
     rs_result-srcsystem = is_local-item-srcsystem.
+    rs_result-origlang  = is_local-item-origlang.
     rs_result-inactive  = is_local-item-inactive.
 
     " File
@@ -208,6 +210,7 @@ CLASS zcl_abapgit_file_status IMPLEMENTATION.
       rs_result-obj_name  = ls_item-obj_name.
       rs_result-package   = ls_item-devclass.
       rs_result-srcsystem = sy-sysid.
+      rs_result-origlang  = sy-langu.
 
       READ TABLE it_state_idx INTO ls_file_sig
         WITH KEY
@@ -541,8 +544,8 @@ CLASS zcl_abapgit_file_status IMPLEMENTATION.
         ct_local  = lt_local
         ct_remote = lt_remote ).
 
-    CREATE OBJECT lo_instance EXPORTING iv_root_package = io_repo->get_package( )
-                                        io_dot = io_repo->get_dot_abapgit( ).
+    lo_instance = NEW #( iv_root_package = io_repo->get_package( )
+                         io_dot = io_repo->get_dot_abapgit( ) ).
 
     rt_results = lo_instance->calculate_status(
       it_local     = lt_local
@@ -551,8 +554,8 @@ CLASS zcl_abapgit_file_status IMPLEMENTATION.
 
     IF ii_log IS BOUND.
       " This method just adds messages to the log. No log, nothing to do here
-      CREATE OBJECT lo_consistency_checks EXPORTING iv_root_package = io_repo->get_package( )
-                                                    io_dot = io_repo->get_dot_abapgit( ).
+      lo_consistency_checks = NEW #( iv_root_package = io_repo->get_package( )
+                                     io_dot = io_repo->get_dot_abapgit( ) ).
       ii_log->merge_with( lo_consistency_checks->run_checks( rt_results ) ).
     ENDIF.
 
