@@ -136,6 +136,11 @@ CLASS lcl_object_descision_list IMPLEMENTATION.
 
     CLEAR et_list.
 
+    " Make sure we don't accidentally return anything
+    IF mv_cancel = abap_true.
+      RETURN.
+    ENDIF.
+
     ASSIGN mr_table->* TO <lt_table>.
     ASSERT sy-subrc = 0.
 
@@ -230,7 +235,7 @@ CLASS lcl_object_descision_list IMPLEMENTATION.
         ENDIF.
 
         IF iv_header_text CN ' _0'.
-          CREATE OBJECT lo_table_header EXPORTING text = iv_header_text.
+          lo_table_header = NEW #( text = iv_header_text ).
           mo_alv->set_top_of_list( lo_table_header ).
         ENDIF.
 
@@ -471,7 +476,7 @@ CLASS lcl_object_descision_list IMPLEMENTATION.
     IF lines( lt_scope ) > 0.
       mark_indexed(
         it_scope    = lt_scope
-        iv_selected = boolc( are_all_marked( lt_scope ) = abap_false ) ).
+        iv_selected = xsdbool( are_all_marked( lt_scope ) = abap_false ) ).
       mo_alv->get_selections( )->set_selected_rows( lt_clear ).
     ELSE.
       MESSAGE 'Select rows first to mark them' TYPE 'S'.
@@ -531,7 +536,7 @@ CLASS lcl_object_descision_list IMPLEMENTATION.
       ASSERT sy-subrc = 0.
 
       IF iv_invert = abap_true.
-        <lv_selected> = boolc( <lv_selected> = abap_false ).
+        <lv_selected> = xsdbool( <lv_selected> = abap_false ).
       ELSE.
         <lv_selected> = iv_selected.
       ENDIF.
@@ -649,7 +654,7 @@ CLASS lcl_object_descision_list IMPLEMENTATION.
 
       ASSIGN COMPONENT c_fieldname_selected OF STRUCTURE <ls_line> TO <lv_selected>.
       ASSERT sy-subrc = 0.
-      <lv_selected> = boolc( <lv_selected> = abap_false ).
+      <lv_selected> = xsdbool( <lv_selected> = abap_false ).
 
     ENDIF.
 
