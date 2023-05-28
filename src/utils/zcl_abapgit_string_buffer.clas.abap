@@ -62,6 +62,6 @@ CLASS zcl_abapgit_string_buffer IMPLEMENTATION.
 
 
   METHOD new.
-    CREATE OBJECT ro_me.
+    ro_me = NEW #( ).
   ENDMETHOD.
 ENDCLASS.
