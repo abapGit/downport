@@ -69,11 +69,11 @@ CLASS lcl_rename IMPLEMENTATION.
     CASE mv_rename_by.
       WHEN zcl_abapgit_ajson_mapping=>rename_by-attr_name.
         READ TABLE mt_rename_map ASSIGNING <r> WITH TABLE KEY by_name COMPONENTS from = cv_name.
-        lv_pair_found = boolc( sy-subrc = 0 ).
+        lv_pair_found = xsdbool( sy-subrc = 0 ).
       WHEN zcl_abapgit_ajson_mapping=>rename_by-full_path.
         lv_full_path = is_node-path && cv_name.
         READ TABLE mt_rename_map ASSIGNING <r> WITH TABLE KEY by_name COMPONENTS from = lv_full_path.
-        lv_pair_found = boolc( sy-subrc = 0 ).
+        lv_pair_found = xsdbool( sy-subrc = 0 ).
       WHEN zcl_abapgit_ajson_mapping=>rename_by-pattern.
         lv_full_path = is_node-path && cv_name.
         LOOP AT mt_rename_map ASSIGNING <r>.
