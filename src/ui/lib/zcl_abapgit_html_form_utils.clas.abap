@@ -5,14 +5,21 @@ CLASS zcl_abapgit_html_form_utils DEFINITION
 
   PUBLIC SECTION.
 
-    METHODS constructor
-      IMPORTING
-        !io_form TYPE REF TO zcl_abapgit_html_form .
     CLASS-METHODS create
       IMPORTING
         !io_form            TYPE REF TO zcl_abapgit_html_form
       RETURNING
         VALUE(ro_form_util) TYPE REF TO zcl_abapgit_html_form_utils .
+    CLASS-METHODS is_dirty
+      IMPORTING
+        !io_form_data    TYPE REF TO zcl_abapgit_string_map
+        !io_compare_with TYPE REF TO zcl_abapgit_string_map
+      RETURNING
+        VALUE(rv_dirty) TYPE abap_bool .
+
+    METHODS constructor
+      IMPORTING
+        !io_form TYPE REF TO zcl_abapgit_html_form .
     METHODS normalize
       IMPORTING
         !io_form_data       TYPE REF TO zcl_abapgit_string_map
@@ -39,27 +46,24 @@ CLASS zcl_abapgit_html_form_utils DEFINITION
         !io_form_data TYPE REF TO zcl_abapgit_string_map .
     METHODS exit
       IMPORTING
-        !io_form_data   TYPE REF TO zcl_abapgit_string_map
+        !io_form_data            TYPE REF TO zcl_abapgit_string_map
+        !io_check_changes_versus TYPE REF TO zcl_abapgit_string_map OPTIONAL
       RETURNING
-        VALUE(rv_state) TYPE i
+        VALUE(rv_state)          TYPE i
       RAISING
         zcx_abapgit_exception .
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 
-    DATA mo_form TYPE REF TO zcl_abapgit_html_form .
+    DATA mo_form      TYPE REF TO zcl_abapgit_html_form .
     DATA mo_form_data TYPE REF TO zcl_abapgit_string_map .
 
-    METHODS is_dirty
-      IMPORTING
-        !io_form_data   TYPE REF TO zcl_abapgit_string_map
-      RETURNING
-        VALUE(rv_dirty) TYPE abap_bool .
 ENDCLASS.
 
 
 
-CLASS zcl_abapgit_html_form_utils IMPLEMENTATION.
+CLASS ZCL_ABAPGIT_HTML_FORM_UTILS IMPLEMENTATION.
 
 
   METHOD constructor.
@@ -68,15 +72,24 @@ CLASS zcl_abapgit_html_form_utils IMPLEMENTATION.
 
 
   METHOD create.
-    CREATE OBJECT ro_form_util EXPORTING io_form = io_form.
+    ro_form_util = NEW #( io_form = io_form ).
   ENDMETHOD.
 
 
   METHOD exit.
 
     DATA lv_answer TYPE c LENGTH 1.
+    DATA lo_compare_with LIKE io_check_changes_versus.
 
-    IF is_dirty( io_form_data ) = abap_true.
+    lo_compare_with = io_check_changes_versus.
+    IF lo_compare_with IS NOT BOUND.
+      " TODO: remove this if and make io_check_changes_versus mandatory once all forms are converted
+      lo_compare_with = mo_form_data.
+    ENDIF.
+
+    IF is_dirty(
+      io_form_data    = io_form_data
+      io_compare_with = lo_compare_with ) = abap_true.
       lv_answer = zcl_abapgit_ui_factory=>get_popups( )->popup_to_confirm(
         iv_titlebar       = 'abapGit - Unsaved Changes'
         iv_text_question  = 'There are unsaved changes. Do you want to exit the form?'
@@ -95,7 +108,7 @@ CLASS zcl_abapgit_html_form_utils IMPLEMENTATION.
 
 
   METHOD is_dirty.
-    rv_dirty = boolc( io_form_data->mt_entries <> mo_form_data->mt_entries ).
+    rv_dirty = xsdbool( io_form_data->mt_entries <> io_compare_with->mt_entries ).
   ENDMETHOD.
 
 
@@ -117,14 +130,14 @@ CLASS zcl_abapgit_html_form_utils IMPLEMENTATION.
         del = ` ` ).
 
       IF <ls_field>-type = zif_abapgit_html_form=>c_field_type-number.
-        rv_empty = boolc( lv_value IS INITIAL OR lv_value = '0' ).
+        rv_empty = xsdbool( lv_value IS INITIAL OR lv_value = '0' ).
       ELSEIF <ls_field>-type = zif_abapgit_html_form=>c_field_type-table.
         lv_rows = io_form_data->get( |{ <ls_field>-name }-{ zif_abapgit_html_form=>c_rows }| ).
         DO lv_rows TIMES.
           lv_row = sy-index.
           DO lines( <ls_field>-subitems ) TIMES.
             lv_value = io_form_data->get( |{ <ls_field>-name }-{ lv_row }-{ sy-index }| ).
-            rv_empty = boolc( lv_value IS INITIAL ).
+            rv_empty = xsdbool( lv_value IS INITIAL ).
             IF rv_empty <> abap_true.
               RETURN.
             ENDIF.
@@ -133,9 +146,9 @@ CLASS zcl_abapgit_html_form_utils IMPLEMENTATION.
       ELSEIF <ls_field>-type = zif_abapgit_html_form=>c_field_type-textarea.
         REPLACE ALL OCCURRENCES OF cl_abap_char_utilities=>cr_lf IN lv_value WITH ''.
         REPLACE ALL OCCURRENCES OF cl_abap_char_utilities=>newline IN lv_value WITH ''.
-        rv_empty = boolc( lv_value IS INITIAL ).
+        rv_empty = xsdbool( lv_value IS INITIAL ).
       ELSE.
-        rv_empty = boolc( lv_value IS INITIAL ).
+        rv_empty = xsdbool( lv_value IS INITIAL ).
       ENDIF.
 
       IF rv_empty <> abap_true.
@@ -157,7 +170,7 @@ CLASS zcl_abapgit_html_form_utils IMPLEMENTATION.
 
     FIELD-SYMBOLS <ls_field> LIKE LINE OF lt_fields.
 
-    CREATE OBJECT ro_form_data.
+    ro_form_data = NEW #( ).
 
     IF io_form_data->is_empty( ) = abap_true.
       RETURN.
@@ -177,7 +190,7 @@ CLASS zcl_abapgit_html_form_utils IMPLEMENTATION.
       IF <ls_field>-type = zif_abapgit_html_form=>c_field_type-checkbox.
         ro_form_data->set(
           iv_key = <ls_field>-name
-          iv_val = boolc( lv_value = 'on' ) ) ##TYPE.
+          iv_val = xsdbool( lv_value = 'on' ) ) ##TYPE.
       ELSEIF ( <ls_field>-type = zif_abapgit_html_form=>c_field_type-text
           OR <ls_field>-type = zif_abapgit_html_form=>c_field_type-textarea )
           AND <ls_field>-upper_case = abap_true.
@@ -242,7 +255,7 @@ CLASS zcl_abapgit_html_form_utils IMPLEMENTATION.
 
     FIELD-SYMBOLS <ls_field> LIKE LINE OF lt_fields.
 
-    CREATE OBJECT ro_validation_log.
+    ro_validation_log = NEW #( ).
 
     lt_fields = mo_form->get_fields( ).
     LOOP AT lt_fields ASSIGNING <ls_field>.
