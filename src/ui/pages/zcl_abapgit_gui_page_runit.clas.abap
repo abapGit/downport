@@ -96,7 +96,7 @@ CLASS zcl_abapgit_gui_page_runit IMPLEMENTATION.
     DATA lo_page_code_inspector TYPE REF TO zcl_abapgit_gui_page_code_insp.
 
     TRY.
-        CREATE OBJECT lo_component EXPORTING io_repo = io_repo.
+        lo_component = NEW #( io_repo = io_repo ).
 
         ri_page = zcl_abapgit_gui_page_hoc=>create(
           iv_page_title         = |Unit Tests|
@@ -107,8 +107,8 @@ CLASS zcl_abapgit_gui_page_runit IMPLEMENTATION.
 
         " Fallback as either SAPLSAUCV_GUI_RUNNER is not available in old releases
         " or passport=>get is private in newer releases NW >= 756
-        CREATE OBJECT lo_page_code_inspector EXPORTING io_repo = io_repo
-                                                       iv_check_variant = 'SWF_ABAP_UNIT'.
+        lo_page_code_inspector = NEW #( io_repo = io_repo
+                                        iv_check_variant = 'SWF_ABAP_UNIT' ).
 
         ri_page = lo_page_code_inspector.
 
@@ -199,12 +199,14 @@ CLASS zcl_abapgit_gui_page_runit IMPLEMENTATION.
     FIELD-SYMBOLS <ls_class>          TYPE any.
     FIELD-SYMBOLS <ls_method>         TYPE any.
     FIELD-SYMBOLS <lv_any>            TYPE any.
+    FIELD-SYMBOLS <lt_text_info>      TYPE ANY TABLE.
+    FIELD-SYMBOLS <ls_text_info>      TYPE any.
     FIELD-SYMBOLS <lt_params>         TYPE string_table.
 
 
     register_handlers( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div class="repo">' ).
     ri_html->add( zcl_abapgit_gui_chunk_lib=>render_repo_top( io_repo        = mo_repo
@@ -220,10 +222,19 @@ CLASS zcl_abapgit_gui_page_runit IMPLEMENTATION.
 
     LOOP AT <lt_indices> ASSIGNING <ls_alert_by_index>.
       ASSIGN COMPONENT 'ALERTS' OF STRUCTURE <ls_alert_by_index> TO <lt_alerts>.
-      LOOP AT <lt_alerts> ASSIGNING <ls_alert> WHERE ('KIND = ''F'' OR KIND = ''S'' OR KIND = ''E''').
+      LOOP AT <lt_alerts> ASSIGNING <ls_alert> WHERE ('KIND = ''F'' OR KIND = ''S'' OR KIND = ''E'' OR KIND = ''W''').
+        CLEAR lv_text.
         ASSIGN COMPONENT 'HEADER-PARAMS' OF STRUCTURE <ls_alert> TO <lt_params>.
         LOOP AT <lt_params> INTO lv_params.
-          lv_text = lv_params.
+          lv_text = lv_text && lv_params.
+        ENDLOOP.
+
+        ASSIGN COMPONENT 'TEXT_INFOS' OF STRUCTURE <ls_alert> TO <lt_text_info>.
+        LOOP AT <lt_text_info> ASSIGNING <ls_text_info>.
+          ASSIGN COMPONENT 'PARAMS' OF STRUCTURE <ls_text_info> TO <lt_params>.
+          LOOP AT <lt_params> INTO lv_params.
+            lv_text = lv_text && lv_params.
+          ENDLOOP.
         ENDLOOP.
         ri_html->add( |<tr><td><span class="boxed red-filled-set">{ lv_text }</span></td></tr>| ).
         lv_count = lv_count + 1.
