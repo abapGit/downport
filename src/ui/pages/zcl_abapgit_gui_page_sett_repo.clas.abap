@@ -74,14 +74,14 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_REPO IMPLEMENTATION.
+CLASS zcl_abapgit_gui_page_sett_repo IMPLEMENTATION.
 
 
   METHOD constructor.
 
     super->constructor( ).
-    CREATE OBJECT mo_validation_log.
-    CREATE OBJECT mo_form_data.
+    mo_validation_log = NEW #( ).
+    mo_form_data = NEW #( ).
     mo_repo = io_repo.
     mo_form = get_form_schema( ).
     mo_form_util = zcl_abapgit_html_form_utils=>create( mo_form ).
@@ -95,7 +95,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_REPO IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_sett_repo.
 
-    CREATE OBJECT lo_component EXPORTING io_repo = io_repo.
+    lo_component = NEW #( io_repo = io_repo ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Repository Settings'
@@ -216,7 +216,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_REPO IMPLEMENTATION.
       iv_val = zcl_abapgit_lxe_texts=>convert_table_to_lang_string( lo_dot->get_i18n_languages( ) ) ).
     mo_form_data->set(
       iv_key = c_id-use_lxe
-      iv_val = lo_dot->use_lxe( ) ).
+      iv_val = xsdbool( lo_dot->use_lxe( ) = abap_true ) ) ##TYPE.
     mo_form_data->set(
       iv_key = c_id-folder_logic
       iv_val = ls_dot-folder_logic ).
@@ -301,7 +301,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_REPO IMPLEMENTATION.
       zcl_abapgit_lxe_texts=>convert_lang_string_to_table(
         iv_langs              = mo_form_data->get( c_id-i18n_langs )
         iv_skip_main_language = lo_dot->get_main_language( ) ) ).
-    lo_dot->use_lxe( boolc( mo_form_data->get( c_id-use_lxe ) = 'X' ) ).
+    lo_dot->use_lxe( xsdbool( mo_form_data->get( c_id-use_lxe ) = abap_true ) ).
 
     " Remove all ignores
     lt_ignore = lo_dot->get_data( )-ignore.
@@ -446,7 +446,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_REPO IMPLEMENTATION.
       read_settings( ).
     ENDIF.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( `<div class="repo">` ).
 
