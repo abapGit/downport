@@ -53,7 +53,7 @@ ENDCLASS.
 
 
 
-CLASS zcl_abapgit_gui_page_runit IMPLEMENTATION.
+CLASS ZCL_ABAPGIT_GUI_PAGE_RUNIT IMPLEMENTATION.
 
 
   METHOD build_tadir.
@@ -96,7 +96,7 @@ CLASS zcl_abapgit_gui_page_runit IMPLEMENTATION.
     DATA lo_page_code_inspector TYPE REF TO zcl_abapgit_gui_page_code_insp.
 
     TRY.
-        CREATE OBJECT lo_component EXPORTING io_repo = io_repo.
+        lo_component = NEW #( io_repo = io_repo ).
 
         ri_page = zcl_abapgit_gui_page_hoc=>create(
           iv_page_title         = |Unit Tests|
@@ -107,8 +107,8 @@ CLASS zcl_abapgit_gui_page_runit IMPLEMENTATION.
 
         " Fallback as either SAPLSAUCV_GUI_RUNNER is not available in old releases
         " or passport=>get is private in newer releases NW >= 756
-        CREATE OBJECT lo_page_code_inspector EXPORTING io_repo = io_repo
-                                                       iv_check_variant = 'SWF_ABAP_UNIT'.
+        lo_page_code_inspector = NEW #( io_repo = io_repo
+                                        iv_check_variant = 'SWF_ABAP_UNIT' ).
 
         ri_page = lo_page_code_inspector.
 
@@ -206,7 +206,7 @@ CLASS zcl_abapgit_gui_page_runit IMPLEMENTATION.
 
     register_handlers( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div class="repo">' ).
     ri_html->add( zcl_abapgit_gui_chunk_lib=>render_repo_top( io_repo        = mo_repo
@@ -236,8 +236,10 @@ CLASS zcl_abapgit_gui_page_runit IMPLEMENTATION.
             lv_text = lv_text && lv_params.
           ENDLOOP.
         ENDLOOP.
-        ri_html->add( |<tr><td><span class="boxed red-filled-set">{ lv_text }</span></td></tr>| ).
-        lv_count = lv_count + 1.
+        IF lv_text NP '*SAUNIT_NO_TEST_CLASS*'.
+          ri_html->add( |<tr><td><span class="boxed red-filled-set">{ lv_text }</span></td></tr>| ).
+          lv_count = lv_count + 1.
+        ENDIF.
       ENDLOOP.
     ENDLOOP.
 
