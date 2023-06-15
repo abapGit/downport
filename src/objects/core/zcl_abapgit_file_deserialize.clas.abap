@@ -173,7 +173,7 @@ CLASS zcl_abapgit_file_deserialize IMPLEMENTATION.
 
     lt_items = map_results_to_items( it_results ).
 
-    CREATE OBJECT lo_graph EXPORTING it_items = lt_items.
+    lo_graph = NEW #( it_items = lt_items ).
 
     LOOP AT lt_items INTO ls_item.
       CLEAR lt_requires.
@@ -255,7 +255,7 @@ CLASS zcl_abapgit_file_deserialize IMPLEMENTATION.
 
     WHILE lo_graph->has_vertices( ) = abap_true.
       ls_item = lo_graph->get_next( ii_log ).
-      READ TABLE it_results INTO ls_result WITH KEY
+      READ TABLE it_results INTO ls_result WITH KEY sec_key COMPONENTS
         obj_name = ls_item-obj_name
         obj_type = ls_item-obj_type.
       ASSERT sy-subrc = 0.
