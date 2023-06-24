@@ -142,7 +142,7 @@ CLASS zcl_abapgit_object_clas IMPLEMENTATION.
     super->constructor( is_item     = is_item
                         iv_language = iv_language ).
 
-    CREATE OBJECT mi_object_oriented_object_fct TYPE zcl_abapgit_oo_class.
+    mi_object_oriented_object_fct = NEW zcl_abapgit_oo_class( ).
 
     mv_classpool_name = cl_oo_classname_service=>get_classpool_name( |{ is_item-obj_name }| ).
 
@@ -204,6 +204,7 @@ CLASS zcl_abapgit_object_clas IMPLEMENTATION.
 
     mi_object_oriented_object_fct->generate_locals(
       is_key                   = ls_class_key
+      iv_package               = iv_package
       it_local_definitions     = lt_local_definitions
       it_local_implementations = lt_local_implementations
       it_local_macros          = lt_local_macros
@@ -211,8 +212,9 @@ CLASS zcl_abapgit_object_clas IMPLEMENTATION.
 
     repo_apack_replacement( CHANGING ct_source = lt_source ).
     mi_object_oriented_object_fct->deserialize_source(
-      is_key    = ls_class_key
-      it_source = lt_source ).
+      is_key     = ls_class_key
+      iv_package = iv_package
+      it_source  = lt_source ).
 
     ii_xml->read( EXPORTING iv_name = 'DESCRIPTIONS'
                   CHANGING cg_data = lt_descriptions ).
@@ -777,8 +779,8 @@ CLASS zcl_abapgit_object_clas IMPLEMENTATION.
 
     DATA: lt_reposrc  TYPE STANDARD TABLE OF ty_reposrc,
           ls_reposrc  LIKE LINE OF lt_reposrc,
-          lv_include  TYPE programm,
-          lt_includes TYPE STANDARD TABLE OF programm.
+          lv_include  TYPE syrepid,
+          lt_includes TYPE STANDARD TABLE OF syrepid.
 
     CASE iv_extra.
       WHEN zif_abapgit_oo_object_fnc=>c_parts-locals_def.

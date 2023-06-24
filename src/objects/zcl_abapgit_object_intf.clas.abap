@@ -253,7 +253,7 @@ CLASS zcl_abapgit_object_intf IMPLEMENTATION.
     lv_json_data = zif_abapgit_object~mo_files->read_raw( iv_ext = 'json' ).
     ls_intf_aff = lcl_aff_metadata_handler=>deserialize( lv_json_data ).
 
-    CREATE OBJECT lo_aff_mapper TYPE lcl_aff_type_mapping.
+    lo_aff_mapper = NEW lcl_aff_type_mapping( ).
     lo_aff_mapper->to_abapgit( EXPORTING iv_data = ls_intf_aff
                                          iv_object_name = ms_item-obj_name
                                IMPORTING es_data = rs_intf ).
@@ -441,7 +441,7 @@ CLASS zcl_abapgit_object_intf IMPLEMENTATION.
 
   METHOD zif_abapgit_object~changed_by.
     TYPES: BEGIN OF ty_includes,
-             programm TYPE programm,
+             programm TYPE syrepid,
            END OF ty_includes.
 
     TYPES: BEGIN OF ty_reposrc,
@@ -523,8 +523,9 @@ CLASS zcl_abapgit_object_intf IMPLEMENTATION.
         ls_clskey-clsname = ms_item-obj_name.
         lt_source = zif_abapgit_object~mo_files->read_abap( ).
         mi_object_oriented_object_fct->deserialize_source(
-          is_key    = ls_clskey
-          it_source = lt_source ).
+          is_key     = ls_clskey
+          iv_package = iv_package
+          it_source  = lt_source ).
 
         deserialize_descriptions( it_description = ls_intf-description ).
 
