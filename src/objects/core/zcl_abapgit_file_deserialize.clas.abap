@@ -87,9 +87,10 @@ CLASS zcl_abapgit_file_deserialize IMPLEMENTATION.
     DELETE rt_results WHERE obj_type IS INITIAL.
     "log objects w/o object type
     IF sy-subrc = 0 AND ii_log IS BOUND.
-      LOOP AT lt_objects REFERENCE INTO lr_object USING KEY sec_key
-                         WHERE obj_type IS INITIAL.
-        CHECK lr_object->obj_name IS NOT INITIAL.
+      " Note: Moving the CHECK condition to the LOOP WHERE clause will lead to a
+      " syntax warning in higher releases and syntax error in 702
+      LOOP AT lt_objects REFERENCE INTO lr_object.
+        CHECK lr_object->obj_type IS INITIAL AND lr_object->obj_name IS NOT INITIAL.
         ls_item-devclass = lr_object->package.
         ls_item-obj_type = lr_object->obj_type.
         ls_item-obj_name = lr_object->obj_name.
@@ -174,7 +175,7 @@ CLASS zcl_abapgit_file_deserialize IMPLEMENTATION.
 
     lt_items = map_results_to_items( it_results ).
 
-    CREATE OBJECT lo_graph EXPORTING it_items = lt_items.
+    lo_graph = NEW #( it_items = lt_items ).
 
     LOOP AT lt_items INTO ls_item.
       CLEAR lt_requires.
