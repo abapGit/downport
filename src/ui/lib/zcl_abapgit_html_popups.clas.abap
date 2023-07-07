@@ -35,18 +35,18 @@ CLASS zcl_abapgit_html_popups IMPLEMENTATION.
 
 
   METHOD branch_list.
-    CREATE OBJECT ri_popup TYPE lcl_branch_popup EXPORTING iv_url = iv_url
-                                                           iv_default_branch = iv_default_branch
-                                                           iv_show_new_option = iv_show_new_option.
+    ri_popup = NEW lcl_branch_popup( iv_url = iv_url
+                                     iv_default_branch = iv_default_branch
+                                     iv_show_new_option = iv_show_new_option ).
   ENDMETHOD.
 
 
   METHOD pull_request_list.
-    CREATE OBJECT ri_popup TYPE lcl_pr_popup EXPORTING iv_url = iv_url.
+    ri_popup = NEW lcl_pr_popup( iv_url = iv_url ).
   ENDMETHOD.
 
 
   METHOD tag_list.
-    CREATE OBJECT ri_popup TYPE lcl_tag_popup EXPORTING iv_url = iv_url.
+    ri_popup = NEW lcl_tag_popup( iv_url = iv_url ).
   ENDMETHOD.
 ENDCLASS.
