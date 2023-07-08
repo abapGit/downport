@@ -24,11 +24,11 @@ CLASS ltcl_part_collections IMPLEMENTATION.
     DATA lt_col_exp TYPE string_table.
     DATA lt_parts_act TYPE zif_abapgit_html=>ty_table_of.
 
-    CREATE OBJECT lo_html1.
-    CREATE OBJECT lo_html2.
-    CREATE OBJECT lo_html3.
+    lo_html1 = NEW #( ).
+    lo_html2 = NEW #( ).
+    lo_html3 = NEW #( ).
 
-    CREATE OBJECT lo_parts.
+    lo_parts = NEW #( ).
     lo_parts->add_part(
       iv_collection = 'ABC'
       ii_part = lo_html1 ).

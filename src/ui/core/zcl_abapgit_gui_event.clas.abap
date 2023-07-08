@@ -43,8 +43,9 @@ CLASS zcl_abapgit_gui_event IMPLEMENTATION.
 
   METHOD constructor.
 
+    " Edge Webview control returns upper case action but abapGit requires lower case (#4841)
     zif_abapgit_gui_event~mi_gui_services = ii_gui_services.
-    zif_abapgit_gui_event~mv_action       = iv_action.
+    zif_abapgit_gui_event~mv_action       = to_lower( iv_action ).
     zif_abapgit_gui_event~mv_getdata      = iv_getdata.
     zif_abapgit_gui_event~mt_postdata     = it_postdata.
 
@@ -58,7 +59,7 @@ CLASS zcl_abapgit_gui_event IMPLEMENTATION.
   METHOD fields_to_map.
     FIELD-SYMBOLS <ls_field> LIKE LINE OF it_fields.
 
-    CREATE OBJECT ro_string_map EXPORTING iv_case_insensitive = abap_true.
+    ro_string_map = NEW #( iv_case_insensitive = abap_true ).
     LOOP AT it_fields ASSIGNING <ls_field>.
       ro_string_map->set(
         iv_key = <ls_field>-name
@@ -68,10 +69,10 @@ CLASS zcl_abapgit_gui_event IMPLEMENTATION.
 
 
   METHOD new.
-    CREATE OBJECT ro_instance EXPORTING ii_gui_services = ii_gui_services
-                                        iv_action = iv_action
-                                        iv_getdata = iv_getdata
-                                        it_postdata = it_postdata.
+    ro_instance = NEW #( ii_gui_services = ii_gui_services
+                         iv_action = iv_action
+                         iv_getdata = iv_getdata
+                         it_postdata = it_postdata ).
   ENDMETHOD.
 
 
