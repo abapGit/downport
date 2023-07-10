@@ -105,6 +105,9 @@ CLASS zcl_abapgit_gui_page DEFINITION PUBLIC ABSTRACT
     METHODS get_version_details
       RETURNING
         VALUE(rv_version) TYPE string.
+    METHODS is_edge_control_warning_needed
+      RETURNING
+        VALUE(rv_result) TYPE abap_bool.
 ENDCLASS.
 
 
@@ -123,7 +126,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE IMPLEMENTATION.
 
   METHOD footer.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div id="footer">' ).
     ri_html->add( '<table class="w100"><tr>' ).
@@ -222,7 +225,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE IMPLEMENTATION.
 
   METHOD html_head.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<head>' ).
 
@@ -250,7 +253,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE IMPLEMENTATION.
 
     DATA li_documentation_link TYPE REF TO zif_abapgit_html.
 
-    CREATE OBJECT li_documentation_link TYPE zcl_abapgit_html.
+    li_documentation_link = NEW zcl_abapgit_html( ).
 
     li_documentation_link->add_a(
         iv_txt = 'Documentation'
@@ -295,7 +298,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE IMPLEMENTATION.
     " You should remember that the we have to instantiate ro_html even
     " it's overwritten further down. Because ADD checks whether it's
     " bound.
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     " You should remember that we render the message panel only
     " if we have an error.
@@ -307,7 +310,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE IMPLEMENTATION.
 
     " You should remember that the exception viewer dispatches the events of
     " error message panel
-    CREATE OBJECT mo_exception_viewer EXPORTING ix_error = mx_error.
+    mo_exception_viewer = NEW #( ix_error = mx_error ).
 
     " You should remember that we render the message panel just once
     " for each exception/error text.
@@ -346,7 +349,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE IMPLEMENTATION.
 
   METHOD scripts.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     render_deferred_parts(
       ii_html          = ri_html
@@ -375,7 +378,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE IMPLEMENTATION.
       lv_page_title = ms_control-page_title_provider->get_page_title( ).
     ENDIF.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div id="header">' ).
 
@@ -396,7 +399,9 @@ CLASS ZCL_ABAPGIT_GUI_PAGE IMPLEMENTATION.
       ri_html->add( '</div>' ).
     ENDIF.
 
-    render_browser_control_warning( ri_html ).
+    IF is_edge_control_warning_needed( ) = abap_true.
+      render_browser_control_warning( ri_html ).
+    ENDIF.
 
     ri_html->add( '</div>' ).
 
@@ -441,7 +446,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE IMPLEMENTATION.
 
 
   METHOD zif_abapgit_gui_modal~is_modal.
-    rv_yes = boolc( ms_control-show_as_modal = abap_true ).
+    rv_yes = xsdbool( ms_control-show_as_modal = abap_true ).
   ENDMETHOD.
 
 
@@ -456,7 +461,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE IMPLEMENTATION.
     lo_timer = zcl_abapgit_timer=>create( )->start( ).
 
     " Real page
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<!DOCTYPE html>' ).
     ri_html->add( '<html lang="en">' ).
@@ -491,6 +496,40 @@ CLASS ZCL_ABAPGIT_GUI_PAGE IMPLEMENTATION.
 
     ri_html->add( '</body>' ).
     ri_html->add( '</html>' ).
+
+  ENDMETHOD.
+
+
+  METHOD is_edge_control_warning_needed.
+
+    DATA:
+      lv_gui_release       TYPE zif_abapgit_frontend_services=>ty_gui_release,
+      lv_gui_sp            TYPE zif_abapgit_frontend_services=>ty_gui_sp,
+      lv_gui_patch         TYPE zif_abapgit_frontend_services=>ty_gui_patch,
+      li_frontend_services TYPE REF TO zif_abapgit_frontend_services.
+
+    " With SAGUI 8.00 PL3 and 7.70 PL13 edge browser control is basically working.
+    " For lower releases we render the browser control warning
+    " an toggle it via JS function toggleBrowserControlWarning.
+
+    rv_result = abap_true.
+
+    TRY.
+        li_frontend_services = zcl_abapgit_ui_factory=>get_frontend_services( ).
+        li_frontend_services->get_gui_version(
+          IMPORTING
+            ev_gui_release        = lv_gui_release
+            ev_gui_sp             = lv_gui_sp
+            ev_gui_patch          = lv_gui_patch ).
+
+      CATCH zcx_abapgit_exception.
+        RETURN.
+    ENDTRY.
+
+    IF lv_gui_release >= '7700' AND lv_gui_sp >= '1' AND lv_gui_patch >= '13'
+    OR lv_gui_release >= '8000' AND lv_gui_sp >= '1' AND lv_gui_patch >= '3'.
+      rv_result = abap_false.
+    ENDIF.
 
   ENDMETHOD.
 ENDCLASS.
