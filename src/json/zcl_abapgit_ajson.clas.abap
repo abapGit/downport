@@ -50,9 +50,10 @@ CLASS zcl_abapgit_ajson DEFINITION
 
     CLASS-METHODS parse
       IMPORTING
-        !iv_json           TYPE string
-        !iv_freeze         TYPE abap_bool DEFAULT abap_false
-        !ii_custom_mapping TYPE REF TO zif_abapgit_ajson_mapping OPTIONAL
+        !iv_json            TYPE string
+        !iv_freeze          TYPE abap_bool DEFAULT abap_false
+        !ii_custom_mapping  TYPE REF TO zif_abapgit_ajson_mapping OPTIONAL
+        !iv_keep_item_order TYPE abap_bool DEFAULT abap_false
       RETURNING
         VALUE(ro_instance) TYPE REF TO zcl_abapgit_ajson
       RAISING
@@ -137,9 +138,9 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
 
 
   METHOD create_empty.
-    CREATE OBJECT ro_instance EXPORTING iv_to_abap_corresponding_only = iv_to_abap_corresponding_only
-                                        iv_format_datetime = iv_format_datetime
-                                        iv_keep_item_order = iv_keep_item_order.
+    ro_instance = NEW #( iv_to_abap_corresponding_only = iv_to_abap_corresponding_only
+                         iv_format_datetime = iv_format_datetime
+                         iv_keep_item_order = iv_keep_item_order ).
     ro_instance->mi_custom_mapping = ii_custom_mapping.
   ENDMETHOD.
 
@@ -152,14 +153,14 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
       zcx_abapgit_ajson_error=>raise( 'Source not bound' ).
     ENDIF.
 
-    CREATE OBJECT ro_instance EXPORTING iv_to_abap_corresponding_only = ii_source_json->opts( )-to_abap_corresponding_only
-                                        iv_format_datetime = ii_source_json->opts( )-format_datetime
-                                        iv_keep_item_order = ii_source_json->opts( )-keep_item_order.
+    ro_instance = NEW #( iv_to_abap_corresponding_only = ii_source_json->opts( )-to_abap_corresponding_only
+                         iv_format_datetime = ii_source_json->opts( )-format_datetime
+                         iv_keep_item_order = ii_source_json->opts( )-keep_item_order ).
 
     IF ii_filter IS NOT BOUND AND ii_mapper IS NOT BOUND.
       ro_instance->mt_json_tree = ii_source_json->mt_json_tree.
     ELSE.
-      CREATE OBJECT lo_mutator_queue.
+      lo_mutator_queue = NEW #( ).
       IF ii_mapper IS BOUND.
         " Mapping goes first. But maybe it should be a freely definable queue of processors ?
         lo_mutator_queue->add( lcl_mapper_runner=>new( ii_mapper ) ).
@@ -229,9 +230,9 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
 
 
   METHOD new.
-    CREATE OBJECT ro_instance EXPORTING iv_to_abap_corresponding_only = iv_to_abap_corresponding_only
-                                        iv_format_datetime = iv_format_datetime
-                                        iv_keep_item_order = iv_keep_item_order.
+    ro_instance = NEW #( iv_to_abap_corresponding_only = iv_to_abap_corresponding_only
+                         iv_format_datetime = iv_format_datetime
+                         iv_keep_item_order = iv_keep_item_order ).
   ENDMETHOD.
 
 
@@ -239,10 +240,13 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
 
     DATA lo_parser TYPE REF TO lcl_json_parser.
 
-    CREATE OBJECT ro_instance.
-    CREATE OBJECT lo_parser.
-    ro_instance->mt_json_tree = lo_parser->parse( iv_json ).
+    ro_instance = NEW #( ).
+    lo_parser = NEW #( ).
+    ro_instance->mt_json_tree = lo_parser->parse(
+      iv_json            = iv_json
+      iv_keep_item_order = iv_keep_item_order ).
     ro_instance->mi_custom_mapping = ii_custom_mapping.
+    ro_instance->ms_opts-keep_item_order = iv_keep_item_order.
 
     IF iv_freeze = abap_true.
       ro_instance->freeze( ).
@@ -369,7 +373,7 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
 
 
   METHOD zif_abapgit_ajson~exists.
-    rv_exists = boolc( get_item( iv_path ) IS NOT INITIAL ).
+    rv_exists = xsdbool( get_item( iv_path ) IS NOT INITIAL ).
   ENDMETHOD.
 
 
@@ -409,7 +413,7 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
     IF lr_item IS INITIAL OR lr_item->type = zif_abapgit_ajson_types=>node_type-null.
       RETURN.
     ELSEIF lr_item->type = zif_abapgit_ajson_types=>node_type-boolean.
-      rv_value = boolc( lr_item->value = 'true' ).
+      rv_value = xsdbool( lr_item->value = 'true' ).
     ELSEIF lr_item->value IS NOT INITIAL.
       rv_value = abap_true.
     ENDIF.
@@ -491,7 +495,7 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    CREATE OBJECT lo_to_abap.
+    lo_to_abap = NEW #( ).
 
     TRY.
         rv_value = lo_to_abap->to_timestamp( lr_item->value ).
@@ -503,7 +507,7 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
 
 
   METHOD zif_abapgit_ajson~is_empty.
-    rv_yes = boolc( lines( mt_json_tree ) = 0 ).
+    rv_yes = xsdbool( lines( mt_json_tree ) = 0 ).
   ENDMETHOD.
 
 
@@ -586,6 +590,7 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
     DATA ls_split_path TYPE zif_abapgit_ajson_types=>ty_path_name.
     DATA lr_parent TYPE REF TO zif_abapgit_ajson_types=>ty_node.
     DATA ls_deleted_node TYPE zif_abapgit_ajson_types=>ty_node.
+    DATA lv_item_order TYPE zif_abapgit_ajson_types=>ty_node-order.
 
     read_only_watchdog( ).
 
@@ -629,6 +634,7 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
       ir_parent = lr_parent
       iv_path   = ls_split_path-path
       iv_name   = ls_split_path-name ).
+    lv_item_order = ls_deleted_node-order.
 
     " convert to json
     DATA lt_new_nodes TYPE zif_abapgit_ajson_types=>ty_nodes_tt.
@@ -638,12 +644,15 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
       lv_array_index = lcl_utils=>validate_array_index(
         iv_path  = ls_split_path-path
         iv_index = ls_split_path-name ).
+    ELSEIF lr_parent->type = zif_abapgit_ajson_types=>node_type-object
+      AND lv_item_order = 0 AND ms_opts-keep_item_order = abap_true.
+      lv_item_order = lr_parent->children + 1.
     ENDIF.
 
     IF iv_node_type IS NOT INITIAL.
       lt_new_nodes = lcl_abap_to_json=>insert_with_type(
         is_opts            = ms_opts
-        iv_item_order      = ls_deleted_node-order
+        iv_item_order      = lv_item_order
         iv_data            = iv_val
         iv_type            = iv_node_type
         iv_array_index     = lv_array_index
@@ -652,7 +661,7 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
     ELSE.
       lt_new_nodes = lcl_abap_to_json=>convert(
         is_opts            = ms_opts
-        iv_item_order      = ls_deleted_node-order
+        iv_item_order      = lv_item_order
         iv_data            = iv_val
         iv_array_index     = lv_array_index
         is_prefix          = ls_split_path
@@ -691,7 +700,7 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
     ENDIF.
 
     IF go_float_regex IS NOT BOUND.
-      CREATE OBJECT go_float_regex EXPORTING pattern = '^([1-9][0-9]*|0)\.[0-9]+$'.
+      go_float_regex = NEW #( pattern = '^([1-9][0-9]*|0)\.[0-9]+$' ).
       " expects fractional, because ints are detected separately
     ENDIF.
 
@@ -719,7 +728,9 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
       "Expect object/array, but no further checks, parser will catch errors
       zif_abapgit_ajson~set(
         iv_path = lv_path
-        iv_val  = parse( lv_val ) ).
+        iv_val  = parse(
+          iv_json = lv_val
+          iv_keep_item_order = ms_opts-keep_item_order ) ).
     ELSE. " string
       lv_last = strlen( lv_val ) - 1.
       IF lv_val+0(1) = '"' AND lv_val+lv_last(1) = '"'.
@@ -743,7 +754,7 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
     ri_json = me.
 
     DATA lv_bool TYPE abap_bool.
-    lv_bool = boolc( iv_val IS NOT INITIAL ).
+    lv_bool = xsdbool( iv_val IS NOT INITIAL ).
     zif_abapgit_ajson~set(
       iv_ignore_empty = abap_false
       iv_path = iv_path
@@ -830,7 +841,7 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
     DATA lv_path_len        TYPE i.
     DATA lv_path_pattern    TYPE string.
 
-    CREATE OBJECT lo_section.
+    lo_section = NEW #( ).
     lv_normalized_path = lcl_utils=>normalize_path( iv_path ).
     lv_path_len        = strlen( lv_normalized_path ).
     ls_path_parts      = lcl_utils=>split_path( lv_normalized_path ).
@@ -841,7 +852,7 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    CLEAR: ls_item-path, ls_item-name. " this becomes a new root
+    CLEAR: ls_item-path, ls_item-name, ls_item-order. " this becomes a new root
     INSERT ls_item INTO TABLE lo_section->mt_json_tree.
 
     lv_path_pattern = lv_normalized_path && `*`.
@@ -927,8 +938,8 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
     DATA lo_to_abap TYPE REF TO lcl_json_to_abap.
 
     CLEAR ev_container.
-    CREATE OBJECT lo_to_abap EXPORTING iv_corresponding = boolc( iv_corresponding = abap_true OR ms_opts-to_abap_corresponding_only = abap_true )
-                                       ii_custom_mapping = mi_custom_mapping.
+    lo_to_abap = NEW #( iv_corresponding = xsdbool( iv_corresponding = abap_true OR ms_opts-to_abap_corresponding_only = abap_true )
+                        ii_custom_mapping = mi_custom_mapping ).
 
     lo_to_abap->to_abap(
       EXPORTING
