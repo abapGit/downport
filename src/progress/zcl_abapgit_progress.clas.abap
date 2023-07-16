@@ -57,7 +57,7 @@ CLASS zcl_abapgit_progress IMPLEMENTATION.
 * max one progress indicator at a time is supported
 
     IF gi_progress IS INITIAL.
-      gi_progress = NEW zcl_abapgit_progress( ).
+      CREATE OBJECT gi_progress TYPE zcl_abapgit_progress.
     ENDIF.
 
     gi_progress->set_total( iv_total ).
