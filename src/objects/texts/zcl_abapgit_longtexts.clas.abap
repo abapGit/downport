@@ -34,7 +34,7 @@ ENDCLASS.
 
 
 
-CLASS zcl_abapgit_longtexts IMPLEMENTATION.
+CLASS ZCL_ABAPGIT_LONGTEXTS IMPLEMENTATION.
 
 
   METHOD escape_name.
@@ -214,7 +214,7 @@ CLASS zcl_abapgit_longtexts IMPLEMENTATION.
 
     LOOP AT lt_longtexts ASSIGNING <ls_longtext>.
 
-      lv_no_main_lang = boolc( iv_main_language <> <ls_longtext>-dokil-langu ).
+      lv_no_main_lang = xsdbool( iv_main_language <> <ls_longtext>-dokil-langu ).
 
       CALL FUNCTION 'DOCU_UPDATE'
         EXPORTING
@@ -268,7 +268,7 @@ CLASS zcl_abapgit_longtexts IMPLEMENTATION.
     rt_longtexts = read( iv_object_name    = iv_object_name
                          iv_longtext_id    = iv_longtext_id
                          it_dokil          = it_dokil
-                         iv_main_lang_only = ii_xml->i18n_params( )-main_language_only ).
+                         iv_main_lang_only = io_i18n_params->ms_params-main_language_only ).
 
     IF rt_longtexts IS SUPPLIED.
       RETURN.

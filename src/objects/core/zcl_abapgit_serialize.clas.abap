@@ -218,7 +218,7 @@ CLASS zcl_abapgit_serialize IMPLEMENTATION.
       io_dot                = mo_dot_abapgit
       ii_log                = ii_log ).
 
-    CREATE OBJECT lo_filter.
+    lo_filter = NEW #( ).
 
     lo_filter->apply( EXPORTING it_filter = it_filter
                       CHANGING  ct_tadir  = lt_tadir ).
@@ -226,7 +226,7 @@ CLASS zcl_abapgit_serialize IMPLEMENTATION.
 * if there are less than 10 objects run in single thread
 * this helps a lot when debugging, plus performance gain
 * with low number of objects does not matter much
-    lv_force = boolc( lines( lt_tadir ) < 10 ).
+    lv_force = xsdbool( lines( lt_tadir ) < 10 ).
 
     lt_found = serialize(
       iv_package          = iv_package
@@ -608,15 +608,11 @@ CLASS zcl_abapgit_serialize IMPLEMENTATION.
     ls_file_item-item-obj_name  = is_tadir-obj_name.
     ls_file_item-item-devclass  = is_tadir-devclass.
     ls_file_item-item-srcsystem = is_tadir-srcsystem.
-    ls_file_item-item-origlang  = is_tadir-masterlang.
 
     TRY.
         ls_file_item = zcl_abapgit_objects=>serialize(
-          is_item               = ls_file_item-item
-          iv_language           = ms_i18n_params-main_language
-          iv_main_language_only = ms_i18n_params-main_language_only
-          iv_use_lxe            = ms_i18n_params-use_lxe
-          it_translation_langs  = ms_i18n_params-translation_languages ).
+          is_item        = ls_file_item-item
+          io_i18n_params = zcl_abapgit_i18n_params=>new( is_params = ms_i18n_params ) ).
 
         add_to_return( is_file_item = ls_file_item
                        iv_path      = is_tadir-path ).

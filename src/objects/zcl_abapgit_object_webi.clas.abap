@@ -64,7 +64,7 @@ ENDCLASS.
 
 
 
-CLASS zcl_abapgit_object_webi IMPLEMENTATION.
+CLASS ZCL_ABAPGIT_OBJECT_WEBI IMPLEMENTATION.
 
 
   METHOD handle_endpoint.
@@ -360,7 +360,7 @@ CLASS zcl_abapgit_object_webi IMPLEMENTATION.
 
     lv_name = ms_item-obj_name.
 
-    CREATE OBJECT lo_vif.
+    lo_vif = NEW #( ).
     TRY.
         lo_vif->if_ws_md_vif_root~delete_virtual_interface( lv_name ).
       CATCH cx_ws_md_exception.
@@ -594,6 +594,7 @@ CLASS zcl_abapgit_object_webi IMPLEMENTATION.
       iv_pgmid    = 'R3TR'
       iv_object   = ms_item-obj_type
       iv_obj_name = ms_item-obj_name
+      io_i18n_params = mo_i18n_params
       io_xml      = io_xml ).
 
   ENDMETHOD.

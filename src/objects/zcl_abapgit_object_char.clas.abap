@@ -33,7 +33,7 @@ ENDCLASS.
 
 
 
-CLASS zcl_abapgit_object_char IMPLEMENTATION.
+CLASS ZCL_ABAPGIT_OBJECT_CHAR IMPLEMENTATION.
 
 
   METHOD instantiate_char_and_lock.
@@ -43,14 +43,14 @@ CLASS zcl_abapgit_object_char IMPLEMENTATION.
 
 
     SELECT SINGLE name FROM cls_attribute INTO lv_name WHERE name = ms_item-obj_name.
-    lv_new = boolc( sy-subrc <> 0 ).
+    lv_new = xsdbool( sy-subrc <> 0 ).
     lv_name = ms_item-obj_name.
 
     TRY.
-        CREATE OBJECT ro_char EXPORTING im_name = lv_name
-                                        im_type_group = iv_type_group
-                                        im_new = lv_new
-                                        im_activation_state = iv_activation_state.
+        ro_char = NEW #( im_name = lv_name
+                         im_type_group = iv_type_group
+                         im_new = lv_new
+                         im_activation_state = iv_activation_state ).
       CATCH cx_pak_invalid_data
           cx_pak_not_authorized
           cx_pak_invalid_state
@@ -297,7 +297,7 @@ CLASS zcl_abapgit_object_char IMPLEMENTATION.
       WHERE name = ms_item-obj_name
       AND activation_state = lc_active
       ORDER BY PRIMARY KEY.
-    IF io_xml->i18n_params( )-main_language_only = abap_true.
+    IF mo_i18n_params->ms_params-main_language_only = abap_true.
       DELETE ls_char-cls_attributet WHERE langu <> mv_language.
     ENDIF.
 
@@ -310,7 +310,7 @@ CLASS zcl_abapgit_object_char IMPLEMENTATION.
       WHERE name = ms_item-obj_name
       AND activation_state = lc_active
       ORDER BY PRIMARY KEY.
-    IF io_xml->i18n_params( )-main_language_only = abap_true.
+    IF mo_i18n_params->ms_params-main_language_only = abap_true.
       DELETE ls_char-cls_attr_valuet WHERE langu <> mv_language.
     ENDIF.
 

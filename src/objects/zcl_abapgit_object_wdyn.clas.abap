@@ -79,7 +79,7 @@ ENDCLASS.
 
 
 
-CLASS zcl_abapgit_object_wdyn IMPLEMENTATION.
+CLASS ZCL_ABAPGIT_OBJECT_WDYN IMPLEMENTATION.
 
 
   METHOD add_fm_exception.
@@ -803,12 +803,12 @@ CLASS zcl_abapgit_object_wdyn IMPLEMENTATION.
           lv_object_name TYPE seu_objkey.
 
 
-    CREATE OBJECT lo_component.
+    lo_component = NEW #( ).
 
     lv_object_name = ms_item-obj_name.
-    CREATE OBJECT lo_request EXPORTING p_object_type = 'YC'
-                                       p_object_name = lv_object_name
-                                       p_operation = swbm_c_op_delete_no_dialog.
+    lo_request = NEW #( p_object_type = 'YC'
+                        p_object_name = lv_object_name
+                        p_operation = swbm_c_op_delete_no_dialog ).
 
     lo_component->if_wb_program~process_wb_request(
       p_wb_request       = lo_request
@@ -877,7 +877,7 @@ CLASS zcl_abapgit_object_wdyn IMPLEMENTATION.
     SELECT SINGLE component_name FROM wdy_component
       INTO lv_component_name
       WHERE component_name = ms_item-obj_name.          "#EC CI_GENBUFF
-    rv_bool = boolc( sy-subrc = 0 ).
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -951,6 +951,7 @@ CLASS zcl_abapgit_object_wdyn IMPLEMENTATION.
         iv_pgmid    = 'LIMU'
         iv_object   = 'WDYV'
         iv_obj_name = ms_item-obj_name
+        io_i18n_params = mo_i18n_params
         io_xml      = io_xml ).
     ENDIF.
 
@@ -965,7 +966,7 @@ CLASS zcl_abapgit_object_wdyn IMPLEMENTATION.
     ENDLOOP.
 
     IF lt_object IS NOT INITIAL.
-      IF io_xml->i18n_params( )-main_language_only = abap_true.
+      IF mo_i18n_params->ms_params-main_language_only = abap_true.
         SELECT * FROM dokil INTO TABLE lt_dokil
           FOR ALL ENTRIES IN lt_object
           WHERE id = c_longtext_id_wc AND object = lt_object-table_line AND masterlang = abap_true

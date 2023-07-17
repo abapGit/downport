@@ -72,10 +72,6 @@ CLASS ltcl_abapgit_popups_mock IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD zif_abapgit_popups~choose_pr_popup.
-
-  ENDMETHOD.
-
   METHOD zif_abapgit_popups~popup_select_tr_requests.
 
   ENDMETHOD.
@@ -123,7 +119,7 @@ CLASS ltcl_simple_dependency_inject IMPLEMENTATION.
 
     DATA: lo_popups_mock TYPE REF TO ltcl_abapgit_popups_mock.
 
-    CREATE OBJECT lo_popups_mock.
+    lo_popups_mock = NEW #( ).
 
     zcl_abapgit_ui_injector=>set_popups( lo_popups_mock ).
 

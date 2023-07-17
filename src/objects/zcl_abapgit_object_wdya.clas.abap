@@ -21,7 +21,7 @@ ENDCLASS.
 
 
 
-CLASS zcl_abapgit_object_wdya IMPLEMENTATION.
+CLASS ZCL_ABAPGIT_OBJECT_WDYA IMPLEMENTATION.
 
 
   METHOD read.
@@ -72,9 +72,9 @@ CLASS zcl_abapgit_object_wdya IMPLEMENTATION.
 
 
     TRY.
-        CREATE OBJECT lo_app EXPORTING name = is_app-application_name
-                                       definition = is_app
-                                       devclass = iv_package.
+        lo_app = NEW #( name = is_app-application_name
+                        definition = is_app
+                        devclass = iv_package ).
 
         LOOP AT it_properties ASSIGNING <ls_property>.
           li_prop = lo_app->if_wdy_md_application~create_property( <ls_property>-name ).
@@ -264,6 +264,7 @@ CLASS zcl_abapgit_object_wdya IMPLEMENTATION.
       iv_pgmid    = 'R3TR'
       iv_object   = ms_item-obj_type
       iv_obj_name = ms_item-obj_name
+      io_i18n_params = mo_i18n_params
       io_xml      = io_xml ).
 
     serialize_longtexts( ii_xml         = io_xml
