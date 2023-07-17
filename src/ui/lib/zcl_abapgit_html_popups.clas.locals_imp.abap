@@ -29,9 +29,9 @@ CLASS lcl_pr_popup IMPLEMENTATION.
 
   METHOD zif_abapgit_html_popup~create_picklist.
 
-    CREATE OBJECT ro_picklist EXPORTING iv_title = 'Choose Pull Request'
-                                        it_list = fetch_pull_request_list( )
-                                        ii_item_renderer = me.
+    ro_picklist = NEW #( iv_title = 'Choose Pull Request'
+                         it_list = fetch_pull_request_list( )
+                         ii_item_renderer = me ).
 
   ENDMETHOD.
 
@@ -99,9 +99,9 @@ CLASS lcl_branch_popup IMPLEMENTATION.
 
   METHOD zif_abapgit_html_popup~create_picklist.
 
-    CREATE OBJECT ro_picklist EXPORTING iv_title = 'Choose Branch'
-                                        it_list = fetch_branch_list( )
-                                        ii_item_renderer = me.
+    ro_picklist = NEW #( iv_title = 'Choose Branch'
+                         it_list = fetch_branch_list( )
+                         ii_item_renderer = me ).
 
   ENDMETHOD.
 
@@ -194,9 +194,9 @@ CLASS lcl_tag_popup IMPLEMENTATION.
 
   METHOD zif_abapgit_html_popup~create_picklist.
 
-    CREATE OBJECT ro_picklist EXPORTING iv_title = 'Choose Tag'
-                                        it_list = fetch_tag_list( )
-                                        ii_item_renderer = me.
+    ro_picklist = NEW #( iv_title = 'Choose Tag'
+                         it_list = fetch_tag_list( )
+                         ii_item_renderer = me ).
 
   ENDMETHOD.
 
