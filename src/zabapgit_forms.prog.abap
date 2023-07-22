@@ -24,12 +24,24 @@ ENDFORM.                    "run
 
 FORM open_gui RAISING zcx_abapgit_exception.
 
+  DATA lv_action TYPE string.
+  DATA lv_mode   TYPE tabname.
+
   IF sy-batch = abap_true.
     zcl_abapgit_background=>run( ).
   ELSE.
 
+* https://docs.abapgit.org/user-guide/reference/database-util.html#emergency-mode
+    GET PARAMETER ID 'DBT' FIELD lv_mode.
+    CASE lv_mode.
+      WHEN 'ZABAPGIT'.
+        lv_action = zif_abapgit_definitions=>c_action-go_db.
+      WHEN OTHERS.
+        lv_action = zif_abapgit_definitions=>c_action-go_home.
+    ENDCASE.
+
     zcl_abapgit_services_abapgit=>prepare_gui_startup( ).
-    zcl_abapgit_ui_factory=>get_gui( )->go_home( ).
+    zcl_abapgit_ui_factory=>get_gui( )->go_home( lv_action ).
     CALL SELECTION-SCREEN 1001. " trigger screen
 
   ENDIF.
@@ -119,7 +131,7 @@ FORM adjust_toolbar USING pv_dynnr TYPE sy-dynnr.
 
   " Remove toolbar on html screen but re-insert toolbar for variant maintenance.
   " Because otherwise important buttons are missing and variant maintenance is not possible.
-  lv_no_toolbar = boolc( zcl_abapgit_factory=>get_environment(
+  lv_no_toolbar = xsdbool( zcl_abapgit_factory=>get_environment(
                                            )->is_variant_maintenance( ) = abap_false ).
 
   IF ls_header-no_toolbar = lv_no_toolbar.
