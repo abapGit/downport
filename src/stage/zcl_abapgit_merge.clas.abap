@@ -33,7 +33,7 @@ CLASS zcl_abapgit_merge DEFINITION
         !ct_visit  TYPE ty_visit_tt .
     METHODS all_files
       RETURNING
-        VALUE(rt_files) TYPE zif_abapgit_definitions=>ty_expanded_tt .
+        VALUE(rt_files) TYPE zif_abapgit_git_definitions=>ty_expanded_tt .
     METHODS calculate_result
       RAISING
         zcx_abapgit_exception .
@@ -61,7 +61,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_MERGE IMPLEMENTATION.
+CLASS zcl_abapgit_merge IMPLEMENTATION.
 
 
   METHOD all_files.
@@ -77,7 +77,7 @@ CLASS ZCL_ABAPGIT_MERGE IMPLEMENTATION.
 
   METHOD calculate_result.
 
-    DATA: lt_files        TYPE zif_abapgit_definitions=>ty_expanded_tt,
+    DATA: lt_files        TYPE zif_abapgit_git_definitions=>ty_expanded_tt,
           lv_found_source TYPE abap_bool,
           lv_found_target TYPE abap_bool,
           lv_found_common TYPE abap_bool.
@@ -92,7 +92,7 @@ CLASS ZCL_ABAPGIT_MERGE IMPLEMENTATION.
 
     lt_files = all_files( ).
 
-    CREATE OBJECT ms_merge-stage EXPORTING iv_merge_source = ms_merge-source-sha1.
+    ms_merge-stage = NEW #( iv_merge_source = ms_merge-source-sha1 ).
 
     LOOP AT lt_files ASSIGNING <ls_file>.
 
@@ -107,9 +107,9 @@ CLASS ZCL_ABAPGIT_MERGE IMPLEMENTATION.
       READ TABLE ms_merge-ctree ASSIGNING <ls_common>
         WITH KEY path = <ls_file>-path name = <ls_file>-name. "#EC CI_SUBRC
 
-      lv_found_source = boolc( <ls_source> IS ASSIGNED ).
-      lv_found_target = boolc( <ls_target> IS ASSIGNED ).
-      lv_found_common = boolc( <ls_common> IS ASSIGNED ).
+      lv_found_source = xsdbool( <ls_source> IS ASSIGNED ).
+      lv_found_target = xsdbool( <ls_target> IS ASSIGNED ).
+      lv_found_common = xsdbool( <ls_common> IS ASSIGNED ).
 
       IF lv_found_source = abap_false
           AND lv_found_target = abap_false.
@@ -137,7 +137,7 @@ CLASS ZCL_ABAPGIT_MERGE IMPLEMENTATION.
 * added in source
         READ TABLE mt_objects ASSIGNING <ls_object>
           WITH KEY type COMPONENTS
-            type = zif_abapgit_definitions=>c_type-blob
+            type = zif_abapgit_git_definitions=>c_type-blob
             sha1 = <ls_source>-sha1.
         ASSERT sy-subrc = 0.
 
@@ -162,14 +162,14 @@ CLASS ZCL_ABAPGIT_MERGE IMPLEMENTATION.
         <ls_conflict>-source_sha1 = <ls_source>-sha1.
         READ TABLE mt_objects ASSIGNING <ls_object>
           WITH KEY type COMPONENTS
-            type = zif_abapgit_definitions=>c_type-blob
+            type = zif_abapgit_git_definitions=>c_type-blob
             sha1 = <ls_source>-sha1.
         <ls_conflict>-source_data = <ls_object>-data.
 
         <ls_conflict>-target_sha1 = <ls_target>-sha1.
         READ TABLE mt_objects ASSIGNING <ls_object>
           WITH KEY type COMPONENTS
-            type = zif_abapgit_definitions=>c_type-blob
+            type = zif_abapgit_git_definitions=>c_type-blob
             sha1 = <ls_target>-sha1.
         <ls_conflict>-target_data = <ls_object>-data.
 
@@ -192,7 +192,7 @@ CLASS ZCL_ABAPGIT_MERGE IMPLEMENTATION.
 * changed in source
         READ TABLE mt_objects ASSIGNING <ls_object>
           WITH KEY type COMPONENTS
-            type = zif_abapgit_definitions=>c_type-blob
+            type = zif_abapgit_git_definitions=>c_type-blob
             sha1 = <ls_source>-sha1.
         ASSERT sy-subrc = 0.
 
@@ -212,14 +212,14 @@ CLASS ZCL_ABAPGIT_MERGE IMPLEMENTATION.
         <ls_conflict>-source_sha1 = <ls_source>-sha1.
         READ TABLE mt_objects ASSIGNING <ls_object>
           WITH KEY type COMPONENTS
-            type = zif_abapgit_definitions=>c_type-blob
+            type = zif_abapgit_git_definitions=>c_type-blob
             sha1 = <ls_source>-sha1.
         <ls_conflict>-source_data = <ls_object>-data.
 
         <ls_conflict>-target_sha1 = <ls_target>-sha1.
         READ TABLE mt_objects ASSIGNING <ls_object>
           WITH KEY type COMPONENTS
-            type = zif_abapgit_definitions=>c_type-blob
+            type = zif_abapgit_git_definitions=>c_type-blob
             sha1 = <ls_target>-sha1.
         <ls_conflict>-target_data = <ls_object>-data.
 
@@ -285,7 +285,7 @@ CLASS ZCL_ABAPGIT_MERGE IMPLEMENTATION.
     LOOP AT lt_visit INTO lv_commit.
       READ TABLE mt_objects ASSIGNING <ls_object>
         WITH KEY type COMPONENTS
-          type = zif_abapgit_definitions=>c_type-commit
+          type = zif_abapgit_git_definitions=>c_type-commit
           sha1 = lv_commit.
       ASSERT sy-subrc = 0.
 
@@ -366,7 +366,7 @@ CLASS ZCL_ABAPGIT_MERGE IMPLEMENTATION.
 
   METHOD zif_abapgit_merge~has_conflicts.
 
-    rv_conflicts_exists = boolc( lines( mt_conflicts ) > 0 ).
+    rv_conflicts_exists = xsdbool( lines( mt_conflicts ) > 0 ).
 
   ENDMETHOD.
 

@@ -90,7 +90,7 @@ CLASS zcl_abapgit_gui_page_tags DEFINITION
 
     METHODS choose_commit
       RETURNING
-        VALUE(rv_commit) TYPE zif_abapgit_definitions=>ty_commit-sha1
+        VALUE(rv_commit) TYPE zif_abapgit_git_definitions=>ty_commit-sha1
       RAISING
         zcx_abapgit_exception.
 
@@ -98,7 +98,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_GUI_PAGE_TAGS IMPLEMENTATION.
+CLASS zcl_abapgit_gui_page_tags IMPLEMENTATION.
 
 
   METHOD choose_commit.
@@ -117,8 +117,8 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_TAGS IMPLEMENTATION.
   METHOD constructor.
 
     super->constructor( ).
-    CREATE OBJECT mo_form_data.
-    CREATE OBJECT mo_validation_log.
+    mo_form_data = NEW #( ).
+    mo_validation_log = NEW #( ).
     mo_repo ?= ii_repo.
 
     " Get settings from DB
@@ -135,7 +135,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_TAGS IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_tags.
 
-    CREATE OBJECT lo_component EXPORTING ii_repo = ii_repo.
+    lo_component = NEW #( ii_repo = ii_repo ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Create Tag'
@@ -388,7 +388,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_TAGS IMPLEMENTATION.
 
     register_handlers( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( `<div class="repo">` ).
 

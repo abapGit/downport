@@ -47,9 +47,9 @@ CLASS zcl_abapgit_object_iwsv IMPLEMENTATION.
 
   METHOD get_generic.
 
-    CREATE OBJECT ro_generic EXPORTING io_field_rules = get_field_rules( )
-                                       is_item = ms_item
-                                       iv_language = mv_language.
+    ro_generic = NEW #( io_field_rules = get_field_rules( )
+                        is_item = ms_item
+                        iv_language = mv_language ).
 
   ENDMETHOD.
 
@@ -148,7 +148,7 @@ CLASS zcl_abapgit_object_iwsv IMPLEMENTATION.
     <ls_bdcdata>-fnam = 'GS_SCREEN_100-VERSION'.
     <ls_bdcdata>-fval = lv_version.
 
-    zcl_abapgit_ui_factory=>get_gui_jumper( )->jump_batch_input(
+    zcl_abapgit_objects_factory=>get_gui_jumper( )->jump_batch_input(
       iv_tcode   = '/IWBEP/REG_SERVICE'
       it_bdcdata = lt_bdcdata ).
 

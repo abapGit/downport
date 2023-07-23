@@ -100,7 +100,7 @@ CLASS zcl_abapgit_object_styl IMPLEMENTATION.
         strings    = ls_style-strings
         tabs       = ls_style-tabs.
 
-    rv_bool = boolc( lv_found = abap_true ).
+    rv_bool = xsdbool( lv_found = abap_true ).
 
   ENDMETHOD.
 
@@ -165,7 +165,7 @@ CLASS zcl_abapgit_object_styl IMPLEMENTATION.
     ls_bcdata-fval = '=SHOW'.
     APPEND ls_bcdata TO lt_bcdata.
 
-    zcl_abapgit_ui_factory=>get_gui_jumper( )->jump_batch_input(
+    zcl_abapgit_objects_factory=>get_gui_jumper( )->jump_batch_input(
       iv_tcode   = 'SE72'
       it_bdcdata = lt_bcdata ).
 

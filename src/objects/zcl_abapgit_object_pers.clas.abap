@@ -139,7 +139,7 @@ CLASS zcl_abapgit_object_pers IMPLEMENTATION.
         pers_key_does_not_exist = 1
         OTHERS                  = 2 ).
 
-    rv_bool = boolc( sy-subrc = 0 ).
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -197,7 +197,7 @@ CLASS zcl_abapgit_object_pers IMPLEMENTATION.
     ls_bcdata-fval = '=PERSDISPLAY'.
     APPEND ls_bcdata TO lt_bcdata.
 
-    zcl_abapgit_ui_factory=>get_gui_jumper( )->jump_batch_input(
+    zcl_abapgit_objects_factory=>get_gui_jumper( )->jump_batch_input(
       iv_tcode   = 'PERSREG'
       it_bdcdata = lt_bcdata ).
 

@@ -76,7 +76,7 @@ CLASS zcl_abapgit_object_dial IMPLEMENTATION.
     ls_bcdata-fval = '=BACK'.
     APPEND ls_bcdata TO lt_bcdata.
 
-    zcl_abapgit_ui_factory=>get_gui_jumper( )->jump_batch_input(
+    zcl_abapgit_objects_factory=>get_gui_jumper( )->jump_batch_input(
       iv_tcode      = 'SE35'
       it_bdcdata    = lt_bcdata
       iv_new_window = abap_false ).
@@ -125,7 +125,7 @@ CLASS zcl_abapgit_object_dial IMPLEMENTATION.
 
     ls_tdct = _read_tdct( ).
 
-    rv_bool = boolc( ls_tdct IS NOT INITIAL ).
+    rv_bool = xsdbool( ls_tdct IS NOT INITIAL ).
 
   ENDMETHOD.
 
@@ -176,7 +176,7 @@ CLASS zcl_abapgit_object_dial IMPLEMENTATION.
         object_not_found = 1
         OTHERS           = 2.
 
-    rv_exit = boolc( sy-subrc = 0 ).
+    rv_exit = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 

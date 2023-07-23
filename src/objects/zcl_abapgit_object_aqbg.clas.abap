@@ -57,9 +57,9 @@ CLASS zcl_abapgit_object_aqbg IMPLEMENTATION.
 
   METHOD get_generic.
     " transaction SQ03
-    CREATE OBJECT ro_generic EXPORTING is_item = ms_item
-                                       io_field_rules = get_field_rules( )
-                                       iv_language = mv_language.
+    ro_generic = NEW #( is_item = ms_item
+                        io_field_rules = get_field_rules( )
+                        iv_language = mv_language ).
 
   ENDMETHOD.
 
@@ -142,7 +142,7 @@ CLASS zcl_abapgit_object_aqbg IMPLEMENTATION.
     <ls_bdcdata>-fnam = 'RS38S-BGNUM'.
     <ls_bdcdata>-fval = ms_item-obj_name.
 
-    zcl_abapgit_ui_factory=>get_gui_jumper( )->jump_batch_input(
+    zcl_abapgit_objects_factory=>get_gui_jumper( )->jump_batch_input(
       iv_tcode      = 'SQ03'
       it_bdcdata    = lt_bdcdata ).
 
