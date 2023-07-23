@@ -139,9 +139,9 @@ CLASS ltcl_general IMPLEMENTATION.
   METHOD text_from_exception.
     DATA: lx_previous TYPE REF TO cx_sy_dyn_call_illegal_method.
 
-    CREATE OBJECT lx_previous TYPE cx_sy_dyn_call_illegal_method EXPORTING textid = cx_sy_dyn_call_illegal_method=>private_method
-                                                                           classname = 'CLASS'
-                                                                           methodname = 'METHOD'.
+    lx_previous = NEW cx_sy_dyn_call_illegal_method( textid = cx_sy_dyn_call_illegal_method=>private_method
+                                                     classname = 'CLASS'
+                                                     methodname = 'METHOD' ).
 
     given_the_previous_exception( lx_previous ).
 
@@ -397,7 +397,7 @@ CLASS ltcl_split_text IMPLEMENTATION.
         v1 TYPE sy-msgv1 VALUE `Here is a very long text more than 200 characters`,
         v2 TYPE sy-msgv2 VALUE ` and we have to invent a nice story about abapGit`,
         v3 TYPE sy-msgv3 VALUE ` to fill this long message. abapGit is simply the`,
-        v4 TYPE sy-msgv4 VALUE ` greatest! #abapGit #awesome #community`,
+        v4 TYPE sy-msgv4 VALUE ` greatest! #abapGit #awesome #community #opensourc`,
       END OF lc_msg_z.
     test_set_msg_vars( iv_text = lc_text_x && lc_text_y && lc_text_z
                        is_msg  = lc_msg_z ).
@@ -481,7 +481,7 @@ CLASS ltcl_longtext IMPLEMENTATION.
   METHOD text_from_previous_exception.
     DATA: lx_previous TYPE REF TO cx_sy_dyn_call_illegal_method.
 
-    CREATE OBJECT lx_previous.
+    lx_previous = NEW #( ).
 
     given_the_previous_exception( lx_previous ).
     given_the_longtext( gs_longtext_test_data-longtext_500 ).
