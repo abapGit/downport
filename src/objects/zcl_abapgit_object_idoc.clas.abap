@@ -90,7 +90,7 @@ CLASS zcl_abapgit_object_idoc IMPLEMENTATION.
         db_error         = 2
         no_authority     = 3
         OTHERS           = 4.
-    rv_closed = xsdbool( sy-subrc = 0 AND ls_idoc-attributes-closed = abap_true ).
+    rv_closed = boolc( sy-subrc = 0 AND ls_idoc-attributes-closed = abap_true ).
 
   ENDMETHOD.
 
@@ -253,7 +253,7 @@ CLASS zcl_abapgit_object_idoc IMPLEMENTATION.
         db_error         = 2
         OTHERS           = 3.
 
-    rv_bool = xsdbool( sy-subrc = 0 ).
+    rv_bool = boolc( sy-subrc = 0 ).
 
   ENDMETHOD.
 
