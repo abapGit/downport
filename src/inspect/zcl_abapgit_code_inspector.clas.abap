@@ -302,7 +302,7 @@ CLASS ZCL_ABAPGIT_CODE_INSPECTOR IMPLEMENTATION.
           FROM trdir
           WHERE name = is_obj-objname.
 
-        rv_skip = boolc( ls_program_type = 'I' ). " Include program.
+        rv_skip = xsdbool( ls_program_type = 'I' ). " Include program.
 
       WHEN OTHERS.
         rv_skip = abap_false.
@@ -326,19 +326,15 @@ CLASS ZCL_ABAPGIT_CODE_INSPECTOR IMPLEMENTATION.
 
   METHOD zif_abapgit_code_inspector~list_global_variants.
 
-    DATA lt_result TYPE if_satc_ci_variant_access=>ty_variant_infos.
-    FIELD-SYMBOLS <ls_result> LIKE LINE OF lt_result.
-    FIELD-SYMBOLS <ls_list> LIKE LINE OF rt_list.
-
-    lt_result = cl_satc_db_access=>get_ci_variants_with_filter( sy-langu ).
-    SORT lt_result BY name.
-
-* convert types
-    LOOP AT lt_result ASSIGNING <ls_result>.
-      APPEND INITIAL LINE TO rt_list ASSIGNING <ls_list>.
-      <ls_list>-name = <ls_result>-name.
-      <ls_list>-description = <ls_result>-description.
-    ENDLOOP.
+    SELECT scichkv_hd~checkvname AS name
+      scichkv_tx~text AS description
+      INTO TABLE rt_list
+      FROM scichkv_hd
+      LEFT OUTER JOIN scichkv_tx
+      ON scichkv_hd~checkvid = scichkv_tx~checkvid
+      AND scichkv_hd~ciuser  = scichkv_tx~ciuser
+      AND scichkv_tx~language = sy-langu
+      WHERE scichkv_hd~ciuser = space.
 
   ENDMETHOD.
 
@@ -382,7 +378,7 @@ CLASS ZCL_ABAPGIT_CODE_INSPECTOR IMPLEMENTATION.
 
         IF iv_save = abap_true.
           READ TABLE rt_list TRANSPORTING NO FIELDS WITH KEY kind = 'E'.
-          mv_success = boolc( sy-subrc <> 0 ).
+          mv_success = xsdbool( sy-subrc <> 0 ).
         ENDIF.
 
       CATCH zcx_abapgit_exception INTO lx_error.
