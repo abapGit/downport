@@ -181,7 +181,7 @@ CLASS zcl_abapgit_popups IMPLEMENTATION.
 
     lo_branches    = zcl_abapgit_git_transport=>branches( iv_url ).
     lt_branches    = lo_branches->get_branches_only( ).
-    lv_head_suffix = | ({ zif_abapgit_definitions=>c_head_name })|.
+    lv_head_suffix = | ({ zif_abapgit_git_definitions=>c_head_name })|.
     lv_head_symref = lo_branches->get_head_symref( ).
 
     IF iv_hide_branch IS NOT INITIAL.
@@ -189,7 +189,7 @@ CLASS zcl_abapgit_popups IMPLEMENTATION.
     ENDIF.
 
     IF iv_hide_head IS NOT INITIAL.
-      DELETE lt_branches WHERE name    = zif_abapgit_definitions=>c_head_name
+      DELETE lt_branches WHERE name    = zif_abapgit_git_definitions=>c_head_name
                             OR is_head = abap_true.
     ENDIF.
 
@@ -197,7 +197,7 @@ CLASS zcl_abapgit_popups IMPLEMENTATION.
       IF iv_hide_head IS NOT INITIAL.
         lv_text = 'main'.
       ENDIF.
-      IF iv_hide_branch IS NOT INITIAL AND iv_hide_branch <> zif_abapgit_definitions=>c_git_branch-main.
+      IF iv_hide_branch IS NOT INITIAL AND iv_hide_branch <> zif_abapgit_git_definitions=>c_git_branch-main.
         IF lv_text IS INITIAL.
           lv_text = iv_hide_branch && ' is'.
         ELSE.
@@ -219,7 +219,7 @@ CLASS zcl_abapgit_popups IMPLEMENTATION.
 
       IF <ls_branch>-is_head = abap_true.
 
-        IF <ls_branch>-name = zif_abapgit_definitions=>c_head_name. " HEAD
+        IF <ls_branch>-name = zif_abapgit_git_definitions=>c_head_name. " HEAD
           IF <ls_branch>-name <> lv_head_symref AND lv_head_symref IS NOT INITIAL.
             " HEAD but other HEAD symref exists - ignore
             CONTINUE.
@@ -624,7 +624,7 @@ CLASS zcl_abapgit_popups IMPLEMENTATION.
         p_object_data    = es_package_data
       EXCEPTIONS
         action_cancelled = 1.
-    ev_create = boolc( sy-subrc = 0 ).
+    ev_create = xsdbool( sy-subrc = 0 ).
   ENDMETHOD.
 
 
@@ -685,16 +685,16 @@ CLASS zcl_abapgit_popups IMPLEMENTATION.
       iv_width  = iv_end_column - iv_start_column
       iv_height = iv_end_line - iv_start_line ).
 
-    CREATE OBJECT lo_popup EXPORTING it_list = it_list
-                                     iv_title = iv_title
-                                     iv_header_text = iv_header_text
-                                     is_position = ms_position
-                                     iv_striped_pattern = iv_striped_pattern
-                                     iv_optimize_col_width = iv_optimize_col_width
-                                     iv_selection_mode = iv_selection_mode
-                                     iv_select_column_text = iv_select_column_text
-                                     it_columns_to_display = it_columns_to_display
-                                     it_preselected_rows = it_preselected_rows.
+    lo_popup = NEW #( it_list = it_list
+                      iv_title = iv_title
+                      iv_header_text = iv_header_text
+                      is_position = ms_position
+                      iv_striped_pattern = iv_striped_pattern
+                      iv_optimize_col_width = iv_optimize_col_width
+                      iv_selection_mode = iv_selection_mode
+                      iv_select_column_text = iv_select_column_text
+                      it_columns_to_display = it_columns_to_display
+                      it_preselected_rows = it_preselected_rows ).
 
     lo_popup->display( ).
     lo_popup->get_selected( IMPORTING et_list = et_list ).
@@ -871,7 +871,7 @@ CLASS zcl_abapgit_popups IMPLEMENTATION.
     lo_branches = zcl_abapgit_git_transport=>branches( iv_url ).
     lt_tags     = lo_branches->get_tags_only( ).
 
-    LOOP AT lt_tags ASSIGNING <ls_tag> WHERE name NP '*' && zif_abapgit_definitions=>c_git_branch-peel.
+    LOOP AT lt_tags ASSIGNING <ls_tag> WHERE name NP '*' && zif_abapgit_git_definitions=>c_git_branch-peel.
 
       APPEND INITIAL LINE TO lt_selection ASSIGNING <ls_sel>.
       <ls_sel>-varoption = zcl_abapgit_git_tag=>remove_tag_prefix( <ls_tag>-name ).

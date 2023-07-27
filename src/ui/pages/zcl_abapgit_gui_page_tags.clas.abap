@@ -117,8 +117,8 @@ CLASS zcl_abapgit_gui_page_tags IMPLEMENTATION.
   METHOD constructor.
 
     super->constructor( ).
-    CREATE OBJECT mo_form_data.
-    CREATE OBJECT mo_validation_log.
+    mo_form_data = NEW #( ).
+    mo_validation_log = NEW #( ).
     mo_repo ?= ii_repo.
 
     " Get settings from DB
@@ -135,7 +135,7 @@ CLASS zcl_abapgit_gui_page_tags IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_tags.
 
-    CREATE OBJECT lo_component EXPORTING ii_repo = ii_repo.
+    lo_component = NEW #( ii_repo = ii_repo ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Create Tag'
@@ -167,10 +167,10 @@ CLASS zcl_abapgit_gui_page_tags IMPLEMENTATION.
       iv_action = c_event-change_type
     )->option(
       iv_label = 'Lightweight'
-      iv_value = zif_abapgit_definitions=>c_git_branch_type-lightweight_tag
+      iv_value = zif_abapgit_git_definitions=>c_git_branch_type-lightweight_tag
     )->option(
       iv_label = 'Annotated'
-      iv_value = zif_abapgit_definitions=>c_git_branch_type-annotated_tag
+      iv_value = zif_abapgit_git_definitions=>c_git_branch_type-annotated_tag
     )->text(
       iv_name        = c_id-name
       iv_label       = 'Tag Name'
@@ -184,7 +184,7 @@ CLASS zcl_abapgit_gui_page_tags IMPLEMENTATION.
       iv_required    = abap_true
       iv_side_action = c_event-choose_commit ).
 
-    IF ms_tag-type = zif_abapgit_definitions=>c_git_branch_type-annotated_tag.
+    IF ms_tag-type = zif_abapgit_git_definitions=>c_git_branch_type-annotated_tag.
       ro_form->start_group(
         iv_name        = c_id-anno_group
         iv_label       = 'Annotation'
@@ -261,7 +261,7 @@ CLASS zcl_abapgit_gui_page_tags IMPLEMENTATION.
 
   METHOD initialize_form_data.
 
-    ms_tag-type = zif_abapgit_definitions=>c_git_branch_type-lightweight_tag.
+    ms_tag-type = zif_abapgit_git_definitions=>c_git_branch_type-lightweight_tag.
 
     mo_form_data->set(
       iv_key = c_id-tag_type
@@ -356,7 +356,7 @@ CLASS zcl_abapgit_gui_page_tags IMPLEMENTATION.
             WITH cl_abap_char_utilities=>newline.
 
           ms_tag-name = zcl_abapgit_git_tag=>add_tag_prefix( ms_tag-name ).
-          ASSERT ms_tag-name CP zif_abapgit_definitions=>c_git_branch-tags.
+          ASSERT ms_tag-name CP zif_abapgit_git_definitions=>c_git_branch-tags.
 
           TRY.
               zcl_abapgit_git_porcelain=>create_tag(
@@ -388,7 +388,7 @@ CLASS zcl_abapgit_gui_page_tags IMPLEMENTATION.
 
     register_handlers( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( `<div class="repo">` ).
 

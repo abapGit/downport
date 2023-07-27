@@ -57,13 +57,13 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_GUI_PAGE_MERGE_SEL IMPLEMENTATION.
+CLASS zcl_abapgit_gui_page_merge_sel IMPLEMENTATION.
 
 
   METHOD constructor.
 
     super->constructor( ).
-    CREATE OBJECT mo_form_data.
+    mo_form_data = NEW #( ).
     mo_repo ?= ii_repo.
 
     read_branches( ).
@@ -78,7 +78,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_MERGE_SEL IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_merge_sel.
 
-    CREATE OBJECT lo_component EXPORTING ii_repo = ii_repo.
+    lo_component = NEW #( ii_repo = ii_repo ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Merge Branches'
@@ -142,7 +142,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_MERGE_SEL IMPLEMENTATION.
     lo_branches = zcl_abapgit_git_transport=>branches( mo_repo->get_url( ) ).
     mt_branches = lo_branches->get_branches_only( ).
 
-    DELETE mt_branches WHERE name = zif_abapgit_definitions=>c_head_name.
+    DELETE mt_branches WHERE name = zif_abapgit_git_definitions=>c_head_name.
 
   ENDMETHOD.
 
@@ -162,9 +162,9 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_MERGE_SEL IMPLEMENTATION.
           zcx_abapgit_exception=>raise( 'Select different branches' ).
         ENDIF.
 
-        CREATE OBJECT lo_merge EXPORTING io_repo = mo_repo
-                                         iv_source = mo_form_data->get( c_id-source )
-                                         iv_target = mo_form_data->get( c_id-target ).
+        lo_merge = NEW #( io_repo = mo_repo
+                          iv_source = mo_form_data->get( c_id-source )
+                          iv_target = mo_form_data->get( c_id-target ) ).
 
         rs_handled-page = lo_merge.
         rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page.
@@ -178,7 +178,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_MERGE_SEL IMPLEMENTATION.
 
     register_handlers( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( `<div class="repo">` ).
 

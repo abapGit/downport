@@ -104,9 +104,9 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
       rv_name = lo_branch_list->get_head_symref( ).
     ELSEIF -1 = find(
         val = rv_name
-        sub = zif_abapgit_definitions=>c_git_branch-heads_prefix ).
+        sub = zif_abapgit_git_definitions=>c_git_branch-heads_prefix ).
       " Assume short branch name was received
-      rv_name = zif_abapgit_definitions=>c_git_branch-heads_prefix && rv_name.
+      rv_name = zif_abapgit_git_definitions=>c_git_branch-heads_prefix && rv_name.
     ENDIF.
 
   ENDMETHOD.
@@ -114,7 +114,7 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
 
   METHOD get_instance.
     IF gi_ref IS INITIAL.
-      CREATE OBJECT gi_ref TYPE zcl_abapgit_repo_srv.
+      gi_ref = NEW zcl_abapgit_repo_srv( ).
     ENDIF.
     ri_srv = gi_ref.
   ENDMETHOD.
@@ -128,9 +128,9 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
   METHOD instantiate_and_add.
 
     IF is_repo_meta-offline = abap_false.
-      CREATE OBJECT ri_repo TYPE zcl_abapgit_repo_online EXPORTING is_data = is_repo_meta.
+      ri_repo = NEW zcl_abapgit_repo_online( is_data = is_repo_meta ).
     ELSE.
-      CREATE OBJECT ri_repo TYPE zcl_abapgit_repo_offline EXPORTING is_data = is_repo_meta.
+      ri_repo = NEW zcl_abapgit_repo_offline( is_data = is_repo_meta ).
     ENDIF.
     add( ri_repo ).
 

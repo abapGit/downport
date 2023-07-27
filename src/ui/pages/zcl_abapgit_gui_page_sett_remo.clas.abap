@@ -221,7 +221,7 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
       lv_url         = mo_form_data->get( c_id-url ).
       lv_branch_name = mo_form_data->get( c_id-branch ).
 
-      mo_popup_picklist = zcl_abapgit_html_popups=>branch_list(
+      mo_popup_picklist = zcl_abapgit_popup_branch_list=>create(
         iv_show_new_option = abap_false
         iv_url             = lv_url
         iv_default_branch  = lv_branch_name
@@ -258,7 +258,7 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
     ENDIF.
 
     lv_url = mo_form_data->get( c_id-url ).
-    lv_branch_name = zif_abapgit_definitions=>c_git_branch-heads_prefix && mo_form_data->get( c_id-branch ).
+    lv_branch_name = zif_abapgit_git_definitions=>c_git_branch-heads_prefix && mo_form_data->get( c_id-branch ).
 
     li_popups = zcl_abapgit_ui_factory=>get_popups( ).
 
@@ -283,7 +283,7 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
       ENDIF.
 
       lv_url = mo_form_data->get( c_id-url ).
-      mo_popup_picklist = zcl_abapgit_html_popups=>pull_request_list( lv_url
+      mo_popup_picklist = zcl_abapgit_popup_pull_request=>create( lv_url
         )->create_picklist(
         )->set_id( c_event-choose_pull_request
         )->set_in_page( abap_true ).
@@ -321,7 +321,7 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
       ENDIF.
 
       lv_url = mo_form_data->get( c_id-url ).
-      mo_popup_picklist = zcl_abapgit_html_popups=>tag_list( lv_url
+      mo_popup_picklist = zcl_abapgit_popup_tag_list=>create( lv_url
         )->create_picklist(
         )->set_id( c_event-choose_tag
         )->set_in_page( ).
@@ -358,7 +358,7 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
     ms_settings_snapshot = get_remote_settings_from_repo( mo_repo ).
     mo_form              = get_form_schema( ).
     mo_form_data         = initialize_form_data( ).
-    CREATE OBJECT mo_validation_log.
+    mo_validation_log = NEW #( ).
 
   ENDMETHOD.
 
@@ -367,7 +367,7 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_sett_remo.
 
-    CREATE OBJECT lo_component EXPORTING io_repo = io_repo.
+    lo_component = NEW #( io_repo = io_repo ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Remote Settings'
@@ -515,11 +515,14 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
 
       CASE rs_settings-head_type.
         WHEN c_head_types-branch.
-          rs_settings-branch = zif_abapgit_definitions=>c_git_branch-heads_prefix && io_form_data->get( c_id-branch ).
+          rs_settings-branch = zif_abapgit_git_definitions=>c_git_branch-heads_prefix &&
+            io_form_data->get( c_id-branch ).
         WHEN c_head_types-tag.
-          rs_settings-tag = zif_abapgit_definitions=>c_git_branch-tags_prefix && io_form_data->get( c_id-tag ).
+          rs_settings-tag = zif_abapgit_git_definitions=>c_git_branch-tags_prefix &&
+            io_form_data->get( c_id-tag ).
         WHEN c_head_types-commit.
-          rs_settings-branch = zif_abapgit_definitions=>c_git_branch-heads_prefix && io_form_data->get( c_id-branch ).
+          rs_settings-branch = zif_abapgit_git_definitions=>c_git_branch-heads_prefix &&
+            io_form_data->get( c_id-branch ).
           rs_settings-commit = io_form_data->get( c_id-commit ).
         WHEN c_head_types-pull_request.
           rs_settings-pull_request = io_form_data->get( c_id-pull_request ).
@@ -553,13 +556,13 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
 
         rs_settings-switched_origin = lo_repo_online->get_switched_origin( ).
         SPLIT rs_settings-switched_origin AT '@' INTO rs_settings-url rs_settings-branch.
-        IF rs_settings-branch CP zif_abapgit_definitions=>c_git_branch-tags.
+        IF rs_settings-branch CP zif_abapgit_git_definitions=>c_git_branch-tags.
           rs_settings-tag = rs_settings-branch.
           CLEAR rs_settings-branch.
         ENDIF.
 
         lv_branch = lo_repo_online->get_selected_branch( ).
-        REPLACE FIRST OCCURRENCE OF zif_abapgit_definitions=>c_git_branch-heads_prefix IN lv_branch WITH space.
+        REPLACE FIRST OCCURRENCE OF zif_abapgit_git_definitions=>c_git_branch-heads_prefix IN lv_branch WITH space.
         CONDENSE lv_branch.
         rs_settings-pull_request = |{ lo_repo_online->get_url( ) }@{ lv_branch }|.
         rs_settings-head_type = c_head_types-pull_request.
@@ -567,7 +570,7 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
         rs_settings-branch = lo_repo_online->get_selected_branch( ).
         rs_settings-head_type = c_head_types-branch.
 
-        IF rs_settings-branch CP zif_abapgit_definitions=>c_git_branch-tags.
+        IF rs_settings-branch CP zif_abapgit_git_definitions=>c_git_branch-tags.
           rs_settings-head_type = c_head_types-tag.
           rs_settings-tag = rs_settings-branch.
           CLEAR rs_settings-branch.
@@ -613,7 +616,7 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
       lv_type TYPE string,
       lv_head TYPE string.
 
-    CREATE OBJECT ro_form_data.
+    ro_form_data = NEW #( ).
 
     IF ms_settings_snapshot-offline = abap_true.
       lv_type = 'Offline repository'.
@@ -661,7 +664,7 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
 
   METHOD render_content.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( zcl_abapgit_gui_chunk_lib=>render_repo_top(
       io_repo               = mo_repo
@@ -740,7 +743,7 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
           lv_url         TYPE ty_remote_settings-url,
           lv_branch      TYPE ty_remote_settings-branch.
 
-    lv_offline_new = boolc( mo_form_data->get( c_id-offline ) = abap_false ).
+    lv_offline_new = xsdbool( mo_form_data->get( c_id-offline ) = abap_false ).
     mo_form_data->set(
       iv_key = c_id-offline
       iv_val = lv_offline_new ).
@@ -829,7 +832,7 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
       SPLIT iv_pull AT '@' INTO lv_url lv_branch.
       lo_repo->switch_origin(
         iv_url    = lv_url
-        iv_branch = zif_abapgit_definitions=>c_git_branch-heads_prefix && lv_branch ).
+        iv_branch = zif_abapgit_git_definitions=>c_git_branch-heads_prefix && lv_branch ).
     ENDIF.
 
   ENDMETHOD.
@@ -870,7 +873,7 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
             iv_validate = abap_true ).
 
           " Provider-specific URL check
-          CREATE OBJECT lo_url.
+          lo_url = NEW #( ).
           lo_url->validate_url( lv_url ).
         CATCH zcx_abapgit_exception INTO lx_error.
           ro_validation_log->set(
@@ -884,18 +887,18 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
 
       CASE lv_head_type.
         WHEN c_head_types-branch.
-          lv_branch = zif_abapgit_definitions=>c_git_branch-heads_prefix && io_form_data->get( c_id-branch ).
+          lv_branch = zif_abapgit_git_definitions=>c_git_branch-heads_prefix && io_form_data->get( c_id-branch ).
           CONDENSE lv_branch.
           lv_branch_check_error_id = c_id-branch.
         WHEN c_head_types-tag.
-          lv_branch = zif_abapgit_definitions=>c_git_branch-tags_prefix && io_form_data->get( c_id-tag ).
+          lv_branch = zif_abapgit_git_definitions=>c_git_branch-tags_prefix && io_form_data->get( c_id-tag ).
           CONDENSE lv_branch.
           lv_branch_check_error_id = c_id-tag.
         WHEN c_head_types-pull_request.
           lv_pull_request = io_form_data->get( c_id-pull_request ).
           SPLIT lv_pull_request AT '@' INTO lv_url lv_branch.
           IF lv_branch IS NOT INITIAL.
-            lv_branch = zif_abapgit_definitions=>c_git_branch-heads_prefix && lv_branch.
+            lv_branch = zif_abapgit_git_definitions=>c_git_branch-heads_prefix && lv_branch.
           ENDIF.
           lv_branch_check_error_id = c_id-pull_request.
         WHEN c_head_types-commit.
@@ -1097,7 +1100,7 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
 
     handle_picklist_state( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->wrap(
       iv_tag     = 'div'
