@@ -310,7 +310,7 @@ CLASS ZCL_ABAPGIT_REPO IMPLEMENTATION.
 
   METHOD create_new_log.
 
-    mi_log = NEW zcl_abapgit_log( ).
+    CREATE OBJECT mi_log TYPE zcl_abapgit_log.
     mi_log->set_title( iv_title ).
 
     ri_log = mi_log.
@@ -427,7 +427,7 @@ CLASS ZCL_ABAPGIT_REPO IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    ri_config = NEW zcl_abapgit_data_config( ).
+    CREATE OBJECT ri_config TYPE zcl_abapgit_data_config.
     mi_data_config = ri_config.
 
     " Assume remote data has been loaded already
@@ -533,7 +533,7 @@ CLASS ZCL_ABAPGIT_REPO IMPLEMENTATION.
     CLEAR lt_tadir.
     INSERT ls_tadir INTO TABLE lt_tadir.
 
-    lo_serialize = NEW #( ).
+    CREATE OBJECT lo_serialize.
     lt_new_local_files = lo_serialize->serialize(
       iv_package = ms_data-package
       it_tadir   = lt_tadir ).
@@ -725,7 +725,7 @@ CLASS ZCL_ABAPGIT_REPO IMPLEMENTATION.
 
   METHOD zif_abapgit_repo~checksums.
 
-    ri_checksums = NEW zcl_abapgit_repo_checksums( iv_repo_key = ms_data-key ).
+    CREATE OBJECT ri_checksums TYPE zcl_abapgit_repo_checksums EXPORTING iv_repo_key = ms_data-key.
 
   ENDMETHOD.
 
@@ -809,7 +809,7 @@ CLASS ZCL_ABAPGIT_REPO IMPLEMENTATION.
 
 
   METHOD zif_abapgit_repo~get_dot_abapgit.
-    ro_dot_abapgit = NEW #( is_data = ms_data-dot_abapgit ).
+    CREATE OBJECT ro_dot_abapgit EXPORTING is_data = ms_data-dot_abapgit.
   ENDMETHOD.
 
 
@@ -823,8 +823,8 @@ CLASS ZCL_ABAPGIT_REPO IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    lo_serialize = NEW #( io_dot_abapgit = get_dot_abapgit( )
-                          is_local_settings = get_local_settings( ) ).
+    CREATE OBJECT lo_serialize EXPORTING io_dot_abapgit = get_dot_abapgit( )
+                                         is_local_settings = get_local_settings( ).
 
     IF ii_obj_filter IS NOT INITIAL.
       lt_filter = ii_obj_filter->get_filter( ).
@@ -850,7 +850,7 @@ CLASS ZCL_ABAPGIT_REPO IMPLEMENTATION.
     IF ii_obj_filter IS NOT INITIAL.
       lt_filter = ii_obj_filter->get_filter( ).
 
-      lr_filter = NEW #( ).
+      CREATE OBJECT lr_filter.
       lr_filter->apply_object_filter(
         EXPORTING
           it_filter   = lt_filter
@@ -922,7 +922,7 @@ CLASS ZCL_ABAPGIT_REPO IMPLEMENTATION.
 
     DATA lo_abapgit_abap_language_vers TYPE REF TO zcl_abapgit_abap_language_vers.
     DATA lv_text TYPE string.
-    lo_abapgit_abap_language_vers = NEW #( ).
+    CREATE OBJECT lo_abapgit_abap_language_vers.
 
     IF lo_abapgit_abap_language_vers->is_import_allowed( io_repo = me
                                                          iv_package = ms_data-package ) = abap_false.

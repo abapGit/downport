@@ -93,8 +93,8 @@ CLASS zcl_abapgit_gui_page_hoc IMPLEMENTATION.
     ls_control-extra_js_url        = iv_extra_js_url.
     ls_control-show_as_modal       = iv_show_as_modal.
 
-    lo_page = NEW #( ii_child_component = ii_child_component
-                     is_control = ls_control ).
+    CREATE OBJECT lo_page EXPORTING ii_child_component = ii_child_component
+                                    is_control = ls_control.
 
     ri_page_wrap = lo_page.
 
