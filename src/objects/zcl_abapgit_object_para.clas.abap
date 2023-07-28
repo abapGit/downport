@@ -157,7 +157,7 @@ CLASS ZCL_ABAPGIT_OBJECT_PARA IMPLEMENTATION.
 
     SELECT SINGLE paramid FROM tpara INTO lv_paramid
       WHERE paramid = ms_item-obj_name.                 "#EC CI_GENBUFF
-    rv_bool = xsdbool( sy-subrc = 0 ).
+    rv_bool = boolc( sy-subrc = 0 ).
 
   ENDMETHOD.
 
