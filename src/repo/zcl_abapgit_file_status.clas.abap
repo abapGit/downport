@@ -125,9 +125,7 @@ CLASS zcl_abapgit_file_status IMPLEMENTATION.
     rs_result-path     = is_local-file-path.
     rs_result-filename = is_local-file-filename.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( is_local-file-sha1 = is_remote-sha1 ).
-    rs_result-match    = temp1.
+    rs_result-match    = xsdbool( is_local-file-sha1 = is_remote-sha1 ).
     IF rs_result-match = abap_true.
       RETURN.
     ENDIF.
@@ -361,13 +359,12 @@ CLASS zcl_abapgit_file_status IMPLEMENTATION.
 
   METHOD process_items.
 
-    TYPES temp1 TYPE SORTED TABLE OF devclass WITH UNIQUE KEY table_line.
-DATA:
+    DATA:
       ls_item         LIKE LINE OF ct_items,
       lv_is_xml       TYPE abap_bool,
       lv_is_json      TYPE abap_bool,
       lv_sub_fetched  TYPE abap_bool,
-      lt_sub_packages TYPE temp1.
+      lt_sub_packages TYPE SORTED TABLE OF devclass WITH UNIQUE KEY table_line.
 
     FIELD-SYMBOLS <ls_remote> LIKE LINE OF it_unprocessed_remote.
 
@@ -547,8 +544,8 @@ DATA:
         ct_local  = lt_local
         ct_remote = lt_remote ).
 
-    CREATE OBJECT lo_instance EXPORTING iv_root_package = io_repo->get_package( )
-                                        io_dot = io_repo->get_dot_abapgit( ).
+    lo_instance = NEW #( iv_root_package = io_repo->get_package( )
+                         io_dot = io_repo->get_dot_abapgit( ) ).
 
     rt_results = lo_instance->calculate_status(
       it_local     = lt_local
@@ -557,8 +554,8 @@ DATA:
 
     IF ii_log IS BOUND.
       " This method just adds messages to the log. No log, nothing to do here
-      CREATE OBJECT lo_consistency_checks EXPORTING iv_root_package = io_repo->get_package( )
-                                                    io_dot = io_repo->get_dot_abapgit( ).
+      lo_consistency_checks = NEW #( iv_root_package = io_repo->get_package( )
+                                     io_dot = io_repo->get_dot_abapgit( ) ).
       ii_log->merge_with( lo_consistency_checks->run_checks( rt_results ) ).
     ENDIF.
 
