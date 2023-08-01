@@ -135,14 +135,14 @@ ENDCLASS.
 
 
 
-CLASS zcl_abapgit_object_clas IMPLEMENTATION.
+CLASS ZCL_ABAPGIT_OBJECT_CLAS IMPLEMENTATION.
 
 
   METHOD constructor.
     super->constructor( is_item     = is_item
                         iv_language = iv_language ).
 
-    CREATE OBJECT mi_object_oriented_object_fct TYPE zcl_abapgit_oo_class.
+    mi_object_oriented_object_fct = NEW zcl_abapgit_oo_class( ).
 
     mv_classpool_name = cl_oo_classname_service=>get_classpool_name( |{ is_item-obj_name }| ).
 
@@ -472,7 +472,7 @@ CLASS zcl_abapgit_object_clas IMPLEMENTATION.
     ENDIF.
     " Remove technical languages
     lt_language_filter = mo_i18n_params->build_language_filter( ).
-    DELETE lt_descriptions WHERE NOT langu IN lt_language_filter.
+    DELETE lt_descriptions WHERE NOT langu IN lt_language_filter AND langu <> mv_language.
 
     ii_xml->add( iv_name = 'DESCRIPTIONS'
                  ig_data = lt_descriptions ).
@@ -499,7 +499,7 @@ CLASS zcl_abapgit_object_clas IMPLEMENTATION.
     ENDIF.
     " Remove technical languages
     lt_language_filter = mo_i18n_params->build_language_filter( ).
-    DELETE lt_descriptions WHERE NOT langu IN lt_language_filter.
+    DELETE lt_descriptions WHERE NOT langu IN lt_language_filter AND langu <> mv_language.
 
     ii_xml->add( iv_name = 'DESCRIPTIONS_SUB'
                  ig_data = lt_descriptions ).
