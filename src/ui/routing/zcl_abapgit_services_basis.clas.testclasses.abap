@@ -116,7 +116,7 @@ CLASS ltcl_create_package IMPLEMENTATION.
 
   METHOD setup.
 
-    mo_popups_mock = NEW ltcl_popups_mock( ).
+    CREATE OBJECT mo_popups_mock TYPE ltcl_popups_mock.
     zcl_abapgit_ui_injector=>set_popups( mo_popups_mock ).
 
   ENDMETHOD.
@@ -168,7 +168,7 @@ CLASS ltcl_create_package IMPLEMENTATION.
 
   METHOD when_create_package.
 
-    mo_sap_package_mock = NEW #( iv_package = mv_package ).
+    CREATE OBJECT mo_sap_package_mock EXPORTING iv_package = mv_package.
 
     zcl_abapgit_injector=>set_sap_package(
         iv_package     = mv_package
@@ -304,7 +304,9 @@ CLASS ltcl_sap_package_mock IMPLEMENTATION.
 
   METHOD zif_abapgit_sap_package~exists.
 
-    rv_bool = xsdbool( c_package-existing = mv_package ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( c_package-existing = mv_package ).
+    rv_bool = temp1.
 
   ENDMETHOD.
 
