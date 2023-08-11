@@ -53,7 +53,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_GUI_PAGE_RUNIT IMPLEMENTATION.
+CLASS zcl_abapgit_gui_page_runit IMPLEMENTATION.
 
 
   METHOD build_tadir.
@@ -96,7 +96,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_RUNIT IMPLEMENTATION.
     DATA lo_page_code_inspector TYPE REF TO zcl_abapgit_gui_page_code_insp.
 
     TRY.
-        CREATE OBJECT lo_component EXPORTING io_repo = io_repo.
+        lo_component = NEW #( io_repo = io_repo ).
 
         ri_page = zcl_abapgit_gui_page_hoc=>create(
           iv_page_title         = |Unit Tests|
@@ -107,8 +107,8 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_RUNIT IMPLEMENTATION.
 
         " Fallback as either SAPLSAUCV_GUI_RUNNER is not available in old releases
         " or passport=>get is private in newer releases NW >= 756
-        CREATE OBJECT lo_page_code_inspector EXPORTING io_repo = io_repo
-                                                       iv_check_variant = 'SWF_ABAP_UNIT'.
+        lo_page_code_inspector = NEW #( io_repo = io_repo
+                                        iv_check_variant = 'SWF_ABAP_UNIT' ).
 
         ri_page = lo_page_code_inspector.
 
@@ -206,7 +206,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_RUNIT IMPLEMENTATION.
 
     register_handlers( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div class="repo">' ).
     ri_html->add( zcl_abapgit_gui_chunk_lib=>render_repo_top( io_repo        = mo_repo
@@ -217,6 +217,13 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_RUNIT IMPLEMENTATION.
     ASSIGN lo_result->('F_TASK_DATA') TO <ls_task_data>.
     ASSIGN COMPONENT 'ALERTS_BY_INDICIES' OF STRUCTURE <ls_task_data> TO <lt_indices>.
     ASSIGN COMPONENT 'PROGRAMS' OF STRUCTURE <ls_task_data> TO <lt_programs>.
+
+    IF <lt_programs> IS INITIAL.
+      ri_html->add( '<div class="ci-head">' ).
+      ri_html->add( 'No unit tests found' ).
+      ri_html->add( '</div>' ).
+      RETURN.
+    ENDIF.
 
     ri_html->add( |<table class="unit_tests">| ).
 
@@ -247,7 +254,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_RUNIT IMPLEMENTATION.
 
     ri_html->add( '<div class="ci-head">' ).
     ri_html->add( |Unit tests completed with <strong>{ lv_count } errors</strong> ({ mv_summary })| ).
-    ri_html->add( `</div>` ).
+    ri_html->add( '</div>' ).
 
     ri_html->add( |<hr><table class="unit_tests">| ).
 
