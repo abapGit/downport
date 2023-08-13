@@ -95,7 +95,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_JSON_HANDLER IMPLEMENTATION.
+CLASS zcl_abapgit_json_handler IMPLEMENTATION.
 
 
   METHOD deserialize.
@@ -225,11 +225,7 @@ CLASS ZCL_ABAPGIT_JSON_HANDLER IMPLEMENTATION.
 
     lv_original_language = co_ajson->get_string( '/header/originalLanguage' ).
 
-    CALL FUNCTION 'CONVERSION_EXIT_ISOLA_OUTPUT'
-      EXPORTING
-        input  = lv_original_language
-      IMPORTING
-        output = lv_iso_language.
+    lv_iso_language = zcl_abapgit_convert=>conversion_exit_isola_output( lv_original_language ).
 
     TRANSLATE lv_iso_language TO LOWER CASE.
     co_ajson->set_string( iv_path = '/header/originalLanguage'
@@ -258,7 +254,7 @@ CLASS ZCL_ABAPGIT_JSON_HANDLER IMPLEMENTATION.
     map2json_custom_enum( EXPORTING it_enum_mappings = iv_enum_mappings
                           CHANGING co_ajson          = lo_ajson ).
 
-    CREATE OBJECT lo_filter EXPORTING iv_skip_paths = iv_skip_paths.
+    lo_filter = NEW #( iv_skip_paths = iv_skip_paths ).
 
     " files end with an empty line (EOF)
     lv_json = lo_ajson->clone( )->filter( lo_filter )->stringify( 2 ) && cl_abap_char_utilities=>newline.

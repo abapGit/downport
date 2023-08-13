@@ -58,7 +58,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_I18N_PARAMS IMPLEMENTATION.
+CLASS zcl_abapgit_i18n_params IMPLEMENTATION.
 
 
   METHOD build_language_filter.
@@ -98,7 +98,7 @@ CLASS ZCL_ABAPGIT_I18N_PARAMS IMPLEMENTATION.
 
     LOOP AT it_iso_filter INTO lv_laiso.
 
-      cl_i18n_languages=>sap2_to_sap1(
+      zcl_abapgit_convert=>language_sap2_to_sap1(
         EXPORTING
           im_lang_sap2  = lv_laiso
         RECEIVING
@@ -120,19 +120,19 @@ CLASS ZCL_ABAPGIT_I18N_PARAMS IMPLEMENTATION.
 
   METHOD is_lxe_applicable.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( ms_params-main_language_only = abap_false AND ms_params-use_lxe = abap_true AND ms_params-translation_languages IS NOT INITIAL ).
-    rv_yes = temp1.
+    rv_yes = xsdbool( ms_params-main_language_only = abap_false AND
+       ms_params-use_lxe = abap_true AND
+       ms_params-translation_languages IS NOT INITIAL ).
 
   ENDMETHOD.
 
 
   METHOD new.
-    CREATE OBJECT ro_instance EXPORTING iv_main_language = iv_main_language
-                                        iv_main_language_only = iv_main_language_only
-                                        it_translation_langs = it_translation_langs
-                                        iv_use_lxe = iv_use_lxe
-                                        is_params = is_params.
+    ro_instance = NEW #( iv_main_language = iv_main_language
+                         iv_main_language_only = iv_main_language_only
+                         it_translation_langs = it_translation_langs
+                         iv_use_lxe = iv_use_lxe
+                         is_params = is_params ).
   ENDMETHOD.
 
 
@@ -157,7 +157,7 @@ CLASS ZCL_ABAPGIT_I18N_PARAMS IMPLEMENTATION.
         CONTINUE. " Just keep it
       ENDIF.
 
-      cl_i18n_languages=>sap1_to_sap2(
+      zcl_abapgit_convert=>language_sap1_to_sap2(
         EXPORTING
           im_lang_sap1  = <lv_langu>
         RECEIVING
@@ -193,7 +193,7 @@ CLASS ZCL_ABAPGIT_I18N_PARAMS IMPLEMENTATION.
     LOOP AT ct_sap_langs INTO lv_langu.
       lv_index = sy-tabix.
 
-      cl_i18n_languages=>sap1_to_sap2(
+      zcl_abapgit_convert=>language_sap1_to_sap2(
         EXPORTING
           im_lang_sap1  = lv_langu
         RECEIVING

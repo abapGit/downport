@@ -175,13 +175,12 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_LXE_TEXTS IMPLEMENTATION.
+CLASS zcl_abapgit_lxe_texts IMPLEMENTATION.
 
 
   METHOD check_langs_versus_installed.
 
-    TYPES temp1 TYPE HASHED TABLE OF laiso WITH UNIQUE KEY table_line.
-DATA lt_installed_hash TYPE temp1.
+    DATA lt_installed_hash TYPE HASHED TABLE OF laiso WITH UNIQUE KEY table_line.
     FIELD-SYMBOLS <lv_lang> LIKE LINE OF it_languages.
 
     CLEAR: et_intersection, et_missfits.
@@ -434,8 +433,12 @@ DATA lt_installed_hash TYPE temp1.
 
     DATA lv_lang_iso639 TYPE laiso.
     DATA lv_country     TYPE land1.
+    DATA lv_class       TYPE string.
 
-    cl_i18n_languages=>sap2_to_iso639_1(
+    lv_class = 'CL_I18N_LANGUAGES'.
+
+" cannot find a way to do this in Steampunk, so dynamic for now,
+    CALL METHOD (lv_class)=>sap2_to_iso639_1
       EXPORTING
         im_lang_sap2   = iv_src
       IMPORTING
@@ -443,7 +446,7 @@ DATA lt_installed_hash TYPE temp1.
         ex_country     = lv_country
       EXCEPTIONS
         no_assignment  = 1
-        OTHERS         = 2 ).
+        OTHERS         = 2.
     IF sy-subrc <> 0.
       zcx_abapgit_exception=>raise( |Failed to convert [{ iv_src }] lang to iso639| ).
     ENDIF.
@@ -514,15 +517,13 @@ DATA lt_installed_hash TYPE temp1.
 
   METHOD is_object_supported.
     READ TABLE gt_supported_obj_types TRANSPORTING NO FIELDS WITH KEY table_line = iv_object_type.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_yes = temp1.
+    rv_yes = xsdbool( sy-subrc = 0 ).
   ENDMETHOD.
 
 
   METHOD langu_to_laiso_safe.
 
-    cl_i18n_languages=>sap1_to_sap2(
+    zcl_abapgit_convert=>language_sap1_to_sap2(
       EXPORTING
         im_lang_sap1  = iv_langu
       RECEIVING
@@ -641,7 +642,7 @@ DATA lt_installed_hash TYPE temp1.
 
     LOOP AT mo_i18n_params->ms_params-translation_languages INTO lv_lang.
       lv_lang = to_lower( lv_lang ).
-      CREATE OBJECT lo_po_file EXPORTING iv_lang = lv_lang.
+      lo_po_file = NEW #( iv_lang = lv_lang ).
       LOOP AT lt_lxe_texts ASSIGNING <ls_translation>.
         IF iso4_to_iso2( <ls_translation>-target_lang ) = lv_lang.
           lo_po_file->push_text_pairs(
