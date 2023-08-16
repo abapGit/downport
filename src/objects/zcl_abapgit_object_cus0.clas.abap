@@ -94,7 +94,9 @@ CLASS ZCL_ABAPGIT_OBJECT_CUS0 IMPLEMENTATION.
       IMPORTING
         message      = ls_message.
 
-    rv_bool = xsdbool( ls_message IS INITIAL ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( ls_message IS INITIAL ).
+    rv_bool = temp1.
 
   ENDMETHOD.
 
