@@ -36,15 +36,15 @@ CLASS zcl_abapgit_object_aqsg IMPLEMENTATION.
 
   METHOD get_generic.
     " transaction SQ02
-    CREATE OBJECT ro_generic EXPORTING is_item = ms_item
-                                       io_field_rules = get_field_rules( )
-                                       iv_language = mv_language.
+    ro_generic = NEW #( is_item = ms_item
+                        io_field_rules = get_field_rules( )
+                        iv_language = mv_language ).
 
   ENDMETHOD.
 
 
   METHOD zif_abapgit_object~changed_by.
-    rv_user = zcl_abapgit_objects_super=>c_user_unknown.
+    rv_user = c_user_unknown.
   ENDMETHOD.
 
 

@@ -57,9 +57,9 @@ CLASS zcl_abapgit_object_aqbg IMPLEMENTATION.
 
   METHOD get_generic.
     " transaction SQ03
-    CREATE OBJECT ro_generic EXPORTING is_item = ms_item
-                                       io_field_rules = get_field_rules( )
-                                       iv_language = mv_language.
+    ro_generic = NEW #( is_item = ms_item
+                        io_field_rules = get_field_rules( )
+                        iv_language = mv_language ).
 
   ENDMETHOD.
 
@@ -67,7 +67,7 @@ CLASS zcl_abapgit_object_aqbg IMPLEMENTATION.
   METHOD zif_abapgit_object~changed_by.
     SELECT SINGLE bgunam FROM aqgdbbg INTO rv_user WHERE num = ms_item-obj_name.
     IF sy-subrc <> 0.
-      rv_user = zcl_abapgit_objects_super=>c_user_unknown.
+      rv_user = c_user_unknown.
     ENDIF.
   ENDMETHOD.
 
