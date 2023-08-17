@@ -167,9 +167,7 @@ CLASS ZCL_ABAPGIT_OBJECT_DSYS IMPLEMENTATION.
            WHERE id   = c_id
            AND object = mv_doc_object.                  "#EC CI_GENBUFF
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( lv_count > 0 ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( lv_count > 0 ).
 
   ENDMETHOD.
 
@@ -221,9 +219,7 @@ CLASS ZCL_ABAPGIT_OBJECT_DSYS IMPLEMENTATION.
         no_editor           = 2
         OTHERS              = 3.
 
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( sy-subrc = 0 ).
-    rv_exit = temp2.
+    rv_exit = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
