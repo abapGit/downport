@@ -180,7 +180,8 @@ CLASS zcl_abapgit_lxe_texts IMPLEMENTATION.
 
   METHOD check_langs_versus_installed.
 
-    DATA lt_installed_hash TYPE HASHED TABLE OF laiso WITH UNIQUE KEY table_line.
+    TYPES temp1 TYPE HASHED TABLE OF laiso WITH UNIQUE KEY table_line.
+DATA lt_installed_hash TYPE temp1.
     FIELD-SYMBOLS <lv_lang> LIKE LINE OF it_languages.
 
     CLEAR: et_intersection, et_missfits.
@@ -517,7 +518,9 @@ CLASS zcl_abapgit_lxe_texts IMPLEMENTATION.
 
   METHOD is_object_supported.
     READ TABLE gt_supported_obj_types TRANSPORTING NO FIELDS WITH KEY table_line = iv_object_type.
-    rv_yes = xsdbool( sy-subrc = 0 ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( sy-subrc = 0 ).
+    rv_yes = temp1.
   ENDMETHOD.
 
 
@@ -642,7 +645,7 @@ CLASS zcl_abapgit_lxe_texts IMPLEMENTATION.
 
     LOOP AT mo_i18n_params->ms_params-translation_languages INTO lv_lang.
       lv_lang = to_lower( lv_lang ).
-      lo_po_file = NEW #( iv_lang = lv_lang ).
+      CREATE OBJECT lo_po_file EXPORTING iv_lang = lv_lang.
       LOOP AT lt_lxe_texts ASSIGNING <ls_translation>.
         IF iso4_to_iso2( <ls_translation>-target_lang ) = lv_lang.
           lo_po_file->push_text_pairs(
