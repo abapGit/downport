@@ -90,9 +90,7 @@ CLASS zcl_abapgit_object_idoc IMPLEMENTATION.
         db_error         = 2
         no_authority     = 3
         OTHERS           = 4.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 AND ls_idoc-attributes-closed = abap_true ).
-    rv_closed = temp1.
+    rv_closed = xsdbool( sy-subrc = 0 AND ls_idoc-attributes-closed = abap_true ).
 
   ENDMETHOD.
 
@@ -255,9 +253,7 @@ CLASS zcl_abapgit_object_idoc IMPLEMENTATION.
         db_error         = 2
         OTHERS           = 3.
 
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( sy-subrc = 0 ).
-    rv_bool = temp2.
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -294,8 +290,7 @@ CLASS zcl_abapgit_object_idoc IMPLEMENTATION.
 
   METHOD zif_abapgit_object~jump.
 
-    TYPES temp1 TYPE TABLE OF bdcdata.
-DATA: lt_bdcdata TYPE temp1.
+    DATA: lt_bdcdata TYPE TABLE OF bdcdata.
 
     FIELD-SYMBOLS: <ls_bdcdata> LIKE LINE OF lt_bdcdata.
 
