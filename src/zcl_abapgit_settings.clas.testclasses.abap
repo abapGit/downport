@@ -14,7 +14,7 @@ ENDCLASS.
 CLASS ltcl_settings IMPLEMENTATION.
 
   METHOD setup.
-    CREATE OBJECT mo_cut.
+    mo_cut = NEW #( ).
   ENDMETHOD.
 
   METHOD feature_disabled.
