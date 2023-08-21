@@ -22,7 +22,7 @@ CLASS zcl_abapgit_object_ecsp IMPLEMENTATION.
 
   METHOD get_download.
 
-    ro_download = NEW zcl_abapgit_ecatt_sp_download( ).
+    CREATE OBJECT ro_download TYPE zcl_abapgit_ecatt_sp_download.
 
   ENDMETHOD.
 
@@ -44,7 +44,7 @@ CLASS zcl_abapgit_object_ecsp IMPLEMENTATION.
 
   METHOD get_upload.
 
-    ro_upload = NEW zcl_abapgit_ecatt_sp_upload( ).
+    CREATE OBJECT ro_upload TYPE zcl_abapgit_ecatt_sp_upload.
 
   ENDMETHOD.
 ENDCLASS.
