@@ -1,4 +1,3 @@
-*"* use this source file for your ABAP unit test classes
 CLASS ltcl_sap_package_mock DEFINITION FINAL FOR TESTING
   DURATION SHORT
   RISK LEVEL HARMLESS.
@@ -90,7 +89,7 @@ CLASS ltcl_create_package DEFINITION FINAL FOR TESTING
       setup,
 
       raise_error_if_package_exists FOR TESTING RAISING cx_static_check,
-      package_given_in_popup      FOR TESTING RAISING cx_static_check,
+      package_given_in_popup        FOR TESTING RAISING cx_static_check,
       package_not_created_when_canc FOR TESTING RAISING cx_static_check,
       package_created_when_confirm  FOR TESTING RAISING cx_static_check,
 
@@ -116,7 +115,7 @@ CLASS ltcl_create_package IMPLEMENTATION.
 
   METHOD setup.
 
-    CREATE OBJECT mo_popups_mock TYPE ltcl_popups_mock.
+    mo_popups_mock = NEW ltcl_popups_mock( ).
     zcl_abapgit_ui_injector=>set_popups( mo_popups_mock ).
 
   ENDMETHOD.
@@ -168,14 +167,14 @@ CLASS ltcl_create_package IMPLEMENTATION.
 
   METHOD when_create_package.
 
-    CREATE OBJECT mo_sap_package_mock EXPORTING iv_package = mv_package.
+    mo_sap_package_mock = NEW #( iv_package = mv_package ).
 
     zcl_abapgit_injector=>set_sap_package(
         iv_package     = mv_package
         ii_sap_package = mo_sap_package_mock ).
 
     TRY.
-        mv_created_package = zcl_abapgit_services_basis=>create_package( mv_package ).
+        mv_created_package = zcl_abapgit_services_repo=>create_package( mv_package ).
       CATCH zcx_abapgit_exception INTO mx_error.
     ENDTRY.
 
@@ -304,9 +303,7 @@ CLASS ltcl_sap_package_mock IMPLEMENTATION.
 
   METHOD zif_abapgit_sap_package~exists.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( c_package-existing = mv_package ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( c_package-existing = mv_package ).
 
   ENDMETHOD.
 
