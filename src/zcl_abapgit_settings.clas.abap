@@ -283,7 +283,7 @@ CLASS zcl_abapgit_settings IMPLEMENTATION.
     DATA: li_output TYPE REF TO zif_abapgit_xml_output.
 
 
-    li_output = NEW zcl_abapgit_xml_output( ).
+    CREATE OBJECT li_output TYPE zcl_abapgit_xml_output.
 
     li_output->add( iv_name = zcl_abapgit_persistence_db=>c_type_settings
                     ig_data = ms_settings ).
@@ -341,11 +341,15 @@ CLASS zcl_abapgit_settings IMPLEMENTATION.
   METHOD is_feature_enabled.
     DATA lt_features TYPE string_table.
     IF zcl_abapgit_factory=>get_environment( )->is_merged( ) = abap_false.
-      rv_run = xsdbool( ms_settings-experimental_features = abap_true ).
+      DATA temp1 TYPE xsdboolean.
+      temp1 = boolc( ms_settings-experimental_features = abap_true ).
+      rv_run = temp1.
       IF iv_feature IS NOT INITIAL.
         SPLIT ms_settings-experimental_features AT ',' INTO TABLE lt_features.
         READ TABLE lt_features TRANSPORTING NO FIELDS WITH TABLE KEY table_line = iv_feature.
-        rv_run = xsdbool( rv_run = abap_true OR sy-subrc = 0 ).
+        DATA temp2 TYPE xsdboolean.
+        temp2 = boolc( rv_run = abap_true OR sy-subrc = 0 ).
+        rv_run = temp2.
       ENDIF.
     ENDIF.
   ENDMETHOD.
@@ -494,7 +498,7 @@ CLASS zcl_abapgit_settings IMPLEMENTATION.
     DATA: lo_input TYPE REF TO zif_abapgit_xml_input.
 
 
-    lo_input = NEW zcl_abapgit_xml_input( iv_xml = iv_settings_xml ).
+    CREATE OBJECT lo_input TYPE zcl_abapgit_xml_input EXPORTING iv_xml = iv_settings_xml.
 
     CLEAR ms_settings.
 
