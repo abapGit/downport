@@ -123,7 +123,7 @@ CLASS zcl_abapgit_gui_page_sett_info IMPLEMENTATION.
   METHOD constructor.
 
     super->constructor( ).
-    CREATE OBJECT mo_form_data.
+    mo_form_data = NEW #( ).
     mo_repo = io_repo.
     mo_form = get_form_schema( ).
 
@@ -134,7 +134,7 @@ CLASS zcl_abapgit_gui_page_sett_info IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_sett_info.
 
-    CREATE OBJECT lo_component EXPORTING io_repo = io_repo.
+    lo_component = NEW #( io_repo = io_repo ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Repository Stats'
@@ -533,7 +533,7 @@ CLASS zcl_abapgit_gui_page_sett_info IMPLEMENTATION.
     FIELD-SYMBOLS:
       <ls_result> LIKE LINE OF lt_results.
 
-    lt_results = zcl_abapgit_file_status=>status( mo_repo ).
+    lt_results = zcl_abapgit_repo_status=>calculate( mo_repo ).
 
     DO 3 TIMES.
       CLEAR ls_stats.
@@ -580,7 +580,7 @@ CLASS zcl_abapgit_gui_page_sett_info IMPLEMENTATION.
 
     read_settings( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( `<div class="repo">` ).
 
