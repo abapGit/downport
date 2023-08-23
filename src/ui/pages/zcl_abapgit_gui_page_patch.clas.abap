@@ -194,7 +194,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_PATCH IMPLEMENTATION.
 
       lv_something_patched = abap_true.
 
-      CREATE OBJECT lo_git_add_patch EXPORTING it_diff = <ls_diff_file>-o_diff->get( ).
+      lo_git_add_patch = NEW #( it_diff = <ls_diff_file>-o_diff->get( ) ).
 
       lv_patch = lo_git_add_patch->get_patch_binary( ).
 
@@ -320,9 +320,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_PATCH IMPLEMENTATION.
       lv_patch_count = lv_patch_count + 1.
     ENDLOOP.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( lv_patch_count = lines( it_diff ) ).
-    rv_are_all_lines_patched = temp1.
+    rv_are_all_lines_patched = xsdbool( lv_patch_count = lines( it_diff ) ).
 
   ENDMETHOD.
 
@@ -344,7 +342,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_PATCH IMPLEMENTATION.
     " While patching we always want to be in split mode
     CLEAR: mv_unified.
     set_layout( ).
-    CREATE OBJECT mo_stage.
+    mo_stage = NEW #( ).
 
     ms_control-page_title = 'Patch'.
     ms_control-page_menu = build_menu( ).
@@ -554,7 +552,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_PATCH IMPLEMENTATION.
 
   METHOD render_scripts.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
     ri_html->add( 'preparePatch();' ).
