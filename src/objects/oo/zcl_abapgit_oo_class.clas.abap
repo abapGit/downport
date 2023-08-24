@@ -783,7 +783,9 @@ CLASS ZCL_ABAPGIT_OO_CLASS IMPLEMENTATION.
         no_text       = 4
         inconsistent  = 5
         OTHERS        = 6.
-    rv_exists = xsdbool( sy-subrc = 0 OR sy-subrc = 4 ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( sy-subrc = 0 OR sy-subrc = 4 ).
+    rv_exists = temp1.
   ENDMETHOD.
 
 
