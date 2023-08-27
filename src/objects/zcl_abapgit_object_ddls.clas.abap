@@ -215,10 +215,12 @@ CLASS zcl_abapgit_object_ddls IMPLEMENTATION.
 
   METHOD zif_abapgit_object~delete.
 
-    DATA:
-      lt_deltab TYPE TABLE OF dcdeltb,
+    TYPES temp1 TYPE TABLE OF dcdeltb.
+TYPES temp2 TYPE TABLE OF dcgentb.
+DATA:
+      lt_deltab TYPE temp1,
       ls_deltab TYPE dcdeltb,
-      lt_gentab TYPE TABLE OF dcgentb,
+      lt_gentab TYPE temp2,
       lv_rc     TYPE sy-subrc.
 
     " CL_DD_DDL_HANDLER->DELETE does not work for CDS views that reference other views
@@ -354,7 +356,9 @@ CLASS zcl_abapgit_object_ddls IMPLEMENTATION.
             name      = ms_item-obj_name
           IMPORTING
             got_state = lv_state.
-        rv_bool = xsdbool( NOT lv_state IS INITIAL ).
+        DATA temp1 TYPE xsdboolean.
+        temp1 = boolc( NOT lv_state IS INITIAL ).
+        rv_bool = temp1.
       CATCH cx_root.
         rv_bool = abap_false.
     ENDTRY.
@@ -428,10 +432,11 @@ CLASS zcl_abapgit_object_ddls IMPLEMENTATION.
 
   METHOD zif_abapgit_object~serialize.
 
-    DATA: lo_ddl           TYPE REF TO object,
+    TYPES temp3 TYPE STANDARD TABLE OF fieldname WITH DEFAULT KEY.
+DATA: lo_ddl           TYPE REF TO object,
           lr_data          TYPE REF TO data,
           lr_data_baseinfo TYPE REF TO data,
-          lt_clr_comps     TYPE STANDARD TABLE OF fieldname WITH DEFAULT KEY,
+          lt_clr_comps     TYPE temp3,
           lx_error         TYPE REF TO cx_root.
 
     FIELD-SYMBOLS: <lg_data>          TYPE any,
