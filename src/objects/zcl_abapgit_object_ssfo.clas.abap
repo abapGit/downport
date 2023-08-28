@@ -233,7 +233,7 @@ CLASS zcl_abapgit_object_ssfo IMPLEMENTATION.
           lv_text                TYPE string,
           lv_within_code_section TYPE abap_bool.
 
-    lo_sf = NEW #( ).
+    CREATE OBJECT lo_sf.
 
 * set "created by" and "changed by" to current user
     li_iterator = io_xml->get_raw( )->get_root_element( )->create_iterator( ).
@@ -292,7 +292,9 @@ CLASS zcl_abapgit_object_ssfo IMPLEMENTATION.
 
     SELECT SINGLE formname FROM stxfadm INTO lv_formname
       WHERE formname = ms_item-obj_name.
-    rv_bool = xsdbool( sy-subrc = 0 ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( sy-subrc = 0 ).
+    rv_bool = temp1.
 
   ENDMETHOD.
 
@@ -330,7 +332,9 @@ CLASS zcl_abapgit_object_ssfo IMPLEMENTATION.
       IMPORTING
         o_inactive = lv_inactive.
 
-    rv_active = xsdbool( lv_inactive = abap_false ).
+    DATA temp2 TYPE xsdboolean.
+    temp2 = boolc( lv_inactive = abap_false ).
+    rv_active = temp2.
 
   ENDMETHOD.
 
@@ -345,7 +349,8 @@ CLASS zcl_abapgit_object_ssfo IMPLEMENTATION.
 
   METHOD zif_abapgit_object~jump.
 
-    DATA: lt_bdcdata  TYPE TABLE OF bdcdata,
+    TYPES temp1 TYPE TABLE OF bdcdata.
+DATA: lt_bdcdata  TYPE temp1,
           lv_formtype TYPE stxfadm-formtype.
 
     FIELD-SYMBOLS: <ls_bdcdata> LIKE LINE OF lt_bdcdata.
@@ -423,7 +428,7 @@ CLASS zcl_abapgit_object_ssfo IMPLEMENTATION.
     li_ixml = cl_ixml=>create( ).
     li_xml_doc = li_ixml->create_document( ).
 
-    lo_sf = NEW #( ).
+    CREATE OBJECT lo_sf.
     lv_formname = ms_item-obj_name. " convert type
     TRY.
         lo_sf->load( im_formname = lv_formname
