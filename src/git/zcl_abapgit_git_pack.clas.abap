@@ -521,7 +521,7 @@ CLASS zcl_abapgit_git_pack IMPLEMENTATION.
     FIELD-SYMBOLS: <ls_object> LIKE LINE OF ct_objects.
 
 
-    CREATE OBJECT lo_stream EXPORTING iv_data = is_object-data.
+    lo_stream = NEW #( iv_data = is_object-data ).
 
 * find base
     READ TABLE ct_objects ASSIGNING <ls_object>
@@ -643,11 +643,9 @@ CLASS zcl_abapgit_git_pack IMPLEMENTATION.
     li_progress = zcl_abapgit_progress=>get_instance( lv_objects_total ).
 
     LOOP AT it_objects ASSIGNING <ls_object>.
-      IF sy-tabix MOD 200 = 0.
-        li_progress->show(
-          iv_current = sy-tabix
-          iv_text    = |Encoding objects ( { sy-tabix } of { lv_objects_total } )| ).
-      ENDIF.
+      li_progress->show(
+        iv_current = sy-tabix
+        iv_text    = |Encoding objects ( { sy-tabix } of { lv_objects_total } )| ).
 
       lv_xstring = type_and_length(
         iv_type   = <ls_object>-type
