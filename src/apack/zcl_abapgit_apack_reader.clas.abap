@@ -117,7 +117,7 @@ CLASS zcl_abapgit_apack_reader IMPLEMENTATION.
 
 
   METHOD create_instance.
-    CREATE OBJECT ro_manifest_reader EXPORTING iv_package_name = iv_package_name.
+    ro_manifest_reader = NEW #( iv_package_name = iv_package_name ).
   ENDMETHOD.
 
 
@@ -129,8 +129,6 @@ CLASS zcl_abapgit_apack_reader IMPLEMENTATION.
     lv_xml = zcl_abapgit_convert=>xstring_to_string_utf8( iv_xstr ).
 
     ls_data = from_xml( lv_xml ).
-
-    ro_manifest_reader = create_instance( iv_package_name ).
 
     ro_manifest_reader = create_instance( iv_package_name ).
     ro_manifest_reader->set_manifest_descriptor( ls_data ).
