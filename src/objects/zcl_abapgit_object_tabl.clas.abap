@@ -425,9 +425,10 @@ CLASS ZCL_ABAPGIT_OBJECT_TABL IMPLEMENTATION.
 
   METHOD deserialize_texts.
 
-    DATA: lv_name       TYPE ddobjname,
+    TYPES temp1 TYPE TABLE OF langu.
+DATA: lv_name       TYPE ddobjname,
           ls_dd02v_tmp  TYPE dd02v,
-          lt_i18n_langs TYPE TABLE OF langu,
+          lt_i18n_langs TYPE temp1,
           lt_dd02_texts TYPE ty_dd02_texts.
 
     FIELD-SYMBOLS: <lv_lang>      LIKE LINE OF lt_i18n_langs,
@@ -477,9 +478,9 @@ CLASS ZCL_ABAPGIT_OBJECT_TABL IMPLEMENTATION.
   METHOD is_db_table_category.
 
     " values from domain TABCLASS
-    rv_is_db_table_type = xsdbool( iv_tabclass = 'TRANSP'
-                              OR iv_tabclass = 'CLUSTER'
-                              OR iv_tabclass = 'POOL' ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( iv_tabclass = 'TRANSP' OR iv_tabclass = 'CLUSTER' OR iv_tabclass = 'POOL' ).
+    rv_is_db_table_type = temp1.
 
   ENDMETHOD.
 
@@ -494,7 +495,9 @@ CLASS ZCL_ABAPGIT_OBJECT_TABL IMPLEMENTATION.
            FROM edisegment
            INTO lv_segment_type
            WHERE segtyp = lv_segment_type.
-    rv_is_idoc_segment = xsdbool( sy-subrc = 0 ).
+    DATA temp2 TYPE xsdboolean.
+    temp2 = boolc( sy-subrc = 0 ).
+    rv_is_idoc_segment = temp2.
 
   ENDMETHOD.
 
@@ -511,7 +514,8 @@ CLASS ZCL_ABAPGIT_OBJECT_TABL IMPLEMENTATION.
     DATA lv_segment_type        TYPE edilsegtyp.
     DATA lv_result              LIKE sy-subrc.
     DATA lv_devclass            TYPE devclass.
-    DATA lt_segmentdefinitions  TYPE STANDARD TABLE OF edisegmdef.
+    TYPES temp2 TYPE STANDARD TABLE OF edisegmdef.
+DATA lt_segmentdefinitions  TYPE temp2.
     DATA ls_segment_definition  TYPE ty_segment_definition.
     DATA lt_segment_definitions TYPE ty_segment_definitions.
     FIELD-SYMBOLS: <ls_segemtndefinition> TYPE edisegmdef.
@@ -572,11 +576,12 @@ CLASS ZCL_ABAPGIT_OBJECT_TABL IMPLEMENTATION.
 
   METHOD serialize_texts.
 
-    DATA: lv_name            TYPE ddobjname,
+    TYPES temp3 TYPE TABLE OF langu.
+DATA: lv_name            TYPE ddobjname,
           lv_index           TYPE i,
           ls_dd02v           TYPE dd02v,
           lt_dd02_texts      TYPE ty_dd02_texts,
-          lt_i18n_langs      TYPE TABLE OF langu,
+          lt_i18n_langs      TYPE temp3,
           lt_language_filter TYPE zif_abapgit_environment=>ty_system_language_filter.
 
     FIELD-SYMBOLS: <lv_lang>      LIKE LINE OF lt_i18n_langs,
@@ -651,7 +656,8 @@ CLASS ZCL_ABAPGIT_OBJECT_TABL IMPLEMENTATION.
              as4time TYPE dd02l-as4time,
            END OF ty_data.
 
-    DATA: lt_data TYPE STANDARD TABLE OF ty_data WITH DEFAULT KEY,
+    TYPES temp4 TYPE STANDARD TABLE OF ty_data WITH DEFAULT KEY.
+DATA: lt_data TYPE temp4,
           ls_data LIKE LINE OF lt_data.
 
 
@@ -749,13 +755,17 @@ CLASS ZCL_ABAPGIT_OBJECT_TABL IMPLEMENTATION.
 
   METHOD zif_abapgit_object~deserialize.
 
-    DATA: lv_name   TYPE ddobjname,
+    TYPES temp5 TYPE TABLE OF dd03p.
+TYPES temp1 TYPE TABLE OF dd05m.
+TYPES temp2 TYPE TABLE OF dd08v.
+TYPES temp3 TYPE TABLE OF dd35v.
+DATA: lv_name   TYPE ddobjname,
           ls_dd02v  TYPE dd02v,
           ls_dd09l  TYPE dd09l,
-          lt_dd03p  TYPE TABLE OF dd03p,
-          lt_dd05m  TYPE TABLE OF dd05m,
-          lt_dd08v  TYPE TABLE OF dd08v,
-          lt_dd35v  TYPE TABLE OF dd35v,
+          lt_dd03p  TYPE temp5,
+          lt_dd05m  TYPE temp1,
+          lt_dd08v  TYPE temp2,
+          lt_dd35v  TYPE temp3,
           lt_dd36m  TYPE dd36mttyp,
           ls_extras TYPE ty_tabl_extras.
 
@@ -895,7 +905,9 @@ CLASS ZCL_ABAPGIT_OBJECT_TABL IMPLEMENTATION.
       SELECT SINGLE tabname FROM dd02l INTO lv_tabname
         WHERE tabname = lv_tabname.
     ENDIF.
-    rv_bool = xsdbool( sy-subrc = 0 ).
+    DATA temp3 TYPE xsdboolean.
+    temp3 = boolc( sy-subrc = 0 ).
+    rv_bool = temp3.
 
   ENDMETHOD.
 
@@ -906,13 +918,13 @@ CLASS ZCL_ABAPGIT_OBJECT_TABL IMPLEMENTATION.
           li_local_version_input  TYPE REF TO zif_abapgit_xml_input.
 
 
-    li_local_version_output = NEW zcl_abapgit_xml_output( ).
+    CREATE OBJECT li_local_version_output TYPE zcl_abapgit_xml_output.
 
     zif_abapgit_object~serialize( li_local_version_output ).
 
-    li_local_version_input = NEW zcl_abapgit_xml_input( iv_xml = li_local_version_output->render( ) ).
+    CREATE OBJECT li_local_version_input TYPE zcl_abapgit_xml_input EXPORTING iv_xml = li_local_version_output->render( ).
 
-    ri_comparator = NEW zcl_abapgit_object_tabl_compar( ii_local = li_local_version_input ).
+    CREATE OBJECT ri_comparator TYPE zcl_abapgit_object_tabl_compar EXPORTING ii_local = li_local_version_input.
 
   ENDMETHOD.
 
@@ -962,16 +974,19 @@ CLASS ZCL_ABAPGIT_OBJECT_TABL IMPLEMENTATION.
 
   METHOD zif_abapgit_object~serialize.
 
-    DATA: lv_name   TYPE ddobjname,
+    TYPES temp9 TYPE TABLE OF dd05m.
+TYPES temp4 TYPE TABLE OF dd08v.
+TYPES temp5 TYPE TABLE OF dd35v.
+DATA: lv_name   TYPE ddobjname,
           lv_state  TYPE ddgotstate,
           ls_dd02v  TYPE dd02v,
           ls_dd09l  TYPE dd09l,
           lt_dd03p  TYPE ty_dd03p_tt,
-          lt_dd05m  TYPE TABLE OF dd05m,
-          lt_dd08v  TYPE TABLE OF dd08v,
+          lt_dd05m  TYPE temp9,
+          lt_dd08v  TYPE temp4,
           lt_dd12v  TYPE dd12vtab,
           lt_dd17v  TYPE dd17vtab,
-          lt_dd35v  TYPE TABLE OF dd35v,
+          lt_dd35v  TYPE temp5,
           lv_index  LIKE sy-index,
           lt_dd36m  TYPE dd36mttyp,
           ls_extras TYPE ty_tabl_extras.
