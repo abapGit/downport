@@ -213,11 +213,12 @@ CLASS zcl_abapgit_object_fugr IMPLEMENTATION.
 
   METHOD deserialize_functions.
 
-    DATA: lv_include   TYPE rs38l-include,
+    TYPES temp1 TYPE TABLE OF abaptxt255.
+DATA: lv_include   TYPE rs38l-include,
           lv_area      TYPE rs38l-area,
           lv_group     TYPE rs38l-area,
           lv_namespace TYPE rs38l-namespace,
-          lt_source    TYPE TABLE OF abaptxt255,
+          lt_source    TYPE temp1,
           lv_msg       TYPE string,
           lx_error     TYPE REF TO zcx_abapgit_exception.
 
@@ -361,12 +362,13 @@ CLASS zcl_abapgit_object_fugr IMPLEMENTATION.
 
   METHOD deserialize_includes.
 
-    DATA: lo_xml       TYPE REF TO zif_abapgit_xml_input,
+    TYPES temp2 TYPE TABLE OF abaptxt255.
+DATA: lo_xml       TYPE REF TO zif_abapgit_xml_input,
           ls_progdir   TYPE ty_progdir,
           lt_includes  TYPE ty_sobj_name_tt,
           lt_tpool     TYPE textpool_table,
           lt_tpool_ext TYPE zif_abapgit_definitions=>ty_tpool_tt,
-          lt_source    TYPE TABLE OF abaptxt255,
+          lt_source    TYPE temp2,
           lx_exc       TYPE REF TO zcx_abapgit_exception.
 
     FIELD-SYMBOLS: <lv_include> LIKE LINE OF lt_includes.
@@ -587,14 +589,16 @@ CLASS zcl_abapgit_object_fugr IMPLEMENTATION.
              progname TYPE reposrc-progname,
            END OF ty_reposrc.
 
-    DATA: lt_reposrc        TYPE STANDARD TABLE OF ty_reposrc WITH DEFAULT KEY,
+    TYPES temp3 TYPE STANDARD TABLE OF ty_reposrc WITH DEFAULT KEY.
+TYPES temp1 TYPE HASHED TABLE OF objname WITH UNIQUE KEY table_line.
+DATA: lt_reposrc        TYPE temp3,
           ls_reposrc        LIKE LINE OF lt_reposrc,
           lv_program        TYPE program,
           lv_maintviewname  LIKE LINE OF rt_includes,
           lv_offset_ns      TYPE i,
           lv_tabix          LIKE sy-tabix,
           lt_functab        TYPE ty_rs38l_incl_tt,
-          lt_tadir_includes TYPE HASHED TABLE OF objname WITH UNIQUE KEY table_line.
+          lt_tadir_includes TYPE temp1.
 
     FIELD-SYMBOLS: <lv_include> LIKE LINE OF rt_includes,
                    <ls_func>    LIKE LINE OF lt_functab.
@@ -845,8 +849,9 @@ CLASS zcl_abapgit_object_fugr IMPLEMENTATION.
 
   METHOD serialize_functions.
 
-    DATA:
-      lt_source     TYPE TABLE OF rssource,
+    TYPES temp5 TYPE TABLE OF rssource.
+DATA:
+      lt_source     TYPE temp5,
       lt_functab    TYPE ty_rs38l_incl_tt,
       lt_new_source TYPE rsfb_source,
       ls_function   LIKE LINE OF rt_functions.
@@ -1058,8 +1063,8 @@ CLASS zcl_abapgit_object_fugr IMPLEMENTATION.
 
     LOOP AT it_includes INTO lv_include.
 
-      lo_cross = NEW #( p_name = lv_include
-                        p_include = lv_include ).
+      CREATE OBJECT lo_cross EXPORTING p_name = lv_include
+                                       p_include = lv_include.
 
       lo_cross->index_actualize( ).
 
@@ -1076,8 +1081,9 @@ CLASS zcl_abapgit_object_fugr IMPLEMENTATION.
              time TYPE t,
            END OF ty_stamps.
 
-    DATA:
-      lt_stamps    TYPE STANDARD TABLE OF ty_stamps WITH DEFAULT KEY,
+    TYPES temp6 TYPE STANDARD TABLE OF ty_stamps WITH DEFAULT KEY.
+DATA:
+      lt_stamps    TYPE temp6,
       lv_program   TYPE program,
       lv_found     TYPE abap_bool,
       lt_functions TYPE ty_rs38l_incl_tt.
@@ -1262,7 +1268,9 @@ CLASS zcl_abapgit_object_fugr IMPLEMENTATION.
         function_pool   = lv_pool
       EXCEPTIONS
         pool_not_exists = 1.
-    rv_bool = xsdbool( sy-subrc <> 1 ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( sy-subrc <> 1 ).
+    rv_bool = temp1.
 
   ENDMETHOD.
 
