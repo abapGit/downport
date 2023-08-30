@@ -43,12 +43,10 @@ CLASS zcl_abapgit_objects_generic DEFINITION
       ty_t_objkey TYPE SORTED TABLE OF ty_s_objkey WITH UNIQUE KEY num .
 
     DATA ms_object_header TYPE objh .
-    TYPES temp1_c6f892cf3d TYPE STANDARD TABLE OF objsl WITH DEFAULT KEY.
-DATA:
-      mt_object_table TYPE temp1_c6f892cf3d .
-    TYPES temp2_c6f892cf3d TYPE STANDARD TABLE OF objm WITH DEFAULT KEY.
-DATA:
-      mt_object_method TYPE temp2_c6f892cf3d .
+    DATA:
+      mt_object_table TYPE STANDARD TABLE OF objsl WITH DEFAULT KEY .
+    DATA:
+      mt_object_method TYPE STANDARD TABLE OF objm WITH DEFAULT KEY .
     DATA ms_item TYPE zif_abapgit_definitions=>ty_item .
     DATA mv_language TYPE spras .
 
@@ -127,16 +125,14 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_OBJECTS_GENERIC IMPLEMENTATION.
+CLASS zcl_abapgit_objects_generic IMPLEMENTATION.
 
 
   METHOD after_import.
 
-    TYPES temp3 TYPE STANDARD TABLE OF e071 WITH DEFAULT KEY.
-TYPES temp1 TYPE STANDARD TABLE OF e071k WITH DEFAULT KEY.
-DATA: lt_cts_object_entry TYPE temp3,
+    DATA: lt_cts_object_entry TYPE STANDARD TABLE OF e071 WITH DEFAULT KEY,
           ls_cts_object_entry LIKE LINE OF lt_cts_object_entry,
-          lt_cts_key          TYPE temp1.
+          lt_cts_key          TYPE STANDARD TABLE OF e071k WITH DEFAULT KEY.
 
     FIELD-SYMBOLS <ls_object_method> LIKE LINE OF mt_object_method.
 
@@ -188,11 +184,9 @@ DATA: lt_cts_object_entry TYPE temp3,
 
   METHOD before_export.
 
-    TYPES temp5 TYPE STANDARD TABLE OF e071 WITH DEFAULT KEY.
-TYPES temp2 TYPE STANDARD TABLE OF e071k WITH DEFAULT KEY.
-DATA: lt_cts_object_entry TYPE temp5,
+    DATA: lt_cts_object_entry TYPE STANDARD TABLE OF e071 WITH DEFAULT KEY,
           ls_cts_object_entry LIKE LINE OF lt_cts_object_entry,
-          lt_cts_key          TYPE temp2,
+          lt_cts_key          TYPE STANDARD TABLE OF e071k WITH DEFAULT KEY,
           lv_client           TYPE trclient.
 
     FIELD-SYMBOLS <ls_object_method> LIKE LINE OF mt_object_method.
@@ -234,7 +228,7 @@ DATA: lt_cts_object_entry TYPE temp5,
       zcx_abapgit_exception=>raise( 'Not found in OBJH, or not supported' ).
     ENDIF.
 
-* object tables
+    " object tables
     SELECT * FROM objsl INTO CORRESPONDING FIELDS OF TABLE mt_object_table
       WHERE objectname = is_item-obj_type
       AND objecttype = lc_logical_transport_object
@@ -243,14 +237,13 @@ DATA: lt_cts_object_entry TYPE temp5,
     IF mt_object_table IS INITIAL.
       zcx_abapgit_exception=>raise( |Obviously corrupted object-type { is_item-obj_type }: No tables defined| ).
     ENDIF.
-* only unique tables
-    SORT mt_object_table BY tobj_name ASCENDING.
-    DELETE ADJACENT DUPLICATES FROM mt_object_table COMPARING tobj_name.
 
-* back to primary key table sorting,
-    SORT mt_object_table BY objectname objecttype trwcount.
+    " remove duplicate table/table-key entries
+    " same table with different keys is ok
+    SORT mt_object_table BY tobj_name tobjkey.
+    DELETE ADJACENT DUPLICATES FROM mt_object_table COMPARING tobj_name tobjkey.
 
-* object methods
+    " object methods
     SELECT * FROM objm INTO TABLE mt_object_method
       WHERE objectname = is_item-obj_type
       AND objecttype = lc_logical_transport_object
@@ -429,9 +422,7 @@ DATA: lt_cts_object_entry TYPE temp5,
     ASSIGN lr_table_line->* TO <lg_table_line>.
 
     SELECT SINGLE * FROM (lv_primary) INTO <lg_table_line> WHERE (lv_where_clause).
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-dbcnt > 0 ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( sy-dbcnt > 0 ).
 
   ENDMETHOD.
 
@@ -463,13 +454,18 @@ DATA: lt_cts_object_entry TYPE temp5,
   METHOD get_primary_table.
 
     DATA: ls_object_table LIKE LINE OF mt_object_table.
+    DATA: lt_object_table LIKE mt_object_table.
 
+    " There might be several tables marked as "primary"
+    " Sort by DB key so we get first one in the list
+    lt_object_table = mt_object_table.
+    SORT lt_object_table.
 
-    READ TABLE mt_object_table INTO ls_object_table WITH KEY prim_table = abap_true.
+    READ TABLE lt_object_table INTO ls_object_table WITH KEY prim_table = abap_true.
     IF sy-subrc <> 0.
-*    Fallback. For some objects, no primary table is explicitly flagged
-*    The, the one with only one key field shall be chosen
-      READ TABLE mt_object_table INTO ls_object_table WITH KEY tobjkey = '/&'. "#EC CI_SUBRC
+      " Fallback. For some objects, no primary table is explicitly flagged
+      " Then, the one with only one key field shall be chosen
+      READ TABLE lt_object_table INTO ls_object_table WITH KEY tobjkey = '/&'. "#EC CI_SUBRC
     ENDIF.
     IF ls_object_table IS INITIAL.
       zcx_abapgit_exception=>raise( |Object { ms_item-obj_type } has got no defined primary table| ).
@@ -541,7 +537,6 @@ DATA: lt_cts_object_entry TYPE temp5,
           lv_objkey_pos = lv_objkey_pos + 1.
 *       object name
         ELSEIF <ls_object_table>-tobjkey+lv_next_objkey_pos(1) = '&'.
-          "TODO
           ls_objkey-value = ms_item-obj_name.
 *    The object name might comprise multiple key components (e. g. WDCC)
 *    This string needs to be split
