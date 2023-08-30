@@ -96,7 +96,7 @@ CLASS zcl_abapgit_repo_content_list IMPLEMENTATION.
         ls_folder-path    = <ls_item>-path.
         ls_folder-sortkey = c_sortkey-dir. " Directory
         ls_folder-is_dir  = abap_true.
-        CREATE OBJECT lo_state.
+        lo_state = NEW #( ).
       ENDAT.
 
       ls_folder-changes = ls_folder-changes + <ls_item>-changes.
@@ -134,9 +134,7 @@ CLASS zcl_abapgit_repo_content_list IMPLEMENTATION.
       <ls_repo_item>-path      = <ls_tadir>-path.
       <ls_repo_item>-srcsystem = <ls_tadir>-srcsystem.
       MOVE-CORRESPONDING <ls_repo_item> TO ls_item.
-      DATA temp1 TYPE xsdboolean.
-      temp1 = boolc( zcl_abapgit_objects=>is_active( ls_item ) = abap_false ).
-      <ls_repo_item>-inactive = temp1.
+      <ls_repo_item>-inactive = xsdbool( zcl_abapgit_objects=>is_active( ls_item ) = abap_false ).
       IF <ls_repo_item>-inactive = abap_true.
         <ls_repo_item>-sortkey = c_sortkey-inactive.
       ELSE.
@@ -169,7 +167,9 @@ CLASS zcl_abapgit_repo_content_list IMPLEMENTATION.
                    <ls_repo_item> LIKE LINE OF rt_repo_items.
 
 
-    lt_status = mo_repo->status( mi_log ).
+    lt_status = zcl_abapgit_repo_status=>calculate(
+      io_repo = mo_repo
+      ii_log  = mi_log ).
 
     LOOP AT lt_status ASSIGNING <ls_status>.
       AT NEW obj_name. "obj_type + obj_name
@@ -181,14 +181,12 @@ CLASS zcl_abapgit_repo_content_list IMPLEMENTATION.
         <ls_repo_item>-changes   = 0.
         <ls_repo_item>-path      = <ls_status>-path.
         <ls_repo_item>-srcsystem = <ls_status>-srcsystem.
-        CREATE OBJECT lo_state.
+        lo_state = NEW #( ).
       ENDAT.
 
       IF <ls_status>-filename IS NOT INITIAL.
         MOVE-CORRESPONDING <ls_status> TO ls_file.
-        DATA temp2 TYPE xsdboolean.
-        temp2 = boolc( <ls_status>-match = abap_false ).
-        ls_file-is_changed = temp2. " TODO refactor
+        ls_file-is_changed = xsdbool( <ls_status>-match = abap_false ). " TODO refactor
         APPEND ls_file TO <ls_repo_item>-files.
 
         IF <ls_status>-inactive = abap_true AND <ls_repo_item>-sortkey > c_sortkey-changed.
@@ -251,7 +249,7 @@ CLASS zcl_abapgit_repo_content_list IMPLEMENTATION.
 
   METHOD constructor.
     mo_repo = io_repo.
-    CREATE OBJECT mi_log TYPE zcl_abapgit_log.
+    mi_log = NEW zcl_abapgit_log( ).
   ENDMETHOD.
 
 

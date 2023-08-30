@@ -89,20 +89,12 @@ CLASS zcl_abapgit_repo DEFINITION
         !ct_files TYPE zif_abapgit_git_definitions=>ty_files_tt
       RAISING
         zcx_abapgit_exception .
-    METHODS reset_status .
     METHODS set_files_remote
       IMPORTING
         !it_files TYPE zif_abapgit_git_definitions=>ty_files_tt .
     METHODS set_local_settings
       IMPORTING
         !is_settings TYPE zif_abapgit_persistence=>ty_repo-local_settings
-      RAISING
-        zcx_abapgit_exception .
-    METHODS status
-      IMPORTING
-        !ii_log           TYPE REF TO zif_abapgit_log OPTIONAL
-      RETURNING
-        VALUE(rt_results) TYPE zif_abapgit_definitions=>ty_results_tt
       RAISING
         zcx_abapgit_exception .
     METHODS switch_repo_type
@@ -116,7 +108,6 @@ CLASS zcl_abapgit_repo DEFINITION
     DATA mt_remote TYPE zif_abapgit_git_definitions=>ty_files_tt .
     DATA mv_request_local_refresh TYPE abap_bool .
     DATA mv_request_remote_refresh TYPE abap_bool .
-    DATA mt_status TYPE zif_abapgit_definitions=>ty_results_tt .
     DATA mi_log TYPE REF TO zif_abapgit_log .
     DATA mi_listener TYPE REF TO zif_abapgit_repo_listener .
     DATA mo_apack_reader TYPE REF TO zcl_abapgit_apack_reader .
@@ -206,7 +197,7 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
 
     DATA lo_abapgit_abap_language_vers TYPE REF TO zcl_abapgit_abap_language_vers.
     DATA lv_text TYPE string.
-    CREATE OBJECT lo_abapgit_abap_language_vers.
+    lo_abapgit_abap_language_vers = NEW #( ).
 
     IF lo_abapgit_abap_language_vers->is_import_allowed( io_repo = me
                                                          iv_package = ms_data-package ) = abap_false.
@@ -295,7 +286,7 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
 
   METHOD create_new_log.
 
-    CREATE OBJECT mi_log TYPE zcl_abapgit_log.
+    mi_log = NEW zcl_abapgit_log( ).
     mi_log->set_title( iv_title ).
 
     ri_log = mi_log.
@@ -412,7 +403,7 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    CREATE OBJECT ri_config TYPE zcl_abapgit_data_config.
+    ri_config = NEW zcl_abapgit_data_config( ).
     mi_data_config = ri_config.
 
     " Assume remote data has been loaded already
@@ -518,7 +509,7 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
     CLEAR lt_tadir.
     INSERT ls_tadir INTO TABLE lt_tadir.
 
-    CREATE OBJECT lo_serialize.
+    lo_serialize = NEW #( ).
     lt_new_local_files = lo_serialize->serialize(
       iv_package = ms_data-package
       it_tadir   = lt_tadir ).
@@ -560,12 +551,6 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
   METHOD reset_remote.
     CLEAR mt_remote.
     mv_request_remote_refresh = abap_true.
-    reset_status( ).
-  ENDMETHOD.
-
-
-  METHOD reset_status.
-    CLEAR mt_status.
   ENDMETHOD.
 
 
@@ -662,18 +647,6 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD status.
-
-    IF lines( mt_status ) = 0.
-      mt_status = zcl_abapgit_repo_status=>calculate( io_repo = me
-                                                      ii_log  = ii_log ).
-    ENDIF.
-
-    rt_results = mt_status.
-
-  ENDMETHOD.
-
-
   METHOD switch_repo_type.
 
     IF iv_offline = ms_data-offline.
@@ -709,7 +682,7 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
 
   METHOD zif_abapgit_repo~checksums.
 
-    CREATE OBJECT ri_checksums TYPE zcl_abapgit_repo_checksums EXPORTING iv_repo_key = ms_data-key.
+    ri_checksums = NEW zcl_abapgit_repo_checksums( iv_repo_key = ms_data-key ).
 
   ENDMETHOD.
 
@@ -756,7 +729,6 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
     zif_abapgit_repo~checksums( )->update( lt_updated_files ).
 
     update_last_deserialize( ).
-    reset_status( ).
 
     COMMIT WORK AND WAIT.
 
@@ -793,7 +765,7 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
 
 
   METHOD zif_abapgit_repo~get_dot_abapgit.
-    CREATE OBJECT ro_dot_abapgit EXPORTING is_data = ms_data-dot_abapgit.
+    ro_dot_abapgit = NEW #( is_data = ms_data-dot_abapgit ).
   ENDMETHOD.
 
 
@@ -807,8 +779,8 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    CREATE OBJECT lo_serialize EXPORTING io_dot_abapgit = get_dot_abapgit( )
-                                         is_local_settings = get_local_settings( ).
+    lo_serialize = NEW #( io_dot_abapgit = get_dot_abapgit( )
+                          is_local_settings = get_local_settings( ) ).
 
     IF ii_obj_filter IS NOT INITIAL.
       lt_filter = ii_obj_filter->get_filter( ).
@@ -834,7 +806,7 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
     IF ii_obj_filter IS NOT INITIAL.
       lt_filter = ii_obj_filter->get_filter( ).
 
-      CREATE OBJECT lr_filter.
+      lr_filter = NEW #( ).
       lr_filter->apply_object_filter(
         EXPORTING
           it_filter   = lt_filter
