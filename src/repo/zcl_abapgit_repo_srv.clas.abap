@@ -114,7 +114,7 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
 
   METHOD get_instance.
     IF gi_ref IS INITIAL.
-      CREATE OBJECT gi_ref TYPE zcl_abapgit_repo_srv.
+      gi_ref = NEW zcl_abapgit_repo_srv( ).
     ENDIF.
     ri_srv = gi_ref.
   ENDMETHOD.
@@ -128,9 +128,9 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
   METHOD instantiate_and_add.
 
     IF is_repo_meta-offline = abap_false.
-      CREATE OBJECT ri_repo TYPE zcl_abapgit_repo_online EXPORTING is_data = is_repo_meta.
+      ri_repo = NEW zcl_abapgit_repo_online( is_data = is_repo_meta ).
     ELSE.
-      CREATE OBJECT ri_repo TYPE zcl_abapgit_repo_offline EXPORTING is_data = is_repo_meta.
+      ri_repo = NEW zcl_abapgit_repo_offline( is_data = is_repo_meta ).
     ENDIF.
     add( ri_repo ).
 
@@ -471,11 +471,17 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
 
   METHOD zif_abapgit_repo_srv~list.
 
+    DATA li_repo TYPE REF TO zif_abapgit_repo.
+
     IF mv_init = abap_false OR mv_only_favorites = abap_true.
       refresh_all( ).
     ENDIF.
 
-    rt_list = mt_list.
+    LOOP AT mt_list INTO li_repo.
+      IF iv_offline = abap_undefined OR li_repo->is_offline( ) = iv_offline.
+        INSERT li_repo INTO TABLE rt_list.
+      ENDIF.
+    ENDLOOP.
 
   ENDMETHOD.
 
@@ -496,7 +502,7 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
       READ TABLE lt_user_favorites
         TRANSPORTING NO FIELDS
         WITH KEY table_line = li_repo->get_key( ).
-      IF sy-subrc = 0.
+      IF sy-subrc = 0 AND ( iv_offline = abap_undefined OR li_repo->is_offline( ) = iv_offline ).
         APPEND li_repo TO rt_list.
       ENDIF.
     ENDLOOP.
