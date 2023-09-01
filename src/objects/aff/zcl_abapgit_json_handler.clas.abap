@@ -128,11 +128,11 @@ CLASS zcl_abapgit_json_handler IMPLEMENTATION.
 
 
     lv_enum_json = co_ajson->get_string( '/header/abap_language_version' ).
-    IF lv_enum_json = 'standard'.
+    IF lv_enum_json = zif_abapgit_dot_abapgit=>c_abap_language_version-standard.
       lv_enum_abap = zif_abapgit_aff_types_v1=>co_abap_language_version_src-standard.
-    ELSEIF lv_enum_json = 'cloudDevelopment'.
+    ELSEIF lv_enum_json = zif_abapgit_dot_abapgit=>c_abap_language_version-cloud_development.
       lv_enum_abap = zif_abapgit_aff_types_v1=>co_abap_language_version-cloud_development.
-    ELSEIF lv_enum_json = 'keyUser'.
+    ELSEIF lv_enum_json = zif_abapgit_dot_abapgit=>c_abap_language_version-key_user.
       lv_enum_abap = zif_abapgit_aff_types_v1=>co_abap_language_version-key_user.
     ENDIF.
 
@@ -187,11 +187,11 @@ CLASS zcl_abapgit_json_handler IMPLEMENTATION.
     lv_enum_abap = co_ajson->get_string( '/header/abapLanguageVersion' ).
     IF lv_enum_abap = zif_abapgit_aff_types_v1=>co_abap_language_version_src-standard
       OR lv_enum_abap = zif_abapgit_aff_types_v1=>co_abap_language_version-standard.
-      lv_enum_json = 'standard'.
+      lv_enum_json = zif_abapgit_dot_abapgit=>c_abap_language_version-standard.
     ELSEIF lv_enum_abap = zif_abapgit_aff_types_v1=>co_abap_language_version-cloud_development.
-      lv_enum_json = 'cloudDevelopment'.
+      lv_enum_json = zif_abapgit_dot_abapgit=>c_abap_language_version-cloud_development.
     ELSEIF lv_enum_abap = zif_abapgit_aff_types_v1=>co_abap_language_version-key_user.
-      lv_enum_json = 'keyUser'.
+      lv_enum_json = zif_abapgit_dot_abapgit=>c_abap_language_version-key_user.
     ENDIF.
 
     co_ajson->set_string( iv_path = '/header/abapLanguageVersion'
@@ -254,7 +254,7 @@ CLASS zcl_abapgit_json_handler IMPLEMENTATION.
     map2json_custom_enum( EXPORTING it_enum_mappings = iv_enum_mappings
                           CHANGING co_ajson          = lo_ajson ).
 
-    CREATE OBJECT lo_filter EXPORTING iv_skip_paths = iv_skip_paths.
+    lo_filter = NEW #( iv_skip_paths = iv_skip_paths ).
 
     " files end with an empty line (EOF)
     lv_json = lo_ajson->clone( )->filter( lo_filter )->stringify( 2 ) && cl_abap_char_utilities=>newline.
