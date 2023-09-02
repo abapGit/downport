@@ -173,7 +173,9 @@ CLASS zcl_abapgit_cts_api IMPLEMENTATION.
       zcx_abapgit_exception=>raise_t100( ).
     ENDIF.
 
-    rv_locked = xsdbool( lv_lock_flag <> space ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( lv_lock_flag <> space ).
+    rv_locked = temp1.
   ENDMETHOD.
 
 
@@ -191,7 +193,9 @@ CLASS zcl_abapgit_cts_api IMPLEMENTATION.
       IMPORTING
         pe_result = lv_type_check_result.
 
-    rv_lockable = xsdbool( lv_type_check_result = 'L' ).
+    DATA temp2 TYPE xsdboolean.
+    temp2 = boolc( lv_type_check_result = 'L' ).
+    rv_lockable = temp2.
   ENDMETHOD.
 
 
@@ -209,14 +213,17 @@ CLASS zcl_abapgit_cts_api IMPLEMENTATION.
       IMPORTING
         pe_result = lv_type_check_result.
 
-    rv_transportable = xsdbool( lv_type_check_result CA 'RTL' ).
+    DATA temp3 TYPE xsdboolean.
+    temp3 = boolc( lv_type_check_result CA 'RTL' ).
+    rv_transportable = temp3.
   ENDMETHOD.
 
 
   METHOD zif_abapgit_cts_api~create_transport_entries.
 
     DATA lt_tables      TYPE tredt_objects.
-    DATA lt_table_keys  TYPE STANDARD TABLE OF e071k.
+    TYPES temp1 TYPE STANDARD TABLE OF e071k.
+DATA lt_table_keys  TYPE temp1.
     DATA lv_with_dialog TYPE abap_bool.
 
     cl_table_utilities_brf=>create_transport_entries(
@@ -286,7 +293,8 @@ CLASS zcl_abapgit_cts_api IMPLEMENTATION.
   METHOD zif_abapgit_cts_api~get_transports_for_list.
 
     DATA lv_request TYPE trkorr.
-    DATA lt_tlock TYPE SORTED TABLE OF tlock WITH NON-UNIQUE KEY object hikey.
+    TYPES temp2 TYPE SORTED TABLE OF tlock WITH NON-UNIQUE KEY object hikey.
+DATA lt_tlock TYPE temp2.
     DATA ls_object_key TYPE e071.
     DATA lv_type_check_result TYPE c LENGTH 1.
     DATA ls_lock_key TYPE tlock_int.
