@@ -81,8 +81,8 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_REPO IMPLEMENTATION.
   METHOD constructor.
 
     super->constructor( ).
-    mo_validation_log = NEW #( ).
-    mo_form_data = NEW #( ).
+    CREATE OBJECT mo_validation_log.
+    CREATE OBJECT mo_form_data.
     mo_repo = io_repo.
     mo_form = get_form_schema( ).
     mo_form_data = read_settings( ).
@@ -94,7 +94,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_REPO IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_sett_repo.
 
-    lo_component = NEW #( io_repo = io_repo ).
+    CREATE OBJECT lo_component EXPORTING io_repo = io_repo.
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Repository Settings'
@@ -199,7 +199,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_REPO IMPLEMENTATION.
     lo_dot = mo_repo->get_dot_abapgit( ).
     ls_dot = lo_dot->get_data( ).
     lv_main_lang = lo_dot->get_main_language( ).
-    ro_form_data = NEW #( ).
+    CREATE OBJECT ro_form_data.
 
     " Repository Settings
     SELECT SINGLE sptxt INTO lv_language FROM t002t
@@ -214,9 +214,11 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_REPO IMPLEMENTATION.
     ro_form_data->set(
       iv_key = c_id-i18n_langs
       iv_val = zcl_abapgit_lxe_texts=>convert_table_to_lang_string( lo_dot->get_i18n_languages( ) ) ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( lo_dot->use_lxe( ) = abap_true ).
     ro_form_data->set(
       iv_key = c_id-use_lxe
-      iv_val = xsdbool( lo_dot->use_lxe( ) = abap_true ) ) ##TYPE.
+      iv_val = temp1 ) ##TYPE.
     ro_form_data->set(
       iv_key = c_id-folder_logic
       iv_val = ls_dot-folder_logic ).
@@ -281,10 +283,11 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_REPO IMPLEMENTATION.
 
   METHOD save_settings.
 
-    DATA:
+    TYPES temp1 TYPE STANDARD TABLE OF string WITH DEFAULT KEY.
+DATA:
       lo_dot          TYPE REF TO zcl_abapgit_dot_abapgit,
       lv_ignore       TYPE string,
-      lt_ignore       TYPE STANDARD TABLE OF string WITH DEFAULT KEY,
+      lt_ignore       TYPE temp1,
       ls_requirements TYPE zif_abapgit_dot_abapgit=>ty_requirement,
       lt_requirements TYPE zif_abapgit_dot_abapgit=>ty_requirement_tt.
 
@@ -298,7 +301,9 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_REPO IMPLEMENTATION.
       zcl_abapgit_lxe_texts=>convert_lang_string_to_table(
         iv_langs              = mo_form_data->get( c_id-i18n_langs )
         iv_skip_main_language = lo_dot->get_main_language( ) ) ).
-    lo_dot->use_lxe( xsdbool( mo_form_data->get( c_id-use_lxe ) = abap_true ) ).
+    DATA temp2 TYPE xsdboolean.
+    temp2 = boolc( mo_form_data->get( c_id-use_lxe ) = abap_true ).
+    lo_dot->use_lxe( temp2 ).
 
     " Remove all ignores
     lt_ignore = lo_dot->get_data( )-ignore.
@@ -441,7 +446,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_REPO IMPLEMENTATION.
 
     register_handlers( ).
 
-    ri_html = NEW zcl_abapgit_html( ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
 
     ri_html->add( `<div class="repo">` ).
 
