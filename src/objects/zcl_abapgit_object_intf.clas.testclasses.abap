@@ -136,10 +136,14 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     ms_item-obj_name = 'ZIF_ABAPGIT_TEST_INTF'.
     ms_item-obj_type = 'INTF'.
 
-    CREATE OBJECT lo_cut EXPORTING is_item = ms_item
-                                   iv_language = 'E'.
+    CREATE OBJECT lo_cut
+      EXPORTING
+        is_item     = ms_item
+        iv_language = 'E'.
 
-    CREATE OBJECT lo_cut->zif_abapgit_object~mo_files EXPORTING is_item = ms_item.
+    CREATE OBJECT lo_cut->zif_abapgit_object~mo_files
+      EXPORTING
+        is_item = ms_item.
 
     CREATE OBJECT mo_log.
 
@@ -159,7 +163,9 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA ls_expected_docu_line TYPE tline.
     DATA lt_expected_docu_lines TYPE tlinetab.
 
-    CREATE OBJECT lo_xmlin TYPE zcl_abapgit_xml_input EXPORTING iv_xml = get_xml( ).
+    CREATE OBJECT lo_xmlin TYPE zcl_abapgit_xml_input
+      EXPORTING
+        iv_xml = get_xml( ).
 
     mo_cut->mo_files->add_abap( get_source( ) ).
 

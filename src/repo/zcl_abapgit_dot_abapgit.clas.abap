@@ -150,7 +150,9 @@ CLASS ZCL_ABAPGIT_DOT_ABAPGIT IMPLEMENTATION.
     ls_data-starting_folder = '/src/'.
     ls_data-folder_logic    = zif_abapgit_dot_abapgit=>c_folder_logic-prefix.
 
-    CREATE OBJECT ro_dot_abapgit EXPORTING is_data = ls_data.
+    CREATE OBJECT ro_dot_abapgit
+      EXPORTING
+        is_data = ls_data.
 
   ENDMETHOD.
 
@@ -170,7 +172,9 @@ CLASS ZCL_ABAPGIT_DOT_ABAPGIT IMPLEMENTATION.
 
     ls_data = from_xml( lv_xml ).
 
-    CREATE OBJECT ro_dot_abapgit EXPORTING is_data = ls_data.
+    CREATE OBJECT ro_dot_abapgit
+      EXPORTING
+        is_data = ls_data.
 
   ENDMETHOD.
 

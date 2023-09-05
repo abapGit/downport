@@ -27,8 +27,10 @@ CLASS lcl_cua_interface IMPLEMENTATION.
       AND object   = 'PROG'
       AND obj_name = sy-cprog.
 
-    CREATE OBJECT ro_instance EXPORTING iv_language = 'E'
-                                        is_item = ls_item.
+    CREATE OBJECT ro_instance
+      EXPORTING
+        iv_language = 'E'
+        is_item = ls_item.
 
   ENDMETHOD.
 

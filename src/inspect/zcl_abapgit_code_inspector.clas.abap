@@ -302,9 +302,7 @@ CLASS ZCL_ABAPGIT_CODE_INSPECTOR IMPLEMENTATION.
           FROM trdir
           WHERE name = is_obj-objname.
 
-        DATA temp1 TYPE xsdboolean.
-        temp1 = boolc( ls_program_type = 'I' ).
-        rv_skip = temp1. " Include program.
+        rv_skip = boolc( ls_program_type = 'I' ). " Include program.
 
       WHEN OTHERS.
         rv_skip = abap_false.
@@ -380,9 +378,7 @@ CLASS ZCL_ABAPGIT_CODE_INSPECTOR IMPLEMENTATION.
 
         IF iv_save = abap_true.
           READ TABLE rt_list TRANSPORTING NO FIELDS WITH KEY kind = 'E'.
-          DATA temp2 TYPE xsdboolean.
-          temp2 = boolc( sy-subrc <> 0 ).
-          mv_success = temp2.
+          mv_success = boolc( sy-subrc <> 0 ).
         ENDIF.
 
       CATCH zcx_abapgit_exception INTO lx_error.

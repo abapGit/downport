@@ -50,9 +50,8 @@ ENDFORM.
 
 FORM output.
 
-  TYPES temp1 TYPE TABLE OF sy-ucomm.
-DATA: lx_error TYPE REF TO zcx_abapgit_exception,
-        lt_ucomm TYPE temp1.
+  DATA: lx_error TYPE REF TO zcx_abapgit_exception,
+        lt_ucomm TYPE TABLE OF sy-ucomm.
 
   PERFORM set_pf_status IN PROGRAM rsdbrunt IF FOUND.
 
@@ -132,9 +131,8 @@ FORM adjust_toolbar USING pv_dynnr TYPE sy-dynnr.
 
   " Remove toolbar on html screen but re-insert toolbar for variant maintenance.
   " Because otherwise important buttons are missing and variant maintenance is not possible.
-  DATA temp1 TYPE xsdboolean.
-  temp1 = boolc( zcl_abapgit_factory=>get_environment( )->is_variant_maintenance( ) = abap_false ).
-  lv_no_toolbar = temp1.
+  lv_no_toolbar = boolc( zcl_abapgit_factory=>get_environment(
+                                           )->is_variant_maintenance( ) = abap_false ).
 
   IF ls_header-no_toolbar = lv_no_toolbar.
     RETURN. " No change required

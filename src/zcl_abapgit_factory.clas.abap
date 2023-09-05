@@ -92,7 +92,9 @@ CLASS zcl_abapgit_factory IMPLEMENTATION.
     IF sy-subrc <> 0.
       ls_code_inspector-package = iv_package.
 
-      CREATE OBJECT ls_code_inspector-instance TYPE zcl_abapgit_code_inspector EXPORTING iv_package = iv_package.
+      CREATE OBJECT ls_code_inspector-instance TYPE zcl_abapgit_code_inspector
+        EXPORTING
+          iv_package = iv_package.
 
       INSERT ls_code_inspector
              INTO TABLE gt_code_inspector
@@ -174,7 +176,9 @@ CLASS zcl_abapgit_factory IMPLEMENTATION.
     IF sy-subrc <> 0.
 
       ls_sap_package-package = iv_package.
-      CREATE OBJECT ls_sap_package-instance TYPE zcl_abapgit_sap_package EXPORTING iv_package = iv_package.
+      CREATE OBJECT ls_sap_package-instance TYPE zcl_abapgit_sap_package
+        EXPORTING
+          iv_package = iv_package.
 
       INSERT ls_sap_package
              INTO TABLE gt_sap_package
@@ -201,7 +205,8 @@ CLASS zcl_abapgit_factory IMPLEMENTATION.
   METHOD get_stage_logic.
 
     IF gi_stage_logic IS INITIAL.
-      CREATE OBJECT gi_stage_logic TYPE zcl_abapgit_stage_logic.
+      CREATE OBJECT gi_stage_logic
+        TYPE zcl_abapgit_stage_logic.
     ENDIF.
 
     ri_logic = gi_stage_logic.

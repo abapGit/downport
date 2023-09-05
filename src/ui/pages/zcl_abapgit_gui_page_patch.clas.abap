@@ -194,7 +194,9 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_PATCH IMPLEMENTATION.
 
       lv_something_patched = abap_true.
 
-      CREATE OBJECT lo_git_add_patch EXPORTING it_diff = <ls_diff_file>-o_diff->get( ).
+      CREATE OBJECT lo_git_add_patch
+        EXPORTING
+          it_diff = <ls_diff_file>-o_diff->get( ).
 
       lv_patch = lo_git_add_patch->get_patch_binary( ).
 
@@ -320,9 +322,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_PATCH IMPLEMENTATION.
       lv_patch_count = lv_patch_count + 1.
     ENDLOOP.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( lv_patch_count = lines( it_diff ) ).
-    rv_are_all_lines_patched = temp1.
+    rv_are_all_lines_patched = boolc( lv_patch_count = lines( it_diff ) ).
 
   ENDMETHOD.
 

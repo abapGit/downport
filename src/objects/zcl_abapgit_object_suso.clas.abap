@@ -157,11 +157,9 @@ CLASS zcl_abapgit_object_suso IMPLEMENTATION.
 
   METHOD regenerate_sap_all.
 
-    TYPES temp1 TYPE STANDARD TABLE OF e071.
-TYPES temp2 TYPE STANDARD TABLE OF e071k.
-DATA: ls_e071  TYPE e071,
-          lt_e071  TYPE temp1,
-          lt_e071k TYPE temp2.
+    DATA: ls_e071  TYPE e071,
+          lt_e071  TYPE STANDARD TABLE OF e071,
+          lt_e071k TYPE STANDARD TABLE OF e071k.
 
     ls_e071-pgmid = 'R3TR'.
     ls_e071-object = ms_item-obj_type.
@@ -217,16 +215,13 @@ DATA: ls_e071  TYPE e071,
   METHOD zif_abapgit_object~deserialize.
 * see function group SUSA
 
-    TYPES temp3 TYPE TABLE OF tactz.
-TYPES temp4 TYPE TABLE OF tobjvordat.
-TYPES temp1 TYPE TABLE OF tobjvor.
-DATA: lv_objectname TYPE trobj_name,
+    DATA: lv_objectname TYPE trobj_name,
           ls_tobj       TYPE tobj,
           ls_tobjt      TYPE tobjt,
           ls_tobjvorflg TYPE tobjvorflg,
-          lt_tactz      TYPE temp3,
-          lt_tobjvordat TYPE temp4,
-          lt_tobjvor    TYPE temp1.
+          lt_tactz      TYPE TABLE OF tactz,
+          lt_tobjvordat TYPE TABLE OF tobjvordat,
+          lt_tobjvor    TYPE TABLE OF tobjvor.
 
 
     ASSERT NOT ms_item-obj_name IS INITIAL.
@@ -279,9 +274,7 @@ DATA: lv_objectname TYPE trobj_name,
 
     SELECT SINGLE objct FROM tobj INTO lv_objct
       WHERE objct = ms_item-obj_name.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_bool = temp1.
+    rv_bool = boolc( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -341,15 +334,12 @@ DATA: lv_objectname TYPE trobj_name,
 
   METHOD zif_abapgit_object~serialize.
 
-    TYPES temp6 TYPE TABLE OF tactz.
-TYPES temp7 TYPE TABLE OF tobjvordat.
-TYPES temp2 TYPE TABLE OF tobjvor.
-DATA: ls_tobj       TYPE tobj,
+    DATA: ls_tobj       TYPE tobj,
           ls_tobjt      TYPE tobjt,
           ls_tobjvorflg TYPE tobjvorflg,
-          lt_tactz      TYPE temp6,
-          lt_tobjvordat TYPE temp7,
-          lt_tobjvor    TYPE temp2.
+          lt_tactz      TYPE TABLE OF tactz,
+          lt_tobjvordat TYPE TABLE OF tobjvordat,
+          lt_tobjvor    TYPE TABLE OF tobjvor.
 
 
     SELECT SINGLE * FROM tobj INTO ls_tobj

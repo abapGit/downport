@@ -37,7 +37,9 @@ CLASS ltcl_aff_registry IMPLEMENTATION.
     ELSE.
       lo_settings_stub->set_experimental_features( '' ).
     ENDIF.
-    CREATE OBJECT lo_cut TYPE zcl_abapgit_aff_registry EXPORTING io_settings = lo_settings_stub.
+    CREATE OBJECT lo_cut TYPE zcl_abapgit_aff_registry
+      EXPORTING
+        io_settings = lo_settings_stub.
     lv_act = lo_cut->is_supported_object_type( iv_obj_type ).
     cl_abap_unit_assert=>assert_equals( exp = iv_is_supported
                                         act = lv_act ).

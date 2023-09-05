@@ -310,7 +310,9 @@ CLASS ZCL_ABAPGIT_GUI_PAGE IMPLEMENTATION.
 
     " You should remember that the exception viewer dispatches the events of
     " error message panel
-    CREATE OBJECT mo_exception_viewer EXPORTING ix_error = mx_error.
+    CREATE OBJECT mo_exception_viewer
+      EXPORTING
+        ix_error = mx_error.
 
     " You should remember that we render the message panel just once
     " for each exception/error text.
@@ -446,9 +448,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE IMPLEMENTATION.
 
 
   METHOD zif_abapgit_gui_modal~is_modal.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( ms_control-show_as_modal = abap_true ).
-    rv_yes = temp1.
+    rv_yes = boolc( ms_control-show_as_modal = abap_true ).
   ENDMETHOD.
 
 

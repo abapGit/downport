@@ -341,15 +341,11 @@ CLASS zcl_abapgit_settings IMPLEMENTATION.
   METHOD is_feature_enabled.
     DATA lt_features TYPE string_table.
     IF zcl_abapgit_factory=>get_environment( )->is_merged( ) = abap_false.
-      DATA temp1 TYPE xsdboolean.
-      temp1 = boolc( ms_settings-experimental_features = abap_true ).
-      rv_run = temp1.
+      rv_run = boolc( ms_settings-experimental_features = abap_true ).
       IF iv_feature IS NOT INITIAL.
         SPLIT ms_settings-experimental_features AT ',' INTO TABLE lt_features.
         READ TABLE lt_features TRANSPORTING NO FIELDS WITH TABLE KEY table_line = iv_feature.
-        DATA temp2 TYPE xsdboolean.
-        temp2 = boolc( rv_run = abap_true OR sy-subrc = 0 ).
-        rv_run = temp2.
+        rv_run = boolc( rv_run = abap_true OR sy-subrc = 0 ).
       ENDIF.
     ENDIF.
   ENDMETHOD.

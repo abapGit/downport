@@ -292,9 +292,7 @@ CLASS zcl_abapgit_object_ssfo IMPLEMENTATION.
 
     SELECT SINGLE formname FROM stxfadm INTO lv_formname
       WHERE formname = ms_item-obj_name.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_bool = temp1.
+    rv_bool = boolc( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -332,9 +330,7 @@ CLASS zcl_abapgit_object_ssfo IMPLEMENTATION.
       IMPORTING
         o_inactive = lv_inactive.
 
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( lv_inactive = abap_false ).
-    rv_active = temp2.
+    rv_active = boolc( lv_inactive = abap_false ).
 
   ENDMETHOD.
 
@@ -349,8 +345,7 @@ CLASS zcl_abapgit_object_ssfo IMPLEMENTATION.
 
   METHOD zif_abapgit_object~jump.
 
-    TYPES temp1 TYPE TABLE OF bdcdata.
-DATA: lt_bdcdata  TYPE temp1,
+    DATA: lt_bdcdata  TYPE TABLE OF bdcdata,
           lv_formtype TYPE stxfadm-formtype.
 
     FIELD-SYMBOLS: <ls_bdcdata> LIKE LINE OF lt_bdcdata.

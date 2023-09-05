@@ -107,10 +107,12 @@ CLASS zcl_abapgit_gui_event IMPLEMENTATION.
 
 
   METHOD new.
-    CREATE OBJECT ro_instance EXPORTING ii_gui_services = ii_gui_services
-                                        iv_action = iv_action
-                                        iv_getdata = iv_getdata
-                                        it_postdata = it_postdata.
+    CREATE OBJECT ro_instance
+      EXPORTING
+        ii_gui_services = ii_gui_services
+        iv_action       = iv_action
+        iv_getdata      = iv_getdata
+        it_postdata     = it_postdata.
   ENDMETHOD.
 
 

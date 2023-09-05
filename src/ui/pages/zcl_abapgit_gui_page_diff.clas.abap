@@ -275,15 +275,12 @@ CLASS zcl_abapgit_gui_page_diff IMPLEMENTATION.
 
   METHOD add_filter_sub_menu.
 
-    TYPES temp1 TYPE SORTED TABLE OF string WITH UNIQUE DEFAULT KEY.
-TYPES temp2 TYPE SORTED TABLE OF string WITH UNIQUE DEFAULT KEY.
-TYPES temp3 TYPE SORTED TABLE OF string WITH UNIQUE DEFAULT KEY.
-DATA:
+    DATA:
       lo_sub_filter TYPE REF TO zcl_abapgit_html_toolbar,
       lv_user       TYPE string,
-      lt_extensions TYPE temp1,
-      lt_obj_types  TYPE temp2,
-      lt_users      TYPE temp3.
+      lt_extensions TYPE SORTED TABLE OF string WITH UNIQUE DEFAULT KEY,
+      lt_obj_types  TYPE SORTED TABLE OF string WITH UNIQUE DEFAULT KEY,
+      lt_users      TYPE SORTED TABLE OF string WITH UNIQUE DEFAULT KEY.
 
     FIELD-SYMBOLS: <ls_diff> LIKE LINE OF mt_diff_files,
                    <lv_i>    TYPE string.
@@ -511,17 +508,21 @@ DATA:
     " Diff data
     IF <ls_diff>-type <> 'binary'.
       IF <ls_diff>-fstate = c_fstate-remote. " Remote file leading changes
-        CREATE OBJECT <ls_diff>-o_diff EXPORTING iv_new = <ls_remote>-data
-                                                 iv_old = <ls_local>-file-data
-                                                 iv_ignore_indentation = ms_view-ignore_indent
-                                                 iv_ignore_comments = ms_view-ignore_comments
-                                                 iv_ignore_case = ms_view-ignore_case.
+        CREATE OBJECT <ls_diff>-o_diff
+          EXPORTING
+            iv_new                = <ls_remote>-data
+            iv_old                = <ls_local>-file-data
+            iv_ignore_indentation = ms_view-ignore_indent
+            iv_ignore_comments    = ms_view-ignore_comments
+            iv_ignore_case        = ms_view-ignore_case.
       ELSE.             " Local leading changes or both were modified
-        CREATE OBJECT <ls_diff>-o_diff EXPORTING iv_new = <ls_local>-file-data
-                                                 iv_old = <ls_remote>-data
-                                                 iv_ignore_indentation = ms_view-ignore_indent
-                                                 iv_ignore_comments = ms_view-ignore_comments
-                                                 iv_ignore_case = ms_view-ignore_case.
+        CREATE OBJECT <ls_diff>-o_diff
+          EXPORTING
+            iv_new                = <ls_local>-file-data
+            iv_old                = <ls_remote>-data
+            iv_ignore_indentation = ms_view-ignore_indent
+            iv_ignore_comments    = ms_view-ignore_comments
+            iv_ignore_case        = ms_view-ignore_case.
       ENDIF.
     ENDIF.
 
@@ -692,9 +693,7 @@ DATA:
     READ TABLE it_files WITH KEY file-path     = is_status-path
                                  file-filename = is_status-filename
                         TRANSPORTING NO FIELDS.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_is_file_requested = temp1.
+    rv_is_file_requested = boolc( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -702,9 +701,7 @@ DATA:
   METHOD is_refresh.
 
     FIND FIRST OCCURRENCE OF REGEX |^{ c_actions-refresh_prefix }| IN iv_action.
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( sy-subrc = 0 ).
-    rv_is_refrseh = temp2.
+    rv_is_refrseh = boolc( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -1324,27 +1321,19 @@ DATA:
 
       WHEN c_actions-toggle_hidden_chars. " Toggle display of hidden characters
 
-        DATA temp3 TYPE xsdboolean.
-        temp3 = boolc( ms_view-hidden_chars = abap_false ).
-        ms_view-hidden_chars = temp3.
+        ms_view-hidden_chars = boolc( ms_view-hidden_chars = abap_false ).
 
       WHEN c_actions-toggle_ignore_indent. " Toggle ignore indentation
 
-        DATA temp4 TYPE xsdboolean.
-        temp4 = boolc( ms_view-ignore_indent = abap_false ).
-        ms_view-ignore_indent = temp4.
+        ms_view-ignore_indent = boolc( ms_view-ignore_indent = abap_false ).
 
       WHEN c_actions-toggle_ignore_comments. " Toggle ignore comments
 
-        DATA temp5 TYPE xsdboolean.
-        temp5 = boolc( ms_view-ignore_comments = abap_false ).
-        ms_view-ignore_comments = temp5.
+        ms_view-ignore_comments = boolc( ms_view-ignore_comments = abap_false ).
 
       WHEN c_actions-toggle_ignore_case. " Toggle case sensitivity
 
-        DATA temp6 TYPE xsdboolean.
-        temp6 = boolc( ms_view-ignore_case = abap_false ).
-        ms_view-ignore_case = temp6.
+        ms_view-ignore_case = boolc( ms_view-ignore_case = abap_false ).
 
       WHEN OTHERS.
 

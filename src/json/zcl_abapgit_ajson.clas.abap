@@ -138,9 +138,11 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
 
 
   METHOD create_empty.
-    CREATE OBJECT ro_instance EXPORTING iv_to_abap_corresponding_only = iv_to_abap_corresponding_only
-                                        iv_format_datetime = iv_format_datetime
-                                        iv_keep_item_order = iv_keep_item_order.
+    CREATE OBJECT ro_instance
+      EXPORTING
+        iv_to_abap_corresponding_only = iv_to_abap_corresponding_only
+        iv_format_datetime = iv_format_datetime
+        iv_keep_item_order = iv_keep_item_order.
     ro_instance->mi_custom_mapping = ii_custom_mapping.
   ENDMETHOD.
 
@@ -153,9 +155,11 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
       zcx_abapgit_ajson_error=>raise( 'Source not bound' ).
     ENDIF.
 
-    CREATE OBJECT ro_instance EXPORTING iv_to_abap_corresponding_only = ii_source_json->opts( )-to_abap_corresponding_only
-                                        iv_format_datetime = ii_source_json->opts( )-format_datetime
-                                        iv_keep_item_order = ii_source_json->opts( )-keep_item_order.
+    CREATE OBJECT ro_instance
+      EXPORTING
+        iv_to_abap_corresponding_only = ii_source_json->opts( )-to_abap_corresponding_only
+        iv_format_datetime = ii_source_json->opts( )-format_datetime
+        iv_keep_item_order = ii_source_json->opts( )-keep_item_order.
 
     IF ii_filter IS NOT BOUND AND ii_mapper IS NOT BOUND.
       ro_instance->mt_json_tree = ii_source_json->mt_json_tree.
@@ -230,9 +234,11 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
 
 
   METHOD new.
-    CREATE OBJECT ro_instance EXPORTING iv_to_abap_corresponding_only = iv_to_abap_corresponding_only
-                                        iv_format_datetime = iv_format_datetime
-                                        iv_keep_item_order = iv_keep_item_order.
+    CREATE OBJECT ro_instance
+      EXPORTING
+        iv_to_abap_corresponding_only = iv_to_abap_corresponding_only
+        iv_format_datetime = iv_format_datetime
+        iv_keep_item_order = iv_keep_item_order.
   ENDMETHOD.
 
 
@@ -373,9 +379,7 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
 
 
   METHOD zif_abapgit_ajson~exists.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( get_item( iv_path ) IS NOT INITIAL ).
-    rv_exists = temp1.
+    rv_exists = boolc( get_item( iv_path ) IS NOT INITIAL ).
   ENDMETHOD.
 
 
@@ -415,9 +419,7 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
     IF lr_item IS INITIAL OR lr_item->type = zif_abapgit_ajson_types=>node_type-null.
       RETURN.
     ELSEIF lr_item->type = zif_abapgit_ajson_types=>node_type-boolean.
-      DATA temp2 TYPE xsdboolean.
-      temp2 = boolc( lr_item->value = 'true' ).
-      rv_value = temp2.
+      rv_value = boolc( lr_item->value = 'true' ).
     ELSEIF lr_item->value IS NOT INITIAL.
       rv_value = abap_true.
     ENDIF.
@@ -511,9 +513,7 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
 
 
   METHOD zif_abapgit_ajson~is_empty.
-    DATA temp3 TYPE xsdboolean.
-    temp3 = boolc( lines( mt_json_tree ) = 0 ).
-    rv_yes = temp3.
+    rv_yes = boolc( lines( mt_json_tree ) = 0 ).
   ENDMETHOD.
 
 
@@ -760,9 +760,7 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
     ri_json = me.
 
     DATA lv_bool TYPE abap_bool.
-    DATA temp4 TYPE xsdboolean.
-    temp4 = boolc( iv_val IS NOT INITIAL ).
-    lv_bool = temp4.
+    lv_bool = boolc( iv_val IS NOT INITIAL ).
     zif_abapgit_ajson~set(
       iv_ignore_empty = abap_false
       iv_path = iv_path
@@ -946,10 +944,10 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
     DATA lo_to_abap TYPE REF TO lcl_json_to_abap.
 
     CLEAR ev_container.
-    DATA temp5 TYPE xsdboolean.
-    temp5 = boolc( iv_corresponding = abap_true OR ms_opts-to_abap_corresponding_only = abap_true ).
-    CREATE OBJECT lo_to_abap EXPORTING iv_corresponding = temp5
-                                       ii_custom_mapping = mi_custom_mapping.
+    CREATE OBJECT lo_to_abap
+      EXPORTING
+        iv_corresponding  = boolc( iv_corresponding = abap_true OR ms_opts-to_abap_corresponding_only = abap_true )
+        ii_custom_mapping = mi_custom_mapping.
 
     lo_to_abap->to_abap(
       EXPORTING

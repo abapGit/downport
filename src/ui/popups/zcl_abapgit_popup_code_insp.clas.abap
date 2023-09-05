@@ -53,9 +53,11 @@ CLASS ZCL_ABAPGIT_POPUP_CODE_INSP IMPLEMENTATION.
 
   METHOD zif_abapgit_html_popup~create_picklist.
 
-    CREATE OBJECT ro_picklist EXPORTING iv_title = 'Choose Variant'
-                                        it_list = fetch_list( )
-                                        ii_item_renderer = me.
+    CREATE OBJECT ro_picklist
+      EXPORTING
+        iv_title         = 'Choose Variant'
+        it_list          = fetch_list( )
+        ii_item_renderer = me.
 
   ENDMETHOD.
 ENDCLASS.

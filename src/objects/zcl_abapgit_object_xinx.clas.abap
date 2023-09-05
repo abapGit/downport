@@ -311,9 +311,7 @@ CLASS zcl_abapgit_object_xinx IMPLEMENTATION.
         illegal_input = 1
         OTHERS        = 2.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( ls_dd12v IS NOT INITIAL ).
-    rv_bool = temp1.
+    rv_bool = boolc( ls_dd12v IS NOT INITIAL ).
 
   ENDMETHOD.
 

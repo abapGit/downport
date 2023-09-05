@@ -134,9 +134,7 @@ CLASS zcl_abapgit_repo_content_list IMPLEMENTATION.
       <ls_repo_item>-path      = <ls_tadir>-path.
       <ls_repo_item>-srcsystem = <ls_tadir>-srcsystem.
       MOVE-CORRESPONDING <ls_repo_item> TO ls_item.
-      DATA temp1 TYPE xsdboolean.
-      temp1 = boolc( zcl_abapgit_objects=>is_active( ls_item ) = abap_false ).
-      <ls_repo_item>-inactive = temp1.
+      <ls_repo_item>-inactive = boolc( zcl_abapgit_objects=>is_active( ls_item ) = abap_false ).
       IF <ls_repo_item>-inactive = abap_true.
         <ls_repo_item>-sortkey = c_sortkey-inactive.
       ELSE.
@@ -188,9 +186,7 @@ CLASS zcl_abapgit_repo_content_list IMPLEMENTATION.
 
       IF <ls_status>-filename IS NOT INITIAL.
         MOVE-CORRESPONDING <ls_status> TO ls_file.
-        DATA temp2 TYPE xsdboolean.
-        temp2 = boolc( <ls_status>-match = abap_false ).
-        ls_file-is_changed = temp2. " TODO refactor
+        ls_file-is_changed = boolc( <ls_status>-match = abap_false ). " TODO refactor
         APPEND ls_file TO <ls_repo_item>-files.
 
         IF <ls_status>-inactive = abap_true AND <ls_repo_item>-sortkey > c_sortkey-changed.

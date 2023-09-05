@@ -45,9 +45,7 @@ CLASS zcl_abapgit_object_pdxx_super IMPLEMENTATION.
         not_found = 1
         OTHERS    = 2.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_bool = temp1.
+    rv_bool = boolc( sy-subrc = 0 ).
 
   ENDMETHOD.
 

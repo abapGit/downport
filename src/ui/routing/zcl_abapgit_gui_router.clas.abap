@@ -295,9 +295,11 @@ CLASS zcl_abapgit_gui_router IMPLEMENTATION.
     ls_object-obj_type = ii_event->query( )->get( 'OBJ_TYPE' ).
     ls_object-obj_name = ii_event->query( )->get( 'OBJ_NAME' ). " unescape ?
 
-    CREATE OBJECT lo_page EXPORTING iv_key = lv_key
-                                    is_file = ls_file
-                                    is_object = ls_object.
+    CREATE OBJECT lo_page
+      EXPORTING
+        iv_key    = lv_key
+        is_file   = ls_file
+        is_object = ls_object.
 
     ri_page = lo_page.
 
@@ -332,7 +334,9 @@ CLASS zcl_abapgit_gui_router IMPLEMENTATION.
     ENDIF.
 
     IF lo_repo->get_local_settings( )-code_inspector_check_variant IS NOT INITIAL.
-      CREATE OBJECT lo_code_inspector_page EXPORTING io_repo = lo_repo.
+      CREATE OBJECT lo_code_inspector_page
+        EXPORTING
+          io_repo = lo_repo.
 
       IF lo_code_inspector_page->is_nothing_to_display( ) = abap_true.
         lv_sci_result = zif_abapgit_definitions=>c_sci_result-passed.
@@ -345,10 +349,12 @@ CLASS zcl_abapgit_gui_router IMPLEMENTATION.
       " force refresh on stage, to make sure the latest local and remote files are used
       lo_repo->refresh( ).
 
-      CREATE OBJECT lo_stage_page EXPORTING io_repo = lo_repo
-                                            iv_seed = lv_seed
-                                            iv_sci_result = lv_sci_result
-                                            ii_obj_filter = ii_obj_filter.
+      CREATE OBJECT lo_stage_page
+        EXPORTING
+          io_repo       = lo_repo
+          iv_seed       = lv_seed
+          iv_sci_result = lv_sci_result
+          ii_obj_filter = ii_obj_filter.
 
       ri_page = lo_stage_page.
     ENDIF.
@@ -477,9 +483,7 @@ CLASS zcl_abapgit_gui_router IMPLEMENTATION.
     IF iv_line CO '0123456789'.
       lv_line_number = iv_line.
     ENDIF.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( iv_new_window IS NOT INITIAL ).
-    lv_new_window = temp1.
+    lv_new_window = boolc( iv_new_window IS NOT INITIAL ).
 
     TRY.
         li_html_viewer = zcl_abapgit_ui_factory=>get_html_viewer( ).
@@ -531,8 +535,7 @@ CLASS zcl_abapgit_gui_router IMPLEMENTATION.
   METHOD other_utilities.
     TYPES ty_char600 TYPE c LENGTH 600.
     DATA lv_clip_content TYPE string.
-    TYPES temp1 TYPE STANDARD TABLE OF ty_char600.
-DATA lt_clipboard TYPE temp1.
+    DATA lt_clipboard TYPE STANDARD TABLE OF ty_char600.
 
     CASE ii_event->mv_action.
       WHEN zif_abapgit_definitions=>c_action-ie_devtools.
@@ -578,10 +581,14 @@ DATA lt_clipboard TYPE temp1.
         zcl_abapgit_services_repo=>refresh( lv_key ).
         rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
       WHEN zif_abapgit_definitions=>c_action-repo_syntax_check.
-        CREATE OBJECT rs_handled-page TYPE zcl_abapgit_gui_page_syntax EXPORTING io_repo = lo_repo.
+        CREATE OBJECT rs_handled-page TYPE zcl_abapgit_gui_page_syntax " Syntax check
+          EXPORTING
+            io_repo = lo_repo.
         rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page.
       WHEN zif_abapgit_definitions=>c_action-repo_code_inspector.             " Code inspector
-        CREATE OBJECT rs_handled-page TYPE zcl_abapgit_gui_page_code_insp EXPORTING io_repo = lo_repo.
+        CREATE OBJECT rs_handled-page TYPE zcl_abapgit_gui_page_code_insp
+          EXPORTING
+            io_repo = lo_repo.
         rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page.
       WHEN zif_abapgit_definitions=>c_action-repo_purge.                      " Repo purge all objects (uninstall)
         zcl_abapgit_services_repo=>purge( lv_key ).

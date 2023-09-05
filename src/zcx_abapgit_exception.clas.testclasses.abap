@@ -139,9 +139,11 @@ CLASS ltcl_general IMPLEMENTATION.
   METHOD text_from_exception.
     DATA: lx_previous TYPE REF TO cx_sy_dyn_call_illegal_method.
 
-    CREATE OBJECT lx_previous TYPE cx_sy_dyn_call_illegal_method EXPORTING textid = cx_sy_dyn_call_illegal_method=>private_method
-                                                                           classname = 'CLASS'
-                                                                           methodname = 'METHOD'.
+    CREATE OBJECT lx_previous TYPE cx_sy_dyn_call_illegal_method
+      EXPORTING
+        textid     = cx_sy_dyn_call_illegal_method=>private_method
+        classname  = 'CLASS'
+        methodname = 'METHOD'.
 
     given_the_previous_exception( lx_previous ).
 

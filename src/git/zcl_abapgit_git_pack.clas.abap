@@ -521,7 +521,9 @@ CLASS zcl_abapgit_git_pack IMPLEMENTATION.
     FIELD-SYMBOLS: <ls_object> LIKE LINE OF ct_objects.
 
 
-    CREATE OBJECT lo_stream EXPORTING iv_data = is_object-data.
+    CREATE OBJECT lo_stream
+      EXPORTING
+        iv_data = is_object-data.
 
 * find base
     READ TABLE ct_objects ASSIGNING <ls_object>

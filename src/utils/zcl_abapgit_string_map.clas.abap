@@ -102,7 +102,9 @@ CLASS ZCL_ABAPGIT_STRING_MAP IMPLEMENTATION.
 
 
   METHOD create.
-    CREATE OBJECT ro_instance EXPORTING iv_case_insensitive = iv_case_insensitive.
+    CREATE OBJECT ro_instance
+      EXPORTING
+        iv_case_insensitive = iv_case_insensitive.
   ENDMETHOD.
 
 
@@ -144,17 +146,13 @@ CLASS ZCL_ABAPGIT_STRING_MAP IMPLEMENTATION.
   METHOD has.
 
     READ TABLE mt_entries TRANSPORTING NO FIELDS WITH KEY k = iv_key.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc IS INITIAL ).
-    rv_has = temp1.
+    rv_has = boolc( sy-subrc IS INITIAL ).
 
   ENDMETHOD.
 
 
   METHOD is_empty.
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( lines( mt_entries ) = 0 ).
-    rv_yes = temp2.
+    rv_yes = boolc( lines( mt_entries ) = 0 ).
   ENDMETHOD.
 
 

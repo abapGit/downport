@@ -49,8 +49,10 @@ CLASS zcl_abapgit_timer IMPLEMENTATION.
 
 
   METHOD create.
-    CREATE OBJECT ro_timer EXPORTING iv_text = iv_text
-                                     iv_count = iv_count.
+    CREATE OBJECT ro_timer
+      EXPORTING
+        iv_text  = iv_text
+        iv_count = iv_count.
   ENDMETHOD.
 
 

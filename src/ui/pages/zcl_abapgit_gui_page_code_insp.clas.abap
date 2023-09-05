@@ -145,25 +145,20 @@ CLASS zcl_abapgit_gui_page_code_insp IMPLEMENTATION.
 
     READ TABLE mt_result TRANSPORTING NO FIELDS
                          WITH KEY kind = 'E'.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_has_inspection_errors = temp1.
+    rv_has_inspection_errors = boolc( sy-subrc = 0 ).
 
   ENDMETHOD.
 
 
   METHOD is_nothing_to_display.
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( lines( mt_result ) = 0 ).
-    rv_yes = temp2.
+    rv_yes = boolc( lines( mt_result ) = 0 ).
   ENDMETHOD.
 
 
   METHOD is_stage_allowed.
 
-    DATA temp3 TYPE xsdboolean.
-    temp3 = boolc( NOT ( mo_repo->get_local_settings( )-block_commit = abap_true AND has_inspection_errors( ) = abap_true ) ).
-    rv_is_stage_allowed = temp3.
+    rv_is_stage_allowed = boolc( NOT ( mo_repo->get_local_settings( )-block_commit = abap_true
+                                           AND has_inspection_errors( ) = abap_true ) ).
 
   ENDMETHOD.
 
@@ -245,8 +240,10 @@ CLASS zcl_abapgit_gui_page_code_insp IMPLEMENTATION.
             ENDIF.
           ENDIF.
 
-          CREATE OBJECT rs_handled-page TYPE zcl_abapgit_gui_page_stage EXPORTING io_repo = lo_repo_online
-                                                                                  iv_sci_result = lv_sci_result.
+          CREATE OBJECT rs_handled-page TYPE zcl_abapgit_gui_page_stage
+            EXPORTING
+              io_repo       = lo_repo_online
+              iv_sci_result = lv_sci_result.
 
           rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page.
 

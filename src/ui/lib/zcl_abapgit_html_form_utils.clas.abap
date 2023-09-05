@@ -72,7 +72,9 @@ CLASS ZCL_ABAPGIT_HTML_FORM_UTILS IMPLEMENTATION.
 
 
   METHOD create.
-    CREATE OBJECT ro_form_util EXPORTING io_form = io_form.
+    CREATE OBJECT ro_form_util
+      EXPORTING
+        io_form = io_form.
   ENDMETHOD.
 
 
@@ -109,9 +111,7 @@ CLASS ZCL_ABAPGIT_HTML_FORM_UTILS IMPLEMENTATION.
 
 
   METHOD is_dirty.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( io_form_data->mt_entries <> io_compare_with->mt_entries ).
-    rv_dirty = temp1.
+    rv_dirty = boolc( io_form_data->mt_entries <> io_compare_with->mt_entries ).
   ENDMETHOD.
 
 
@@ -133,18 +133,14 @@ CLASS ZCL_ABAPGIT_HTML_FORM_UTILS IMPLEMENTATION.
         del = ` ` ).
 
       IF <ls_field>-type = zif_abapgit_html_form=>c_field_type-number.
-        DATA temp2 TYPE xsdboolean.
-        temp2 = boolc( lv_value IS INITIAL OR lv_value = '0' ).
-        rv_empty = temp2.
+        rv_empty = boolc( lv_value IS INITIAL OR lv_value = '0' ).
       ELSEIF <ls_field>-type = zif_abapgit_html_form=>c_field_type-table.
         lv_rows = io_form_data->get( |{ <ls_field>-name }-{ zif_abapgit_html_form=>c_rows }| ).
         DO lv_rows TIMES.
           lv_row = sy-index.
           DO lines( <ls_field>-subitems ) TIMES.
             lv_value = io_form_data->get( |{ <ls_field>-name }-{ lv_row }-{ sy-index }| ).
-            DATA temp3 TYPE xsdboolean.
-            temp3 = boolc( lv_value IS INITIAL ).
-            rv_empty = temp3.
+            rv_empty = boolc( lv_value IS INITIAL ).
             IF rv_empty <> abap_true.
               RETURN.
             ENDIF.
@@ -153,13 +149,9 @@ CLASS ZCL_ABAPGIT_HTML_FORM_UTILS IMPLEMENTATION.
       ELSEIF <ls_field>-type = zif_abapgit_html_form=>c_field_type-textarea.
         REPLACE ALL OCCURRENCES OF cl_abap_char_utilities=>cr_lf IN lv_value WITH ''.
         REPLACE ALL OCCURRENCES OF cl_abap_char_utilities=>newline IN lv_value WITH ''.
-        DATA temp4 TYPE xsdboolean.
-        temp4 = boolc( lv_value IS INITIAL ).
-        rv_empty = temp4.
+        rv_empty = boolc( lv_value IS INITIAL ).
       ELSE.
-        DATA temp5 TYPE xsdboolean.
-        temp5 = boolc( lv_value IS INITIAL ).
-        rv_empty = temp5.
+        rv_empty = boolc( lv_value IS INITIAL ).
       ENDIF.
 
       IF rv_empty <> abap_true.
@@ -199,11 +191,9 @@ CLASS ZCL_ABAPGIT_HTML_FORM_UTILS IMPLEMENTATION.
       ENDIF.
 
       IF <ls_field>-type = zif_abapgit_html_form=>c_field_type-checkbox.
-        DATA temp6 TYPE xsdboolean.
-        temp6 = boolc( lv_value = 'on' ).
         ro_form_data->set(
           iv_key = <ls_field>-name
-          iv_val = temp6 ) ##TYPE.
+          iv_val = boolc( lv_value = 'on' ) ) ##TYPE.
       ELSEIF ( <ls_field>-type = zif_abapgit_html_form=>c_field_type-text
           OR <ls_field>-type = zif_abapgit_html_form=>c_field_type-textarea )
           AND <ls_field>-upper_case = abap_true.
