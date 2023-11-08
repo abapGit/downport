@@ -518,7 +518,7 @@ CLASS zcl_abapgit_lxe_texts IMPLEMENTATION.
 
   METHOD is_object_supported.
     READ TABLE gt_supported_obj_types TRANSPORTING NO FIELDS WITH KEY table_line = iv_object_type.
-    rv_yes = boolc( sy-subrc = 0 ).
+    rv_yes = xsdbool( sy-subrc = 0 ).
   ENDMETHOD.
 
 
@@ -643,9 +643,7 @@ CLASS zcl_abapgit_lxe_texts IMPLEMENTATION.
 
     LOOP AT mo_i18n_params->ms_params-translation_languages INTO lv_lang.
       lv_lang = to_lower( lv_lang ).
-      CREATE OBJECT lo_po_file
-        EXPORTING
-          iv_lang = lv_lang.
+      lo_po_file = NEW #( iv_lang = lv_lang ).
       LOOP AT lt_lxe_texts ASSIGNING <ls_translation>.
         IF iso4_to_iso2( <ls_translation>-target_lang ) = lv_lang.
           lo_po_file->push_text_pairs(

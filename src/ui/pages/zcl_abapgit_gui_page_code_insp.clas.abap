@@ -98,12 +98,10 @@ CLASS zcl_abapgit_gui_page_code_insp IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_code_insp.
 
-    CREATE OBJECT lo_component
-      EXPORTING
-        io_repo                  = io_repo
-        io_stage                 = io_stage
-        iv_check_variant         = iv_check_variant
-        iv_raise_when_no_results = iv_raise_when_no_results.
+    lo_component = NEW #( io_repo = io_repo
+                          io_stage = io_stage
+                          iv_check_variant = iv_check_variant
+                          iv_raise_when_no_results = iv_raise_when_no_results ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title         = 'Code Inspector'
@@ -132,14 +130,14 @@ CLASS zcl_abapgit_gui_page_code_insp IMPLEMENTATION.
 
     READ TABLE mt_result TRANSPORTING NO FIELDS
                          WITH KEY kind = 'E'.
-    rv_has_inspection_errors = boolc( sy-subrc = 0 ).
+    rv_has_inspection_errors = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
 
   METHOD is_stage_allowed.
 
-    rv_is_stage_allowed = boolc( NOT ( mo_repo->get_local_settings( )-block_commit = abap_true
+    rv_is_stage_allowed = xsdbool( NOT ( mo_repo->get_local_settings( )-block_commit = abap_true
                                            AND has_inspection_errors( ) = abap_true ) ).
 
   ENDMETHOD.
@@ -291,7 +289,7 @@ CLASS zcl_abapgit_gui_page_code_insp IMPLEMENTATION.
 
     register_handlers( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( `<div class="repo">` ).
     ri_html->add( zcl_abapgit_gui_chunk_lib=>render_repo_top( io_repo        = mo_repo

@@ -122,7 +122,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_SERVICES_REPO IMPLEMENTATION.
+CLASS zcl_abapgit_services_repo IMPLEMENTATION.
 
 
   METHOD activate_objects.
@@ -138,9 +138,7 @@ CLASS ZCL_ABAPGIT_SERVICES_REPO IMPLEMENTATION.
 
     lo_repo ?= zcl_abapgit_repo_srv=>get_instance( )->get( iv_key ).
 
-    CREATE OBJECT lo_browser
-      EXPORTING
-        io_repo = lo_repo.
+    lo_browser = NEW #( io_repo = lo_repo ).
 
     lt_repo_items = lo_browser->list( '/' ).
 
@@ -176,24 +174,6 @@ CLASS ZCL_ABAPGIT_SERVICES_REPO IMPLEMENTATION.
     ENDIF.
 
     lo_repo->refresh( iv_drop_log = abap_false ).
-
-  ENDMETHOD.
-
-
-  METHOD check_package_exists.
-
-    IF zcl_abapgit_factory=>get_sap_package( iv_package )->exists( ) = abap_false.
-      " Check if any package is included in remote
-      READ TABLE it_remote TRANSPORTING NO FIELDS
-        WITH KEY file
-        COMPONENTS filename = zcl_abapgit_filename_logic=>c_package_file.
-      IF sy-subrc <> 0.
-        " If not, give error
-        zcx_abapgit_exception=>raise(
-          iv_text     = |Package { iv_package } does not exist and there's no package included in the repository|
-          iv_longtext = 'Either select an existing package, create a new one, or add a package to the repository' ).
-      ENDIF.
-    ENDIF.
 
   ENDMETHOD.
 
@@ -249,6 +229,24 @@ CLASS ZCL_ABAPGIT_SERVICES_REPO IMPLEMENTATION.
 
     IF li_repo IS BOUND.
       zcx_abapgit_exception=>raise( lv_reason ).
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD check_package_exists.
+
+    IF zcl_abapgit_factory=>get_sap_package( iv_package )->exists( ) = abap_false.
+      " Check if any package is included in remote
+      READ TABLE it_remote TRANSPORTING NO FIELDS
+        WITH KEY file
+        COMPONENTS filename = zcl_abapgit_filename_logic=>c_package_file.
+      IF sy-subrc <> 0.
+        " If not, give error
+        zcx_abapgit_exception=>raise(
+          iv_text     = |Package { iv_package } does not exist and there's no package included in the repository|
+          iv_longtext = 'Either select an existing package, create a new one, or add a package to the repository' ).
+      ENDIF.
     ENDIF.
 
   ENDMETHOD.
@@ -843,7 +841,7 @@ CLASS ZCL_ABAPGIT_SERVICES_REPO IMPLEMENTATION.
 
     ls_transport_to_branch = zcl_abapgit_ui_factory=>get_popups( )->popup_to_create_transp_branch( lv_trkorr ).
 
-    CREATE OBJECT lo_transport_to_branch.
+    lo_transport_to_branch = NEW #( ).
     lo_transport_to_branch->create(
       io_repository          = lo_repository
       is_transport_to_branch = ls_transport_to_branch

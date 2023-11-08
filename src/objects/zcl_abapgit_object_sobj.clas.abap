@@ -85,11 +85,9 @@ CLASS zcl_abapgit_object_sobj IMPLEMENTATION.
 
   METHOD get_generic.
 
-    CREATE OBJECT ro_generic
-      EXPORTING
-        io_field_rules = get_field_rules( )
-        is_item        = ms_item
-        iv_language    = mv_language.
+    ro_generic = NEW #( io_field_rules = get_field_rules( )
+                        is_item = ms_item
+                        iv_language = mv_language ).
 
   ENDMETHOD.
 
@@ -100,7 +98,7 @@ CLASS zcl_abapgit_object_sobj IMPLEMENTATION.
 
 
   METHOD is_locked.
-    rv_is_locked = boolc( is_objtype_locked( ) = abap_true OR is_program_locked( ) = abap_true ).
+    rv_is_locked = xsdbool( is_objtype_locked( ) = abap_true OR is_program_locked( ) = abap_true ).
   ENDMETHOD.
 
 

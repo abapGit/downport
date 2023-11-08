@@ -84,7 +84,7 @@ CLASS zcl_abapgit_object_doct IMPLEMENTATION.
       WHERE id         = c_id
         AND object     = lv_object.     "#EC CI_GENBUFF "#EC CI_NOORDER
 
-    rv_bool = boolc( sy-subrc = 0 ).
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 

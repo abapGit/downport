@@ -173,7 +173,7 @@ CLASS zcl_abapgit_object_dsys IMPLEMENTATION.
            WHERE id   = c_id
            AND object = mv_doc_object.  "#EC CI_GENBUFF "#EC CI_NOORDER
 
-    rv_bool = boolc( lv_count > 0 ).
+    rv_bool = xsdbool( lv_count > 0 ).
 
   ENDMETHOD.
 
@@ -225,7 +225,7 @@ CLASS zcl_abapgit_object_dsys IMPLEMENTATION.
         no_editor           = 2
         OTHERS              = 3.
 
-    rv_exit = boolc( sy-subrc = 0 ).
+    rv_exit = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 

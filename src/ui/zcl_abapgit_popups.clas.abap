@@ -620,7 +620,7 @@ CLASS zcl_abapgit_popups IMPLEMENTATION.
         p_object_data    = es_package_data
       EXCEPTIONS
         action_cancelled = 1.
-    ev_create = boolc( sy-subrc = 0 ).
+    ev_create = xsdbool( sy-subrc = 0 ).
   ENDMETHOD.
 
 
@@ -669,18 +669,16 @@ CLASS zcl_abapgit_popups IMPLEMENTATION.
       iv_width  = iv_end_column - iv_start_column
       iv_height = iv_end_line - iv_start_line ).
 
-    CREATE OBJECT lo_popup
-      EXPORTING
-        it_list               = it_list
-        iv_title              = iv_title
-        iv_header_text        = iv_header_text
-        is_position           = ms_position
-        iv_striped_pattern    = iv_striped_pattern
-        iv_optimize_col_width = iv_optimize_col_width
-        iv_selection_mode     = iv_selection_mode
-        iv_select_column_text = iv_select_column_text
-        it_columns_to_display = it_columns_to_display
-        it_preselected_rows   = it_preselected_rows.
+    lo_popup = NEW #( it_list = it_list
+                      iv_title = iv_title
+                      iv_header_text = iv_header_text
+                      is_position = ms_position
+                      iv_striped_pattern = iv_striped_pattern
+                      iv_optimize_col_width = iv_optimize_col_width
+                      iv_selection_mode = iv_selection_mode
+                      iv_select_column_text = iv_select_column_text
+                      it_columns_to_display = it_columns_to_display
+                      it_preselected_rows = it_preselected_rows ).
 
     lo_popup->display( ).
     lo_popup->get_selected( IMPORTING et_list = et_list ).

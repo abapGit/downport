@@ -38,6 +38,11 @@ CLASS zcl_abapgit_gui_page_sett_remo DEFINITION
         switched_origin TYPE zif_abapgit_persistence=>ty_repo-switched_origin,
       END OF ty_remote_settings.
     CONSTANTS:
+      BEGIN OF c_repo_type,
+        online  TYPE string VALUE 'Online Repository',
+        offline TYPE string VALUE 'Offline Repository',
+      END OF c_repo_type.
+    CONSTANTS:
       BEGIN OF c_head_types,
         branch       TYPE ty_head_type VALUE 'B',
         tag          TYPE ty_head_type VALUE 'T',
@@ -353,7 +358,7 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
     ms_settings_snapshot = get_remote_settings_from_repo( mo_repo ).
     mo_form              = get_form_schema( ).
     mo_form_data         = initialize_form_data( ).
-    CREATE OBJECT mo_validation_log.
+    mo_validation_log = NEW #( ).
 
   ENDMETHOD.
 
@@ -362,9 +367,7 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_sett_remo.
 
-    CREATE OBJECT lo_component
-      EXPORTING
-        io_repo = io_repo.
+    lo_component = NEW #( io_repo = io_repo ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Remote Settings'
@@ -613,12 +616,12 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
       lv_type TYPE string,
       lv_head TYPE string.
 
-    CREATE OBJECT ro_form_data.
+    ro_form_data = NEW #( ).
 
     IF ms_settings_snapshot-offline = abap_true.
-      lv_type = 'Offline repository'.
+      lv_type = c_repo_type-offline.
     ELSE.
-      lv_type = 'Online repository'.
+      lv_type = c_repo_type-online.
     ENDIF.
 
     ro_form_data->set(
@@ -661,7 +664,7 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
 
   METHOD render_content.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( zcl_abapgit_gui_chunk_lib=>render_repo_top(
       io_repo               = mo_repo
@@ -740,7 +743,7 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
           lv_url         TYPE ty_remote_settings-url,
           lv_branch      TYPE ty_remote_settings-branch.
 
-    lv_offline_new = boolc( mo_form_data->get( c_id-offline ) = abap_false ).
+    lv_offline_new = xsdbool( mo_form_data->get( c_id-offline ) = abap_false ).
     mo_form_data->set(
       iv_key = c_id-offline
       iv_val = lv_offline_new ).
@@ -754,8 +757,13 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
           iv_key = c_id-url
           iv_val = lv_url ).
       ENDIF.
-
+      mo_form_data->set(
+        iv_key = c_id-repo_type
+        iv_val = c_repo_type-offline ).
     ELSE.
+      mo_form_data->set(
+        iv_key = c_id-repo_type
+        iv_val = c_repo_type-online ).
       IF mv_offline_switch_saved_url IS NOT INITIAL.
         mo_form_data->set(
           iv_key = c_id-url
@@ -870,7 +878,7 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
             iv_validate = abap_true ).
 
           " Provider-specific URL check
-          CREATE OBJECT lo_url.
+          lo_url = NEW #( ).
           lo_url->validate_url( lv_url ).
         CATCH zcx_abapgit_exception INTO lx_error.
           ro_validation_log->set(
@@ -1095,7 +1103,7 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
 
     handle_picklist_state( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->wrap(
       iv_tag     = 'div'
