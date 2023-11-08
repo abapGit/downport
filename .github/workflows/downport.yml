@@ -2,20 +2,18 @@ name: Downport
 
 on:
   workflow_dispatch:
-  schedule: 
+  schedule:
     - cron: '30 */6 * * *'
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: Use Node.js
-      uses: actions/setup-node@v1
-      with:
-        node-version: '16'
+      uses: actions/setup-node@v4
     - name: Run Commands
-      run: |      
+      run: |
         git config user.email "ci@abapgit.org"
         git config user.name "CI"
         git clone https://github.com/abapGit/upport /tmp/new
@@ -23,7 +21,7 @@ jobs:
         cp -rf /tmp/new/src src
         git add -A
         git commit -m "update base"
-        git push        
+        git push
         npm install @abaplint/cli
         npx abaplint --fix
         git status
