@@ -117,7 +117,7 @@ CLASS zcl_abapgit_apack_reader IMPLEMENTATION.
 
 
   METHOD create_instance.
-    CREATE OBJECT ro_manifest_reader EXPORTING iv_package_name = iv_package_name.
+    ro_manifest_reader = NEW #( iv_package_name = iv_package_name ).
   ENDMETHOD.
 
 
@@ -185,7 +185,8 @@ CLASS zcl_abapgit_apack_reader IMPLEMENTATION.
          WHERE tadir~pgmid = 'R3TR' AND
                tadir~object = 'CLAS' AND
                seometarel~version = '1' AND
-               seometarel~refclsname = zif_abapgit_apack_definitions=>c_apack_interface_cust.
+               seometarel~refclsname = zif_abapgit_apack_definitions=>c_apack_interface_cust
+         ORDER BY clsname devclass.
 
       SELECT seometarel~clsname tadir~devclass FROM seometarel "#EC CI_NOORDER
          INNER JOIN tadir ON seometarel~clsname = tadir~obj_name "#EC CI_BUFFJOIN
@@ -193,7 +194,8 @@ CLASS zcl_abapgit_apack_reader IMPLEMENTATION.
          WHERE tadir~pgmid = 'R3TR' AND
                tadir~object = 'CLAS' AND
                seometarel~version = '1' AND
-               seometarel~refclsname = zif_abapgit_apack_definitions=>c_apack_interface_sap.
+               seometarel~refclsname = zif_abapgit_apack_definitions=>c_apack_interface_sap
+         ORDER BY clsname devclass.
 
       LOOP AT lt_packages INTO lv_package.
         READ TABLE lt_manifest_implementation INTO ls_manifest_implementation WITH KEY devclass = lv_package.

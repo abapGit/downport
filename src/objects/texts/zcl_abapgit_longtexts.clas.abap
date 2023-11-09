@@ -34,7 +34,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_LONGTEXTS IMPLEMENTATION.
+CLASS zcl_abapgit_longtexts IMPLEMENTATION.
 
 
   METHOD escape_name.
@@ -168,7 +168,8 @@ CLASS ZCL_ABAPGIT_LONGTEXTS IMPLEMENTATION.
 
     SELECT * FROM dokil
       INTO TABLE lt_dokil
-      WHERE id = iv_longtext_id AND object LIKE lv_object ESCAPE '#'.
+      WHERE id = iv_longtext_id AND object LIKE lv_object ESCAPE '#'
+      ORDER BY PRIMARY KEY.
 
     LOOP AT lt_dokil ASSIGNING <ls_dokil>.
 
@@ -213,9 +214,7 @@ CLASS ZCL_ABAPGIT_LONGTEXTS IMPLEMENTATION.
 
     LOOP AT lt_longtexts ASSIGNING <ls_longtext>.
 
-      DATA temp1 TYPE xsdboolean.
-      temp1 = boolc( iv_main_language <> <ls_longtext>-dokil-langu ).
-      lv_no_main_lang = temp1.
+      lv_no_main_lang = xsdbool( iv_main_language <> <ls_longtext>-dokil-langu ).
 
       CALL FUNCTION 'DOCU_UPDATE'
         EXPORTING
@@ -233,7 +232,8 @@ CLASS ZCL_ABAPGIT_LONGTEXTS IMPLEMENTATION.
     " If not, delete the texts
     SELECT * FROM dokil
       INTO TABLE lt_dokil
-      WHERE id = iv_longtext_id AND object LIKE lv_object ESCAPE '#'.
+      WHERE id = iv_longtext_id AND object LIKE lv_object ESCAPE '#'
+      ORDER BY PRIMARY KEY.
 
     LOOP AT lt_dokil ASSIGNING <ls_dokil>.
 
