@@ -28,7 +28,10 @@ CLASS zcl_abapgit_gui_page_sett_repo DEFINITION
     CONSTANTS:
       BEGIN OF c_id,
         dot              TYPE string VALUE 'dot',
+        file_system      TYPE string VALUE 'file_system',
+        abap_system      TYPE string VALUE 'abap_system',
         name             TYPE string VALUE 'name',
+        i18n             TYPE string VALUE 'i18n',
         main_language    TYPE string VALUE 'main_language',
         i18n_langs       TYPE string VALUE 'i18n_langs',
         use_lxe          TYPE string VALUE 'use_lxe',
@@ -89,8 +92,8 @@ CLASS zcl_abapgit_gui_page_sett_repo IMPLEMENTATION.
     " Feature for ABAP Language Version
     lo_settings = zcl_abapgit_persist_factory=>get_settings( )->read( ).
 
-    CREATE OBJECT mo_validation_log.
-    CREATE OBJECT mo_form_data.
+    mo_validation_log = NEW #( ).
+    mo_form_data = NEW #( ).
     mo_repo = io_repo.
     mo_form = get_form_schema( ).
     mo_form_data = read_settings( ).
@@ -102,7 +105,7 @@ CLASS zcl_abapgit_gui_page_sett_repo IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_sett_repo.
 
-    CREATE OBJECT lo_component EXPORTING io_repo = io_repo.
+    lo_component = NEW #( io_repo = io_repo ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Repository Settings'
@@ -125,6 +128,21 @@ CLASS zcl_abapgit_gui_page_sett_repo IMPLEMENTATION.
       iv_label       = 'Repository Settings (.abapgit.xml)'
       iv_hint        = 'Settings stored in root folder in .abapgit.xml file'
     )->text(
+      iv_name        = c_id-name
+      iv_label       = 'Name'
+      iv_hint        = 'Official name (can be overwritten by local display name)'
+    )->text(
+      iv_name        = c_id-version_constant
+      iv_label       = 'Version Constant'
+      iv_placeholder = 'ZVERSION_CLASS=>VERSION_CONSTANT'
+    )->text(
+      iv_name        = c_id-version_value
+      iv_label       = 'Version Value'
+      iv_readonly    = abap_true
+    )->start_group(
+      iv_name        = c_id-i18n
+      iv_label       = 'Texts'
+    )->text(
       iv_name        = c_id-main_language
       iv_label       = 'Main Language'
       iv_hint        = 'Main language of repository (cannot be changed)'
@@ -137,6 +155,9 @@ CLASS zcl_abapgit_gui_page_sett_repo IMPLEMENTATION.
       iv_name        = c_id-use_lxe
       iv_label       = 'Use Experimental LXE Approach for Translations'
       iv_hint        = 'It''s mandatory to specify the list of languages above in addition to this setting'
+    )->start_group(
+      iv_name        = c_id-file_system
+      iv_label       = 'Files'
     )->radio(
       iv_name        = c_id-folder_logic
       iv_default_value = zif_abapgit_dot_abapgit=>c_folder_logic-prefix
@@ -159,6 +180,9 @@ CLASS zcl_abapgit_gui_page_sett_repo IMPLEMENTATION.
       iv_name        = c_id-ignore
       iv_label       = 'Ignore Files'
       iv_hint        = 'List of files in starting folder that shall not be serialized'
+    )->start_group(
+      iv_name        = c_id-abap_system
+      iv_label       = 'ABAP'
     )->table(
       iv_name        = c_id-requirements
       iv_label       = 'Requirements'
@@ -194,19 +218,6 @@ CLASS zcl_abapgit_gui_page_sett_repo IMPLEMENTATION.
         iv_value       = zif_abapgit_dot_abapgit=>c_abap_language_version-cloud_development ).
     ENDIF.
 
-    ro_form->text(
-      iv_name        = c_id-name
-      iv_label       = 'Name'
-      iv_hint        = 'Official name (can be overwritten by local display name)'
-    )->text(
-      iv_name        = c_id-version_constant
-      iv_label       = 'Version Constant'
-      iv_placeholder = 'ZVERSION_CLASS=>VERSION_CONSTANT'
-    )->text(
-      iv_name        = c_id-version_value
-      iv_label       = 'Version Value'
-      iv_readonly    = abap_true ).
-
     ro_form->command(
       iv_label       = 'Save Settings'
       iv_cmd_type    = zif_abapgit_html_form=>c_cmd_type-input_main
@@ -234,7 +245,7 @@ CLASS zcl_abapgit_gui_page_sett_repo IMPLEMENTATION.
     lo_dot = mo_repo->get_dot_abapgit( ).
     ls_dot = lo_dot->get_data( ).
     lv_main_lang = lo_dot->get_main_language( ).
-    CREATE OBJECT ro_form_data.
+    ro_form_data = NEW #( ).
 
     " Repository Settings
     SELECT SINGLE sptxt INTO lv_language FROM t002t
@@ -252,11 +263,9 @@ CLASS zcl_abapgit_gui_page_sett_repo IMPLEMENTATION.
     ro_form_data->set(
       iv_key = c_id-i18n_langs
       iv_val = zcl_abapgit_lxe_texts=>convert_table_to_lang_string( lo_dot->get_i18n_languages( ) ) ).
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( lo_dot->use_lxe( ) = abap_true ).
     ro_form_data->set(
       iv_key = c_id-use_lxe
-      iv_val = temp1 ) ##TYPE.
+      iv_val = xsdbool( lo_dot->use_lxe( ) = abap_true ) ) ##TYPE.
     ro_form_data->set(
       iv_key = c_id-folder_logic
       iv_val = ls_dot-folder_logic ).
@@ -327,11 +336,10 @@ CLASS zcl_abapgit_gui_page_sett_repo IMPLEMENTATION.
 
   METHOD save_settings.
 
-    TYPES temp1 TYPE STANDARD TABLE OF string WITH DEFAULT KEY.
-DATA:
+    DATA:
       lo_dot          TYPE REF TO zcl_abapgit_dot_abapgit,
       lv_ignore       TYPE string,
-      lt_ignore       TYPE temp1,
+      lt_ignore       TYPE STANDARD TABLE OF string WITH DEFAULT KEY,
       ls_requirements TYPE zif_abapgit_dot_abapgit=>ty_requirement,
       lt_requirements TYPE zif_abapgit_dot_abapgit=>ty_requirement_tt.
 
@@ -350,9 +358,7 @@ DATA:
       zcl_abapgit_lxe_texts=>convert_lang_string_to_table(
         iv_langs              = mo_form_data->get( c_id-i18n_langs )
         iv_skip_main_language = lo_dot->get_main_language( ) ) ).
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( mo_form_data->get( c_id-use_lxe ) = abap_true ).
-    lo_dot->use_lxe( temp2 ).
+    lo_dot->use_lxe( xsdbool( mo_form_data->get( c_id-use_lxe ) = abap_true ) ).
 
     " Remove all ignores
     lt_ignore = lo_dot->get_data( )-ignore.
@@ -495,7 +501,7 @@ DATA:
 
     register_handlers( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( `<div class="repo">` ).
 
