@@ -114,7 +114,7 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
 
   METHOD get_instance.
     IF gi_ref IS INITIAL.
-      CREATE OBJECT gi_ref TYPE zcl_abapgit_repo_srv.
+      gi_ref = NEW zcl_abapgit_repo_srv( ).
     ENDIF.
     ri_srv = gi_ref.
   ENDMETHOD.
@@ -128,9 +128,9 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
   METHOD instantiate_and_add.
 
     IF is_repo_meta-offline = abap_false.
-      CREATE OBJECT ri_repo TYPE zcl_abapgit_repo_online EXPORTING is_data = is_repo_meta.
+      ri_repo = NEW zcl_abapgit_repo_online( is_data = is_repo_meta ).
     ELSE.
-      CREATE OBJECT ri_repo TYPE zcl_abapgit_repo_offline EXPORTING is_data = is_repo_meta.
+      ri_repo = NEW zcl_abapgit_repo_offline( is_data = is_repo_meta ).
     ENDIF.
     add( ri_repo ).
 
@@ -528,18 +528,17 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
       iv_package    = iv_package
       iv_ign_subpkg = iv_ign_subpkg ).
 
-    IF iv_url IS INITIAL.
-      zcx_abapgit_exception=>raise( 'Missing display name for repo' ).
+    IF iv_name IS INITIAL.
+      zcx_abapgit_exception=>raise( 'Missing name for repository' ).
     ENDIF.
 
     " Repo Settings
     lo_dot_abapgit = zcl_abapgit_dot_abapgit=>build_default( ).
     lo_dot_abapgit->set_folder_logic( iv_folder_logic ).
+    lo_dot_abapgit->set_name( iv_name ).
     lo_dot_abapgit->set_abap_language_version( iv_abap_lang_vers ).
 
     lv_key = zcl_abapgit_persist_factory=>get_repo( )->add(
-      iv_url          = iv_url
-      iv_branch_name  = ''
       iv_package      = iv_package
       iv_offline      = abap_true
       is_dot_abapgit  = lo_dot_abapgit->get_data( ) ).
@@ -598,6 +597,7 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
     " Repo Settings
     lo_dot_abapgit = zcl_abapgit_dot_abapgit=>build_default( ).
     lo_dot_abapgit->set_folder_logic( iv_folder_logic ).
+    lo_dot_abapgit->set_name( iv_name ).
     lo_dot_abapgit->set_abap_language_version( iv_abap_lang_vers ).
 
     lv_key = zcl_abapgit_persist_factory=>get_repo( )->add(
