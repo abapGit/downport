@@ -21,7 +21,9 @@ CLASS zcl_abapgit_repo_offline IMPLEMENTATION.
 
 
   METHOD has_remote_source.
-    rv_yes = xsdbool( lines( mt_remote ) > 0 ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( lines( mt_remote ) > 0 ).
+    rv_yes = temp1.
   ENDMETHOD.
 
 
