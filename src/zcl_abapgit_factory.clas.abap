@@ -96,7 +96,7 @@ CLASS zcl_abapgit_factory IMPLEMENTATION.
     IF sy-subrc <> 0.
       ls_code_inspector-package = iv_package.
 
-      ls_code_inspector-instance = NEW zcl_abapgit_code_inspector( iv_package = iv_package ).
+      CREATE OBJECT ls_code_inspector-instance TYPE zcl_abapgit_code_inspector EXPORTING iv_package = iv_package.
 
       INSERT ls_code_inspector
              INTO TABLE gt_code_inspector
@@ -111,7 +111,7 @@ CLASS zcl_abapgit_factory IMPLEMENTATION.
 
   METHOD get_cts_api.
     IF gi_cts_api IS NOT BOUND.
-      gi_cts_api = NEW zcl_abapgit_cts_api( ).
+      CREATE OBJECT gi_cts_api TYPE zcl_abapgit_cts_api.
     ENDIF.
 
     ri_cts_api = gi_cts_api.
@@ -120,7 +120,7 @@ CLASS zcl_abapgit_factory IMPLEMENTATION.
 
   METHOD get_environment.
     IF gi_environment IS NOT BOUND.
-      gi_environment = NEW zcl_abapgit_environment( ).
+      CREATE OBJECT gi_environment TYPE zcl_abapgit_environment.
     ENDIF.
     ri_environment = gi_environment.
   ENDMETHOD.
@@ -129,7 +129,7 @@ CLASS zcl_abapgit_factory IMPLEMENTATION.
   METHOD get_function_module.
 
     IF gi_function_module IS INITIAL.
-      gi_function_module = NEW zcl_abapgit_function_module( ).
+      CREATE OBJECT gi_function_module TYPE zcl_abapgit_function_module.
     ENDIF.
 
     ri_function_module = gi_function_module.
@@ -151,7 +151,7 @@ CLASS zcl_abapgit_factory IMPLEMENTATION.
   METHOD get_longtexts.
 
     IF gi_longtext IS NOT BOUND.
-      gi_longtext = NEW zcl_abapgit_longtexts( ).
+      CREATE OBJECT gi_longtext TYPE zcl_abapgit_longtexts.
     ENDIF.
     ri_longtexts = gi_longtext.
 
@@ -161,7 +161,7 @@ CLASS zcl_abapgit_factory IMPLEMENTATION.
   METHOD get_lxe_texts.
 
     IF gi_lxe_texts IS NOT BOUND.
-      gi_lxe_texts = NEW zcl_abapgit_lxe_texts( ).
+      CREATE OBJECT gi_lxe_texts TYPE zcl_abapgit_lxe_texts.
     ENDIF.
     ri_lxe_texts = gi_lxe_texts.
 
@@ -171,7 +171,7 @@ CLASS zcl_abapgit_factory IMPLEMENTATION.
   METHOD get_sap_namespace.
 
     IF gi_sap_namespace IS NOT BOUND.
-      gi_sap_namespace = NEW zcl_abapgit_sap_namespace( ).
+      CREATE OBJECT gi_sap_namespace TYPE zcl_abapgit_sap_namespace.
     ENDIF.
 
     ri_namespace = gi_sap_namespace.
@@ -189,7 +189,7 @@ CLASS zcl_abapgit_factory IMPLEMENTATION.
     IF sy-subrc <> 0.
 
       ls_sap_package-package = iv_package.
-      ls_sap_package-instance = NEW zcl_abapgit_sap_package( iv_package = iv_package ).
+      CREATE OBJECT ls_sap_package-instance TYPE zcl_abapgit_sap_package EXPORTING iv_package = iv_package.
 
       INSERT ls_sap_package
              INTO TABLE gt_sap_package
@@ -205,7 +205,7 @@ CLASS zcl_abapgit_factory IMPLEMENTATION.
   METHOD get_sap_report.
 
     IF gi_sap_report IS NOT BOUND.
-      gi_sap_report = NEW zcl_abapgit_sap_report( ).
+      CREATE OBJECT gi_sap_report TYPE zcl_abapgit_sap_report.
     ENDIF.
 
     ri_report = gi_sap_report.
@@ -216,7 +216,7 @@ CLASS zcl_abapgit_factory IMPLEMENTATION.
   METHOD get_stage_logic.
 
     IF gi_stage_logic IS INITIAL.
-      gi_stage_logic = NEW zcl_abapgit_stage_logic( ).
+      CREATE OBJECT gi_stage_logic TYPE zcl_abapgit_stage_logic.
     ENDIF.
 
     ri_logic = gi_stage_logic.
@@ -227,7 +227,7 @@ CLASS zcl_abapgit_factory IMPLEMENTATION.
   METHOD get_tadir.
 
     IF gi_tadir IS INITIAL.
-      gi_tadir = NEW zcl_abapgit_tadir( ).
+      CREATE OBJECT gi_tadir TYPE zcl_abapgit_tadir.
     ENDIF.
 
     ri_tadir = gi_tadir.
