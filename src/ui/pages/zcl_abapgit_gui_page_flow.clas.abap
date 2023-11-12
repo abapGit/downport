@@ -31,6 +31,15 @@ CLASS zcl_abapgit_gui_page_flow DEFINITION
       END OF c_action .
     DATA mt_features TYPE ty_features .
 
+    METHODS refresh
+      RAISING
+        zcx_abapgit_exception .
+    METHODS set_branch
+      IMPORTING
+        !iv_branch TYPE string
+        !iv_key    TYPE zif_abapgit_persistence=>ty_value
+      RAISING
+        zcx_abapgit_exception .
     METHODS render_table
       IMPORTING
         !iv_index      TYPE i
@@ -54,12 +63,28 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_FLOW IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_flow.
 
-    CREATE OBJECT lo_component.
+    lo_component = NEW #( ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title         = 'Flow'
       ii_page_menu_provider = lo_component
       ii_child_component    = lo_component ).
+
+  ENDMETHOD.
+
+
+  METHOD refresh.
+
+    DATA ls_feature LIKE LINE OF mt_features.
+    DATA lo_online  TYPE REF TO zcl_abapgit_repo_online.
+
+
+    LOOP AT mt_features INTO ls_feature.
+      lo_online ?= zcl_abapgit_repo_srv=>get_instance( )->get( ls_feature-repo-key ).
+      lo_online->refresh( ).
+    ENDLOOP.
+
+    CLEAR mt_features.
 
   ENDMETHOD.
 
@@ -72,7 +97,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_FLOW IMPLEMENTATION.
     DATA lv_param     TYPE string.
 
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( |<table>| ).
     ri_html->add( |<tr><td><u>Filename</u></td><td><u>Remote SHA1</u></td>| &&
@@ -109,8 +134,24 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_FLOW IMPLEMENTATION.
       iv_act = |{ c_action-pull }?index={ iv_index }&key={ is_feature-repo-key }| ) ).
     ri_html->add( ri_html->a(
       iv_txt = 'Stage'
-      iv_act = |{ c_action-stage }?index={ iv_index }&key={ is_feature-repo-key }| ) ).
+      iv_act = |{ c_action-stage }?index={ iv_index }&key={ is_feature-repo-key }&branch={ lv_branch }| ) ).
     ri_html->add( |<br>| ).
+
+  ENDMETHOD.
+
+
+  METHOD set_branch.
+
+    DATA lv_branch TYPE string.
+    DATA lo_online TYPE REF TO zcl_abapgit_repo_online.
+
+    IF iv_branch IS NOT INITIAL.
+      lv_branch = 'refs/heads/' && iv_branch.
+      lo_online ?= zcl_abapgit_repo_srv=>get_instance( )->get( iv_key ).
+      IF lo_online->get_selected_branch( ) <> lv_branch.
+        lo_online->select_branch( lv_branch ).
+      ENDIF.
+    ENDIF.
 
   ENDMETHOD.
 
@@ -119,10 +160,10 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_FLOW IMPLEMENTATION.
 
     DATA lv_key     TYPE zif_abapgit_persistence=>ty_value.
     DATA lv_branch  TYPE string.
-    DATA lo_online  TYPE REF TO zcl_abapgit_repo_online.
     DATA lo_filter  TYPE REF TO lcl_filter.
     DATA lt_filter  TYPE zif_abapgit_definitions=>ty_tadir_tt.
     DATA lv_index   TYPE i.
+    DATA lo_online  TYPE REF TO zcl_abapgit_repo_online.
     DATA ls_feature LIKE LINE OF mt_features.
 
     FIELD-SYMBOLS <ls_object> LIKE LINE OF ls_feature-changed_objects.
@@ -131,21 +172,19 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_FLOW IMPLEMENTATION.
 
     CASE ii_event->mv_action.
       WHEN c_action-refresh.
-        CLEAR mt_features.
+        refresh( ).
         rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
       WHEN zif_abapgit_definitions=>c_action-go_file_diff.
         lv_key = ii_event->query( )->get( 'KEY' ).
         lv_branch = ii_event->query( )->get( 'EXTRA' ).
-        IF lv_branch IS NOT INITIAL.
-          lv_branch = 'refs/heads/' && lv_branch.
-          lo_online ?= zcl_abapgit_repo_srv=>get_instance( )->get( lv_key ).
-          IF lo_online->get_selected_branch( ) <> lv_branch.
-            lo_online->select_branch( lv_branch ).
-          ENDIF.
-        ENDIF.
+        set_branch(
+          iv_branch = lv_branch
+          iv_key    = lv_key ).
+* calling the page is done by the global router
       WHEN c_action-stage.
         lv_key = ii_event->query( )->get( 'KEY' ).
         lv_index = ii_event->query( )->get( 'INDEX' ).
+        lv_branch = ii_event->query( )->get( 'BRANCH' ).
         lo_online ?= zcl_abapgit_repo_srv=>get_instance( )->get( lv_key ).
 
         READ TABLE mt_features INTO ls_feature INDEX lv_index.
@@ -156,7 +195,11 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_FLOW IMPLEMENTATION.
           <ls_filter>-object = <ls_object>-obj_type.
           <ls_filter>-obj_name = <ls_object>-obj_name.
         ENDLOOP.
-        CREATE OBJECT lo_filter EXPORTING it_filter = lt_filter.
+        lo_filter = NEW #( it_filter = lt_filter ).
+
+        set_branch(
+          iv_branch = lv_branch
+          iv_key    = lv_key ).
 
         rs_handled-page = zcl_abapgit_gui_page_stage=>create(
           io_repo       = lo_online
@@ -180,7 +223,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_FLOW IMPLEMENTATION.
 
   METHOD zif_abapgit_gui_menu_provider~get_menu.
 
-    CREATE OBJECT ro_toolbar EXPORTING iv_id = 'toolbar-main'.
+    ro_toolbar = NEW #( iv_id = 'toolbar-main' ).
 
     ro_toolbar->add(
       iv_txt = 'Refresh'
@@ -200,7 +243,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_FLOW IMPLEMENTATION.
 
 
     register_handlers( ).
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
     ri_html->add( '<div class="repo-overview">' ).
 
     IF mt_features IS INITIAL.
