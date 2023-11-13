@@ -83,8 +83,8 @@ CLASS zcl_abapgit_gui_page_sett_pers IMPLEMENTATION.
   METHOD constructor.
 
     super->constructor( ).
-    CREATE OBJECT mo_validation_log.
-    CREATE OBJECT mo_form_data.
+    mo_validation_log = NEW #( ).
+    mo_form_data = NEW #( ).
     mo_form = get_form_schema( ).
     mo_form_data = read_settings( ).
 
@@ -95,7 +95,7 @@ CLASS zcl_abapgit_gui_page_sett_pers IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_sett_pers.
 
-    CREATE OBJECT lo_component.
+    lo_component = NEW #( ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Personal Settings'
@@ -208,7 +208,7 @@ CLASS zcl_abapgit_gui_page_sett_pers IMPLEMENTATION.
     " Get settings from DB
     mo_settings = zcl_abapgit_persist_factory=>get_settings( )->read( ).
     ms_settings = mo_settings->get_user_settings( ).
-    CREATE OBJECT ro_form_data.
+    ro_form_data = NEW #( ).
 
     " Startup
     ro_form_data->set(
@@ -230,31 +230,23 @@ CLASS zcl_abapgit_gui_page_sett_pers IMPLEMENTATION.
       iv_val = ms_settings-label_colors ).
 
     " Interaction
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( ms_settings-activate_wo_popup = abap_true ).
     ro_form_data->set(
       iv_key = c_id-activate_wo_popup
-      iv_val = temp1 ) ##TYPE.
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( ms_settings-adt_jump_enabled = abap_true ).
+      iv_val = xsdbool( ms_settings-activate_wo_popup = abap_true ) ) ##TYPE.
     ro_form_data->set(
       iv_key = c_id-adt_jump_enabled
-      iv_val = temp2 ) ##TYPE.
-    DATA temp3 TYPE xsdboolean.
-    temp3 = boolc( ms_settings-link_hints_enabled = abap_true ).
+      iv_val = xsdbool( ms_settings-adt_jump_enabled = abap_true ) ) ##TYPE.
     ro_form_data->set(
       iv_key = c_id-link_hints_enabled
-      iv_val = temp3 ) ##TYPE.
+      iv_val = xsdbool( ms_settings-link_hints_enabled = abap_true ) ) ##TYPE.
     ro_form_data->set(
       iv_key = c_id-link_hint_key
       iv_val = |{ ms_settings-link_hint_key }| ).
 
     " Resources
-    DATA temp4 TYPE xsdboolean.
-    temp4 = boolc( ms_settings-parallel_proc_disabled = abap_true ).
     ro_form_data->set(
       iv_key = c_id-parallel_proc_disabled
-      iv_val = temp4 ) ##TYPE.
+      iv_val = xsdbool( ms_settings-parallel_proc_disabled = abap_true ) ) ##TYPE.
 
   ENDMETHOD.
 
@@ -268,13 +260,13 @@ CLASS zcl_abapgit_gui_page_sett_pers IMPLEMENTATION.
 
     APPEND `<p style="margin-bottom: 0.3em">` TO lt_fragments.
     APPEND `Comma-separated list of <code>label:color</code> pairs.` TO lt_fragments.
-    APPEND ` <code>color</code> part can be either a css style (see below) or <code>#fg/bg</code> pair,`
-      TO lt_fragments.
-    APPEND ` where <code>fg</code> and <code>bg</code> are RGB color codes (3 or 6 long).` TO lt_fragments.
-    APPEND ` You can also specify just <code>fg</code> or <code>bg</code>` TO lt_fragments.
-    APPEND ` (defaults will be used for missing parts).` TO lt_fragments.
+    APPEND ` <code>color</code> part can be either a pre-defined style (see below), or` TO lt_fragments.
+    APPEND ` <code>#fg/bg/border</code> styles, where <code>fg</code>, ` TO lt_fragments.
+    APPEND ` <code>bg</code>, and <code>border</code> are RGB color codes (3 or 6 long).` TO lt_fragments.
+    APPEND ` You can also specify just <code>fg</code>, <code>bg</code>, or` TO lt_fragments.
+    APPEND ` <code>border</code> (defaults will be used for missing parts).` TO lt_fragments.
     APPEND ` E.g. <code>utils:brown, work:#ff0000/880000, client X:#ddd, client Y:#/333</code>` TO lt_fragments.
-    APPEND `<br>Available CSS styles:` TO lt_fragments.
+    APPEND `<br>Available styles:` TO lt_fragments.
     APPEND `</p>` TO lt_fragments.
 
     APPEND `white` TO lt_labels.
@@ -314,7 +306,7 @@ CLASS zcl_abapgit_gui_page_sett_pers IMPLEMENTATION.
       io_label_colors = lo_colors ) TO lt_fragments.
 
     APPEND
-      `<p style="margin-top: 0.3em">see also <code>rl-*</code> styles in common.css (styles, forgotten here)</p>`
+      `<p style="margin-top: 0.3em">see also <code>rl-*</code> styles in common.css</p>`
       TO lt_fragments.
 
     rv_html = zcl_abapgit_gui_chunk_lib=>render_help_hint( concat_lines_of( table = lt_fragments ) ).
@@ -405,7 +397,7 @@ CLASS zcl_abapgit_gui_page_sett_pers IMPLEMENTATION.
 
     register_handlers( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
     ri_html->add( '<div class="form-container">' ).
     ri_html->add( mo_form->render(
       io_values         = mo_form_data

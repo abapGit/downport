@@ -77,9 +77,7 @@ CLASS zcl_abapgit_gui_page_runit IMPLEMENTATION.
     DATA ls_tadir LIKE LINE OF lt_tadir.
     DATA ls_row   LIKE LINE OF rt_tadir.
 
-    lt_tadir = zcl_abapgit_factory=>get_tadir( )->read(
-      iv_package            = mo_repo->get_package( )
-      iv_only_local_objects = abap_true ).
+    lt_tadir = mo_repo->get_tadir_objects( ).
 
     LOOP AT lt_tadir INTO ls_tadir.
       CLEAR ls_row.
@@ -110,7 +108,7 @@ CLASS zcl_abapgit_gui_page_runit IMPLEMENTATION.
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_runit.
 
     TRY.
-        CREATE OBJECT lo_component EXPORTING io_repo = io_repo.
+        lo_component = NEW #( io_repo = io_repo ).
 
         ri_page = zcl_abapgit_gui_page_hoc=>create(
           iv_page_title         = |Unit Tests|
@@ -250,7 +248,7 @@ CLASS zcl_abapgit_gui_page_runit IMPLEMENTATION.
 
   METHOD zif_abapgit_gui_menu_provider~get_menu.
 
-    CREATE OBJECT ro_toolbar.
+    ro_toolbar = NEW #( ).
 
     ro_toolbar->add(
       iv_txt = 'Re-Run'
@@ -293,7 +291,7 @@ CLASS zcl_abapgit_gui_page_runit IMPLEMENTATION.
 
     register_handlers( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div class="repo">' ).
     ri_html->add( zcl_abapgit_gui_chunk_lib=>render_repo_top( io_repo        = mo_repo
