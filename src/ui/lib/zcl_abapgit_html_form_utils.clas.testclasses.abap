@@ -183,10 +183,10 @@ CLASS ltcl_test_form IMPLEMENTATION.
 
   METHOD setup.
 
-    mo_popups_mock = NEW ltcl_popups_mock( ).
+    CREATE OBJECT mo_popups_mock TYPE ltcl_popups_mock.
     zcl_abapgit_ui_injector=>set_popups( mo_popups_mock ).
 
-    mo_sapgui_mock = NEW ltcl_sapgui_mock( ).
+    CREATE OBJECT mo_sapgui_mock TYPE ltcl_sapgui_mock.
     zcl_abapgit_ui_injector=>set_frontend_services( mo_sapgui_mock ).
 
   ENDMETHOD.
