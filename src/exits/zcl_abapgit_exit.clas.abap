@@ -45,7 +45,7 @@ CLASS zcl_abapgit_exit IMPLEMENTATION.
       CATCH cx_sy_create_object_error ##NO_HANDLER.
     ENDTRY.
 
-    gi_global_exit = NEW zcl_abapgit_exit( ). " this class
+    CREATE OBJECT gi_global_exit TYPE zcl_abapgit_exit. " this class
 
     ri_exit = gi_global_exit.
 
