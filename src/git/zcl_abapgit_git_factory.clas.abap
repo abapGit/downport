@@ -17,6 +17,6 @@ CLASS ZCL_ABAPGIT_GIT_FACTORY IMPLEMENTATION.
 
 
   METHOD get_v2_porcelain.
-    CREATE OBJECT ri_v2 TYPE zcl_abapgit_gitv2_porcelain.
+    ri_v2 = NEW zcl_abapgit_gitv2_porcelain( ).
   ENDMETHOD.
 ENDCLASS.
