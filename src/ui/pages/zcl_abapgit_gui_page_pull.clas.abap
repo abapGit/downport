@@ -88,7 +88,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_PULL IMPLEMENTATION.
     mo_repo       = io_repo.
     mi_obj_filter = ii_obj_filter.
 
-    mo_form_data = NEW #( ).
+    CREATE OBJECT mo_form_data.
     mo_form_data->set(
       iv_key = c_id-transport_request
       iv_val = iv_trkorr ).
@@ -100,9 +100,9 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_PULL IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_pull.
 
-    lo_component = NEW #( io_repo = io_repo
-                          iv_trkorr = iv_trkorr
-                          ii_obj_filter = ii_obj_filter ).
+    CREATE OBJECT lo_component EXPORTING io_repo = io_repo
+                                         iv_trkorr = iv_trkorr
+                                         ii_obj_filter = ii_obj_filter.
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title         = 'Pull'
@@ -191,7 +191,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_PULL IMPLEMENTATION.
         ENDLOOP.
 
 * todo, show log?
-        lo_log = NEW #( ).
+        CREATE OBJECT lo_log.
         mo_repo->deserialize(
           is_checks = ms_checks
           ii_log    = lo_log ).
@@ -204,7 +204,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_PULL IMPLEMENTATION.
 
   METHOD zif_abapgit_gui_menu_provider~get_menu.
 
-    ro_toolbar = NEW #( iv_id = 'toolbar-main' ).
+    CREATE OBJECT ro_toolbar EXPORTING iv_id = 'toolbar-main'.
 
     ro_toolbar->add(
       iv_txt = 'Refresh'
@@ -221,7 +221,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_PULL IMPLEMENTATION.
 
     register_handlers( ).
 
-    ri_html = NEW zcl_abapgit_html( ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
     ri_html->add( '<div class="repo-overview">' ).
 
     ms_checks = mo_repo->deserialize_checks( ).
