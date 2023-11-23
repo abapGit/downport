@@ -14,6 +14,12 @@ CLASS zcl_abapgit_sap_package DEFINITION
   PRIVATE SECTION.
     DATA: mv_package TYPE devclass.
 
+    METHODS get_transport_layer
+      RETURNING
+        VALUE(rv_transport_layer) TYPE devlayer
+      RAISING
+        zcx_abapgit_exception .
+
 ENDCLASS.
 
 
@@ -48,9 +54,7 @@ CLASS zcl_abapgit_sap_package IMPLEMENTATION.
         rv_are_changes_rec_in_tr_req = li_package->wbo_korr_flag.
       WHEN 1.
         " For new packages, derive from package name
-        DATA temp1 TYPE xsdboolean.
-        temp1 = boolc( mv_package(1) <> '$' AND mv_package(1) <> 'T' ).
-        rv_are_changes_rec_in_tr_req = temp1.
+        rv_are_changes_rec_in_tr_req = xsdbool( mv_package(1) <> '$' AND mv_package(1) <> 'T' ).
       WHEN OTHERS.
         zcx_abapgit_exception=>raise_t100( ).
     ENDCASE.
@@ -92,7 +96,7 @@ CLASS zcl_abapgit_sap_package IMPLEMENTATION.
 
     " For transportable packages, get default transport and layer
     IF ls_package-devclass(1) <> '$' AND ls_package-pdevclass IS INITIAL.
-      ls_package-pdevclass = zif_abapgit_sap_package~get_transport_layer( ).
+      ls_package-pdevclass = get_transport_layer( ).
     ENDIF.
 
     cl_package_factory=>create_new_package(
@@ -227,14 +231,12 @@ CLASS zcl_abapgit_sap_package IMPLEMENTATION.
         intern_err                 = 3
         no_access                  = 4
         object_locked_and_modified = 5 ).
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( sy-subrc <> 1 ).
-    rv_bool = temp2.
+    rv_bool = xsdbool( sy-subrc <> 1 ).
 
   ENDMETHOD.
 
 
-  METHOD zif_abapgit_sap_package~get_transport_layer.
+  METHOD get_transport_layer.
 
     " Get default transport layer
     CALL FUNCTION 'TR_GET_TRANSPORT_TARGET'
