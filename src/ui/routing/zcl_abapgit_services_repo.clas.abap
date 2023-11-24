@@ -112,7 +112,7 @@ CLASS zcl_abapgit_services_repo DEFINITION
         zcx_abapgit_exception .
     CLASS-METHODS raise_error_if_package_exists
       IMPORTING
-        iv_devclass TYPE scompkdtln-devclass
+        iv_devclass TYPE devclass
       RAISING
         zcx_abapgit_exception.
     CLASS-METHODS check_for_restart
@@ -138,7 +138,7 @@ CLASS zcl_abapgit_services_repo IMPLEMENTATION.
 
     lo_repo ?= zcl_abapgit_repo_srv=>get_instance( )->get( iv_key ).
 
-    CREATE OBJECT lo_browser EXPORTING io_repo = lo_repo.
+    lo_browser = NEW #( io_repo = lo_repo ).
 
     lt_repo_items = lo_browser->list( '/' ).
 
@@ -254,7 +254,7 @@ CLASS zcl_abapgit_services_repo IMPLEMENTATION.
 
   METHOD create_package.
 
-    DATA ls_package_data TYPE scompkdtln.
+    DATA ls_package_data TYPE zif_abapgit_sap_package=>ty_create.
     DATA lv_create       TYPE abap_bool.
     DATA li_popup        TYPE REF TO zif_abapgit_popups.
 
@@ -842,7 +842,7 @@ CLASS zcl_abapgit_services_repo IMPLEMENTATION.
 
     ls_transport_to_branch = zcl_abapgit_ui_factory=>get_popups( )->popup_to_create_transp_branch( lv_trkorr ).
 
-    CREATE OBJECT lo_transport_to_branch.
+    lo_transport_to_branch = NEW #( ).
     lo_transport_to_branch->create(
       io_repository          = lo_repository
       is_transport_to_branch = ls_transport_to_branch
