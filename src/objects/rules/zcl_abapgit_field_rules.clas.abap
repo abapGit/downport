@@ -1,11 +1,12 @@
 CLASS zcl_abapgit_field_rules DEFINITION
   PUBLIC
   FINAL
-  CREATE PRIVATE .
+  CREATE PRIVATE.
 
   PUBLIC SECTION.
 
     INTERFACES zif_abapgit_field_rules.
+
     CLASS-METHODS create
       RETURNING
         VALUE(ro_result) TYPE REF TO zif_abapgit_field_rules.
@@ -31,22 +32,24 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_FIELD_RULES IMPLEMENTATION.
+CLASS zcl_abapgit_field_rules IMPLEMENTATION.
 
 
   METHOD create.
-    CREATE OBJECT ro_result TYPE zcl_abapgit_field_rules.
+    ro_result = NEW zcl_abapgit_field_rules( ).
   ENDMETHOD.
 
 
   METHOD fill_value.
+    DATA lv_timestamp TYPE timestampl.
     CASE iv_rule.
       WHEN zif_abapgit_field_rules=>c_fill_rule-date.
         cv_value = sy-datum.
       WHEN zif_abapgit_field_rules=>c_fill_rule-time.
         cv_value = sy-uzeit.
       WHEN zif_abapgit_field_rules=>c_fill_rule-timestamp.
-        GET TIME STAMP FIELD cv_value.
+        GET TIME STAMP FIELD lv_timestamp.
+        cv_value = lv_timestamp.
       WHEN zif_abapgit_field_rules=>c_fill_rule-user.
         cv_value = sy-uname.
       WHEN zif_abapgit_field_rules=>c_fill_rule-client.
