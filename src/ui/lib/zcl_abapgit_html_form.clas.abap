@@ -76,6 +76,7 @@ CLASS zcl_abapgit_html_form DEFINITION
         !iv_label      TYPE csequence
         !iv_name       TYPE csequence
         !iv_hint       TYPE csequence OPTIONAL
+        !iv_readonly   TYPE abap_bool DEFAULT abap_false
       RETURNING
         VALUE(ro_self) TYPE REF TO zcl_abapgit_html_form .
     METHODS radio
@@ -201,10 +202,11 @@ CLASS zcl_abapgit_html_form IMPLEMENTATION.
 
     DATA ls_field LIKE LINE OF mt_fields.
 
-    ls_field-type  = zif_abapgit_html_form=>c_field_type-checkbox.
-    ls_field-name  = iv_name.
-    ls_field-label = iv_label.
-    ls_field-hint  = iv_hint.
+    ls_field-type     = zif_abapgit_html_form=>c_field_type-checkbox.
+    ls_field-name     = iv_name.
+    ls_field-label    = iv_label.
+    ls_field-hint     = iv_hint.
+    ls_field-readonly = iv_readonly.
 
     APPEND ls_field TO mt_fields.
 
@@ -258,7 +260,7 @@ CLASS zcl_abapgit_html_form IMPLEMENTATION.
 
     DATA lv_ts TYPE timestampl.
 
-    CREATE OBJECT ro_form.
+    ro_form = NEW #( ).
     ro_form->mv_form_id = iv_form_id.
     ro_form->mv_help_page = iv_help_page.
 
@@ -373,7 +375,7 @@ CLASS zcl_abapgit_html_form IMPLEMENTATION.
       EXIT.
     ENDLOOP.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( |<div class="dialog { iv_form_class }">| ). " to center use 'dialog-form-center'
     ri_html->add( |<form method="post"{ ls_form_id }{ ls_form_action }>| ).
@@ -632,7 +634,8 @@ CLASS zcl_abapgit_html_form IMPLEMENTATION.
 
   METHOD render_field_checkbox.
 
-    DATA lv_checked TYPE string.
+    DATA lv_checked  TYPE string.
+    DATA lv_disabled TYPE string.
 
     IF is_attr-error IS NOT INITIAL.
       ii_html->add( is_attr-error ).
@@ -643,8 +646,12 @@ CLASS zcl_abapgit_html_form IMPLEMENTATION.
       lv_checked = ' checked'.
     ENDIF.
 
+    IF is_attr-readonly IS NOT INITIAL.
+      lv_disabled = ' disabled'.
+    ENDIF.
+
     ii_html->add( |<input type="checkbox" name="{ is_field-name }" id="{ is_field-name }"| &&
-                  |{ lv_checked }{ is_attr-readonly }{ is_attr-autofocus }>| ).
+                  |{ lv_checked }{ lv_disabled }{ is_attr-autofocus }>| ).
     ii_html->add( |<label for="{ is_field-name }"{ is_attr-hint }>{ is_field-label }</label>| ).
 
   ENDMETHOD.
