@@ -29,7 +29,6 @@ CLASS zcl_abapgit_gui_page_db DEFINITION
         delete  TYPE string VALUE 'delete',
         backup  TYPE string VALUE 'backup',
         restore TYPE string VALUE 'restore',
-        back    TYPE string VALUE 'back',
       END OF c_action.
 
     CONSTANTS c_css_url TYPE string VALUE 'css/page_db.css'.
@@ -44,6 +43,14 @@ CLASS zcl_abapgit_gui_page_db DEFINITION
     DATA mt_methods TYPE zcl_abapgit_background=>ty_methods.
 
     METHODS register_stylesheet
+      RAISING
+        zcx_abapgit_exception.
+
+    METHODS render_stats
+      IMPORTING
+        it_db_entries  TYPE zif_abapgit_persistence=>ty_contents
+      RETURNING
+        VALUE(ri_html) TYPE REF TO zif_abapgit_html
       RAISING
         zcx_abapgit_exception.
 
@@ -112,7 +119,7 @@ CLASS zcl_abapgit_gui_page_db IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_db.
 
-    CREATE OBJECT lo_component.
+    lo_component = NEW #( ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title         = 'Database Utility'
@@ -147,7 +154,7 @@ CLASS zcl_abapgit_gui_page_db IMPLEMENTATION.
     lv_text = |\n|.
     INSERT lv_text INTO TABLE lt_toc.
 
-    CREATE OBJECT lo_zip.
+    lo_zip = NEW #( ).
 
     LOOP AT lt_data ASSIGNING <ls_data>.
       IF <ls_data>-type = zcl_abapgit_persistence_db=>c_type_repo_csum.
@@ -259,7 +266,7 @@ CLASS zcl_abapgit_gui_page_db IMPLEMENTATION.
 
     lv_zip = li_fe_serv->file_upload( lv_path ).
 
-    CREATE OBJECT lo_zip.
+    lo_zip = NEW #( ).
 
     lo_zip->load(
       EXPORTING
@@ -502,7 +509,7 @@ CLASS zcl_abapgit_gui_page_db IMPLEMENTATION.
 
     DATA lo_buf TYPE REF TO zcl_abapgit_string_buffer.
 
-    CREATE OBJECT lo_buf.
+    lo_buf = NEW #( ).
 
     " @@abapmerge include zabapgit_css_page_db.w3mi.data.css > lo_buf->add( '$$' ).
     gui_services( )->register_page_asset(
@@ -510,6 +517,38 @@ CLASS zcl_abapgit_gui_page_db IMPLEMENTATION.
       iv_type      = 'text/css'
       iv_mime_name = 'ZABAPGIT_CSS_PAGE_DB'
       iv_inline    = lo_buf->join_w_newline_and_flush( ) ).
+
+  ENDMETHOD.
+
+
+  METHOD render_stats.
+
+    DATA:
+      lv_cnt     TYPE i,
+      lv_online  TYPE i,
+      lv_offline TYPE i,
+      lv_users   TYPE i.
+
+    FIELD-SYMBOLS <ls_db_entry> LIKE LINE OF it_db_entries.
+
+    LOOP AT it_db_entries ASSIGNING <ls_db_entry>.
+      IF <ls_db_entry>-type = zcl_abapgit_persistence_db=>c_type_repo.
+        FIND FIRST OCCURRENCE OF REGEX '<OFFLINE/>'
+          IN <ls_db_entry>-data_str IGNORING CASE MATCH COUNT lv_cnt.
+        IF lv_cnt > 0.
+          lv_online = lv_online + 1.
+        ELSE.
+          lv_offline = lv_offline + 1.
+        ENDIF.
+      ELSEIF <ls_db_entry>-type = zcl_abapgit_persistence_db=>c_type_user.
+        lv_users = lv_users + 1.
+      ENDIF.
+    ENDLOOP.
+
+    ri_html = zcl_abapgit_html=>create( ).
+
+    ri_html->add( |Repositories: { lv_online + lv_offline } ({ lv_online } online, { lv_offline } offline),| ).
+    ri_html->add( |Users: { lv_users }| ).
 
   ENDMETHOD.
 
@@ -556,7 +595,7 @@ CLASS zcl_abapgit_gui_page_db IMPLEMENTATION.
 
   METHOD zif_abapgit_gui_menu_provider~get_menu.
 
-    CREATE OBJECT ro_toolbar.
+    ro_toolbar = NEW #( ).
 
     ro_toolbar->add(
       iv_txt = 'Backup'
@@ -566,7 +605,7 @@ CLASS zcl_abapgit_gui_page_db IMPLEMENTATION.
       iv_act = c_action-restore ).
     ro_toolbar->add(
       iv_txt = 'Back'
-      iv_act = c_action-back ).
+      iv_act = zif_abapgit_definitions=>c_action-go_back ).
 
   ENDMETHOD.
 
@@ -579,7 +618,11 @@ CLASS zcl_abapgit_gui_page_db IMPLEMENTATION.
 
     lt_db_entries = zcl_abapgit_persistence_db=>get_instance( )->list( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = zcl_abapgit_html=>create( ).
+
+    ri_html->add( '<div class="db-list">' ).
+    ri_html->add( render_stats( lt_db_entries ) ).
+    ri_html->add( '</div>' ).
 
     ri_html->add( '<div class="db-list">' ).
     ri_html->add( render_table( lt_db_entries ) ).
