@@ -115,7 +115,7 @@ CLASS zcl_abapgit_object_intf IMPLEMENTATION.
       iv_language = iv_language ).
     mi_object_oriented_object_fct = zcl_abapgit_oo_factory=>make( ms_item-obj_type ).
 
-    li_aff_registry = NEW zcl_abapgit_aff_registry( ).
+    CREATE OBJECT li_aff_registry TYPE zcl_abapgit_aff_registry.
 
     mv_aff_enabled = li_aff_registry->is_supported_object_type( 'INTF' ).
 
@@ -261,7 +261,7 @@ CLASS zcl_abapgit_object_intf IMPLEMENTATION.
     lv_json_data = zif_abapgit_object~mo_files->read_raw( 'json' ).
     ls_intf_aff = lcl_aff_metadata_handler=>deserialize( lv_json_data ).
 
-    lo_aff_mapper = NEW lcl_aff_type_mapping( ).
+    CREATE OBJECT lo_aff_mapper TYPE lcl_aff_type_mapping.
     lo_aff_mapper->to_abapgit( EXPORTING iv_data = ls_intf_aff
                                          iv_object_name = ms_item-obj_name
                                IMPORTING es_data = rs_intf ).
