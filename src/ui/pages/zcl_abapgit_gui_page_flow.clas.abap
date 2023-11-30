@@ -63,7 +63,7 @@ CLASS zcl_abapgit_gui_page_flow IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_flow.
 
-    lo_component = NEW #( ).
+    CREATE OBJECT lo_component.
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title         = 'Flow'
@@ -98,7 +98,7 @@ CLASS zcl_abapgit_gui_page_flow IMPLEMENTATION.
     DATA lv_param     TYPE string.
 
 
-    ri_html = NEW zcl_abapgit_html( ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
 
     ri_html->add( |<table>| ).
     ri_html->add( |<tr><td><u>Filename</u></td><td><u>Remote</u></td><td><u>Local</u></td><td></td></tr>| ).
@@ -130,7 +130,7 @@ CLASS zcl_abapgit_gui_page_flow IMPLEMENTATION.
 
 * todo: crossout if write protected
 
-    lo_toolbar = NEW #( iv_id = 'toolbar-flow' ).
+    CREATE OBJECT lo_toolbar EXPORTING iv_id = 'toolbar-flow'.
     lo_toolbar->add( iv_txt = 'Pull'
                      iv_act = |{ c_action-pull }?index={ iv_index }&key={ is_feature-repo-key }&branch={ lv_branch }|
                      iv_opt = zif_abapgit_html=>c_html_opt-strong ).
@@ -197,7 +197,7 @@ CLASS zcl_abapgit_gui_page_flow IMPLEMENTATION.
           <ls_filter>-object = <ls_object>-obj_type.
           <ls_filter>-obj_name = <ls_object>-obj_name.
         ENDLOOP.
-        lo_filter = NEW #( it_filter = lt_filter ).
+        CREATE OBJECT lo_filter EXPORTING it_filter = lt_filter.
 
         set_branch(
           iv_branch = lv_branch
@@ -224,7 +224,7 @@ CLASS zcl_abapgit_gui_page_flow IMPLEMENTATION.
           <ls_filter>-object = <ls_object>-obj_type.
           <ls_filter>-obj_name = <ls_object>-obj_name.
         ENDLOOP.
-        lo_filter = NEW #( it_filter = lt_filter ).
+        CREATE OBJECT lo_filter EXPORTING it_filter = lt_filter.
 
         set_branch(
           iv_branch = lv_branch
@@ -245,7 +245,7 @@ CLASS zcl_abapgit_gui_page_flow IMPLEMENTATION.
 
   METHOD zif_abapgit_gui_menu_provider~get_menu.
 
-    ro_toolbar = NEW #( iv_id = 'toolbar-main' ).
+    CREATE OBJECT ro_toolbar EXPORTING iv_id = 'toolbar-main'.
 
     ro_toolbar->add(
       iv_txt = 'Refresh'
@@ -265,7 +265,7 @@ CLASS zcl_abapgit_gui_page_flow IMPLEMENTATION.
 
 
     register_handlers( ).
-    ri_html = NEW zcl_abapgit_html( ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
     ri_html->add( '<div class="repo-overview">' ).
 
     IF mt_features IS INITIAL.
