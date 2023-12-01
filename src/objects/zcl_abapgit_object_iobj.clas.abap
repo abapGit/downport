@@ -77,17 +77,18 @@ CLASS zcl_abapgit_object_iobj IMPLEMENTATION.
              objnm TYPE c LENGTH 30.
     TYPES END OF ty_iobj.
 
-    TYPES temp1 TYPE STANDARD TABLE OF ty_iobj.
-DATA: lt_iobjname TYPE temp1,
+    DATA: lt_iobjname TYPE STANDARD TABLE OF ty_iobj,
           lv_subrc    TYPE sy-subrc.
 
     APPEND ms_item-obj_name TO lt_iobjname.
 
     CALL FUNCTION 'RSDG_IOBJ_MULTI_DELETE'
       EXPORTING
-        i_t_iobjnm = lt_iobjname
+        i_t_iobjnm        = lt_iobjname
+        i_check_dependent = abap_false
+        i_manual          = abap_false
       IMPORTING
-        e_subrc    = lv_subrc.
+        e_subrc           = lv_subrc.
 
     IF lv_subrc <> 0.
       zcx_abapgit_exception=>raise( |Error when deleting InfoObject { ms_item-obj_name }| ).
@@ -95,17 +96,22 @@ DATA: lt_iobjname TYPE temp1,
 
     corr_insert( iv_package ).
 
+    TRY.
+        " In case of IOBJ dependencies, tadir entry might be leftover so we remove it
+        tadir_delete( ).
+      CATCH zcx_abapgit_exception ##NO_HANDLER.
+    ENDTRY.
+
   ENDMETHOD.
 
 
   METHOD zif_abapgit_object~deserialize.
 
-    TYPES temp2 TYPE STANDARD TABLE OF bapiret2.
-DATA:
+    DATA:
       lr_details                  TYPE REF TO data,
       lr_infoobj                  TYPE REF TO data,
       ls_return                   TYPE bapiret2,
-      lt_return                   TYPE temp2,
+      lt_return                   TYPE STANDARD TABLE OF bapiret2,
       lr_compounds                TYPE REF TO data,
       lr_attributes               TYPE REF TO data,
       lr_navigationattributes     TYPE REF TO data,
@@ -262,9 +268,7 @@ DATA:
       INTO lv_iobjnm
       WHERE iobjnm = ms_item-obj_name.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
