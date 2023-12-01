@@ -12,7 +12,7 @@ CLASS lcl_memory_settings IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD zif_abapgit_persist_settings~read.
-    CREATE OBJECT ro_settings.
+    ro_settings = NEW #( ).
   ENDMETHOD.
 ENDCLASS.
 
@@ -42,7 +42,7 @@ CLASS ltcl_run_checks IMPLEMENTATION.
     " Assume for unit tests that starting folder is /src/ with prefix logic
     mo_dot = zcl_abapgit_dot_abapgit=>build_default( ).
 
-    CREATE OBJECT li_memory.
+    li_memory = NEW #( ).
     zcl_abapgit_persist_injector=>set_settings( li_memory ).
 
   ENDMETHOD.
@@ -171,6 +171,9 @@ CLASS ltcl_run_checks IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
       exp = 'ZTEST=========================VC'
       act = ls_item-obj_name ).
+    cl_abap_unit_assert=>assert_equals(
+      exp = abap_false
+      act = lv_is_xml ).
 
     zcl_abapgit_filename_logic=>file_to_object(
      EXPORTING
@@ -188,10 +191,13 @@ CLASS ltcl_run_checks IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
       exp = 'ZMIME_<>_?'
       act = ls_item-obj_name ).
+    cl_abap_unit_assert=>assert_equals(
+      exp = abap_false
+      act = lv_is_xml ).
 
     zcl_abapgit_filename_logic=>file_to_object(
      EXPORTING
-       iv_filename = 'ztest(name).w3mi.data,json'
+       iv_filename = 'ztest(name).w3mi.data.json'
        iv_path     = '/src/'
        iv_devclass = '$PACK'
        io_dot      = mo_dot
@@ -205,6 +211,9 @@ CLASS ltcl_run_checks IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
       exp = 'ZTEST(NAME)'
       act = ls_item-obj_name ).
+    cl_abap_unit_assert=>assert_equals(
+      exp = abap_false
+      act = lv_is_xml ).
 
     " AFF file
     zcl_abapgit_filename_logic=>file_to_object(
@@ -227,7 +236,6 @@ CLASS ltcl_run_checks IMPLEMENTATION.
       exp = abap_true
       act = lv_is_json ).
 
-
     " AFF file with namespace
     zcl_abapgit_filename_logic=>file_to_object(
       EXPORTING
@@ -248,6 +256,39 @@ CLASS ltcl_run_checks IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
       exp = abap_true
       act = lv_is_json ).
+
+    " Data TABU
+    zcl_abapgit_filename_logic=>file_to_object(
+      EXPORTING
+        iv_filename = 'zdata.tabu.json'
+        iv_path     = '/src/'
+        iv_devclass = '$PACK'
+        io_dot      = mo_dot
+      IMPORTING
+        es_item     = ls_item ).
+
+    cl_abap_unit_assert=>assert_equals(
+      exp = 'TABU'
+      act = ls_item-obj_type ).
+    cl_abap_unit_assert=>assert_equals(
+      exp = 'ZDATA'
+      act = ls_item-obj_name ).
+
+    zcl_abapgit_filename_logic=>file_to_object(
+      EXPORTING
+        iv_filename = 'zdata.conf.json'
+        iv_path     = '/src/'
+        iv_devclass = '$PACK'
+        io_dot      = mo_dot
+      IMPORTING
+        es_item     = ls_item ).
+
+    cl_abap_unit_assert=>assert_equals(
+      exp = 'TABU'
+      act = ls_item-obj_type ).
+    cl_abap_unit_assert=>assert_equals(
+      exp = 'ZDATA'
+      act = ls_item-obj_name ).
 
   ENDMETHOD.
 
