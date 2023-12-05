@@ -212,8 +212,7 @@ CLASS zcl_abapgit_object_udmo IMPLEMENTATION.
 
   METHOD deserialize_entities.
 
-    TYPES temp1 TYPE STANDARD TABLE OF dm41s WITH DEFAULT KEY.
-DATA lt_udmo_entities TYPE temp1.
+    DATA lt_udmo_entities TYPE STANDARD TABLE OF dm41s WITH DEFAULT KEY.
     DATA ls_udmo_entity LIKE LINE OF lt_udmo_entities.
 
 
@@ -241,8 +240,7 @@ DATA lt_udmo_entities TYPE temp1.
     DATA content TYPE xstring.
     DATA END OF ls_udmo_long_text.
 
-    TYPES temp2 LIKE STANDARD TABLE OF ls_udmo_long_text.
-DATA lt_udmo_long_texts TYPE temp2.
+    DATA lt_udmo_long_texts LIKE STANDARD TABLE OF ls_udmo_long_text.
     DATA ls_header TYPE thead.
 
     io_xml->read( EXPORTING iv_name = 'UDMO_LONG_TEXTS'
@@ -320,8 +318,7 @@ DATA lt_udmo_long_texts TYPE temp2.
 
   METHOD deserialize_short_texts.
 
-    TYPES temp3 TYPE STANDARD TABLE OF ty_udmo_text_type WITH DEFAULT KEY.
-DATA lt_udmo_texts TYPE temp3.
+    DATA lt_udmo_texts TYPE STANDARD TABLE OF ty_udmo_text_type WITH DEFAULT KEY.
     DATA ls_udmo_text  TYPE ty_udmo_text_type.
     DATA ls_dm40t TYPE dm40t.
 
@@ -401,8 +398,7 @@ DATA lt_udmo_texts TYPE temp3.
 
   METHOD serialize_entities.
 
-    TYPES temp4 TYPE STANDARD TABLE OF dm41s WITH DEFAULT KEY.
-DATA lt_udmo_entities TYPE temp4.
+    DATA lt_udmo_entities TYPE STANDARD TABLE OF dm41s WITH DEFAULT KEY.
     FIELD-SYMBOLS <ls_udmo_entity> TYPE dm41s.
 
     SELECT * FROM dm41s
@@ -447,10 +443,8 @@ DATA lt_udmo_entities TYPE temp4.
     DATA content TYPE xstring.
     DATA END OF ls_udmo_long_text.
 
-    TYPES temp5 LIKE STANDARD TABLE OF ls_udmo_long_text.
-DATA lt_udmo_long_texts TYPE temp5.
-    TYPES temp6 TYPE STANDARD TABLE OF ty_language_type.
-DATA lt_udmo_languages TYPE temp6.
+    DATA lt_udmo_long_texts LIKE STANDARD TABLE OF ls_udmo_long_text.
+    DATA lt_udmo_languages TYPE STANDARD TABLE OF ty_language_type.
     DATA ls_udmo_language  LIKE LINE OF lt_udmo_languages.
     DATA: lv_error_status  TYPE lxestatprc.
 
@@ -539,8 +533,7 @@ DATA lt_udmo_languages TYPE temp6.
 
   METHOD serialize_short_texts.
 
-    TYPES temp7 TYPE STANDARD TABLE OF ty_udmo_text_type WITH DEFAULT KEY.
-DATA lt_udmo_texts TYPE temp7.
+    DATA lt_udmo_texts TYPE STANDARD TABLE OF ty_udmo_text_type WITH DEFAULT KEY.
     " You are reminded that administrative information, such as last changed by user, date, time is not serialised.
 
     " You are reminded that active short texts of all (existent) languages are serialised.
@@ -666,9 +659,7 @@ DATA lt_udmo_texts TYPE temp7.
     SELECT COUNT( * ) FROM dm40l
       WHERE dmoid = mv_data_model AND as4local = mv_activation_state.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
 
 
@@ -715,8 +706,7 @@ DATA lt_udmo_texts TYPE temp7.
     "    CALL FUNCTION 'SDU_MODEL_SHOW'
     "    CALL FUNCTION 'RS_TOOL_ACCESS'
 
-    TYPES temp8 TYPE TABLE OF bdcdata.
-DATA lt_bdcdata TYPE temp8.
+    DATA lt_bdcdata TYPE TABLE OF bdcdata.
 
     FIELD-SYMBOLS: <ls_bdcdata> LIKE LINE OF lt_bdcdata.
 
