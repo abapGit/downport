@@ -58,7 +58,7 @@ ENDCLASS.
 CLASS lcl_persist_settings IMPLEMENTATION.
 
   METHOD constructor.
-    CREATE OBJECT mo_settings.
+    mo_settings = NEW #( ).
   ENDMETHOD.
 
   METHOD zif_abapgit_persist_settings~modify.
@@ -120,17 +120,19 @@ CLASS ltcl_abap_language_version DEFINITION FOR TESTING RISK LEVEL HARMLESS
       repo_setting_feature_on FOR TESTING,
       object_type_feature_off FOR TESTING,
       object_type_feature_on FOR TESTING,
-      is_import_allowed FOR TESTING.
+      is_import_allowed FOR TESTING,
+      check_abap_language_vers_same FOR TESTING RAISING zcx_abapgit_exception,
+      check_abap_language_vers_diff FOR TESTING.
 
 ENDCLASS.
 
 CLASS ltcl_abap_language_version IMPLEMENTATION.
 
   METHOD setup.
-    CREATE OBJECT mo_environment.
+    mo_environment = NEW #( ).
     zcl_abapgit_injector=>set_environment( mo_environment ).
 
-    CREATE OBJECT mi_persistency TYPE lcl_persist_settings.
+    mi_persistency = NEW lcl_persist_settings( ).
     zcl_abapgit_persist_injector=>set_settings( mi_persistency ).
 
     APPEND zif_abapgit_dot_abapgit=>c_abap_language_version-undefined TO mt_versions.
@@ -146,7 +148,7 @@ CLASS ltcl_abap_language_version IMPLEMENTATION.
     mo_dot_abapgit = zcl_abapgit_dot_abapgit=>build_default( ).
     mo_dot_abapgit->set_abap_language_version( iv_abap_language_version ).
 
-    CREATE OBJECT mo_cut EXPORTING io_dot_abapgit = mo_dot_abapgit.
+    mo_cut = NEW #( io_dot_abapgit = mo_dot_abapgit ).
   ENDMETHOD.
 
   METHOD set_environment.
@@ -206,12 +208,17 @@ CLASS ltcl_abap_language_version IMPLEMENTATION.
     LOOP AT mt_versions INTO lv_version.
 
       CASE lv_version.
-        WHEN zif_abapgit_dot_abapgit=>c_abap_language_version-undefined
-          OR zif_abapgit_dot_abapgit=>c_abap_language_version-ignore.
+        WHEN zif_abapgit_dot_abapgit=>c_abap_language_version-undefined.
 
           repo_setting_test(
             iv_version = lv_version
             iv_exp     = zcl_abapgit_abap_language_vers=>c_any_abap_language_version ).
+
+        WHEN zif_abapgit_dot_abapgit=>c_abap_language_version-ignore.
+
+          repo_setting_test(
+            iv_version = lv_version
+            iv_exp     = zcl_abapgit_abap_language_vers=>c_no_abap_language_version ).
 
         WHEN zif_abapgit_dot_abapgit=>c_abap_language_version-standard.
 
@@ -315,8 +322,7 @@ CLASS ltcl_abap_language_version IMPLEMENTATION.
     LOOP AT mt_versions INTO lv_version.
 
       CASE lv_version.
-        WHEN zif_abapgit_dot_abapgit=>c_abap_language_version-undefined
-          OR zif_abapgit_dot_abapgit=>c_abap_language_version-ignore.
+        WHEN zif_abapgit_dot_abapgit=>c_abap_language_version-undefined.
 
           object_type_test(
             iv_version      = lv_version
@@ -324,6 +330,15 @@ CLASS ltcl_abap_language_version IMPLEMENTATION.
             iv_standard_src = zcl_abapgit_abap_language_vers=>c_any_abap_language_version
             iv_cloud        = zcl_abapgit_abap_language_vers=>c_any_abap_language_version
             iv_cloud_src    = zcl_abapgit_abap_language_vers=>c_any_abap_language_version ).
+
+        WHEN zif_abapgit_dot_abapgit=>c_abap_language_version-ignore.
+
+          object_type_test(
+            iv_version      = lv_version
+            iv_standard     = zcl_abapgit_abap_language_vers=>c_no_abap_language_version
+            iv_standard_src = zcl_abapgit_abap_language_vers=>c_no_abap_language_version
+            iv_cloud        = zcl_abapgit_abap_language_vers=>c_no_abap_language_version
+            iv_cloud_src    = zcl_abapgit_abap_language_vers=>c_no_abap_language_version ).
 
         WHEN OTHERS.
 
@@ -424,6 +439,39 @@ CLASS ltcl_abap_language_version IMPLEMENTATION.
       ENDCASE.
 
     ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD check_abap_language_vers_same.
+
+    DATA ls_item TYPE zif_abapgit_definitions=>ty_item.
+
+    ls_item-obj_type              = 'CLAS'.
+    ls_item-obj_name              = 'ZCL_FOO_BAR'.
+    ls_item-abap_language_version = zif_abapgit_aff_types_v1=>co_abap_language_version-standard.
+
+    " Does not throw
+    zcl_abapgit_abap_language_vers=>check_abap_language_version(
+      iv_abap_language_version = zif_abapgit_aff_types_v1=>co_abap_language_version-standard
+      is_item                  = ls_item ).
+
+  ENDMETHOD.
+
+  METHOD check_abap_language_vers_diff.
+
+    DATA ls_item TYPE zif_abapgit_definitions=>ty_item.
+
+    ls_item-obj_type              = 'CLAS'.
+    ls_item-obj_name              = 'ZCL_FOO_BAR'.
+    ls_item-abap_language_version = zif_abapgit_aff_types_v1=>co_abap_language_version-standard.
+
+    TRY.
+        zcl_abapgit_abap_language_vers=>check_abap_language_version(
+          iv_abap_language_version = zif_abapgit_aff_types_v1=>co_abap_language_version-cloud_development
+          is_item                  = ls_item ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH zcx_abapgit_exception ##NO_HANDLER.
+    ENDTRY.
 
   ENDMETHOD.
 
