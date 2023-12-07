@@ -564,7 +564,7 @@ CLASS zcl_abapgit_oo_class IMPLEMENTATION.
       lt_vseoattrib TYPE seoo_attributes_r,
       ls_class_key  TYPE seoclskey,
       ls_properties TYPE vseoclass,
-      lt_attributes TYPE zif_abapgit_definitions=>ty_obj_attribute_tt.
+      lt_attributes TYPE zif_abapgit_oo_object_fnc=>ty_obj_attribute_tt.
 
     FIELD-SYMBOLS: <lv_clsname> TYPE seoclsname.
 
@@ -803,9 +803,7 @@ CLASS zcl_abapgit_oo_class IMPLEMENTATION.
         no_text       = 4
         inconsistent  = 5
         OTHERS        = 6.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 OR sy-subrc = 4 ).
-    rv_exists = temp1.
+    rv_exists = xsdbool( sy-subrc = 0 OR sy-subrc = 4 ).
   ENDMETHOD.
 
 

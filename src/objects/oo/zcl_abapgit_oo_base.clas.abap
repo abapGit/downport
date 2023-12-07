@@ -13,7 +13,7 @@ CLASS zcl_abapgit_oo_base DEFINITION
     CLASS-METHODS:
       convert_attrib_to_vseoattrib
         IMPORTING iv_clsname           TYPE seoclsname
-                  it_attributes        TYPE zif_abapgit_definitions=>ty_obj_attribute_tt
+                  it_attributes        TYPE zif_abapgit_oo_object_fnc=>ty_obj_attribute_tt
         RETURNING VALUE(rt_vseoattrib) TYPE seoo_attributes_r.
 
   PRIVATE SECTION.
@@ -244,7 +244,7 @@ CLASS zcl_abapgit_oo_base IMPLEMENTATION.
 
   METHOD zif_abapgit_oo_object_fnc~serialize_abap.
     DATA lo_oo_serializer TYPE REF TO zcl_abapgit_oo_serializer.
-    CREATE OBJECT lo_oo_serializer.
+    lo_oo_serializer = NEW #( ).
     CASE iv_type.
       WHEN seop_ext_class_locals_def.
         rt_source = lo_oo_serializer->serialize_locals_def( is_class_key ).
