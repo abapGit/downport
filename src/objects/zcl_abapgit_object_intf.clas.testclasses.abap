@@ -136,14 +136,14 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     ms_item-obj_type = 'INTF'.
     ms_item-abap_language_version = zif_abapgit_aff_types_v1=>co_abap_language_version_src-standard.
 
-    lo_cut = NEW #( is_item = ms_item
-                    iv_language = 'E' ).
+    CREATE OBJECT lo_cut EXPORTING is_item = ms_item
+                                   iv_language = 'E'.
 
-    lo_cut->zif_abapgit_object~mo_files = NEW #( is_item = ms_item ).
+    CREATE OBJECT lo_cut->zif_abapgit_object~mo_files EXPORTING is_item = ms_item.
 
-    mo_log = NEW #( ).
+    CREATE OBJECT mo_log.
 
-    mo_object_fnc = NEW #( ).
+    CREATE OBJECT mo_object_fnc.
     lo_cut->mi_object_oriented_object_fct  = mo_object_fnc.
 
     mo_cut = lo_cut.
@@ -159,7 +159,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA ls_expected_docu_line TYPE tline.
     DATA lt_expected_docu_lines TYPE tlinetab.
 
-    lo_xmlin = NEW zcl_abapgit_xml_input( iv_xml = get_xml( ) ).
+    CREATE OBJECT lo_xmlin TYPE zcl_abapgit_xml_input EXPORTING iv_xml = get_xml( ).
 
     mo_cut->mo_files->add_abap( get_source( ) ).
 
