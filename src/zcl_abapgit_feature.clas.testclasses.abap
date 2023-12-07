@@ -17,7 +17,7 @@ ENDCLASS.
 CLASS ltcl_feature IMPLEMENTATION.
 
   METHOD setup.
-    mo_cut = NEW #( ).
+    CREATE OBJECT mo_cut.
     mo_settings = zcl_abapgit_persist_factory=>get_settings( )->read( ).
   ENDMETHOD.
 
