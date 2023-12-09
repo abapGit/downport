@@ -87,7 +87,7 @@ CLASS zcl_abapgit_object_common_aff IMPLEMENTATION.
     TRY.
         lo_handler = get_object_handler( ).
 
-        li_aff_registry = NEW zcl_abapgit_aff_registry( ).
+        CREATE OBJECT li_aff_registry TYPE zcl_abapgit_aff_registry.
 
         lv_is_supported = li_aff_registry->is_supported_object_type( is_item-obj_type ).
       CATCH cx_root.
