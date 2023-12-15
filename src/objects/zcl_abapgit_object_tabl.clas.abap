@@ -27,14 +27,13 @@ CLASS zcl_abapgit_object_tabl DEFINITION
     "! Serialize IDoc Segment type/definition if exits
     "! @raising zcx_abapgit_exception | Exceptions
     METHODS serialize_idoc_segment CHANGING cs_internal TYPE zif_abapgit_object_tabl=>ty_internal
-                                   RAISING   zcx_abapgit_exception.
+                                   RAISING  zcx_abapgit_exception.
 
     "! Deserialize IDoc Segment type/definition if exits
-    "! @parameter io_xml | XML writer
     "! @parameter iv_package | Target package
     "! @parameter rv_deserialized | It's a segment and was desserialized
     "! @raising zcx_abapgit_exception | Exceptions
-    METHODS deserialize_idoc_segment IMPORTING io_xml                 TYPE REF TO zif_abapgit_xml_input
+    METHODS deserialize_idoc_segment IMPORTING is_internal            TYPE zif_abapgit_object_tabl=>ty_internal
                                                iv_transport           TYPE trkorr
                                                iv_package             TYPE devclass
                                      RETURNING VALUE(rv_deserialized) TYPE abap_bool
@@ -49,7 +48,7 @@ CLASS zcl_abapgit_object_tabl DEFINITION
 
     METHODS deserialize_indexes
       IMPORTING
-        !io_xml TYPE REF TO zif_abapgit_xml_input
+        !is_internal TYPE zif_abapgit_object_tabl=>ty_internal
       RAISING
         zcx_abapgit_exception .
     METHODS clear_dd03p_fields
@@ -72,9 +71,8 @@ CLASS zcl_abapgit_object_tabl DEFINITION
       RAISING
         zcx_abapgit_exception .
     METHODS deserialize_texts
-      IMPORTING
-        !ii_xml   TYPE REF TO zif_abapgit_xml_input
-        !is_dd02v TYPE dd02v
+      CHANGING
+        !cs_internal TYPE zif_abapgit_object_tabl=>ty_internal
       RAISING
         zcx_abapgit_exception .
     METHODS is_db_table_category
@@ -215,7 +213,6 @@ CLASS ZCL_ABAPGIT_OBJECT_TABL IMPLEMENTATION.
   METHOD deserialize_idoc_segment.
 
     DATA lv_result              LIKE sy-subrc.
-    DATA lt_segment_definitions TYPE zif_abapgit_object_tabl=>ty_segment_definitions.
     DATA lv_package             TYPE devclass.
     DATA lv_uname               TYPE sy-uname.
     DATA lv_transport           TYPE trkorr.
@@ -225,16 +222,7 @@ CLASS ZCL_ABAPGIT_OBJECT_TABL IMPLEMENTATION.
 
     rv_deserialized = abap_false.
 
-    TRY.
-
-        io_xml->read( EXPORTING iv_name = zif_abapgit_object_tabl=>c_s_dataname-segment_definition
-                      CHANGING  cg_data = lt_segment_definitions ).
-
-      CATCH zcx_abapgit_exception.
-        RETURN. "previous XML version or no IDoc segment
-    ENDTRY.
-
-    IF lines( lt_segment_definitions ) = 0.
+    IF lines( is_internal-segment_definitions ) = 0.
       RETURN. "no IDoc segment
     ENDIF.
 
@@ -243,7 +231,7 @@ CLASS ZCL_ABAPGIT_OBJECT_TABL IMPLEMENTATION.
     lv_package = iv_package.
     lv_transport = iv_transport.
 
-    LOOP AT lt_segment_definitions ASSIGNING <ls_segment_definition>.
+    LOOP AT is_internal-segment_definitions ASSIGNING <ls_segment_definition>.
       ls_segment_definition = <ls_segment_definition>.
       <ls_segment_definition>-segmentheader-presp = sy-uname.
       <ls_segment_definition>-segmentheader-pwork = sy-uname.
@@ -344,17 +332,10 @@ CLASS ZCL_ABAPGIT_OBJECT_TABL IMPLEMENTATION.
     DATA:
       lv_name      TYPE ddobjname,
       lv_subrc     TYPE sy-subrc,
-      lt_dd12v     TYPE dd12vtab,
       lt_dd12v_db  TYPE dd12vtab,
-      ls_dd12v     LIKE LINE OF lt_dd12v,
-      lt_dd17v     TYPE dd17vtab,
-      ls_dd17v     LIKE LINE OF lt_dd17v,
-      lt_secondary LIKE lt_dd17v.
-
-    io_xml->read( EXPORTING iv_name = 'DD12V'
-                  CHANGING cg_data = lt_dd12v ).
-    io_xml->read( EXPORTING iv_name = 'DD17V'
-                  CHANGING cg_data = lt_dd17v ).
+      ls_dd12v     LIKE LINE OF is_internal-dd12v,
+      ls_dd17v     LIKE LINE OF is_internal-dd17v,
+      lt_secondary LIKE is_internal-dd17v.
 
     lv_name = ms_item-obj_name.
 
@@ -373,7 +354,7 @@ CLASS ZCL_ABAPGIT_OBJECT_TABL IMPLEMENTATION.
     ENDIF.
 
     LOOP AT lt_dd12v_db INTO ls_dd12v.
-      READ TABLE lt_dd12v TRANSPORTING NO FIELDS WITH KEY
+      READ TABLE is_internal-dd12v TRANSPORTING NO FIELDS WITH KEY
         sqltab    = ls_dd12v-sqltab
         indexname = ls_dd12v-indexname.
       IF sy-subrc <> 0.
@@ -391,10 +372,10 @@ CLASS ZCL_ABAPGIT_OBJECT_TABL IMPLEMENTATION.
     ENDLOOP.
 
     " Create new or update existing indexes
-    LOOP AT lt_dd12v INTO ls_dd12v.
+    LOOP AT is_internal-dd12v INTO ls_dd12v.
 
       CLEAR lt_secondary.
-      LOOP AT lt_dd17v INTO ls_dd17v
+      LOOP AT is_internal-dd17v INTO ls_dd17v
           WHERE sqltab = ls_dd12v-sqltab AND indexname = ls_dd12v-indexname.
         APPEND ls_dd17v TO lt_secondary.
       ENDLOOP.
@@ -426,33 +407,24 @@ CLASS ZCL_ABAPGIT_OBJECT_TABL IMPLEMENTATION.
 
   METHOD deserialize_texts.
 
-    TYPES temp1 TYPE TABLE OF langu.
-DATA: lv_name       TYPE ddobjname,
-          ls_dd02v_tmp  TYPE dd02v,
-          lt_i18n_langs TYPE temp1,
-          lt_dd02_texts TYPE zif_abapgit_object_tabl=>ty_dd02_texts.
+    DATA: lv_name      TYPE ddobjname,
+          ls_dd02v_tmp TYPE dd02v.
 
-    FIELD-SYMBOLS: <lv_lang>      LIKE LINE OF lt_i18n_langs,
-                   <ls_dd02_text> LIKE LINE OF lt_dd02_texts.
+    FIELD-SYMBOLS: <lv_lang>      LIKE LINE OF cs_internal-i18n_langs,
+                   <ls_dd02_text> LIKE LINE OF cs_internal-dd02_texts.
 
     lv_name = ms_item-obj_name.
 
-    ii_xml->read( EXPORTING iv_name = 'I18N_LANGS'
-                  CHANGING  cg_data = lt_i18n_langs ).
+    mo_i18n_params->trim_saplang_list( CHANGING ct_sap_langs = cs_internal-i18n_langs ).
 
-    ii_xml->read( EXPORTING iv_name = 'DD02_TEXTS'
-                  CHANGING  cg_data = lt_dd02_texts ).
+    SORT cs_internal-i18n_langs.
+    SORT cs_internal-dd02_texts BY ddlanguage. " Optimization
 
-    mo_i18n_params->trim_saplang_list( CHANGING ct_sap_langs = lt_i18n_langs ).
-
-    SORT lt_i18n_langs.
-    SORT lt_dd02_texts BY ddlanguage. " Optimization
-
-    LOOP AT lt_i18n_langs ASSIGNING <lv_lang>.
+    LOOP AT cs_internal-i18n_langs ASSIGNING <lv_lang>.
 
       " Table description
-      ls_dd02v_tmp = is_dd02v.
-      READ TABLE lt_dd02_texts ASSIGNING <ls_dd02_text> WITH KEY ddlanguage = <lv_lang>.
+      ls_dd02v_tmp = cs_internal-dd02v.
+      READ TABLE cs_internal-dd02_texts ASSIGNING <ls_dd02_text> WITH KEY ddlanguage = <lv_lang>.
       IF sy-subrc <> 0.
         zcx_abapgit_exception=>raise( |DD02_TEXTS cannot find lang { <lv_lang> } in XML| ).
       ENDIF.
@@ -479,9 +451,9 @@ DATA: lv_name       TYPE ddobjname,
   METHOD is_db_table_category.
 
     " values from domain TABCLASS
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( iv_tabclass = 'TRANSP' OR iv_tabclass = 'CLUSTER' OR iv_tabclass = 'POOL' ).
-    rv_is_db_table_type = temp1.
+    rv_is_db_table_type = xsdbool( iv_tabclass = 'TRANSP'
+                              OR iv_tabclass = 'CLUSTER'
+                              OR iv_tabclass = 'POOL' ).
 
   ENDMETHOD.
 
@@ -496,9 +468,7 @@ DATA: lv_name       TYPE ddobjname,
            FROM edisegment
            INTO lv_segment_type
            WHERE segtyp = lv_segment_type.
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( sy-subrc = 0 ).
-    rv_is_idoc_segment = temp2.
+    rv_is_idoc_segment = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -515,8 +485,7 @@ DATA: lv_name       TYPE ddobjname,
     DATA lv_segment_type        TYPE edilsegtyp.
     DATA lv_result              LIKE sy-subrc.
     DATA lv_devclass            TYPE devclass.
-    TYPES temp2 TYPE STANDARD TABLE OF edisegmdef.
-DATA lt_segmentdefinitions  TYPE temp2.
+    DATA lt_segmentdefinitions  TYPE STANDARD TABLE OF edisegmdef.
     DATA ls_segment_definition  TYPE zif_abapgit_object_tabl=>ty_segment_definition.
 
     FIELD-SYMBOLS: <ls_segemtndefinition> TYPE edisegmdef.
@@ -643,8 +612,7 @@ DATA lt_segmentdefinitions  TYPE temp2.
              as4time TYPE dd02l-as4time,
            END OF ty_data.
 
-    TYPES temp3 TYPE STANDARD TABLE OF ty_data WITH DEFAULT KEY.
-DATA: lt_data TYPE temp3,
+    DATA: lt_data TYPE STANDARD TABLE OF ty_data WITH DEFAULT KEY,
           ls_data LIKE LINE OF lt_data.
 
 
@@ -745,19 +713,8 @@ DATA: lt_data TYPE temp3,
 
   METHOD zif_abapgit_object~deserialize.
 
-    TYPES temp4 TYPE TABLE OF dd03p.
-TYPES temp1 TYPE TABLE OF dd05m.
-TYPES temp2 TYPE TABLE OF dd08v.
-TYPES temp3 TYPE TABLE OF dd35v.
-DATA: lv_name   TYPE ddobjname,
-          ls_dd02v  TYPE dd02v,
-          ls_dd09l  TYPE dd09l,
-          lt_dd03p  TYPE temp4,
-          lt_dd05m  TYPE temp1,
-          lt_dd08v  TYPE temp2,
-          lt_dd35v  TYPE temp3,
-          lt_dd36m  TYPE dd36mttyp,
-          ls_extras TYPE zif_abapgit_object_tabl=>ty_tabl_extras.
+    DATA: lv_name     TYPE ddobjname,
+          ls_internal TYPE zif_abapgit_object_tabl=>ty_internal.
 
     FIELD-SYMBOLS: <ls_dd03p>      TYPE dd03p,
                    <ls_dd05m>      TYPE dd05m,
@@ -768,48 +725,35 @@ DATA: lv_name   TYPE ddobjname,
 
     lv_name = ms_item-obj_name. " type conversion
 
-    IF deserialize_idoc_segment( io_xml     = io_xml
-                                 iv_transport = iv_transport
-                                 iv_package = iv_package ) = abap_false.
+    ls_internal = lcl_tabl_xml=>read( io_xml ).
 
-      io_xml->read( EXPORTING iv_name = 'DD02V'
-                    CHANGING cg_data = ls_dd02v ).
-      io_xml->read( EXPORTING iv_name = 'DD09L'
-                    CHANGING cg_data = ls_dd09l ).
-      io_xml->read( EXPORTING iv_name  = 'DD03P_TABLE'
-                    CHANGING cg_data = lt_dd03p ).
-      ASSIGN COMPONENT 'ROWORCOLST' OF STRUCTURE ls_dd09l TO <lg_roworcolst>.
+    IF deserialize_idoc_segment( is_internal  = ls_internal
+                                 iv_transport = iv_transport
+                                 iv_package   = iv_package ) = abap_false.
+
+      ASSIGN COMPONENT 'ROWORCOLST' OF STRUCTURE ls_internal-dd09l TO <lg_roworcolst>.
       IF sy-subrc = 0 AND <lg_roworcolst> IS INITIAL.
         <lg_roworcolst> = 'C'. "Reverse fix from serialize
       ENDIF.
 
       " Number fields sequentially and fill table name
-      LOOP AT lt_dd03p ASSIGNING <ls_dd03p>.
+      LOOP AT ls_internal-dd03p ASSIGNING <ls_dd03p>.
         <ls_dd03p>-position   = sy-tabix.
         <ls_dd03p>-tabname    = lv_name.
         <ls_dd03p>-ddlanguage = mv_language.
       ENDLOOP.
 
-      io_xml->read( EXPORTING iv_name = 'DD05M_TABLE'
-                    CHANGING cg_data = lt_dd05m ).
-      io_xml->read( EXPORTING iv_name = 'DD08V_TABLE'
-                    CHANGING cg_data = lt_dd08v ).
-      io_xml->read( EXPORTING iv_name = 'DD35V_TALE'
-                    CHANGING cg_data = lt_dd35v ).
-      io_xml->read( EXPORTING iv_name = 'DD36M'
-                    CHANGING cg_data = lt_dd36m ).
-
-      LOOP AT lt_dd05m ASSIGNING <ls_dd05m>.
+      LOOP AT ls_internal-dd05m ASSIGNING <ls_dd05m>.
         <ls_dd05m>-tabname = lv_name.
       ENDLOOP.
-      LOOP AT lt_dd08v ASSIGNING <ls_dd08v>.
+      LOOP AT ls_internal-dd08v ASSIGNING <ls_dd08v>.
         <ls_dd08v>-tabname = lv_name.
         <ls_dd08v>-ddlanguage = mv_language.
       ENDLOOP.
-      LOOP AT lt_dd35v ASSIGNING <ls_dd35v>.
+      LOOP AT ls_internal-dd35v ASSIGNING <ls_dd35v>.
         <ls_dd35v>-tabname = lv_name.
       ENDLOOP.
-      LOOP AT lt_dd36m ASSIGNING <ls_dd36m>.
+      LOOP AT ls_internal-dd36m ASSIGNING <ls_dd36m>.
         <ls_dd36m>-tabname = lv_name.
       ENDLOOP.
 
@@ -818,13 +762,13 @@ DATA: lv_name   TYPE ddobjname,
 
       CALL FUNCTION 'DD_TABL_EXPAND'
         EXPORTING
-          dd02v_wa          = ls_dd02v
+          dd02v_wa          = ls_internal-dd02v
         TABLES
-          dd03p_tab         = lt_dd03p
-          dd05m_tab         = lt_dd05m
-          dd08v_tab         = lt_dd08v
-          dd35v_tab         = lt_dd35v
-          dd36m_tab         = lt_dd36m
+          dd03p_tab         = ls_internal-dd03p
+          dd05m_tab         = ls_internal-dd05m
+          dd08v_tab         = ls_internal-dd08v
+          dd35v_tab         = ls_internal-dd35v
+          dd36m_tab         = ls_internal-dd36m
         EXCEPTIONS
           illegal_parameter = 1
           OTHERS            = 2.
@@ -835,14 +779,14 @@ DATA: lv_name   TYPE ddobjname,
       CALL FUNCTION 'DDIF_TABL_PUT'
         EXPORTING
           name              = lv_name
-          dd02v_wa          = ls_dd02v
-          dd09l_wa          = ls_dd09l
+          dd02v_wa          = ls_internal-dd02v
+          dd09l_wa          = ls_internal-dd09l
         TABLES
-          dd03p_tab         = lt_dd03p
-          dd05m_tab         = lt_dd05m
-          dd08v_tab         = lt_dd08v
-          dd35v_tab         = lt_dd35v
-          dd36m_tab         = lt_dd36m
+          dd03p_tab         = ls_internal-dd03p
+          dd05m_tab         = ls_internal-dd05m
+          dd08v_tab         = ls_internal-dd08v
+          dd35v_tab         = ls_internal-dd35v
+          dd36m_tab         = ls_internal-dd36m
         EXCEPTIONS
           tabl_not_found    = 1
           name_inconsistent = 2
@@ -856,21 +800,17 @@ DATA: lv_name   TYPE ddobjname,
 
       zcl_abapgit_objects_activation=>add_item( ms_item ).
 
-      deserialize_indexes( io_xml ).
+      deserialize_indexes( ls_internal ).
 
       IF mo_i18n_params->is_lxe_applicable( ) = abap_false.
-        deserialize_texts(
-          ii_xml   = io_xml
-          is_dd02v = ls_dd02v ).
+        deserialize_texts( CHANGING cs_internal = ls_internal ).
       ENDIF.
 
       deserialize_longtexts( ii_xml         = io_xml
                              iv_longtext_id = c_longtext_id_tabl ).
 
-      io_xml->read( EXPORTING iv_name = zif_abapgit_object_tabl=>c_s_dataname-tabl_extras
-                    CHANGING cg_data = ls_extras ).
       update_extras( iv_tabname     = lv_name
-                     is_tabl_extras = ls_extras ).
+                     is_tabl_extras = ls_internal-extras ).
 
     ENDIF.
 
@@ -895,9 +835,7 @@ DATA: lv_name   TYPE ddobjname,
       SELECT SINGLE tabname FROM dd02l INTO lv_tabname
         WHERE tabname = lv_tabname.                     "#EC CI_NOORDER
     ENDIF.
-    DATA temp3 TYPE xsdboolean.
-    temp3 = boolc( sy-subrc = 0 ).
-    rv_bool = temp3.
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -908,13 +846,13 @@ DATA: lv_name   TYPE ddobjname,
           li_local_version_input  TYPE REF TO zif_abapgit_xml_input.
 
 
-    CREATE OBJECT li_local_version_output TYPE zcl_abapgit_xml_output.
+    li_local_version_output = NEW zcl_abapgit_xml_output( ).
 
     zif_abapgit_object~serialize( li_local_version_output ).
 
-    CREATE OBJECT li_local_version_input TYPE zcl_abapgit_xml_input EXPORTING iv_xml = li_local_version_output->render( ).
+    li_local_version_input = NEW zcl_abapgit_xml_input( iv_xml = li_local_version_output->render( ) ).
 
-    CREATE OBJECT ri_comparator TYPE zcl_abapgit_object_tabl_compar EXPORTING ii_local = li_local_version_input.
+    ri_comparator = NEW zcl_abapgit_object_tabl_compar( ii_local = li_local_version_input ).
 
   ENDMETHOD.
 
