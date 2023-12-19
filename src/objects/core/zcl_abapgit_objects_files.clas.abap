@@ -1,9 +1,15 @@
 CLASS zcl_abapgit_objects_files DEFINITION
   PUBLIC
-  CREATE PUBLIC .
+  CREATE PRIVATE.
 
   PUBLIC SECTION.
 
+    CLASS-METHODS new
+      IMPORTING
+        !is_item        TYPE zif_abapgit_definitions=>ty_item
+        !iv_path        TYPE string OPTIONAL
+      RETURNING
+        VALUE(ro_files) TYPE REF TO zcl_abapgit_objects_files.
     METHODS constructor
       IMPORTING
         !is_item TYPE zif_abapgit_definitions=>ty_item
@@ -319,6 +325,12 @@ CLASS zcl_abapgit_objects_files IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD new.
+    ro_files = NEW #( is_item = is_item
+                      iv_path = iv_path ).
+  ENDMETHOD.
+
+
   METHOD read_abap.
 
     DATA: lv_filename TYPE string,
@@ -394,7 +406,7 @@ CLASS zcl_abapgit_objects_files IMPLEMENTATION.
 
       CASE lv_ext.
         WHEN 'po'.
-          CREATE OBJECT lo_po EXPORTING iv_lang = lv_lang.
+          lo_po = NEW #( iv_lang = lv_lang ).
           lo_po->parse( <ls_file>-data ).
           APPEND lo_po TO rt_i18n_files.
         WHEN OTHERS.
@@ -457,8 +469,8 @@ CLASS zcl_abapgit_objects_files IMPLEMENTATION.
 
     lv_xml = zcl_abapgit_convert=>xstring_to_string_utf8( lv_data ).
 
-    CREATE OBJECT ri_xml TYPE zcl_abapgit_xml_input EXPORTING iv_xml = lv_xml
-                                                              iv_filename = lv_filename.
+    ri_xml = NEW zcl_abapgit_xml_input( iv_xml = lv_xml
+                                        iv_filename = lv_filename ).
 
   ENDMETHOD.
 

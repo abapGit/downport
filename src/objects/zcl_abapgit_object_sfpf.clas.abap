@@ -47,8 +47,7 @@ CLASS zcl_abapgit_object_sfpf IMPLEMENTATION.
 *     it is better to collect all attributes in a cache table
 *     instead of implementing of a nested loop using get_next().
 
-    TYPES temp1 LIKE SORTED TABLE OF ls_attr_href WITH NON-UNIQUE KEY val.
-DATA:
+    DATA:
       li_iterator TYPE REF TO if_ixml_node_iterator,
       li_elem     TYPE REF TO if_ixml_element,
       lv_new      TYPE string,
@@ -58,7 +57,7 @@ DATA:
         val  TYPE string,
         attr TYPE REF TO if_ixml_attribute,
       END OF ls_attr_href,
-      lt_attr_href TYPE temp1.
+      lt_attr_href LIKE SORTED TABLE OF ls_attr_href WITH NON-UNIQUE KEY val.
 
     FIELD-SYMBOLS <ls_attr_href> LIKE LINE OF lt_attr_href.
 
@@ -122,7 +121,7 @@ DATA:
     li_fp_layout = li_fp_form->get_layout( ).
     lv_layout_data = li_fp_layout->get_layout_data( ).
 
-    zif_abapgit_object~mo_files->add_raw(
+    mo_files->add_raw(
       iv_ext  = c_layout_file_ext
       iv_data = lv_layout_data ).
 
@@ -231,8 +230,8 @@ DATA:
     TRY.
         li_form = cl_fp_helper=>convert_xstring_to_form( lv_xstr ).
 
-        IF zif_abapgit_object~mo_files->contains_file( c_layout_file_ext ) = abap_true.
-          lv_layout = zif_abapgit_object~mo_files->read_raw( c_layout_file_ext ).
+        IF mo_files->contains_file( c_layout_file_ext ) = abap_true.
+          lv_layout = mo_files->read_raw( c_layout_file_ext ).
           li_form->get_layout( )->set_layout_data( lv_layout ).
         ENDIF.
 
@@ -287,9 +286,7 @@ DATA:
       INTO lv_name
       WHERE name = ms_item-obj_name
       AND state = 'A'.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 

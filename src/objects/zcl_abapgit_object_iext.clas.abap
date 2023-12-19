@@ -3,11 +3,15 @@ CLASS zcl_abapgit_object_iext DEFINITION PUBLIC INHERITING FROM zcl_abapgit_obje
   PUBLIC SECTION.
     INTERFACES zif_abapgit_object.
 
-    METHODS:
-      constructor
-        IMPORTING
-          is_item     TYPE zif_abapgit_definitions=>ty_item
-          iv_language TYPE spras.
+    METHODS constructor
+      IMPORTING
+        !is_item        TYPE zif_abapgit_definitions=>ty_item
+        !iv_language    TYPE spras
+        !io_files       TYPE REF TO zcl_abapgit_objects_files OPTIONAL
+        !io_i18n_params TYPE REF TO zcl_abapgit_i18n_params OPTIONAL
+      RAISING
+        zcx_abapgit_exception.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
     TYPES: BEGIN OF ty_extention,
@@ -27,8 +31,11 @@ CLASS zcl_abapgit_object_iext IMPLEMENTATION.
 
   METHOD constructor.
 
-    super->constructor( is_item     = is_item
-                        iv_language = iv_language ).
+    super->constructor(
+      is_item        = is_item
+      iv_language    = iv_language
+      io_files       = io_files
+      io_i18n_params = io_i18n_params ).
 
     mv_extension = ms_item-obj_name.
 
@@ -115,9 +122,7 @@ CLASS zcl_abapgit_object_iext IMPLEMENTATION.
       EXCEPTIONS
         OTHERS    = 1.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -154,8 +159,7 @@ CLASS zcl_abapgit_object_iext IMPLEMENTATION.
 
   METHOD zif_abapgit_object~jump.
 
-    TYPES temp1 TYPE TABLE OF bdcdata.
-DATA: lt_bdcdata TYPE temp1.
+    DATA: lt_bdcdata TYPE TABLE OF bdcdata.
 
     FIELD-SYMBOLS: <ls_bdcdata> LIKE LINE OF lt_bdcdata.
 

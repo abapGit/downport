@@ -53,7 +53,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_OBJECT_WAPA IMPLEMENTATION.
+CLASS zcl_abapgit_object_wapa IMPLEMENTATION.
 
 
   METHOD create_new_application.
@@ -234,7 +234,7 @@ CLASS ZCL_ABAPGIT_OBJECT_WAPA IMPLEMENTATION.
       REPLACE ALL OCCURRENCES OF '/' IN lv_ext WITH '_-'.
       REPLACE ALL OCCURRENCES OF '/' IN lv_extra WITH '_-'.
       IF iv_no_files_add = abap_false.
-        zif_abapgit_object~mo_files->add_raw(
+        mo_files->add_raw(
           iv_extra = lv_extra
           iv_ext   = lv_ext
           iv_data  = lv_content ).
@@ -270,9 +270,8 @@ CLASS ZCL_ABAPGIT_OBJECT_WAPA IMPLEMENTATION.
 
   METHOD zif_abapgit_object~changed_by.
 
-    TYPES temp1 TYPE STANDARD TABLE OF o2pagdir WITH DEFAULT KEY.
-DATA: lv_name   TYPE o2applname,
-          lt_pages  TYPE temp1,
+    DATA: lv_name   TYPE o2applname,
+          lt_pages  TYPE STANDARD TABLE OF o2pagdir WITH DEFAULT KEY,
           ls_latest LIKE LINE OF lt_pages.
 
 
@@ -490,8 +489,8 @@ DATA: lv_name   TYPE o2applname,
       REPLACE ALL OCCURRENCES OF '/' IN lv_extra WITH '_-'.
       REPLACE ALL OCCURRENCES OF '/' IN lv_ext WITH '_-'.
 
-      lt_remote_content = to_page_content( zif_abapgit_object~mo_files->read_raw( iv_extra = lv_extra
-                                                                                  iv_ext   = lv_ext ) ).
+      lt_remote_content = to_page_content( mo_files->read_raw( iv_extra = lv_extra
+                                                               iv_ext   = lv_ext ) ).
       lt_local_content = to_page_content( get_page_content( lo_page ) ).
 
       IF ls_local_page = <ls_remote_page> AND lt_local_content = lt_remote_content.
@@ -545,9 +544,7 @@ DATA: lv_name   TYPE o2applname,
         object_not_existing = 1
         permission_failure  = 2
         error_occured       = 3 ).
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 

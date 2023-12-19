@@ -5,8 +5,13 @@ CLASS zcl_abapgit_object_shi5 DEFINITION PUBLIC INHERITING FROM zcl_abapgit_obje
 
     METHODS constructor
       IMPORTING
-        is_item     TYPE zif_abapgit_definitions=>ty_item
-        iv_language TYPE spras.
+        !is_item        TYPE zif_abapgit_definitions=>ty_item
+        !iv_language    TYPE spras
+        !io_files       TYPE REF TO zcl_abapgit_objects_files OPTIONAL
+        !io_i18n_params TYPE REF TO zcl_abapgit_i18n_params OPTIONAL
+      RAISING
+        zcx_abapgit_exception.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
     TYPES: ty_ttree_extt TYPE STANDARD TABLE OF ttree_extt
@@ -28,8 +33,11 @@ CLASS zcl_abapgit_object_shi5 IMPLEMENTATION.
 
   METHOD constructor.
 
-    super->constructor( is_item     = is_item
-                        iv_language = iv_language ).
+    super->constructor(
+      is_item        = is_item
+      iv_language    = iv_language
+      io_files       = io_files
+      io_i18n_params = io_i18n_params ).
 
     mv_extension = ms_item-obj_name.
 
@@ -43,12 +51,11 @@ CLASS zcl_abapgit_object_shi5 IMPLEMENTATION.
 
   METHOD zif_abapgit_object~delete.
 
-    TYPES temp1 TYPE TABLE OF treenamesp.
-DATA:
+    DATA:
       ls_msg              TYPE hier_mess,
       lv_found_users      TYPE hier_yesno,
       ls_check_extensions TYPE treenamesp,
-      lt_check_extensions TYPE temp1,
+      lt_check_extensions TYPE TABLE OF treenamesp,
       lv_obj_name         TYPE ko200-obj_name.
 
     " STREE_EXTENSION_DELETE shows a popup so do the same here
@@ -167,9 +174,7 @@ DATA:
       IMPORTING
         extension_header = ls_extension_header.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( ls_extension_header IS NOT INITIAL ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( ls_extension_header IS NOT INITIAL ).
 
   ENDMETHOD.
 
@@ -205,8 +210,7 @@ DATA:
 
 
   METHOD zif_abapgit_object~jump.
-    TYPES temp2 TYPE STANDARD TABLE OF ttree_ext.
-DATA: lt_extension TYPE temp2.
+    DATA: lt_extension TYPE STANDARD TABLE OF ttree_ext.
     FIELD-SYMBOLS: <ls_extension> LIKE LINE OF lt_extension.
 
     INSERT INITIAL LINE INTO TABLE lt_extension ASSIGNING <ls_extension>.

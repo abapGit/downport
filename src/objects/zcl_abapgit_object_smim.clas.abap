@@ -51,7 +51,7 @@ CLASS zcl_abapgit_object_smim IMPLEMENTATION.
 
     lv_filename = build_filename( lv_filename ).
 
-    lt_files = zif_abapgit_object~mo_files->get_files( ).
+    lt_files = mo_files->get_files( ).
 
     READ TABLE lt_files ASSIGNING <ls_file>
         WITH KEY file
@@ -67,9 +67,8 @@ CLASS zcl_abapgit_object_smim IMPLEMENTATION.
 
   METHOD get_filename.
 
-    TYPES temp1 TYPE TABLE OF string.
-DATA: lv_lines   TYPE i,
-          lt_strings TYPE temp1.
+    DATA: lv_lines   TYPE i,
+          lt_strings TYPE TABLE OF string.
 
 
     SPLIT iv_url AT '/' INTO TABLE lt_strings.
@@ -260,9 +259,7 @@ DATA: lv_lines   TYPE i,
 
     SELECT SINGLE loio_id FROM smimloio INTO lv_loio
       WHERE loio_id = lv_loio.                          "#EC CI_GENBUFF
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -357,7 +354,7 @@ DATA: lv_lines   TYPE i,
       ls_file-filename = build_filename( lv_filename ).
       ls_file-path     = '/'.
       ls_file-data     = lv_content.
-      zif_abapgit_object~mo_files->add( ls_file ).
+      mo_files->add( ls_file ).
 
       SELECT SINGLE lo_class FROM smimloio INTO lv_class
         WHERE loio_id = lv_loio.                        "#EC CI_GENBUFF

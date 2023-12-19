@@ -3,11 +3,15 @@ CLASS zcl_abapgit_object_doct DEFINITION PUBLIC INHERITING FROM zcl_abapgit_obje
   PUBLIC SECTION.
     INTERFACES zif_abapgit_object.
 
-    METHODS:
-      constructor
-        IMPORTING
-          is_item     TYPE zif_abapgit_definitions=>ty_item
-          iv_language TYPE spras.
+    METHODS constructor
+      IMPORTING
+        !is_item        TYPE zif_abapgit_definitions=>ty_item
+        !iv_language    TYPE spras
+        !io_files       TYPE REF TO zcl_abapgit_objects_files OPTIONAL
+        !io_i18n_params TYPE REF TO zcl_abapgit_i18n_params OPTIONAL
+      RAISING
+        zcx_abapgit_exception.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 
@@ -24,8 +28,10 @@ CLASS zcl_abapgit_object_doct IMPLEMENTATION.
   METHOD constructor.
 
     super->constructor(
-        is_item     = is_item
-        iv_language = iv_language ).
+      is_item        = is_item
+      iv_language    = iv_language
+      io_files       = io_files
+      io_i18n_params = io_i18n_params ).
 
     mi_longtexts = zcl_abapgit_factory=>get_longtexts( ).
 
@@ -84,9 +90,7 @@ CLASS zcl_abapgit_object_doct IMPLEMENTATION.
       WHERE id         = c_id
         AND object     = lv_object.     "#EC CI_GENBUFF "#EC CI_NOORDER
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -123,10 +127,9 @@ CLASS zcl_abapgit_object_doct IMPLEMENTATION.
 
   METHOD zif_abapgit_object~jump.
 
-    TYPES temp1 TYPE STANDARD TABLE OF bdcdata.
-DATA: ls_dokentry TYPE dokentry,
+    DATA: ls_dokentry TYPE dokentry,
           ls_bcdata   TYPE bdcdata,
-          lt_bcdata   TYPE temp1.
+          lt_bcdata   TYPE STANDARD TABLE OF bdcdata.
 
     " We need to modify dokentry directly, otherwise
     " Batch Input on SE61 wouldn't work because it stores

@@ -5,8 +5,13 @@ CLASS zcl_abapgit_object_auth DEFINITION PUBLIC INHERITING FROM zcl_abapgit_obje
 
     METHODS constructor
       IMPORTING
-        is_item     TYPE zif_abapgit_definitions=>ty_item
-        iv_language TYPE spras.
+        !is_item        TYPE zif_abapgit_definitions=>ty_item
+        !iv_language    TYPE spras
+        !io_files       TYPE REF TO zcl_abapgit_objects_files OPTIONAL
+        !io_i18n_params TYPE REF TO zcl_abapgit_i18n_params OPTIONAL
+      RAISING
+        zcx_abapgit_exception.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
     DATA: mv_fieldname TYPE authx-fieldname.
@@ -20,8 +25,11 @@ CLASS zcl_abapgit_object_auth IMPLEMENTATION.
 
   METHOD constructor.
 
-    super->constructor( is_item     = is_item
-                        iv_language = iv_language ).
+    super->constructor(
+      is_item        = is_item
+      iv_language    = iv_language
+      io_files       = io_files
+      io_i18n_params = io_i18n_params ).
 
     mv_fieldname = ms_item-obj_name.
 
@@ -46,7 +54,7 @@ CLASS zcl_abapgit_object_auth IMPLEMENTATION.
       lo_auth   TYPE REF TO cl_auth_tools.
 
     " authority check
-    CREATE OBJECT lo_auth.
+    lo_auth = NEW #( ).
     IF lo_auth->authority_check_suso( actvt     = '06'
                                       fieldname = mv_fieldname ) <> 0.
       MESSAGE e463(01) WITH mv_fieldname INTO zcx_abapgit_exception=>null.
@@ -88,7 +96,7 @@ CLASS zcl_abapgit_object_auth IMPLEMENTATION.
 
     tadir_insert( iv_package ).
 
-    CREATE OBJECT lo_auth.
+    lo_auth = NEW #( ).
 
     IF lo_auth->add_afield_to_trkorr( ls_authx-fieldname ) <> 0.
       zcx_abapgit_exception=>raise( 'Error deserializing AUTH' ).
@@ -110,9 +118,7 @@ CLASS zcl_abapgit_object_auth IMPLEMENTATION.
     SELECT SINGLE fieldname FROM authx
       INTO mv_fieldname
       WHERE fieldname = ms_item-obj_name.               "#EC CI_GENBUFF
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 

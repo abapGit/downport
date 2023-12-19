@@ -3,11 +3,15 @@ CLASS zcl_abapgit_object_idoc DEFINITION PUBLIC INHERITING FROM zcl_abapgit_obje
   PUBLIC SECTION.
     INTERFACES zif_abapgit_object.
 
-    METHODS:
-      constructor
-        IMPORTING
-          is_item     TYPE zif_abapgit_definitions=>ty_item
-          iv_language TYPE spras.
+    METHODS constructor
+      IMPORTING
+        !is_item        TYPE zif_abapgit_definitions=>ty_item
+        !iv_language    TYPE spras
+        !io_files       TYPE REF TO zcl_abapgit_objects_files OPTIONAL
+        !io_i18n_params TYPE REF TO zcl_abapgit_i18n_params OPTIONAL
+      RAISING
+        zcx_abapgit_exception.
+
     CLASS-METHODS clear_idoc_segement_fields CHANGING cg_structure TYPE any.
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -68,8 +72,11 @@ CLASS zcl_abapgit_object_idoc IMPLEMENTATION.
 
   METHOD constructor.
 
-    super->constructor( is_item = is_item
-                        iv_language = iv_language ).
+    super->constructor(
+      is_item        = is_item
+      iv_language    = iv_language
+      io_files       = io_files
+      io_i18n_params = io_i18n_params ).
 
     mv_idoctyp = ms_item-obj_name.
 
@@ -90,9 +97,7 @@ CLASS zcl_abapgit_object_idoc IMPLEMENTATION.
         db_error         = 2
         no_authority     = 3
         OTHERS           = 4.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 AND ls_idoc-attributes-closed = abap_true ).
-    rv_closed = temp1.
+    rv_closed = xsdbool( sy-subrc = 0 AND ls_idoc-attributes-closed = abap_true ).
 
   ENDMETHOD.
 
@@ -255,9 +260,7 @@ CLASS zcl_abapgit_object_idoc IMPLEMENTATION.
         db_error         = 2
         OTHERS           = 3.
 
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( sy-subrc = 0 ).
-    rv_bool = temp2.
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -294,8 +297,7 @@ CLASS zcl_abapgit_object_idoc IMPLEMENTATION.
 
   METHOD zif_abapgit_object~jump.
 
-    TYPES temp1 TYPE TABLE OF bdcdata.
-DATA: lt_bdcdata TYPE temp1.
+    DATA: lt_bdcdata TYPE TABLE OF bdcdata.
 
     FIELD-SYMBOLS: <ls_bdcdata> LIKE LINE OF lt_bdcdata.
 

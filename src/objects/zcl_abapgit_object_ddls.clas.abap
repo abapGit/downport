@@ -5,10 +5,13 @@ CLASS zcl_abapgit_object_ddls DEFINITION PUBLIC INHERITING FROM zcl_abapgit_obje
 
     METHODS constructor
       IMPORTING
-        !is_item     TYPE zif_abapgit_definitions=>ty_item
-        !iv_language TYPE spras
+        !is_item        TYPE zif_abapgit_definitions=>ty_item
+        !iv_language    TYPE spras
+        !io_files       TYPE REF TO zcl_abapgit_objects_files OPTIONAL
+        !io_i18n_params TYPE REF TO zcl_abapgit_i18n_params OPTIONAL
       RAISING
-        zcx_abapgit_exception .
+        zcx_abapgit_exception.
+
   PROTECTED SECTION.
     METHODS open_adt_stob
       IMPORTING
@@ -38,8 +41,10 @@ CLASS zcl_abapgit_object_ddls IMPLEMENTATION.
     DATA lo_ddl TYPE REF TO object.
 
     super->constructor(
-      is_item     = is_item
-      iv_language = iv_language ).
+      is_item        = is_item
+      iv_language    = iv_language
+      io_files       = io_files
+      io_i18n_params = io_i18n_params ).
 
     TRY.
         CALL METHOD ('CL_DD_DDL_HANDLER_FACTORY')=>('CREATE')
@@ -162,7 +167,7 @@ CLASS zcl_abapgit_object_ddls IMPLEMENTATION.
   METHOD read_baseinfo.
 
     TRY.
-        rv_baseinfo_string = zif_abapgit_object~mo_files->read_string( 'baseinfo' ).
+        rv_baseinfo_string = mo_files->read_string( 'baseinfo' ).
 
       CATCH zcx_abapgit_exception.
         " File not found. That's ok, as the object could have been created in a
@@ -215,12 +220,10 @@ CLASS zcl_abapgit_object_ddls IMPLEMENTATION.
 
   METHOD zif_abapgit_object~delete.
 
-    TYPES temp1 TYPE TABLE OF dcdeltb.
-TYPES temp2 TYPE TABLE OF dcgentb.
-DATA:
-      lt_deltab TYPE temp1,
+    DATA:
+      lt_deltab TYPE TABLE OF dcdeltb,
       ls_deltab TYPE dcdeltb,
-      lt_gentab TYPE temp2,
+      lt_gentab TYPE TABLE OF dcgentb,
       lv_rc     TYPE sy-subrc.
 
     " CL_DD_DDL_HANDLER->DELETE does not work for CDS views that reference other views
@@ -280,7 +283,7 @@ DATA:
 
         ASSIGN COMPONENT 'SOURCE' OF STRUCTURE <lg_data> TO <lg_source>.
         ASSERT sy-subrc = 0.
-        <lg_source> = zif_abapgit_object~mo_files->read_string( 'asddls' ).
+        <lg_source> = mo_files->read_string( 'asddls' ).
 
         CALL METHOD ('CL_DD_DDL_HANDLER_FACTORY')=>('CREATE')
           RECEIVING
@@ -356,9 +359,7 @@ DATA:
             name      = ms_item-obj_name
           IMPORTING
             got_state = lv_state.
-        DATA temp1 TYPE xsdboolean.
-        temp1 = boolc( NOT lv_state IS INITIAL ).
-        rv_bool = temp1.
+        rv_bool = xsdbool( NOT lv_state IS INITIAL ).
       CATCH cx_root.
         rv_bool = abap_false.
     ENDTRY.
@@ -432,11 +433,10 @@ DATA:
 
   METHOD zif_abapgit_object~serialize.
 
-    TYPES temp3 TYPE STANDARD TABLE OF fieldname WITH DEFAULT KEY.
-DATA: lo_ddl           TYPE REF TO object,
+    DATA: lo_ddl           TYPE REF TO object,
           lr_data          TYPE REF TO data,
           lr_data_baseinfo TYPE REF TO data,
-          lt_clr_comps     TYPE temp3,
+          lt_clr_comps     TYPE STANDARD TABLE OF fieldname WITH DEFAULT KEY,
           lx_error         TYPE REF TO cx_root.
 
     FIELD-SYMBOLS: <lg_data>          TYPE any,
@@ -479,7 +479,7 @@ DATA: lo_ddl           TYPE REF TO object,
             IF <lg_ddlname> = ms_item-obj_name AND <lg_as4local> = 'A'.
               ASSIGN COMPONENT 'BASEINFO_STRING' OF STRUCTURE <lg_data_baseinfo> TO <lg_field>.
               ASSERT sy-subrc = 0.
-              zif_abapgit_object~mo_files->add_string(
+              mo_files->add_string(
                 iv_ext    = 'baseinfo'
                 iv_string = <lg_field> ).
               EXIT.
@@ -518,7 +518,7 @@ DATA: lo_ddl           TYPE REF TO object,
 
     format_source_before_serialize( CHANGING cv_string = <lg_field> ).
 
-    zif_abapgit_object~mo_files->add_string(
+    mo_files->add_string(
       iv_ext    = 'asddls'
       iv_string = <lg_field> ).
 

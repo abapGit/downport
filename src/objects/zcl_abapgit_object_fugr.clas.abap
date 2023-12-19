@@ -215,12 +215,11 @@ CLASS zcl_abapgit_object_fugr IMPLEMENTATION.
 
   METHOD deserialize_functions.
 
-    TYPES temp1 TYPE TABLE OF abaptxt255.
-DATA: lv_include   TYPE rs38l-include,
+    DATA: lv_include   TYPE rs38l-include,
           lv_area      TYPE rs38l-area,
           lv_group     TYPE rs38l-area,
           lv_namespace TYPE rs38l-namespace,
-          lt_source    TYPE temp1,
+          lt_source    TYPE TABLE OF abaptxt255,
           lv_msg       TYPE string,
           lx_error     TYPE REF TO zcx_abapgit_exception.
 
@@ -228,7 +227,7 @@ DATA: lv_include   TYPE rs38l-include,
 
     LOOP AT it_functions ASSIGNING <ls_func>.
 
-      lt_source = zif_abapgit_object~mo_files->read_abap( iv_extra = <ls_func>-funcname ).
+      lt_source = mo_files->read_abap( iv_extra = <ls_func>-funcname ).
 
       lv_area = ms_item-obj_name.
 
@@ -358,13 +357,12 @@ DATA: lv_include   TYPE rs38l-include,
 
   METHOD deserialize_includes.
 
-    TYPES temp2 TYPE TABLE OF abaptxt255.
-DATA: lo_xml       TYPE REF TO zif_abapgit_xml_input,
+    DATA: lo_xml       TYPE REF TO zif_abapgit_xml_input,
           ls_progdir   TYPE zif_abapgit_sap_report=>ty_progdir,
           lt_includes  TYPE ty_sobj_name_tt,
           lt_tpool     TYPE textpool_table,
           lt_tpool_ext TYPE zif_abapgit_definitions=>ty_tpool_tt,
-          lt_source    TYPE temp2,
+          lt_source    TYPE TABLE OF abaptxt255,
           lx_exc       TYPE REF TO zcx_abapgit_exception.
 
     FIELD-SYMBOLS: <lv_include> LIKE LINE OF lt_includes.
@@ -385,9 +383,9 @@ DATA: lo_xml       TYPE REF TO zif_abapgit_xml_input,
       ENDIF.
 
       TRY.
-          lt_source = zif_abapgit_object~mo_files->read_abap( iv_extra = <lv_include> ).
+          lt_source = mo_files->read_abap( iv_extra = <lv_include> ).
 
-          lo_xml = zif_abapgit_object~mo_files->read_xml( <lv_include> ).
+          lo_xml = mo_files->read_xml( <lv_include> ).
 
           lo_xml->read( EXPORTING iv_name = 'PROGDIR'
                         CHANGING cg_data = ls_progdir ).
@@ -556,7 +554,7 @@ DATA: lo_xml       TYPE REF TO zif_abapgit_xml_input,
 
     LOOP AT lt_includes ASSIGNING <lv_include>.
 
-      lo_xml = zif_abapgit_object~mo_files->read_xml( <lv_include> ).
+      lo_xml = mo_files->read_xml( <lv_include> ).
 
       lo_xml->read( EXPORTING iv_name = 'PROGDIR'
                     CHANGING cg_data = ls_progdir ).
@@ -585,16 +583,14 @@ DATA: lo_xml       TYPE REF TO zif_abapgit_xml_input,
              progname TYPE reposrc-progname,
            END OF ty_reposrc.
 
-    TYPES temp3 TYPE STANDARD TABLE OF ty_reposrc WITH DEFAULT KEY.
-TYPES temp1 TYPE HASHED TABLE OF objname WITH UNIQUE KEY table_line.
-DATA: lt_reposrc        TYPE temp3,
+    DATA: lt_reposrc        TYPE STANDARD TABLE OF ty_reposrc WITH DEFAULT KEY,
           ls_reposrc        LIKE LINE OF lt_reposrc,
           lv_program        TYPE program,
           lv_maintviewname  LIKE LINE OF rt_includes,
           lv_offset_ns      TYPE i,
           lv_tabix          LIKE sy-tabix,
           lt_functab        TYPE ty_rs38l_incl_tt,
-          lt_tadir_includes TYPE temp1.
+          lt_tadir_includes TYPE HASHED TABLE OF objname WITH UNIQUE KEY table_line.
 
     FIELD-SYMBOLS: <lv_include> LIKE LINE OF rt_includes,
                    <ls_func>    LIKE LINE OF lt_functab.
@@ -838,9 +834,8 @@ DATA: lt_reposrc        TYPE temp3,
 
   METHOD serialize_functions.
 
-    TYPES temp5 TYPE TABLE OF rssource.
-DATA:
-      lt_source     TYPE temp5,
+    DATA:
+      lt_source     TYPE TABLE OF rssource,
       lt_functab    TYPE ty_rs38l_incl_tt,
       lt_new_source TYPE rsfb_source,
       ls_function   LIKE LINE OF rt_functions.
@@ -900,12 +895,12 @@ DATA:
 
       IF NOT lt_new_source IS INITIAL.
         strip_generation_comments( CHANGING ct_source = lt_new_source ).
-        zif_abapgit_object~mo_files->add_abap(
+        mo_files->add_abap(
           iv_extra = <ls_func>-funcname
           it_abap  = lt_new_source ).
       ELSE.
         strip_generation_comments( CHANGING ct_source = lt_source ).
-        zif_abapgit_object~mo_files->add_abap(
+        mo_files->add_abap(
           iv_extra = <ls_func>-funcname
           it_abap  = lt_source ).
       ENDIF.
@@ -956,7 +951,7 @@ DATA:
 
 * todo, filename is not correct, a include can be used in several programs
       serialize_program( is_item    = ms_item
-                         io_files   = zif_abapgit_object~mo_files
+                         io_files   = mo_files
                          iv_program = <lv_include>
                          iv_extra   = <lv_include> ).
 
@@ -1052,8 +1047,8 @@ DATA:
 
     LOOP AT it_includes INTO lv_include.
 
-      CREATE OBJECT lo_cross EXPORTING p_name = lv_include
-                                       p_include = lv_include.
+      lo_cross = NEW #( p_name = lv_include
+                        p_include = lv_include ).
 
       lo_cross->index_actualize( ).
 
@@ -1070,9 +1065,8 @@ DATA:
              time TYPE t,
            END OF ty_stamps.
 
-    TYPES temp6 TYPE STANDARD TABLE OF ty_stamps WITH DEFAULT KEY.
-DATA:
-      lt_stamps    TYPE temp6,
+    DATA:
+      lt_stamps    TYPE STANDARD TABLE OF ty_stamps WITH DEFAULT KEY,
       lv_program   TYPE program,
       lv_found     TYPE abap_bool,
       lt_functions TYPE ty_rs38l_incl_tt.
@@ -1265,9 +1259,7 @@ DATA:
         function_pool   = lv_pool
       EXCEPTIONS
         pool_not_exists = 1.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc <> 1 ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( sy-subrc <> 1 ).
 
   ENDMETHOD.
 

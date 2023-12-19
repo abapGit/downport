@@ -10,10 +10,13 @@ CLASS zcl_abapgit_object_sush DEFINITION
 
     METHODS constructor
       IMPORTING
-        is_item     TYPE zif_abapgit_definitions=>ty_item
-        iv_language TYPE spras
+        !is_item        TYPE zif_abapgit_definitions=>ty_item
+        !iv_language    TYPE spras
+        !io_files       TYPE REF TO zcl_abapgit_objects_files OPTIONAL
+        !io_i18n_params TYPE REF TO zcl_abapgit_i18n_params OPTIONAL
       RAISING
         zcx_abapgit_exception.
+
   PROTECTED SECTION.
 
   PRIVATE SECTION.
@@ -76,8 +79,10 @@ CLASS zcl_abapgit_object_sush IMPLEMENTATION.
     DATA: lr_data_head TYPE REF TO data.
 
     super->constructor(
-      is_item     = is_item
-      iv_language = iv_language ).
+      is_item        = is_item
+      iv_language    = iv_language
+      io_files       = io_files
+      io_i18n_params = io_i18n_params ).
 
     TRY.
         CREATE DATA lr_data_head TYPE ('IF_SU22_ADT_OBJECT=>TS_SU2X_HEAD').
@@ -240,9 +245,7 @@ CLASS zcl_abapgit_object_sush IMPLEMENTATION.
     SELECT SINGLE * FROM usobhash INTO ls_usobhash "#EC CI_ALL_FIELDS_NEEDED
         WHERE name = ms_item-obj_name.                "#EC CI_SGLSELECT
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 

@@ -220,7 +220,7 @@ CLASS zcl_abapgit_object_prog IMPLEMENTATION.
 
     lv_program_name = ms_item-obj_name.
 
-    lt_source = zif_abapgit_object~mo_files->read_abap( ).
+    lt_source = mo_files->read_abap( ).
 
     io_xml->read( EXPORTING iv_name = 'TPOOL'
                   CHANGING cg_data = lt_tpool_ext ).
@@ -277,9 +277,7 @@ CLASS zcl_abapgit_object_prog IMPLEMENTATION.
 
     SELECT SINGLE progname FROM reposrc INTO lv_progname
       WHERE progname = ms_item-obj_name.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -345,7 +343,7 @@ CLASS zcl_abapgit_object_prog IMPLEMENTATION.
 
     serialize_program( io_xml   = io_xml
                        is_item  = ms_item
-                       io_files = zif_abapgit_object~mo_files ).
+                       io_files = mo_files ).
 
     " Texts serializing (translations)
     IF mo_i18n_params->is_lxe_applicable( ) = abap_false.

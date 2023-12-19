@@ -10,8 +10,13 @@ CLASS zcl_abapgit_object_ueno DEFINITION
 
     METHODS constructor
       IMPORTING
-        !is_item     TYPE zif_abapgit_definitions=>ty_item
-        !iv_language TYPE spras.
+        !is_item        TYPE zif_abapgit_definitions=>ty_item
+        !iv_language    TYPE spras
+        !io_files       TYPE REF TO zcl_abapgit_objects_files OPTIONAL
+        !io_i18n_params TYPE REF TO zcl_abapgit_i18n_params OPTIONAL
+      RAISING
+        zcx_abapgit_exception.
+
   PROTECTED SECTION.
 
 
@@ -137,8 +142,11 @@ CLASS zcl_abapgit_object_ueno IMPLEMENTATION.
 
   METHOD constructor.
 
-    super->constructor( is_item     = is_item
-                        iv_language = iv_language ).
+    super->constructor(
+      is_item        = is_item
+      iv_language    = iv_language
+      io_files       = io_files
+      io_i18n_params = io_i18n_params ).
 
     mv_entity_id = is_item-obj_name.
 
@@ -443,9 +451,9 @@ CLASS zcl_abapgit_object_ueno IMPLEMENTATION.
 
   METHOD get_generic.
 
-    CREATE OBJECT ro_generic EXPORTING io_field_rules = get_field_rules( )
-                                       is_item = ms_item
-                                       iv_language = mv_language.
+    ro_generic = NEW #( io_field_rules = get_field_rules( )
+                        is_item = ms_item
+                        iv_language = mv_language ).
 
   ENDMETHOD.
 
