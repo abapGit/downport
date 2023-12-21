@@ -154,7 +154,7 @@ CLASS zcl_abapgit_object_clas IMPLEMENTATION.
       io_files       = io_files
       io_i18n_params = io_i18n_params ).
 
-    CREATE OBJECT mi_object_oriented_object_fct TYPE zcl_abapgit_oo_class.
+    mi_object_oriented_object_fct = NEW zcl_abapgit_oo_class( ).
 
     mv_classpool_name = cl_oo_classname_service=>get_classpool_name( |{ is_item-obj_name }| ).
 
@@ -336,6 +336,12 @@ CLASS zcl_abapgit_object_clas IMPLEMENTATION.
                   CHANGING  cg_data = ls_vseoclass ).
 
     set_abap_language_version( CHANGING cv_abap_language_version = ls_vseoclass-unicode ).
+
+    IF ls_vseoclass-category = '40'.
+      " In lower releases, creating exception classes raise a popup asking for package
+      " To avoid this, we set the default package here
+      set_default_package( iv_package ).
+    ENDIF.
 
     mi_object_oriented_object_fct->create(
       EXPORTING
