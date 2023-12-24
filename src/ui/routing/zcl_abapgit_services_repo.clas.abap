@@ -144,7 +144,7 @@ CLASS zcl_abapgit_services_repo IMPLEMENTATION.
 
     lo_repo ?= zcl_abapgit_repo_srv=>get_instance( )->get( iv_key ).
 
-    lo_browser = NEW #( io_repo = lo_repo ).
+    CREATE OBJECT lo_browser EXPORTING io_repo = lo_repo.
 
     lt_repo_items = lo_browser->list( '/' ).
 
@@ -856,7 +856,7 @@ CLASS zcl_abapgit_services_repo IMPLEMENTATION.
 
     ls_transport_to_branch = zcl_abapgit_ui_factory=>get_popups( )->popup_to_create_transp_branch( lv_trkorr ).
 
-    lo_transport_to_branch = NEW #( ).
+    CREATE OBJECT lo_transport_to_branch.
     lo_transport_to_branch->create(
       io_repository          = lo_repository
       is_transport_to_branch = ls_transport_to_branch
