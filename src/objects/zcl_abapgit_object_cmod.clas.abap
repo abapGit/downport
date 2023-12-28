@@ -72,13 +72,10 @@ CLASS zcl_abapgit_object_cmod IMPLEMENTATION.
 
   METHOD zif_abapgit_object~deserialize.
 
-    TYPES temp1 TYPE TABLE OF modact.
-TYPES temp2 TYPE TABLE OF modtext.
-TYPES temp3 TYPE TABLE OF modattr.
-DATA: lv_name    TYPE modact-name,
-          lt_modact  TYPE temp1,
-          lt_modtext TYPE temp2,
-          lt_modattr TYPE temp3.
+    DATA: lv_name    TYPE modact-name,
+          lt_modact  TYPE TABLE OF modact,
+          lt_modtext TYPE TABLE OF modtext,
+          lt_modattr TYPE TABLE OF modattr.
 
     lv_name = ms_item-obj_name.
 
@@ -128,9 +125,7 @@ DATA: lv_name    TYPE modact-name,
     DATA: lv_name TYPE modact-name.
 
     SELECT SINGLE name FROM modact INTO lv_name WHERE name = ms_item-obj_name.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -181,12 +176,9 @@ DATA: lv_name    TYPE modact-name,
 
   METHOD zif_abapgit_object~serialize.
 
-    TYPES temp4 TYPE TABLE OF modact.
-TYPES temp5 TYPE TABLE OF modtext.
-TYPES temp6 TYPE TABLE OF modattr.
-DATA: lt_modact  TYPE temp4,
-          lt_modtext TYPE temp5,
-          lt_modattr TYPE temp6.
+    DATA: lt_modact  TYPE TABLE OF modact,
+          lt_modtext TYPE TABLE OF modtext,
+          lt_modattr TYPE TABLE OF modattr.
 
     FIELD-SYMBOLS: <ls_modattr> TYPE modattr.
 
