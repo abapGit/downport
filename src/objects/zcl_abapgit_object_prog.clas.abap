@@ -277,7 +277,9 @@ CLASS zcl_abapgit_object_prog IMPLEMENTATION.
 
     SELECT SINGLE progname FROM reposrc INTO lv_progname
       WHERE progname = ms_item-obj_name.
-    rv_bool = xsdbool( sy-subrc = 0 ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( sy-subrc = 0 ).
+    rv_bool = temp1.
 
   ENDMETHOD.
 
