@@ -167,14 +167,15 @@ CLASS zcl_abapgit_popups IMPLEMENTATION.
 
   METHOD zif_abapgit_popups~branch_list_popup.
 
-    DATA: lo_branches    TYPE REF TO zcl_abapgit_git_branch_list,
+    TYPES temp1 TYPE TABLE OF spopli.
+DATA: lo_branches    TYPE REF TO zcl_abapgit_git_branch_list,
           lt_branches    TYPE zif_abapgit_git_definitions=>ty_git_branch_list_tt,
           lv_answer      TYPE c LENGTH 1,
           lv_default     TYPE i,
           lv_head_suffix TYPE string,
           lv_head_symref TYPE string,
           lv_text        TYPE string,
-          lt_selection   TYPE TABLE OF spopli.
+          lt_selection   TYPE temp1.
 
     FIELD-SYMBOLS: <ls_sel>    LIKE LINE OF lt_selection,
                    <ls_branch> LIKE LINE OF lt_branches.
@@ -307,7 +308,8 @@ CLASS zcl_abapgit_popups IMPLEMENTATION.
 
   METHOD zif_abapgit_popups~choose_code_insp_check_variant.
 
-    DATA: lt_return TYPE STANDARD TABLE OF ddshretval.
+    TYPES temp2 TYPE STANDARD TABLE OF ddshretval.
+DATA: lt_return TYPE temp2.
 
     FIELD-SYMBOLS: <ls_return> LIKE LINE OF lt_return.
 
@@ -397,7 +399,8 @@ CLASS zcl_abapgit_popups IMPLEMENTATION.
 
   METHOD zif_abapgit_popups~create_branch_popup.
 
-    DATA: lt_fields TYPE TABLE OF sval.
+    TYPES temp3 TYPE TABLE OF sval.
+DATA: lt_fields TYPE temp3.
     DATA: lv_name   TYPE spo_value.
 
     CLEAR: ev_name, ev_cancel.
@@ -428,8 +431,9 @@ CLASS zcl_abapgit_popups IMPLEMENTATION.
 
   METHOD zif_abapgit_popups~popup_folder_logic.
 
-    DATA:
-      lt_selection TYPE TABLE OF spopli,
+    TYPES temp4 TYPE TABLE OF spopli.
+DATA:
+      lt_selection TYPE temp4,
       lv_answer    TYPE c LENGTH 1.
 
     FIELD-SYMBOLS: <ls_sel> LIKE LINE OF lt_selection.
@@ -474,7 +478,8 @@ CLASS zcl_abapgit_popups IMPLEMENTATION.
 
   METHOD zif_abapgit_popups~popup_search_help.
 
-    DATA lt_ret TYPE TABLE OF ddshretval.
+    TYPES temp5 TYPE TABLE OF ddshretval.
+DATA lt_ret TYPE temp5.
     DATA ls_ret LIKE LINE OF lt_ret.
     DATA lv_tabname TYPE dfies-tabname.
     DATA lv_fieldname TYPE dfies-fieldname.
@@ -623,13 +628,16 @@ CLASS zcl_abapgit_popups IMPLEMENTATION.
         p_object_data    = ls_data
       EXCEPTIONS
         action_cancelled = 1.
-    ev_create = xsdbool( sy-subrc = 0 ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( sy-subrc = 0 ).
+    ev_create = temp1.
     MOVE-CORRESPONDING ls_data TO es_package_data.
   ENDMETHOD.
 
 
   METHOD zif_abapgit_popups~popup_to_create_transp_branch.
-    DATA: lt_fields             TYPE TABLE OF sval,
+    TYPES temp6 TYPE TABLE OF sval.
+DATA: lt_fields             TYPE temp6,
           lv_transports_as_text TYPE string,
           lv_desc_as_text       TYPE string.
     DATA: lv_branch_name        TYPE spo_value.
@@ -673,16 +681,16 @@ CLASS zcl_abapgit_popups IMPLEMENTATION.
       iv_width  = iv_end_column - iv_start_column
       iv_height = iv_end_line - iv_start_line ).
 
-    lo_popup = NEW #( it_list = it_list
-                      iv_title = iv_title
-                      iv_header_text = iv_header_text
-                      is_position = ms_position
-                      iv_striped_pattern = iv_striped_pattern
-                      iv_optimize_col_width = iv_optimize_col_width
-                      iv_selection_mode = iv_selection_mode
-                      iv_select_column_text = iv_select_column_text
-                      it_columns_to_display = it_columns_to_display
-                      it_preselected_rows = it_preselected_rows ).
+    CREATE OBJECT lo_popup EXPORTING it_list = it_list
+                                     iv_title = iv_title
+                                     iv_header_text = iv_header_text
+                                     is_position = ms_position
+                                     iv_striped_pattern = iv_striped_pattern
+                                     iv_optimize_col_width = iv_optimize_col_width
+                                     iv_selection_mode = iv_selection_mode
+                                     iv_select_column_text = iv_select_column_text
+                                     it_columns_to_display = it_columns_to_display
+                                     it_preselected_rows = it_preselected_rows.
 
     lo_popup->display( ).
     lo_popup->get_selected( IMPORTING et_list = et_list ).
@@ -782,8 +790,10 @@ CLASS zcl_abapgit_popups IMPLEMENTATION.
 
   METHOD zif_abapgit_popups~popup_transport_request.
 
-    DATA: lt_e071    TYPE STANDARD TABLE OF e071,
-          lt_e071k   TYPE STANDARD TABLE OF e071k,
+    TYPES temp7 TYPE STANDARD TABLE OF e071.
+TYPES temp1 TYPE STANDARD TABLE OF e071k.
+DATA: lt_e071    TYPE temp7,
+          lt_e071k   TYPE temp1,
           lv_order   TYPE trkorr,
           ls_default TYPE zif_abapgit_default_transport=>ty_get.
     DATA lv_category TYPE e070-korrdev.
@@ -833,13 +843,14 @@ CLASS zcl_abapgit_popups IMPLEMENTATION.
 
   METHOD zif_abapgit_popups~tag_list_popup.
 
-    DATA: lo_branches  TYPE REF TO zcl_abapgit_git_branch_list,
+    TYPES temp9 TYPE TABLE OF spopli.
+DATA: lo_branches  TYPE REF TO zcl_abapgit_git_branch_list,
           lt_tags      TYPE zif_abapgit_git_definitions=>ty_git_branch_list_tt,
           ls_branch    TYPE zif_abapgit_git_definitions=>ty_git_branch,
           lv_answer    TYPE c LENGTH 1,
           lv_default   TYPE i,
           lv_tag       TYPE string,
-          lt_selection TYPE TABLE OF spopli.
+          lt_selection TYPE temp9.
 
     FIELD-SYMBOLS: <ls_sel> LIKE LINE OF lt_selection,
                    <ls_tag> LIKE LINE OF lt_tags.
