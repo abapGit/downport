@@ -118,13 +118,13 @@ CLASS zcl_abapgit_background IMPLEMENTATION.
         RETURN.
     ENDTRY.
 
-    CREATE OBJECT lo_per.
+    lo_per = NEW #( ).
     lt_list = lo_per->list( ).
 
     WRITE: / 'Background mode'.
 
     LOOP AT lt_list ASSIGNING <ls_list>.
-      CREATE OBJECT li_log TYPE zcl_abapgit_log.
+      li_log = NEW zcl_abapgit_log( ).
 
       TRY.
           lo_repo ?= zcl_abapgit_repo_srv=>get_instance( )->get( <ls_list>-key ).
@@ -143,16 +143,14 @@ CLASS zcl_abapgit_background IMPLEMENTATION.
             ii_log      = li_log
             it_settings = <ls_list>-settings ).
 
+          " Decrease memory usage for repository already processed (but keep log)
+          lo_repo->refresh(
+            iv_drop_cache = abap_true
+            iv_drop_log   = abap_false ).
+
           " Clear auth buffer to allow different user/password per repository in background mode
           zcl_abapgit_login_manager=>clear( ).
 
-        CATCH zcx_abapgit_exception INTO lx_error.
-          li_log->add_exception( lx_error ).
-      ENDTRY.
-
-      TRY.
-          " Decrease memory usage for repositories already processed
-          lo_repo->refresh( abap_true ).
         CATCH zcx_abapgit_exception INTO lx_error.
           li_log->add_exception( lx_error ).
       ENDTRY.
