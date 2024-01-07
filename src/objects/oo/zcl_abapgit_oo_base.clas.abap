@@ -244,7 +244,7 @@ CLASS zcl_abapgit_oo_base IMPLEMENTATION.
 
   METHOD zif_abapgit_oo_object_fnc~serialize_abap.
     DATA lo_oo_serializer TYPE REF TO zcl_abapgit_oo_serializer.
-    CREATE OBJECT lo_oo_serializer.
+    lo_oo_serializer = NEW #( ).
     CASE iv_type.
       WHEN seop_ext_class_locals_def.
         rt_source = lo_oo_serializer->serialize_locals_def( is_class_key ).
@@ -355,4 +355,10 @@ CLASS zcl_abapgit_oo_base IMPLEMENTATION.
     DELETE FROM seosubcotx WHERE clsname = is_key-clsname."#EC CI_SUBRC
     INSERT seosubcotx FROM TABLE lt_descriptions.         "#EC CI_SUBRC
   ENDMETHOD.
+
+
+  METHOD zif_abapgit_oo_object_fnc~syntax_check.
+    ASSERT 0 = 1. "Subclass responsibility
+  ENDMETHOD.
+
 ENDCLASS.
