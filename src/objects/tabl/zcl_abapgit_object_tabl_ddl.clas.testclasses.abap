@@ -29,7 +29,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lv_xml          TYPE string.
 
 
-    lo_format = NEW #( ).
+    CREATE OBJECT lo_format.
 
     CALL TRANSFORMATION id
       OPTIONS value_handling = 'accept_data_loss'
