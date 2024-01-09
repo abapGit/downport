@@ -144,7 +144,7 @@ CLASS zcl_abapgit_services_repo IMPLEMENTATION.
 
     lo_repo ?= zcl_abapgit_repo_srv=>get_instance( )->get( iv_key ).
 
-    CREATE OBJECT lo_browser EXPORTING io_repo = lo_repo.
+    lo_browser = NEW #( io_repo = lo_repo ).
 
     lt_repo_items = lo_browser->list( '/' ).
 
@@ -353,33 +353,6 @@ CLASS zcl_abapgit_services_repo IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD real_deserialize.
-
-    DATA li_log TYPE REF TO zif_abapgit_log.
-    DATA lv_msg TYPE string.
-
-    li_log = io_repo->create_new_log( 'Pull Log' ).
-
-    " pass decisions to delete
-    delete_unnecessary_objects(
-      io_repo   = io_repo
-      is_checks = is_checks
-      ii_log    = li_log ).
-
-    " pass decisions to deserialize
-    io_repo->deserialize(
-      is_checks = is_checks
-      ii_log    = li_log ).
-
-    IF li_log->get_status( ) = zif_abapgit_log=>c_status-ok.
-      lv_msg = |Repository { io_repo->get_name( ) } successfully pulled for package { io_repo->get_package( ) }|.
-      MESSAGE lv_msg TYPE 'S'.
-    ENDIF.
-
-    check_for_restart( io_repo ).
-
-  ENDMETHOD.
-
 
   METHOD new_offline.
 
@@ -489,7 +462,7 @@ CLASS zcl_abapgit_services_repo IMPLEMENTATION.
     " Ask user what to do
     IF cs_checks-requirements-met = zif_abapgit_definitions=>c_no.
       lt_requirements = io_repo->get_dot_abapgit( )->get_data( )-requirements.
-      zcl_abapgit_requirement_helper=>requirements_popup( lt_requirements ).
+      zcl_abapgit_repo_requirements=>requirements_popup( lt_requirements ).
       cs_checks-requirements-decision = zif_abapgit_definitions=>c_yes.
     ENDIF.
 
@@ -730,6 +703,34 @@ CLASS zcl_abapgit_services_repo IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD real_deserialize.
+
+    DATA li_log TYPE REF TO zif_abapgit_log.
+    DATA lv_msg TYPE string.
+
+    li_log = io_repo->create_new_log( 'Pull Log' ).
+
+    " pass decisions to delete
+    delete_unnecessary_objects(
+      io_repo   = io_repo
+      is_checks = is_checks
+      ii_log    = li_log ).
+
+    " pass decisions to deserialize
+    io_repo->deserialize(
+      is_checks = is_checks
+      ii_log    = li_log ).
+
+    IF li_log->get_status( ) = zif_abapgit_log=>c_status-ok.
+      lv_msg = |Repository { io_repo->get_name( ) } successfully pulled for package { io_repo->get_package( ) }|.
+      MESSAGE lv_msg TYPE 'S'.
+    ENDIF.
+
+    check_for_restart( io_repo ).
+
+  ENDMETHOD.
+
+
   METHOD refresh.
 
     zcl_abapgit_repo_srv=>get_instance( )->get( iv_key )->refresh( ).
@@ -856,7 +857,7 @@ CLASS zcl_abapgit_services_repo IMPLEMENTATION.
 
     ls_transport_to_branch = zcl_abapgit_ui_factory=>get_popups( )->popup_to_create_transp_branch( lv_trkorr ).
 
-    CREATE OBJECT lo_transport_to_branch.
+    lo_transport_to_branch = NEW #( ).
     lo_transport_to_branch->create(
       io_repository          = lo_repository
       is_transport_to_branch = ls_transport_to_branch
