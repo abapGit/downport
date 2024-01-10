@@ -24,19 +24,6 @@ CLASS ltd_branch_list DEFINITION FINAL FOR TESTING INHERITING FROM zcl_abapgit_g
 ENDCLASS.
 
 
-CLASS ltd_frontend_services DEFINITION FINAL FOR TESTING
-  DURATION SHORT
-  RISK LEVEL HARMLESS.
-
-  PUBLIC SECTION.
-
-    INTERFACES:
-      zif_abapgit_frontend_services.
-
-ENDCLASS.
-
-
-
 CLASS ltcl_validate_form DEFINITION FINAL FOR TESTING
   DURATION SHORT
   RISK LEVEL HARMLESS.
@@ -95,7 +82,7 @@ CLASS ltd_git_transport IMPLEMENTATION.
 
     CONSTANTS: lc_dummy_data TYPE string VALUE '0000'.
 
-    CREATE OBJECT ro_branch_list TYPE ltd_branch_list EXPORTING iv_data = lc_dummy_data.
+    ro_branch_list = NEW ltd_branch_list( iv_data = lc_dummy_data ).
 
   ENDMETHOD.
 
@@ -125,85 +112,29 @@ CLASS ltd_branch_list IMPLEMENTATION.
 ENDCLASS.
 
 
-CLASS ltd_frontend_services IMPLEMENTATION.
-
-  METHOD zif_abapgit_frontend_services~clipboard_export.
-  ENDMETHOD.
-
-  METHOD zif_abapgit_frontend_services~directory_browse.
-  ENDMETHOD.
-
-  METHOD zif_abapgit_frontend_services~directory_create.
-  ENDMETHOD.
-
-  METHOD zif_abapgit_frontend_services~directory_exist.
-  ENDMETHOD.
-
-  METHOD zif_abapgit_frontend_services~execute.
-  ENDMETHOD.
-
-  METHOD zif_abapgit_frontend_services~file_download.
-  ENDMETHOD.
-
-  METHOD zif_abapgit_frontend_services~file_upload.
-  ENDMETHOD.
-
-  METHOD zif_abapgit_frontend_services~get_file_separator.
-  ENDMETHOD.
-
-  METHOD zif_abapgit_frontend_services~get_gui_version.
-  ENDMETHOD.
-
-  METHOD zif_abapgit_frontend_services~get_system_directory.
-  ENDMETHOD.
-
-  METHOD zif_abapgit_frontend_services~gui_is_available.
-  ENDMETHOD.
-
-  METHOD zif_abapgit_frontend_services~is_sapgui_for_java.
-  ENDMETHOD.
-
-  METHOD zif_abapgit_frontend_services~is_sapgui_for_windows.
-  ENDMETHOD.
-
-  METHOD zif_abapgit_frontend_services~is_webgui.
-  ENDMETHOD.
-
-  METHOD zif_abapgit_frontend_services~open_ie_devtools.
-  ENDMETHOD.
-
-  METHOD zif_abapgit_frontend_services~show_file_open_dialog.
-  ENDMETHOD.
-
-  METHOD zif_abapgit_frontend_services~show_file_save_dialog.
-  ENDMETHOD.
-
-ENDCLASS.
-
-
 CLASS ltcl_validate_form IMPLEMENTATION.
 
   METHOD setup.
 
     DATA: ls_data TYPE zif_abapgit_persistence=>ty_repo.
 
-    CREATE OBJECT mo_git_transport_mock TYPE ltd_git_transport.
+    mo_git_transport_mock = NEW ltd_git_transport( ).
     zcl_abapgit_git_injector=>set_git_transport( mo_git_transport_mock ).
 
-    CREATE OBJECT mo_frontend_services_mock TYPE ltd_frontend_services.
-    zcl_abapgit_ui_injector=>set_frontend_services( mo_frontend_services_mock ).
+    " Disable GUI
+    mo_frontend_services_mock = zcl_abapgit_ui_factory=>get_frontend_services( abap_true ).
 
     ls_data-key = 1.
     ls_data-branch_name = 'main'.
 
-    CREATE OBJECT mo_repo EXPORTING is_data = ls_data.
+    mo_repo = NEW #( is_data = ls_data ).
 
-    CREATE OBJECT mo_given_form_data.
+    mo_given_form_data = NEW #( ).
     mo_given_form_data->set(
         iv_key = zcl_abapgit_gui_page_sett_remo=>c_id-branch
         iv_val = 'main' ).
 
-    CREATE OBJECT mo_cut EXPORTING io_repo = mo_repo.
+    mo_cut = NEW #( io_repo = mo_repo ).
 
   ENDMETHOD.
 
