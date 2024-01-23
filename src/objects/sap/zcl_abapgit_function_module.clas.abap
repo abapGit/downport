@@ -28,7 +28,9 @@ CLASS zcl_abapgit_function_module IMPLEMENTATION.
       EXCEPTIONS
         function_not_exist = 1
         OTHERS             = 2.
-    rv_exists = xsdbool( sy-subrc = 0 ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( sy-subrc = 0 ).
+    rv_exists = temp1.
 
   ENDMETHOD.
 ENDCLASS.
