@@ -91,7 +91,7 @@ CLASS zcl_abapgit_object_common_aff IMPLEMENTATION.
     TRY.
         lo_handler = get_object_handler( ).
 
-        CREATE OBJECT li_aff_registry TYPE zcl_abapgit_aff_registry.
+        li_aff_registry = NEW zcl_abapgit_aff_registry( ).
 
         lv_is_supported = li_aff_registry->is_supported_object_type( is_item-obj_type ).
       CATCH cx_root.
@@ -624,11 +624,14 @@ CLASS zcl_abapgit_object_common_aff IMPLEMENTATION.
         " Only remove ABAP language version if repository is set to ignore it
         IF ms_item-abap_language_version = zcl_abapgit_abap_language_vers=>c_no_abap_language_version.
           lv_json_as_xstring_wo_alv = remove_abap_language_version( lv_json_as_xstring ).
+          mo_files->add_raw(
+            iv_ext  = 'json'
+            iv_data = lv_json_as_xstring_wo_alv ).
+        ELSE.
+          mo_files->add_raw(
+            iv_ext  = 'json'
+            iv_data = lv_json_as_xstring ).
         ENDIF.
-
-        mo_files->add_raw(
-          iv_ext  = 'json'
-          iv_data = lv_json_as_xstring_wo_alv ).
 
         ls_additional_extensions = get_additional_extensions( ).
 
