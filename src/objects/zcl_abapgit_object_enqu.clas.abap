@@ -46,9 +46,10 @@ CLASS zcl_abapgit_object_enqu IMPLEMENTATION.
 
   METHOD zif_abapgit_object~deserialize.
 
-    DATA: lv_name  TYPE ddobjname,
+    TYPES temp1 TYPE TABLE OF dd26e.
+DATA: lv_name  TYPE ddobjname,
           ls_dd25v TYPE dd25v,
-          lt_dd26e TYPE TABLE OF dd26e,
+          lt_dd26e TYPE temp1,
           lt_dd27p TYPE ty_dd27p.
 
 
@@ -93,7 +94,9 @@ CLASS zcl_abapgit_object_enqu IMPLEMENTATION.
 
     SELECT SINGLE viewname FROM dd25l INTO lv_viewname
       WHERE viewname = ms_item-obj_name.
-    rv_bool = xsdbool( sy-subrc = 0 ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( sy-subrc = 0 ).
+    rv_bool = temp1.
 
   ENDMETHOD.
 
@@ -147,10 +150,11 @@ CLASS zcl_abapgit_object_enqu IMPLEMENTATION.
 
   METHOD zif_abapgit_object~serialize.
 
-    DATA: lv_name  TYPE ddobjname,
+    TYPES temp2 TYPE TABLE OF dd26e.
+DATA: lv_name  TYPE ddobjname,
           lv_state TYPE ddgotstate,
           ls_dd25v TYPE dd25v,
-          lt_dd26e TYPE TABLE OF dd26e,
+          lt_dd26e TYPE temp2,
           lt_dd27p TYPE ty_dd27p.
 
     lv_name = ms_item-obj_name.
