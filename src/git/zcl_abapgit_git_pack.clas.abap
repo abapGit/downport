@@ -228,7 +228,7 @@ CLASS zcl_abapgit_git_pack IMPLEMENTATION.
             raw_out_len = lv_decompress_len ).
 
         IF lv_expected <> lv_decompress_len.
-          zcx_abapgit_exception=>raise( |Decompression falied| ).
+          zcx_abapgit_exception=>raise( |Decompression failed| ).
         ENDIF.
 
         cl_abap_gzip=>compress_binary(
@@ -522,7 +522,7 @@ CLASS zcl_abapgit_git_pack IMPLEMENTATION.
     FIELD-SYMBOLS: <ls_object> LIKE LINE OF ct_objects.
 
 
-    CREATE OBJECT lo_stream EXPORTING iv_data = is_object-data.
+    lo_stream = NEW #( iv_data = is_object-data ).
 
 * find base
     READ TABLE ct_objects ASSIGNING <ls_object>
@@ -932,7 +932,7 @@ CLASS zcl_abapgit_git_pack IMPLEMENTATION.
     cv_decompressed = ls_data-raw.
 
     IF lv_compressed_len IS INITIAL.
-      zcx_abapgit_exception=>raise( |Decompression falied :o/| ).
+      zcx_abapgit_exception=>raise( |Decompression failed :o/| ).
     ENDIF.
 
     cv_data = cv_data+lv_compressed_len.

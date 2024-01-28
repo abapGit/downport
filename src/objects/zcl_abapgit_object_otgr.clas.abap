@@ -47,9 +47,9 @@ CLASS zcl_abapgit_object_otgr IMPLEMENTATION.
     lv_name = ms_item-obj_name.
 
     TRY.
-        CREATE OBJECT ro_otgr EXPORTING im_name = lv_name
-                                        im_new = lv_new
-                                        im_activation_state = lv_state.
+        ro_otgr = NEW #( im_name = lv_name
+                         im_new = lv_new
+                         im_activation_state = lv_state ).
       CATCH cx_pak_invalid_data
           cx_pak_not_authorized
           cx_pak_invalid_state
@@ -64,7 +64,7 @@ CLASS zcl_abapgit_object_otgr IMPLEMENTATION.
             cx_pak_not_authorized
             cx_pak_invalid_state
             cx_pak_wb_object_locked.
-          zcx_abapgit_exception=>raise( |OTGR { lv_name }: could not aquire lock| ).
+          zcx_abapgit_exception=>raise( |OTGR { lv_name }: could not acquire lock| ).
       ENDTRY.
     ENDIF.
   ENDMETHOD.
