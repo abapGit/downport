@@ -52,7 +52,7 @@ CLASS zcl_abapgit_exit IMPLEMENTATION.
       ENDTRY.
     ENDIF.
 
-    CREATE OBJECT gi_global_exit TYPE zcl_abapgit_exit. " this class
+    gi_global_exit = NEW zcl_abapgit_exit( ). " this class
 
     ri_exit = gi_global_exit.
 
@@ -76,9 +76,7 @@ CLASS zcl_abapgit_exit IMPLEMENTATION.
       EXCEPTIONS
         type_not_found = 1
         OTHERS         = 2 ).
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_running_in_test_context = temp1.
+    rv_running_in_test_context = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -250,10 +248,13 @@ CLASS zcl_abapgit_exit IMPLEMENTATION.
       TRY.
           gi_exit->change_tadir(
             EXPORTING
-              iv_package = iv_package
-              ii_log     = ii_log
+              iv_package            = iv_package
+              ii_log                = ii_log
+              is_dot_abapgit        = is_dot_abapgit
+              iv_ignore_subpackages = iv_ignore_subpackages
+              iv_only_local_objects = iv_only_local_objects
             CHANGING
-              ct_tadir   = ct_tadir ).
+              ct_tadir              = ct_tadir ).
         CATCH cx_sy_ref_is_initial cx_sy_dyn_call_illegal_method ##NO_HANDLER.
       ENDTRY.
     ENDIF.
