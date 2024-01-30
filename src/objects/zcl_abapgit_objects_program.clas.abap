@@ -501,7 +501,7 @@ CLASS zcl_abapgit_objects_program IMPLEMENTATION.
       ELSE.
         INSERT TEXTPOOL iv_program "In case of includes: Deletion of textpool in
           FROM it_tpool            "main language cannot be activated because
-          LANGUAGE lv_language     "this woul activate the deletion of the textpool
+          LANGUAGE lv_language     "this would activate the deletion of the textpool
           STATE lv_state.          "of the mail program -> insert empty textpool
       ENDIF.
     ELSE.
@@ -903,7 +903,7 @@ CLASS zcl_abapgit_objects_program IMPLEMENTATION.
     IF io_xml IS BOUND.
       li_xml = io_xml.
     ELSE.
-      CREATE OBJECT li_xml TYPE zcl_abapgit_xml_output.
+      li_xml = NEW zcl_abapgit_xml_output( ).
     ENDIF.
 
     li_xml->add( iv_name = 'PROGDIR'
