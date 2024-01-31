@@ -47,9 +47,9 @@ CLASS zcl_abapgit_object_otgr IMPLEMENTATION.
     lv_name = ms_item-obj_name.
 
     TRY.
-        CREATE OBJECT ro_otgr EXPORTING im_name = lv_name
-                                        im_new = lv_new
-                                        im_activation_state = lv_state.
+        ro_otgr = NEW #( im_name = lv_name
+                         im_new = lv_new
+                         im_activation_state = lv_state ).
       CATCH cx_pak_invalid_data
           cx_pak_not_authorized
           cx_pak_invalid_state
@@ -180,7 +180,7 @@ CLASS zcl_abapgit_object_otgr IMPLEMENTATION.
         IF sy-subrc = 0.
           lo_otgr->set_description( <ls_groupt>-text ).
           " ELSE.
-          "   Do we want to clear the main language description if not present in the XML conent?
+          "   Do we want to clear the main language description if not present in the XML content?
           "   Main language is non-deterministic - it depends on sy-langu, so rather don't touch
           "   description if the main language is not present
           "   Perhaps, we can display some sort of a message but how?

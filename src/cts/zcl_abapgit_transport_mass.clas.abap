@@ -40,7 +40,7 @@ CLASS zcl_abapgit_transport_mass IMPLEMENTATION.
           ENDIF.
 
 * Instantiate transport zipper object that will also create the timestamped output folder
-          CREATE OBJECT lo_transport_zipper TYPE lcl_transport_zipper EXPORTING iv_folder = lv_folder.
+          lo_transport_zipper = NEW lcl_transport_zipper( iv_folder = lv_folder ).
 
 * Generate the local zip files from the given list of transport requests
           lo_transport_zipper->generate_files(
@@ -51,7 +51,7 @@ CLASS zcl_abapgit_transport_mass IMPLEMENTATION.
           lcl_gui=>open_folder_frontend( lo_transport_zipper->get_folder( ) ).
 
         ELSE.
-* No data found for the provided selection criterias
+* No data found for the provided selection criteria
           zcx_abapgit_exception=>raise( 'No transport requests selected' ).
         ENDIF.
 
