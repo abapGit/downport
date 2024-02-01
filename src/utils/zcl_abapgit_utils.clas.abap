@@ -28,7 +28,7 @@ CLASS zcl_abapgit_utils IMPLEMENTATION.
 
     " Previously we did a simple char range test described here
     " stackoverflow.com/questions/277521/how-to-identify-the-file-content-as-ascii-or-binary
-    " but this is insufficient if the data contains german umlauts and other special characters.
+    " but this is insufficient if the data contains German umlauts and other special characters.
     " Therefore we adopted another algorithm, which is similarly used by AL11
     " RSWATCH0 / GUESS_FILE_TYPE
     " We count non-printable characters if there are more than XX% it's binary.
@@ -67,9 +67,7 @@ CLASS zcl_abapgit_utils IMPLEMENTATION.
 
     FIND ALL OCCURRENCES OF REGEX '[^[:print:]]' IN lv_string_data MATCH COUNT lv_printable_chars_count.
     lv_percentage = lv_printable_chars_count * 100 / strlen( lv_string_data ).
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( lv_percentage > lc_binary_threshold ).
-    rv_is_binary = temp1.
+    rv_is_binary = xsdbool( lv_percentage > lc_binary_threshold ).
 
   ENDMETHOD.
 
@@ -85,9 +83,7 @@ CLASS zcl_abapgit_utils IMPLEMENTATION.
       rv_valid = abap_true.
     ELSE.
       FIND REGEX lc_email_regex IN iv_email.
-      DATA temp2 TYPE xsdboolean.
-      temp2 = boolc( sy-subrc = 0 ).
-      rv_valid = temp2.
+      rv_valid = xsdbool( sy-subrc = 0 ).
     ENDIF.
 
   ENDMETHOD.
