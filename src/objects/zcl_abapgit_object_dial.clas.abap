@@ -30,9 +30,8 @@ CLASS zcl_abapgit_object_dial IMPLEMENTATION.
 
   METHOD zif_abapgit_object~delete.
 
-    TYPES temp1 TYPE STANDARD TABLE OF bdcdata.
-DATA: ls_bcdata TYPE bdcdata,
-          lt_bcdata TYPE temp1.
+    DATA: ls_bcdata TYPE bdcdata,
+          lt_bcdata TYPE STANDARD TABLE OF bdcdata.
 
     ls_bcdata-program  = 'SAPMSDIA'.
     ls_bcdata-dynpro   = '1010'.
@@ -87,6 +86,9 @@ DATA: ls_bcdata TYPE bdcdata,
 
     DATA: ls_dialog_module TYPE ty_dialog_module.
 
+    " Prefill popup asking for package
+    set_default_package( iv_package ).
+
     io_xml->read(
       EXPORTING
         iv_name = 'DIAL'
@@ -124,9 +126,7 @@ DATA: ls_bcdata TYPE bdcdata,
 
     ls_tdct = _read_tdct( ).
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( ls_tdct IS NOT INITIAL ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( ls_tdct IS NOT INITIAL ).
 
   ENDMETHOD.
 
@@ -177,9 +177,7 @@ DATA: ls_bcdata TYPE bdcdata,
         object_not_found = 1
         OTHERS           = 2.
 
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( sy-subrc = 0 ).
-    rv_exit = temp2.
+    rv_exit = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
