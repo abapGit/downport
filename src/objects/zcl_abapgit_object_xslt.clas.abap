@@ -122,6 +122,8 @@ CLASS zcl_abapgit_object_xslt IMPLEMENTATION.
       iv_extra = 'source'
       iv_ext   = 'xml' ).
 
+    zcl_abapgit_utils=>check_eol( lv_source ).
+
 * workaround: somewhere additional linefeeds are added
     lv_len = strlen( lv_source ) - 2.
     IF lv_source+lv_len(2) = cl_abap_char_utilities=>cr_lf.
@@ -172,9 +174,7 @@ CLASS zcl_abapgit_object_xslt IMPLEMENTATION.
     lv_name = ms_item-obj_name.
 
     rv_bool = cl_o2_api_xsltdesc=>exists( lv_name ).
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( rv_bool = '1' ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( rv_bool = '1' ).
 
   ENDMETHOD.
 
