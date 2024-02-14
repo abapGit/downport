@@ -806,9 +806,7 @@ CLASS zcl_abapgit_oo_class IMPLEMENTATION.
         no_text       = 4
         inconsistent  = 5
         OTHERS        = 6.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 OR sy-subrc = 4 ).
-    rv_exists = temp1.
+    rv_exists = xsdbool( sy-subrc = 0 OR sy-subrc = 4 ).
   ENDMETHOD.
 
 
@@ -990,7 +988,8 @@ CLASS zcl_abapgit_oo_class IMPLEMENTATION.
         syntaxerror                  = lv_syntaxerror
       EXCEPTIONS
         _internal_class_not_existing = 1
-        OTHERS                       = 2.
+        error_message                = 2 " suppress S-message
+        OTHERS                       = 3.
     IF sy-subrc <> 0.
       zcx_abapgit_exception=>raise_t100( ).
     ENDIF.
