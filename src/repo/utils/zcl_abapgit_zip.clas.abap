@@ -34,6 +34,7 @@ CLASS zcl_abapgit_zip DEFINITION
         !iv_package        TYPE devclass
         !iv_folder_logic   TYPE string
         !iv_main_lang_only TYPE abap_bool
+        !iv_ign_subpkg     TYPE abap_bool OPTIONAL
       RAISING
         zcx_abapgit_exception .
     CLASS-METHODS load
@@ -87,7 +88,7 @@ CLASS zcl_abapgit_zip IMPLEMENTATION.
     FIELD-SYMBOLS: <ls_file> LIKE LINE OF it_files.
 
 
-    CREATE OBJECT lo_zip.
+    lo_zip = NEW #( ).
 
     LOOP AT it_files ASSIGNING <ls_file>.
       CONCATENATE <ls_file>-file-path+1 <ls_file>-file-filename INTO lv_filename.
@@ -106,15 +107,15 @@ CLASS zcl_abapgit_zip IMPLEMENTATION.
     DATA lt_zip       TYPE zif_abapgit_definitions=>ty_files_item_tt.
     DATA lo_serialize TYPE REF TO zcl_abapgit_serialize.
 
-    CREATE OBJECT li_log TYPE zcl_abapgit_log.
+    li_log = NEW zcl_abapgit_log( ).
     li_log->set_title( 'Zip Export Log' ).
 
     IF zcl_abapgit_factory=>get_sap_package( iv_package )->exists( ) = abap_false.
       zcx_abapgit_exception=>raise( |Package { iv_package } doesn't exist| ).
     ENDIF.
 
-    CREATE OBJECT lo_serialize EXPORTING io_dot_abapgit = io_dot_abapgit
-                                         is_local_settings = is_local_settings.
+    lo_serialize = NEW #( io_dot_abapgit = io_dot_abapgit
+                          is_local_settings = is_local_settings ).
 
     lt_zip = lo_serialize->files_local(
       iv_package = iv_package
@@ -194,6 +195,7 @@ CLASS zcl_abapgit_zip IMPLEMENTATION.
           lv_zip_xstring     TYPE xstring.
 
     ls_local_settings-main_language_only = iv_main_lang_only.
+    ls_local_settings-ignore_subpackages = iv_ign_subpkg.
 
     lo_dot_abapgit = zcl_abapgit_dot_abapgit=>build_default( ).
     lo_dot_abapgit->set_folder_logic( iv_folder_logic ).
@@ -205,18 +207,19 @@ CLASS zcl_abapgit_zip IMPLEMENTATION.
     lv_default = |{ lv_package_escaped }_{ sy-datlo }_{ sy-timlo }.zip|.
 
     lv_zip_xstring = export(
-     is_local_settings = ls_local_settings
-     iv_package        = iv_package
-     io_dot_abapgit    = lo_dot_abapgit ).
+      is_local_settings = ls_local_settings
+      iv_package        = iv_package
+      io_dot_abapgit    = lo_dot_abapgit ).
 
     lv_path = lo_frontend_serv->show_file_save_dialog(
-        iv_title            = 'Package Export'
-        iv_extension        = 'zip'
-        iv_default_filename = lv_default ).
+      iv_title            = 'Package Export'
+      iv_extension        = 'zip'
+      iv_default_filename = lv_default ).
 
     lo_frontend_serv->file_download(
-        iv_path = lv_path
-        iv_xstr = lv_zip_xstring ).
+      iv_path = lv_path
+      iv_xstr = lv_zip_xstring ).
+
   ENDMETHOD.
 
 
@@ -310,7 +313,7 @@ CLASS zcl_abapgit_zip IMPLEMENTATION.
                    <ls_file>    LIKE LINE OF rt_files.
 
 
-    CREATE OBJECT lo_zip.
+    lo_zip = NEW #( ).
     lo_zip->load( EXPORTING
                     zip             = iv_xstr
                   EXCEPTIONS
