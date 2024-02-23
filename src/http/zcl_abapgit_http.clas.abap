@@ -28,6 +28,12 @@ CLASS zcl_abapgit_http DEFINITION
         VALUE(ro_client) TYPE REF TO zcl_abapgit_http_client
       RAISING
         zcx_abapgit_exception .
+
+    CLASS-METHODS check_connection
+      IMPORTING
+        !iv_url TYPE string
+      RAISING
+        zcx_abapgit_exception.
   PROTECTED SECTION.
 
     CLASS-METHODS check_auth_requested
@@ -51,6 +57,24 @@ CLASS zcl_abapgit_http DEFINITION
         VALUE(rv_scheme) TYPE string
       RAISING
         zcx_abapgit_exception .
+
+    CLASS-METHODS get_http_client
+      IMPORTING
+        !iv_url          TYPE string
+      RETURNING
+        VALUE(ri_client) TYPE REF TO if_http_client
+      RAISING
+        zcx_abapgit_exception.
+
+    CLASS-METHODS get_connection_longtext
+      IMPORTING
+        !iv_host           TYPE string
+        !iv_ssl_id         TYPE ssfapplssl
+        !iv_proxy_host     TYPE string
+        !iv_proxy_service  TYPE string
+      RETURNING
+        VALUE(rv_longtext) TYPE string.
+
   PRIVATE SECTION.
 ENDCLASS.
 
@@ -94,9 +118,9 @@ CLASS zcl_abapgit_http IMPLEMENTATION.
       WHEN c_scheme-digest.
 * https://en.wikipedia.org/wiki/Digest_access_authentication
 * e.g. used by https://www.gerritcodereview.com/
-        CREATE OBJECT lo_digest EXPORTING ii_client = ii_client
-                                          iv_username = lv_user
-                                          iv_password = lv_pass.
+        lo_digest = NEW #( ii_client = ii_client
+                           iv_username = lv_user
+                           iv_password = lv_pass ).
         lo_digest->run( ii_client ).
         io_client->set_digest( lo_digest ).
       WHEN OTHERS.
@@ -121,57 +145,24 @@ CLASS zcl_abapgit_http IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD check_connection.
+    " Check if a connection from this system to the git host is possible
+    " This will validate the general HTTP/HTTPS/SSL configuration and certificates
+    get_http_client( iv_url ).
+  ENDMETHOD.
+
+
   METHOD create_by_url.
 
-    DATA: lv_uri                 TYPE string,
-          lv_scheme              TYPE string,
-          lv_authorization       TYPE string,
-          li_client              TYPE REF TO if_http_client,
-          ls_header              LIKE LINE OF it_headers,
-          lo_proxy_configuration TYPE REF TO zcl_abapgit_proxy_config,
-          lv_text                TYPE string.
+    DATA: lv_uri           TYPE string,
+          lv_scheme        TYPE string,
+          lv_authorization TYPE string,
+          li_client        TYPE REF TO if_http_client,
+          ls_header        LIKE LINE OF it_headers.
 
+    li_client = get_http_client( iv_url ).
 
-    CREATE OBJECT lo_proxy_configuration.
-
-    li_client = zcl_abapgit_exit=>get_instance( )->create_http_client( iv_url ).
-
-    IF li_client IS NOT BOUND.
-
-      cl_http_client=>create_by_url(
-        EXPORTING
-          url                = zcl_abapgit_url=>host( iv_url )
-          ssl_id             = zcl_abapgit_exit=>get_instance( )->get_ssl_id( )
-          proxy_host         = lo_proxy_configuration->get_proxy_url( iv_url )
-          proxy_service      = lo_proxy_configuration->get_proxy_port( iv_url )
-        IMPORTING
-          client             = li_client
-        EXCEPTIONS
-          argument_not_found = 1
-          plugin_not_active  = 2
-          internal_error     = 3
-          OTHERS             = 4 ).
-      IF sy-subrc <> 0.
-        CASE sy-subrc.
-          WHEN 1.
-            " make sure:
-            " a) SSL is setup properly in STRUST
-            lv_text = 'HTTPS ARGUMENT_NOT_FOUND | STRUST/SSL Setup correct?'.
-          WHEN OTHERS.
-            " Make sure ANONYM PSE exists in transaction STRUST, https://github.com/abapGit/abapGit/issues/6768
-            lv_text = 'While creating HTTP Client'.
-
-        ENDCASE.
-        zcx_abapgit_exception=>raise( lv_text ).
-      ENDIF.
-
-    ENDIF.
-
-    IF lo_proxy_configuration->get_proxy_authentication( iv_url ) = abap_true.
-      zcl_abapgit_proxy_auth=>run( li_client ).
-    ENDIF.
-
-    CREATE OBJECT ro_client EXPORTING ii_client = li_client.
+    ro_client = NEW #( ii_client = li_client ).
 
     IF is_local_system( iv_url ) = abap_true.
       li_client->send_sap_logon_ticket( ).
@@ -240,6 +231,136 @@ CLASS zcl_abapgit_http IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD get_connection_longtext.
+
+    CONSTANTS lc_docs TYPE string VALUE 'https://docs.abapgit.org/user-guide/setup/ssl-setup.html'.
+
+    DATA lv_proxy TYPE string.
+
+    IF iv_proxy_host IS NOT INITIAL.
+      lv_proxy = | via proxy <b>{ iv_proxy_host }:{ iv_proxy_service }</b>|.
+    ENDIF.
+
+    rv_longtext = |abapGit is trying to connect to <b>{ iv_host }</b> |
+      && |using SSL certificates under <b>{ iv_ssl_id }</b>{ lv_proxy }. |
+      && |Check system parameters (transaction |
+      && zcl_abapgit_html=>create( )->a(
+        iv_txt   = 'RZ10'
+        iv_act   = |{ zif_abapgit_definitions=>c_action-jump_transaction }?transaction=RZ10|
+        iv_class = 'no-pad' )
+      && |), SSL setup (transaction |
+      && zcl_abapgit_html=>create( )->a(
+        iv_txt   = 'STRUST'
+        iv_act   = |{ zif_abapgit_definitions=>c_action-jump_transaction }?transaction=STRUST|
+        iv_class = 'no-pad' )
+      && |), Internet connection monitor (transaction |
+      && zcl_abapgit_html=>create( )->a(
+        iv_txt   = 'SMICM'
+        iv_act   = |{ zif_abapgit_definitions=>c_action-jump_transaction }?transaction=SMICM|
+        iv_class = 'no-pad' )
+      && |)|.
+
+    IF lv_proxy IS NOT INITIAL.
+      rv_longtext = rv_longtext
+        && |, and proxy configuration (|
+        && zcl_abapgit_html=>create( )->a(
+          iv_txt   = 'global settings'
+          iv_act   = |{ zif_abapgit_definitions=>c_action-go_settings }|
+          iv_class = 'no-pad' )
+        && |)|.
+    ENDIF.
+
+    rv_longtext = rv_longtext
+      && |. It's recommended to get your SAP Basis and network teams involved. |
+      && |For more information and troubleshooting, see the |
+      && zcl_abapgit_html=>create( )->a(
+        iv_txt   = 'abapGit documentation'
+        iv_act   = |{ zif_abapgit_definitions=>c_action-url }?url={ lc_docs }|
+        iv_class = 'no-pad' )
+      && |.|.
+
+  ENDMETHOD.
+
+
+  METHOD get_http_client.
+
+    DATA:
+      lv_error               TYPE string,
+      lv_longtext            TYPE string,
+      lv_host                TYPE string,
+      lv_ssl_id              TYPE ssfapplssl,
+      lv_proxy_host          TYPE string,
+      lv_proxy_service       TYPE string,
+      lo_proxy_configuration TYPE REF TO zcl_abapgit_proxy_config.
+
+    lo_proxy_configuration = NEW #( ).
+
+    ri_client = zcl_abapgit_exit=>get_instance( )->create_http_client( iv_url ).
+
+    IF ri_client IS INITIAL.
+
+      lv_host          = zcl_abapgit_url=>host( iv_url ).
+      lv_ssl_id        = zcl_abapgit_exit=>get_instance( )->get_ssl_id( ).
+      lv_proxy_host    = lo_proxy_configuration->get_proxy_url( iv_url ).
+      lv_proxy_service = lo_proxy_configuration->get_proxy_port( iv_url ).
+
+      lv_longtext = get_connection_longtext(
+        iv_host          = lv_host
+        iv_ssl_id        = lv_ssl_id
+        iv_proxy_host    = lv_proxy_host
+        iv_proxy_service = lv_proxy_service ).
+
+      cl_http_client=>create_by_url(
+        EXPORTING
+          url                = lv_host
+          ssl_id             = lv_ssl_id
+          proxy_host         = lv_proxy_host
+          proxy_service      = lv_proxy_service
+        IMPORTING
+          client             = ri_client
+        EXCEPTIONS
+          argument_not_found = 1
+          plugin_not_active  = 2
+          internal_error     = 3
+          pse_not_found      = 4
+          pse_not_distrib    = 5
+          pse_errors         = 6
+          OTHERS             = 7 ).
+      IF sy-subrc <> 0.
+        CASE sy-subrc.
+          WHEN 1.
+            lv_error = 'ARGUMENT_NOT_FOUND'.
+          WHEN 2.
+            lv_error = 'PLUGIN_NOT_ACTIVE'.
+          WHEN 3.
+            lv_error = 'INTERNAL_ERROR'.
+          WHEN 4.
+            lv_error = 'PSE_NOT_FOUND'.
+          WHEN 5.
+            lv_error = 'PSE_NOT_DISTRIB'.
+          WHEN 6.
+            lv_error = 'PSE_ERRORS'.
+          WHEN OTHERS.
+            lv_error = |OTHER_ERROR_{ sy-subrc }|.
+        ENDCASE.
+        IF sy-subrc BETWEEN 4 AND 6.
+          zcx_abapgit_exception=>raise_t100( iv_longtext = lv_longtext ).
+        ELSE.
+          zcx_abapgit_exception=>raise(
+            iv_text     = |Error { lv_error } creating HTTP connection. Check the configuration|
+            iv_longtext = lv_longtext ).
+        ENDIF.
+      ENDIF.
+
+    ENDIF.
+
+    IF lo_proxy_configuration->get_proxy_authentication( iv_url ) = abap_true.
+      zcl_abapgit_proxy_auth=>run( ri_client ).
+    ENDIF.
+
+  ENDMETHOD.
+
+
   METHOD is_local_system.
 
     DATA: lv_host TYPE string,
@@ -258,9 +379,7 @@ CLASS zcl_abapgit_http IMPLEMENTATION.
     FIND REGEX 'https?://([^/^:]*)' IN iv_url SUBMATCHES lv_host.
 
     READ TABLE lt_list WITH KEY table_line = lv_host TRANSPORTING NO FIELDS.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 ENDCLASS.

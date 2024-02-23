@@ -43,6 +43,7 @@ CLASS zcl_abapgit_gui_page_repo_view DEFINITION
 
     DATA mo_repo TYPE REF TO zcl_abapgit_repo .
     DATA mo_repo_aggregated_state TYPE REF TO zcl_abapgit_repo_item_state.
+    DATA mv_connection_error TYPE abap_bool.
     DATA mv_cur_dir TYPE string .
     DATA mv_hide_files TYPE abap_bool .
     DATA mv_max_lines TYPE i .
@@ -192,6 +193,10 @@ CLASS zcl_abapgit_gui_page_repo_view DEFINITION
       RAISING
         zcx_abapgit_exception.
 
+    METHODS check_connection
+      RAISING
+        zcx_abapgit_exception.
+
 ENDCLASS.
 
 
@@ -273,7 +278,7 @@ CLASS zcl_abapgit_gui_page_repo_view IMPLEMENTATION.
 
   METHOD build_advanced_dropdown.
 
-    CREATE OBJECT ro_advanced_dropdown.
+    ro_advanced_dropdown = NEW #( ).
 
     ro_advanced_dropdown->add( iv_txt = 'Activate Objects'
                                iv_act = |{ zif_abapgit_definitions=>c_action-repo_activate_objects }?key={ mv_key }| ).
@@ -350,7 +355,7 @@ CLASS zcl_abapgit_gui_page_repo_view IMPLEMENTATION.
 
   METHOD build_branch_dropdown.
 
-    CREATE OBJECT ro_branch_dropdown.
+    ro_branch_dropdown = NEW #( ).
 
     IF mo_repo->is_offline( ) = abap_true.
       RETURN.
@@ -374,7 +379,7 @@ CLASS zcl_abapgit_gui_page_repo_view IMPLEMENTATION.
     DATA lv_encode TYPE string.
     DATA li_html TYPE REF TO zif_abapgit_html.
 
-    CREATE OBJECT li_html TYPE zcl_abapgit_html.
+    li_html = NEW zcl_abapgit_html( ).
 
     lv_path = iv_path.
     REPLACE FIRST OCCURRENCE OF mv_cur_dir IN lv_path WITH ''.
@@ -416,7 +421,7 @@ CLASS zcl_abapgit_gui_page_repo_view IMPLEMENTATION.
     DATA:
       li_log TYPE REF TO zif_abapgit_log.
 
-    CREATE OBJECT ro_toolbar EXPORTING iv_id = 'toolbar-repo'.
+    ro_toolbar = NEW #( iv_id = 'toolbar-repo' ).
 
     IF mo_repo->is_offline( ) = abap_false.
       " online repo
@@ -520,7 +525,7 @@ CLASS zcl_abapgit_gui_page_repo_view IMPLEMENTATION.
 
   METHOD build_tag_dropdown.
 
-    CREATE OBJECT ro_tag_dropdown.
+    ro_tag_dropdown = NEW #( ).
 
     IF mo_repo->is_offline( ) = abap_true.
       RETURN.
@@ -539,7 +544,7 @@ CLASS zcl_abapgit_gui_page_repo_view IMPLEMENTATION.
 
   METHOD build_view_dropdown.
 
-    CREATE OBJECT ro_toolbar.
+    ro_toolbar = NEW #( ).
 
     ro_toolbar->add(
       iv_txt = 'Changes First'
@@ -551,11 +556,9 @@ CLASS zcl_abapgit_gui_page_repo_view IMPLEMENTATION.
       iv_chk = mv_changes_only
       iv_act = c_actions-toggle_changes ).
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( NOT mv_hide_files = abap_true ).
     ro_toolbar->add(
       iv_txt = 'File Paths'
-      iv_chk = temp1
+      iv_chk = xsdbool( NOT mv_hide_files = abap_true )
       iv_act = c_actions-toggle_hide_files ).
 
     ro_toolbar->add(
@@ -574,6 +577,22 @@ CLASS zcl_abapgit_gui_page_repo_view IMPLEMENTATION.
       lo_repo ?= mo_repo.
       lo_repo->check_for_valid_branch( ).
     ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD check_connection.
+
+    DATA lo_repo TYPE REF TO zif_abapgit_repo_online.
+
+    mv_connection_error = abap_true.
+
+    IF mo_repo->is_offline( ) = abap_false.
+      lo_repo ?= mo_repo.
+      zcl_abapgit_http=>check_connection( lo_repo->get_url( ) ).
+    ENDIF.
+
+    mv_connection_error = abap_false.
 
   ENDMETHOD.
 
@@ -620,7 +639,7 @@ CLASS zcl_abapgit_gui_page_repo_view IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_repo_view.
 
-    CREATE OBJECT lo_component EXPORTING iv_key = iv_key.
+    lo_component = NEW #( iv_key = iv_key ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title         = 'Repository'
@@ -645,8 +664,7 @@ CLASS zcl_abapgit_gui_page_repo_view IMPLEMENTATION.
 
   METHOD get_item_class.
 
-    TYPES temp1 TYPE TABLE OF string.
-DATA lt_class TYPE temp1.
+    DATA lt_class TYPE TABLE OF string.
 
     IF iv_is_object_row = abap_true.
       APPEND 'object_row' TO lt_class.
@@ -671,9 +689,7 @@ DATA lt_class TYPE temp1.
 
 
   METHOD is_repo_lang_logon_lang.
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( mo_repo->get_dot_abapgit( )->get_main_language( ) = sy-langu ).
-    rv_repo_lang_is_logon_lang = temp2.
+    rv_repo_lang_is_logon_lang = xsdbool( mo_repo->get_dot_abapgit( )->get_main_language( ) = sy-langu ).
   ENDMETHOD.
 
 
@@ -735,7 +751,7 @@ DATA lt_class TYPE temp1.
 
     DATA: lv_difflink TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div>' ).
     IF is_file-is_changed = abap_true.
@@ -762,7 +778,7 @@ DATA lt_class TYPE temp1.
       lo_label_colors TYPE REF TO zcl_abapgit_string_map,
       lt_labels       TYPE string_table.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
     lo_toolbar = build_main_toolbar( ).
 
     ri_html->add( '<div class="paddings">' ).
@@ -800,7 +816,7 @@ DATA lt_class TYPE temp1.
 
     DATA: lv_link    TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( |<tr{ get_item_class( is_item = is_item
                                         iv_is_object_row = abap_true ) }>| ).
@@ -848,7 +864,7 @@ DATA lt_class TYPE temp1.
 
 
   METHOD render_item_changed_by.
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     IF is_item-changes = 0 OR is_item-changed_by IS INITIAL.
       ri_html->add( '&nbsp;' ).
@@ -863,7 +879,7 @@ DATA lt_class TYPE temp1.
 
     DATA lv_difflink TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     IF is_item-is_dir = abap_true. " Directory
       ri_html->add( '<div>' ).
@@ -899,7 +915,7 @@ DATA lt_class TYPE temp1.
     DATA li_exit TYPE REF TO zif_abapgit_exit.
     DATA lv_filename TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     IF mv_hide_files = abap_true AND is_item-obj_type IS NOT INITIAL.
       RETURN.
@@ -954,7 +970,7 @@ DATA lt_class TYPE temp1.
 
   METHOD render_item_transport.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<td class="transport">' ).
 
@@ -967,7 +983,7 @@ DATA lt_class TYPE temp1.
 
   METHOD render_parent_dir.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<tr class="folder">' ).
     ri_html->add( |<td class="icon">{ ri_html->icon( 'folder' ) }</td>| ).
@@ -982,7 +998,7 @@ DATA lt_class TYPE temp1.
 
   METHOD render_scripts.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
     ri_html->add( zcl_abapgit_gui_chunk_lib=>render_repo_palette(
@@ -995,7 +1011,7 @@ DATA lt_class TYPE temp1.
 
     DATA lv_action TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     IF mv_changes_only = abap_true.
       lv_action = ri_html->a(
@@ -1014,7 +1030,7 @@ DATA lt_class TYPE temp1.
       lt_col_spec TYPE zif_abapgit_definitions=>ty_col_spec_tt,
       ls_col_spec TYPE zif_abapgit_definitions=>ty_col_spec.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     " icon
     APPEND INITIAL LINE TO lt_col_spec.
@@ -1194,7 +1210,7 @@ DATA lt_class TYPE temp1.
 
   METHOD zif_abapgit_gui_menu_provider~get_menu.
 
-    CREATE OBJECT ro_toolbar EXPORTING iv_id = 'toolbar-main'.
+    ro_toolbar = NEW #( iv_id = 'toolbar-main' ).
 
     ro_toolbar->add(
       iv_txt = zcl_abapgit_gui_buttons=>repo_list( )
@@ -1224,13 +1240,33 @@ DATA lt_class TYPE temp1.
 
     register_handlers( ).
 
-    CREATE OBJECT mo_repo_aggregated_state.
+    mo_repo_aggregated_state = NEW #( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     TRY.
         " Reinit, for the case of type change
         mo_repo ?= zcl_abapgit_repo_srv=>get_instance( )->get( mo_repo->get_key( ) ).
+
+        IF mv_connection_error = abap_true.
+          " If connection doesn't work, render a minimal header
+          ri_html->add( |<div class="repo" id="repo{ mv_key }">| ).
+          ri_html->add( zcl_abapgit_gui_chunk_lib=>render_repo_top(
+            io_repo               = mo_repo
+            iv_show_edit          = abap_true
+            iv_show_branch        = abap_false
+            iv_show_commit        = abap_false
+            iv_interactive_branch = abap_false ) ).
+          ri_html->add( '</div>' ).
+
+          ri_html->add( render_head_line( ) ).
+
+          " Reset error flag to try connecting again next time
+          CLEAR mv_connection_error.
+          RETURN.
+        ENDIF.
+
+        check_connection( ).
 
         check_branch( ).
 
@@ -1252,7 +1288,7 @@ DATA lt_class TYPE temp1.
           is_repo_meta = mo_repo->ms_data
           ii_html      = ri_html ).
 
-        CREATE OBJECT lo_browser EXPORTING io_repo = mo_repo.
+        lo_browser = NEW #( io_repo = mo_repo ).
 
         lt_repo_items = lo_browser->list( iv_path         = mv_cur_dir
                                           iv_by_folders   = mv_show_folders
@@ -1347,11 +1383,7 @@ DATA lt_class TYPE temp1.
         " and allow troubleshooting of issue
         zcl_abapgit_persistence_user=>get_instance( )->set_repo_show( || ).
 
-        ri_html->add( render_head_line( ) ).
-
-        ri_html->add( zcl_abapgit_gui_chunk_lib=>render_error(
-          iv_extra_style = 'repo_banner'
-          ix_error = lx_error ) ).
+        RAISE EXCEPTION lx_error.
     ENDTRY.
 
     register_deferred_script( render_scripts( ) ).

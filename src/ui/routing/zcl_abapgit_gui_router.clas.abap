@@ -120,6 +120,11 @@ CLASS zcl_abapgit_gui_router DEFINITION
         !iv_url TYPE csequence
       RAISING
         zcx_abapgit_exception .
+    METHODS call_transaction
+      IMPORTING
+        !iv_tcode TYPE csequence
+      RAISING
+        zcx_abapgit_exception .
     METHODS get_state_settings
       IMPORTING
         !ii_event       TYPE REF TO zif_abapgit_gui_event
@@ -153,6 +158,30 @@ CLASS zcl_abapgit_gui_router IMPLEMENTATION.
   METHOD call_browser.
 
     zcl_abapgit_ui_factory=>get_frontend_services( )->execute( iv_document = |{ iv_url }| ).
+
+  ENDMETHOD.
+
+
+  METHOD call_transaction.
+
+    DATA lv_msg TYPE c LENGTH 200.
+
+    CALL FUNCTION 'ABAP4_CALL_TRANSACTION'
+      DESTINATION 'NONE'
+      STARTING NEW TASK 'ABAPGIT'
+      EXPORTING
+        tcode                 = iv_tcode
+      EXCEPTIONS
+        communication_failure = 1 MESSAGE lv_msg
+        system_failure        = 2 MESSAGE lv_msg
+        OTHERS                = 3.
+    IF sy-subrc <> 0.
+      lv_msg = |Error starting transaction { iv_tcode }: { lv_msg }|.
+      MESSAGE lv_msg TYPE 'I'.
+    ELSE.
+      lv_msg = |Transaction { iv_tcode } opened in a new window|.
+      MESSAGE lv_msg TYPE 'S'.
+    ENDIF.
 
   ENDMETHOD.
 
@@ -259,7 +288,7 @@ CLASS zcl_abapgit_gui_router IMPLEMENTATION.
 
         lo_repo ?= zcl_abapgit_repo_srv=>get_instance( )->get( lv_key ).
 
-        CREATE OBJECT lo_obj_filter_trans.
+        lo_obj_filter_trans = NEW #( ).
         lo_obj_filter_trans->set_filter_values( iv_package  = lo_repo->get_package( )
                                                 it_r_trkorr = lt_r_trkorr ).
 
@@ -507,9 +536,7 @@ CLASS zcl_abapgit_gui_router IMPLEMENTATION.
     IF iv_line CO '0123456789'.
       lv_line_number = iv_line.
     ENDIF.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( iv_new_window IS NOT INITIAL ).
-    lv_new_window = temp1.
+    lv_new_window = xsdbool( iv_new_window IS NOT INITIAL ).
 
     TRY.
         li_html_viewer = zcl_abapgit_ui_factory=>get_html_viewer( ).
@@ -561,8 +588,7 @@ CLASS zcl_abapgit_gui_router IMPLEMENTATION.
   METHOD other_utilities.
     TYPES ty_char600 TYPE c LENGTH 600.
     DATA lv_clip_content TYPE string.
-    TYPES temp1 TYPE STANDARD TABLE OF ty_char600.
-DATA lt_clipboard TYPE temp1.
+    DATA lt_clipboard TYPE STANDARD TABLE OF ty_char600.
 
     CASE ii_event->mv_action.
       WHEN zif_abapgit_definitions=>c_action-ie_devtools.
@@ -681,6 +707,10 @@ DATA lt_clipboard TYPE temp1.
           iv_line       = ii_event->query( )->get( 'LINE' )
           iv_new_window = ii_event->query( )->get( 'NEW_WINDOW' ) ).
 
+        rs_handled-state = zcl_abapgit_gui=>c_event_state-no_more_act.
+
+      WHEN zif_abapgit_definitions=>c_action-jump_transaction.
+        call_transaction( |{ ii_event->query( )->get( 'TRANSACTION' ) }| ).
         rs_handled-state = zcl_abapgit_gui=>c_event_state-no_more_act.
 
       WHEN zif_abapgit_definitions=>c_action-jump_transport.
@@ -820,7 +850,7 @@ DATA lt_clipboard TYPE temp1.
         lt_r_trkorr = zcl_abapgit_ui_factory=>get_popups( )->popup_select_wb_tc_tr_and_tsk( ).
         lo_repo ?= zcl_abapgit_repo_srv=>get_instance( )->get( lv_key ).
         lo_repo->refresh( ).
-        CREATE OBJECT lo_obj_filter_trans.
+        lo_obj_filter_trans = NEW #( ).
         lo_obj_filter_trans->set_filter_values( iv_package  = lo_repo->get_package( )
                                                 it_r_trkorr = lt_r_trkorr ).
 
