@@ -539,14 +539,14 @@ CLASS lcl_aff_metadata_handler IMPLEMENTATION.
       lt_paths_to_skip TYPE zcl_abapgit_json_handler=>ty_skip_paths.
 
 
-    CREATE OBJECT lo_aff_mapper TYPE lcl_aff_type_mapping.
+    lo_aff_mapper = NEW lcl_aff_type_mapping( ).
     lo_aff_mapper->to_aff( EXPORTING iv_data = is_intf
                            IMPORTING es_data = ls_data_aff ).
 
     lt_enum_mappings = get_mappings( ).
     lt_paths_to_skip = get_paths_to_skip( ).
 
-    CREATE OBJECT lo_aff_handler.
+    lo_aff_handler = NEW #( ).
     TRY.
         rv_result = lo_aff_handler->serialize( iv_data          = ls_data_aff
                                                iv_enum_mappings = lt_enum_mappings
@@ -615,7 +615,7 @@ CLASS lcl_aff_metadata_handler IMPLEMENTATION.
     lt_enum_mappings = get_mappings( ).
 
 
-    CREATE OBJECT lo_ajson.
+    lo_ajson = NEW #( ).
     TRY.
         lo_ajson->deserialize(
           EXPORTING
@@ -662,10 +662,10 @@ CLASS lcl_aff_metadata_handler IMPLEMENTATION.
       ENDTRY.
 
 
-      CREATE OBJECT lo_json_path.
+      lo_json_path = NEW #( ).
       lt_translation = lo_json_path->serialize( lv_json ).
 
-      CREATE OBJECT lo_trans_file EXPORTING iv_lang = lv_langu.
+      lo_trans_file = NEW #( iv_lang = lv_langu ).
 
       lo_trans_file->push_text_pairs( lt_translation ).
 
