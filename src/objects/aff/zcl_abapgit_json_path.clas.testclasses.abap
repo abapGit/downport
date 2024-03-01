@@ -36,7 +36,7 @@ CLASS ltcl_json_path IMPLEMENTATION.
     lo_ajson->delete( '/category/' ).
     lo_ajson->delete( '/proxy/' ).
 
-    lo_cut = NEW #( ).
+    CREATE OBJECT lo_cut.
     rt_result = lo_cut->serialize( lo_ajson->stringify( ) ).
   ENDMETHOD.
 
