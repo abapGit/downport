@@ -56,7 +56,7 @@ CLASS zcl_abapgit_gui_page_syntax IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_syntax.
 
-    lo_component = NEW #( io_repo = io_repo ).
+    CREATE OBJECT lo_component EXPORTING io_repo = io_repo.
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title         = 'Syntax Check'
@@ -128,7 +128,7 @@ CLASS zcl_abapgit_gui_page_syntax IMPLEMENTATION.
 
     register_handlers( ).
 
-    ri_html = NEW zcl_abapgit_html( ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
 
     ri_html->add( `<div class="repo">` ).
     ri_html->add( zcl_abapgit_gui_chunk_lib=>render_repo_top( io_repo        = mo_repo
