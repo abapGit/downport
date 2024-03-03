@@ -41,15 +41,21 @@ ENDCLASS.
 CLASS lcl_json_path IMPLEMENTATION.
 
   METHOD is_array.
-    rv_result = xsdbool( io_reader->name = 'array' ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( io_reader->name = 'array' ).
+    rv_result = temp1.
   ENDMETHOD.
 
   METHOD is_string_open.
-    rv_result = xsdbool( io_reader->name = 'str' AND io_reader->node_type = if_sxml_node=>co_nt_element_open ).
+    DATA temp2 TYPE xsdboolean.
+    temp2 = boolc( io_reader->name = 'str' AND io_reader->node_type = if_sxml_node=>co_nt_element_open ).
+    rv_result = temp2.
   ENDMETHOD.
 
   METHOD is_object.
-    rv_result = xsdbool( io_reader->name = 'object' ).
+    DATA temp3 TYPE xsdboolean.
+    temp3 = boolc( io_reader->name = 'object' ).
+    rv_result = temp3.
   ENDMETHOD.
 
   METHOD serialize_rec.
