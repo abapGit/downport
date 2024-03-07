@@ -16,7 +16,7 @@ ENDCLASS.
 CLASS ltcl_test_base IMPLEMENTATION.
   METHOD setup.
     mi_asset_manager = zcl_abapgit_gui_asset_manager=>create( ).
-    mo_cut = NEW #( ii_asset_manager = mi_asset_manager ).
+    CREATE OBJECT mo_cut EXPORTING ii_asset_manager = mi_asset_manager.
   ENDMETHOD.
 
   METHOD add_file.
