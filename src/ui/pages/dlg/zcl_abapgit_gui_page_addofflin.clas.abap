@@ -1,4 +1,4 @@
-CLASS zcl_abapgit_gui_page_addonline DEFINITION
+CLASS zcl_abapgit_gui_page_addofflin DEFINITION
   PUBLIC
   INHERITING FROM zcl_abapgit_gui_component
   FINAL
@@ -24,25 +24,22 @@ CLASS zcl_abapgit_gui_page_addonline DEFINITION
 
     CONSTANTS:
       BEGIN OF c_id,
-        url                TYPE string VALUE 'url',
+        name               TYPE string VALUE 'name',
         package            TYPE string VALUE 'package',
-        branch_name        TYPE string VALUE 'branch_name',
-        display_name       TYPE string VALUE 'display_name',
-        labels             TYPE string VALUE 'labels',
         folder_logic       TYPE string VALUE 'folder_logic',
+        labels             TYPE string VALUE 'labels',
         ignore_subpackages TYPE string VALUE 'ignore_subpackages',
         main_lang_only     TYPE string VALUE 'main_lang_only',
         abap_lang_vers     TYPE string VALUE 'abap_lang_vers',
-      END OF c_id.
+      END OF c_id .
 
     CONSTANTS:
       BEGIN OF c_event,
-        choose_package  TYPE string VALUE 'choose-package',
-        create_package  TYPE string VALUE 'create-package',
-        choose_branch   TYPE string VALUE 'choose-branch',
-        choose_labels   TYPE string VALUE 'choose-labels',
-        add_online_repo TYPE string VALUE 'add-repo-online',
-      END OF c_event.
+        choose_package   TYPE string VALUE 'choose-package',
+        choose_labels    TYPE string VALUE 'choose-labels',
+        create_package   TYPE string VALUE 'create-package',
+        add_offline_repo TYPE string VALUE 'add-repo-offline',
+      END OF c_event .
 
     DATA mo_form TYPE REF TO zcl_abapgit_html_form .
     DATA mo_form_data TYPE REF TO zcl_abapgit_string_map .
@@ -51,15 +48,15 @@ CLASS zcl_abapgit_gui_page_addonline DEFINITION
 
     METHODS validate_form
       IMPORTING
-        io_form_data             TYPE REF TO zcl_abapgit_string_map
+        !io_form_data            TYPE REF TO zcl_abapgit_string_map
       RETURNING
         VALUE(ro_validation_log) TYPE REF TO zcl_abapgit_string_map
       RAISING
-        zcx_abapgit_exception.
+        zcx_abapgit_exception .
 
     METHODS get_form_schema
       RETURNING
-        VALUE(ro_form) TYPE REF TO zcl_abapgit_html_form.
+        VALUE(ro_form) TYPE REF TO zcl_abapgit_html_form .
 
     METHODS choose_labels
       RAISING
@@ -69,7 +66,7 @@ ENDCLASS.
 
 
 
-CLASS zcl_abapgit_gui_page_addonline IMPLEMENTATION.
+CLASS zcl_abapgit_gui_page_addofflin IMPLEMENTATION.
 
 
   METHOD choose_labels.
@@ -91,8 +88,8 @@ CLASS zcl_abapgit_gui_page_addonline IMPLEMENTATION.
 
   METHOD constructor.
     super->constructor( ).
-    CREATE OBJECT mo_validation_log.
-    CREATE OBJECT mo_form_data.
+    mo_validation_log = NEW #( ).
+    mo_form_data = NEW #( ).
     mo_form = get_form_schema( ).
     mo_form_util = zcl_abapgit_html_form_utils=>create( mo_form ).
   ENDMETHOD.
@@ -100,12 +97,12 @@ CLASS zcl_abapgit_gui_page_addonline IMPLEMENTATION.
 
   METHOD create.
 
-    DATA lo_component TYPE REF TO zcl_abapgit_gui_page_addonline.
+    DATA lo_component TYPE REF TO zcl_abapgit_gui_page_addofflin.
 
-    CREATE OBJECT lo_component.
+    lo_component = NEW #( ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
-      iv_page_title      = 'New Online Repository'
+      iv_page_title      = 'New Offline Repository'
       ii_child_component = lo_component ).
 
   ENDMETHOD.
@@ -114,16 +111,14 @@ CLASS zcl_abapgit_gui_page_addonline IMPLEMENTATION.
   METHOD get_form_schema.
 
     ro_form = zcl_abapgit_html_form=>create(
-                iv_form_id   = 'add-repo-online-form'
-                iv_help_page = 'https://docs.abapgit.org/guide-online-install.html' ).
+                iv_form_id   = 'add-repo-offline-form'
+                iv_help_page = 'https://docs.abapgit.org/guide-offline-install.html' ).
 
     ro_form->text(
-      iv_name        = c_id-url
+      iv_name        = c_id-name
       iv_required    = abap_true
-      iv_condense    = abap_true
-      iv_label       = 'Git Repository URL'
-      iv_hint        = 'HTTPS address of the repository'
-      iv_placeholder = 'https://github.com/...git'
+      iv_label       = 'Name'
+      iv_hint        = 'Unique name for repository'
     )->text(
       iv_name        = c_id-package
       iv_side_action = c_event-choose_package
@@ -132,12 +127,6 @@ CLASS zcl_abapgit_gui_page_addonline IMPLEMENTATION.
       iv_label       = 'Package'
       iv_hint        = 'SAP package for repository (should be a dedicated one)'
       iv_placeholder = 'Z... / $...'
-    )->text(
-      iv_name        = c_id-branch_name
-      iv_side_action = c_event-choose_branch
-      iv_label       = 'Branch'
-      iv_hint        = 'Switch to a specific branch (default: autodetect)'
-      iv_placeholder = 'Autodetect default branch'
     )->radio(
       iv_name        = c_id-folder_logic
       iv_default_value = zif_abapgit_dot_abapgit=>c_folder_logic-prefix
@@ -152,10 +141,6 @@ CLASS zcl_abapgit_gui_page_addonline IMPLEMENTATION.
     )->option(
       iv_label       = 'Mixed'
       iv_value       = zif_abapgit_dot_abapgit=>c_folder_logic-mixed
-    )->text(
-      iv_name        = c_id-display_name
-      iv_label       = 'Display Name'
-      iv_hint        = 'Name to show instead of original repository name (optional)'
     )->text(
       iv_name        = c_id-labels
       iv_side_action = c_event-choose_labels
@@ -194,9 +179,9 @@ CLASS zcl_abapgit_gui_page_addonline IMPLEMENTATION.
     ENDIF.
 
     ro_form->command(
-      iv_label       = 'Create Online Repo'
+      iv_label       = 'Create Offline Repo'
       iv_cmd_type    = zif_abapgit_html_form=>c_cmd_type-input_main
-      iv_action      = c_event-add_online_repo
+      iv_action      = c_event-add_offline_repo
     )->command(
       iv_label       = 'Create Package'
       iv_action      = c_event-create_package
@@ -209,29 +194,9 @@ CLASS zcl_abapgit_gui_page_addonline IMPLEMENTATION.
 
   METHOD validate_form.
 
-    DATA:
-      lv_url TYPE string,
-      lo_url TYPE REF TO zcl_abapgit_git_url,
-      lx_err TYPE REF TO zcx_abapgit_exception.
+    DATA lx_err TYPE REF TO zcx_abapgit_exception.
 
     ro_validation_log = mo_form_util->validate( io_form_data ).
-
-    lv_url = io_form_data->get( c_id-url ).
-    IF lv_url IS NOT INITIAL.
-      TRY.
-          zcl_abapgit_repo_srv=>get_instance( )->validate_url( lv_url ).
-
-          " Provider-specific URL check
-          CREATE OBJECT lo_url.
-          lo_url->validate_url( lv_url ).
-        CATCH zcx_abapgit_exception INTO lx_err.
-          ro_validation_log->set(
-            iv_key = c_id-url
-            iv_val = lx_err->get_text( ) ).
-      ENDTRY.
-
-      zcl_abapgit_http=>check_connection( lv_url ).
-    ENDIF.
 
     IF io_form_data->get( c_id-package ) IS NOT INITIAL.
       TRY.
@@ -266,8 +231,8 @@ CLASS zcl_abapgit_gui_page_addonline IMPLEMENTATION.
 
   METHOD zif_abapgit_gui_event_handler~on_event.
 
-    DATA: ls_repo_params     TYPE zif_abapgit_services_repo=>ty_repo_params,
-          lo_new_online_repo TYPE REF TO zcl_abapgit_repo_online.
+    DATA: ls_repo_params      TYPE zif_abapgit_services_repo=>ty_repo_params,
+          lo_new_offline_repo TYPE REF TO zcl_abapgit_repo_offline.
 
     mo_form_data = mo_form_util->normalize( ii_event->form_data( ) ).
 
@@ -297,45 +262,19 @@ CLASS zcl_abapgit_gui_page_addonline IMPLEMENTATION.
           rs_handled-state = zcl_abapgit_gui=>c_event_state-no_more_act.
         ENDIF.
 
-      WHEN c_event-choose_branch.
-
-        mo_validation_log = validate_form( mo_form_data ).
-        IF mo_validation_log->has( c_id-url ) = abap_true.
-          mo_validation_log->set(
-            iv_key = c_id-branch_name
-            iv_val = 'Check URL issues' ).
-          rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render. " Display errors
-          RETURN.
-        ENDIF.
-        mo_form_data->set(
-          iv_key = c_id-branch_name
-          iv_val = zcl_abapgit_ui_factory=>get_popups( )->branch_list_popup( mo_form_data->get( c_id-url ) )-name ).
-
-        IF mo_form_data->get( c_id-branch_name ) IS INITIAL.
-          rs_handled-state = zcl_abapgit_gui=>c_event_state-no_more_act.
-        ELSE.
-          mo_form_data->set(
-            iv_key = c_id-branch_name
-            iv_val = replace( " strip technical
-              val = mo_form_data->get( c_id-branch_name )
-              sub = zif_abapgit_git_definitions=>c_git_branch-heads_prefix
-              with = '' ) ).
-          rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
-        ENDIF.
-
       WHEN c_event-choose_labels.
 
         choose_labels( ).
         rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
 
-      WHEN c_event-add_online_repo.
+      WHEN c_event-add_offline_repo.
 
         mo_validation_log = validate_form( mo_form_data ).
 
         IF mo_validation_log->is_empty( ) = abap_true.
           mo_form_data->to_abap( CHANGING cs_container = ls_repo_params ).
-          lo_new_online_repo = zcl_abapgit_services_repo=>new_online( ls_repo_params ).
-          rs_handled-page  = zcl_abapgit_gui_page_repo_view=>create( lo_new_online_repo->get_key( ) ).
+          lo_new_offline_repo = zcl_abapgit_services_repo=>new_offline( ls_repo_params ).
+          rs_handled-page  = zcl_abapgit_gui_page_repo_view=>create( lo_new_offline_repo->get_key( ) ).
           rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page_replacing.
         ELSE.
           rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render. " Display errors
@@ -350,12 +289,13 @@ CLASS zcl_abapgit_gui_page_addonline IMPLEMENTATION.
 
     register_handlers( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div class="form-container">' ).
     ri_html->add( mo_form->render(
       io_values         = mo_form_data
       io_validation_log = mo_validation_log ) ).
     ri_html->add( '</div>' ).
+
   ENDMETHOD.
 ENDCLASS.
