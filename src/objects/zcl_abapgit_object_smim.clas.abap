@@ -67,8 +67,9 @@ CLASS zcl_abapgit_object_smim IMPLEMENTATION.
 
   METHOD get_filename.
 
-    DATA: lv_lines   TYPE i,
-          lt_strings TYPE TABLE OF string.
+    TYPES temp1 TYPE TABLE OF string.
+DATA: lv_lines   TYPE i,
+          lt_strings TYPE temp1.
 
 
     SPLIT iv_url AT '/' INTO TABLE lt_strings.
@@ -259,7 +260,9 @@ CLASS zcl_abapgit_object_smim IMPLEMENTATION.
 
     SELECT SINGLE loio_id FROM smimloio INTO lv_loio
       WHERE loio_id = lv_loio.                          "#EC CI_GENBUFF
-    rv_bool = xsdbool( sy-subrc = 0 ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( sy-subrc = 0 ).
+    rv_bool = temp1.
 
   ENDMETHOD.
 
