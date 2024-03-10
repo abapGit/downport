@@ -66,7 +66,7 @@ CLASS ltcl_test_simple_table IMPLEMENTATION.
       iv_css_class = 'tabclass'
       it_data      = lt_dummy_data )->render( ).
 
-    li_html_exp = NEW zcl_abapgit_html( ).
+    CREATE OBJECT li_html_exp TYPE zcl_abapgit_html.
 
     li_html_exp->add(
       '<table id="tabid" class="tabclass">' )->add(
