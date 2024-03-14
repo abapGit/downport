@@ -80,6 +80,12 @@ CLASS zcl_abapgit_object_sicf DEFINITION
         VALUE(rv_hash) TYPE ty_hash
       RAISING
         zcx_abapgit_exception.
+
+    CLASS-METHODS get_icfaltname
+      IMPORTING
+        !is_icfservice      TYPE icfservice
+      RETURNING
+        VALUE(rv_icfaltnme) TYPE icfservice-icfaltnme.
 ENDCLASS.
 
 
@@ -89,9 +95,8 @@ CLASS zcl_abapgit_object_sicf IMPLEMENTATION.
 
   METHOD change_sicf.
 
-    TYPES temp1 TYPE TABLE OF icfhandler.
-DATA: lt_icfhndlist TYPE icfhndlist,
-          lt_existing   TYPE temp1,
+    DATA: lt_icfhndlist TYPE icfhndlist,
+          lt_existing   TYPE TABLE OF icfhandler,
           ls_icfserdesc TYPE icfserdesc.
 
     FIELD-SYMBOLS: <ls_existing> LIKE LINE OF lt_existing.
@@ -99,8 +104,8 @@ DATA: lt_icfhndlist TYPE icfhndlist,
 
     lt_icfhndlist = to_icfhndlist( it_icfhandler ).
 
-* Do not add handlers if they already exist, it will make the below
-* call to SAP standard code raise an exception
+    " Do not add handlers if they already exist, it will make the below
+    " call to SAP standard code raise an exception
     SELECT * FROM icfhandler INTO TABLE lt_existing
       WHERE icf_name = is_icfservice-icf_name
       ORDER BY PRIMARY KEY.
@@ -113,6 +118,7 @@ DATA: lt_icfhndlist TYPE icfhndlist,
     cl_icf_tree=>if_icf_tree~change_node(
       EXPORTING
         icf_name                  = is_icfservice-orig_name
+        icfaltnme                 = get_icfaltname( is_icfservice )
         icfparguid                = iv_parent
         icfdocu                   = is_icfdocu
         doculang                  = mv_language
@@ -241,6 +247,17 @@ DATA: lt_icfhndlist TYPE icfhndlist,
   ENDMETHOD.
 
 
+  METHOD get_icfaltname.
+
+    rv_icfaltnme = is_icfservice-icfaltnme.
+    " If the original name is different (lower vs upper case), it needs to be deserialized
+    IF is_icfservice-icfaltnme <> is_icfservice-icfaltnme_orig.
+      rv_icfaltnme = is_icfservice-icfaltnme_orig.
+    ENDIF.
+
+  ENDMETHOD.
+
+
   METHOD insert_sicf.
 
     DATA: lt_icfhndlist TYPE icfhndlist,
@@ -253,7 +270,7 @@ DATA: lt_icfhndlist TYPE icfhndlist,
     lt_icfhndlist = to_icfhndlist( it_icfhandler ).
     lv_parent = find_parent( iv_url ).
 
-* nice, it seems that the structure should be mistreated
+    " Nice, it seems that the structure should be mistreated
     ls_icfdocu = is_icfdocu-icf_docu.
 
     MOVE-CORRESPONDING is_icfservice TO ls_icfserdesc.
@@ -269,7 +286,7 @@ DATA: lt_icfhndlist TYPE icfhndlist,
         application               = space
         icfserdesc                = ls_icfserdesc
         icfactive                 = abap_true
-        icfaltnme                 = is_icfservice-icfaltnme
+        icfaltnme                 = get_icfaltname( is_icfservice )
       IMPORTING
         icfnodguid                = lv_icfnodguid
       EXCEPTIONS
@@ -403,7 +420,6 @@ DATA: lt_icfhndlist TYPE icfhndlist,
 
     FIELD-SYMBOLS: <ls_list> LIKE LINE OF it_list.
 
-
     " Convert to sorted table
     LOOP AT it_list ASSIGNING <ls_list>.
       INSERT <ls_list>-icfhandler INTO TABLE rt_list.
@@ -415,7 +431,6 @@ DATA: lt_icfhndlist TYPE icfhndlist,
   METHOD zif_abapgit_object~changed_by.
 
     DATA: ls_icfservice TYPE icfservice.
-
 
     read( EXPORTING iv_clear = abap_false
           IMPORTING es_icfservice = ls_icfservice ).
@@ -487,13 +502,12 @@ DATA: lt_icfhndlist TYPE icfhndlist,
 
   METHOD zif_abapgit_object~deserialize.
 
-    TYPES temp2 TYPE TABLE OF icfhandler.
-DATA: ls_icfservice TYPE icfservice,
+    DATA: ls_icfservice TYPE icfservice,
           ls_read       TYPE icfservice,
           ls_icfdocu    TYPE icfdocu,
           lv_url        TYPE string,
           lv_exists     TYPE abap_bool,
-          lt_icfhandler TYPE temp2.
+          lt_icfhandler TYPE TABLE OF icfhandler.
 
     io_xml->read( EXPORTING iv_name = 'URL'
                   CHANGING cg_data = lv_url ).
@@ -535,9 +549,7 @@ DATA: ls_icfservice TYPE icfservice,
     SELECT SINGLE icfaltnme FROM icfservice INTO ls_key-icf_name
       WHERE icf_name = ms_item-obj_name(15)
       AND icfparguid = ms_item-obj_name+15.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -582,9 +594,8 @@ DATA: ls_icfservice TYPE icfservice,
 
   METHOD zif_abapgit_object~jump.
 
-    TYPES temp3 TYPE STANDARD TABLE OF bdcdata.
-DATA: ls_bcdata TYPE bdcdata,
-          lt_bcdata TYPE temp3.
+    DATA: ls_bcdata TYPE bdcdata,
+          lt_bcdata TYPE STANDARD TABLE OF bdcdata.
 
     ls_bcdata-program  = 'RSICFTREE'.
     ls_bcdata-dynpro   = '1000'.
@@ -652,11 +663,10 @@ DATA: ls_bcdata TYPE bdcdata,
 
   METHOD zif_abapgit_object~serialize.
 
-    TYPES temp4 TYPE TABLE OF icfhandler.
-DATA: ls_icfservice TYPE icfservice,
+    DATA: ls_icfservice TYPE icfservice,
           ls_icfdocu    TYPE icfdocu,
           lv_url        TYPE string,
-          lt_icfhandler TYPE temp4.
+          lt_icfhandler TYPE TABLE OF icfhandler.
 
     read( IMPORTING es_icfservice = ls_icfservice
                     es_icfdocu    = ls_icfdocu
@@ -675,7 +685,10 @@ DATA: ls_icfservice TYPE icfservice,
     CLEAR ls_icfservice-icf_user.
     CLEAR ls_icfservice-icf_cclnt.
     CLEAR ls_icfservice-icf_mclnt.
-    CLEAR ls_icfservice-icfaltnme_orig.
+    " If the original name is different (lower vs upper case), it needs to be serialized
+    IF ls_icfservice-icfaltnme = ls_icfservice-icfaltnme_orig.
+      CLEAR ls_icfservice-icfaltnme_orig.
+    ENDIF.
     CLEAR ls_icfservice-icfbitmap.
 
     io_xml->add( iv_name = 'URL'
