@@ -91,9 +91,9 @@ CLASS ltcl_html_processor_test IMPLEMENTATION.
                                   iv_type = 'text/css'
                                   iv_inline = 'dummy3' ).
 
-    CREATE OBJECT mo_cut EXPORTING ii_asset_man = li_asset_man.
+    mo_cut = NEW #( ii_asset_man = li_asset_man ).
 
-    CREATE OBJECT mo_gui_mock.
+    mo_gui_mock = NEW #( ).
 
     mv_source = render_html(
       `<html>\n` &&
@@ -127,7 +127,7 @@ CLASS ltcl_html_processor_test IMPLEMENTATION.
         `    <!--<link rel="stylesheet" type="text/css" href="css/style2.css">-->\n` &&
         `    <!--<link rel="stylesheet" type="text/css" href="css/style3.css">-->\n` &&
         `    <script type="text/javascript" src="js/common.js"></script>\n` &&
-        `    <!-- abapgit HTML preprocessor -->\n` &&
+        `    <!-- abapGit HTML preprocessor -->\n` &&
         `    <link rel="stylesheet" type="text/css" href="css/bundle.css">\n` &&
         `  </head>\n` &&
         `  <body>hello</body>\n` &&
@@ -166,7 +166,7 @@ CLASS ltcl_html_processor_test IMPLEMENTATION.
         `    <link rel="stylesheet" type="text/css" href="css/style2.css">\n` && " Preserved
         `    <!--<link rel="stylesheet" type="text/css" href="css/style3.css">-->\n` &&
         `    <script type="text/javascript" src="js/common.js"></script>\n` &&
-        `    <!-- abapgit HTML preprocessor -->\n` &&
+        `    <!-- abapGit HTML preprocessor -->\n` &&
         `    <link rel="stylesheet" type="text/css" href="css/bundle.css">\n` &&
         `  </head>\n` &&
         `  <body>hello</body>\n` &&

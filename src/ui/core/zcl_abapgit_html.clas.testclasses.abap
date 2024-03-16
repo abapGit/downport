@@ -45,7 +45,7 @@ ENDCLASS.
 CLASS ltcl_html IMPLEMENTATION.
 
   METHOD setup.
-    CREATE OBJECT mo_html TYPE zcl_abapgit_html.
+    mo_html = NEW zcl_abapgit_html( ).
   ENDMETHOD.
 
   METHOD indent1.
@@ -121,7 +121,7 @@ CLASS ltcl_html IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD indent5.
-* dont dump if something messes up or the nesting gets too wide
+* don't dump if something messes up or the nesting gets too wide
     DO 300 TIMES.
       mo_html->add( '<td>' ).
     ENDDO.
@@ -237,8 +237,8 @@ CLASS ltcl_html IMPLEMENTATION.
     DATA lo_good TYPE REF TO lcl_good_renderable.
     DATA lo_bad TYPE REF TO lcl_bad_renderable.
 
-    CREATE OBJECT lo_good.
-    CREATE OBJECT lo_bad.
+    lo_good = NEW #( ).
+    lo_bad = NEW #( ).
 
     cl_abap_unit_assert=>assert_equals(
       act = zcl_abapgit_html=>create( lo_good )->render( )

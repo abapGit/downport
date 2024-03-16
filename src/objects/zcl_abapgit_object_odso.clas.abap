@@ -64,7 +64,7 @@ CLASS zcl_abapgit_object_odso IMPLEMENTATION.
         return    = ls_return.
 
     IF ls_return-type = 'E'.
-      zcx_abapgit_exception=>raise( |Error when geting changed by of ODSO: { ls_return-message }| ).
+      zcx_abapgit_exception=>raise( |Error when getting changed by of ODSO: { ls_return-message }| ).
     ENDIF.
 
     ASSIGN COMPONENT 'TSTPNM' OF STRUCTURE <lg_details> TO <lg_tstpnm>.
@@ -76,11 +76,10 @@ CLASS zcl_abapgit_object_odso IMPLEMENTATION.
 
   METHOD zif_abapgit_object~delete.
 
-    TYPES temp1 TYPE STANDARD TABLE OF bal_s_msg.
-DATA: lv_odsonam    TYPE c LENGTH 30,
+    DATA: lv_odsonam    TYPE c LENGTH 30,
           lv_objname    TYPE sobj_name,
           lo_collection TYPE REF TO object,
-          lt_msg        TYPE temp1,
+          lt_msg        TYPE STANDARD TABLE OF bal_s_msg,
           ls_msg        TYPE bal_s_msg.
 
     TRY.
@@ -120,14 +119,13 @@ DATA: lv_odsonam    TYPE c LENGTH 30,
 
   METHOD zif_abapgit_object~deserialize.
 
-    TYPES temp2 TYPE STANDARD TABLE OF bapiret2.
-DATA: lv_dsonam      TYPE c LENGTH 30,
+    DATA: lv_dsonam      TYPE c LENGTH 30,
           lr_details     TYPE REF TO data,
           lr_infoobjects TYPE REF TO data,
           lr_navigation  TYPE REF TO data,
           lr_indexes     TYPE REF TO data,
           lr_index_iobj  TYPE REF TO data,
-          lt_return      TYPE temp2,
+          lt_return      TYPE STANDARD TABLE OF bapiret2,
           ls_return      TYPE bapiret2.
 
     FIELD-SYMBOLS:
@@ -234,9 +232,7 @@ DATA: lv_dsonam      TYPE c LENGTH 30,
     INTO lv_iobjnm
     WHERE odsobject = ms_item-obj_name.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -361,7 +357,7 @@ DATA: lv_dsonam      TYPE c LENGTH 30,
         indexesinfoobjects   = <lt_index_iobj>.
 
     IF ls_return-type = 'E'.
-      zcx_abapgit_exception=>raise( |Error when geting details of ODSO: { ls_return-message }| ).
+      zcx_abapgit_exception=>raise( |Error when getting details of ODSO: { ls_return-message }| ).
     ENDIF.
 
     clear_field( EXPORTING iv_fieldname = 'TSTPNM'

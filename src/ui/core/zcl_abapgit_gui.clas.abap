@@ -224,7 +224,7 @@ CLASS zcl_abapgit_gui IMPLEMENTATION.
       ENDIF.
     ENDIF.
 
-    CREATE OBJECT mo_html_parts.
+    mo_html_parts = NEW #( ).
 
     mv_rollback_on_error = iv_rollback_on_error.
     mi_asset_man      = ii_asset_man.
@@ -273,10 +273,10 @@ CLASS zcl_abapgit_gui IMPLEMENTATION.
       li_event     TYPE REF TO zif_abapgit_gui_event,
       ls_handled   TYPE zif_abapgit_gui_event_handler=>ty_handling_result.
 
-    CREATE OBJECT li_event TYPE zcl_abapgit_gui_event EXPORTING ii_gui_services = me
-                                                                iv_action = iv_action
-                                                                iv_getdata = iv_getdata
-                                                                it_postdata = it_postdata.
+    li_event = NEW zcl_abapgit_gui_event( ii_gui_services = me
+                                          iv_action = iv_action
+                                          iv_getdata = iv_getdata
+                                          it_postdata = it_postdata ).
 
     TRY.
         ls_handled = zcl_abapgit_exit=>get_instance( )->on_event( li_event ).
@@ -548,7 +548,7 @@ CLASS zcl_abapgit_gui IMPLEMENTATION.
   METHOD zif_abapgit_gui_services~get_log.
 
     IF iv_create_new = abap_true OR mi_common_log IS NOT BOUND.
-      CREATE OBJECT mi_common_log TYPE zcl_abapgit_log.
+      mi_common_log = NEW zcl_abapgit_log( ).
     ENDIF.
 
     ri_log = mi_common_log.
@@ -564,7 +564,7 @@ CLASS zcl_abapgit_gui IMPLEMENTATION.
 
   METHOD zif_abapgit_gui_services~register_page_asset.
 
-    " Maybe forbid registering cacheable existing assets, maybe this is the right place (see also asset_man commments)
+    " Maybe forbid registering cacheable existing assets, maybe this is the right place (see also asset_man comments)
 
     mi_asset_man->register_asset(
       iv_url = iv_url

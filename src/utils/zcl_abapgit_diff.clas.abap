@@ -315,8 +315,8 @@ CLASS zcl_abapgit_diff IMPLEMENTATION.
     APPEND '^\s*(DEFINE|ENHANCEMENT)\s' TO lt_regex.
 
     LOOP AT lt_regex INTO lv_regex.
-      CREATE OBJECT lo_regex EXPORTING pattern = lv_regex
-                                       ignore_case = abap_true.
+      lo_regex = NEW #( pattern = lv_regex
+                        ignore_case = abap_true ).
       APPEND lo_regex TO rt_regex_set.
     ENDLOOP.
 
@@ -511,7 +511,7 @@ CLASS zcl_abapgit_diff IMPLEMENTATION.
     lv_old = zcl_abapgit_convert=>xstring_to_string_utf8( iv_old ).
 
     " Check if one value contains a final newline but the other not
-    " If yes, add a special characters that's visible in diff render
+    " If yes, add a special character that's visible in diff render
     IF lv_new IS NOT INITIAL.
       lv_new_last = substring(
         val = lv_new
