@@ -29,6 +29,11 @@ CLASS zcl_abapgit_html DEFINITION
         iv_checked     TYPE abap_bool OPTIONAL
       RETURNING
         VALUE(rv_html) TYPE string .
+    CLASS-METHODS parse_data_attr
+      IMPORTING
+        iv_str         TYPE string OPTIONAL
+      RETURNING
+        VALUE(rs_data_attr) TYPE zif_abapgit_html=>ty_data_attr .
   PROTECTED SECTION.
   PRIVATE SECTION.
 
@@ -77,7 +82,7 @@ ENDCLASS.
 
 
 
-CLASS zcl_abapgit_html IMPLEMENTATION.
+CLASS ZCL_ABAPGIT_HTML IMPLEMENTATION.
 
 
   METHOD checkbox.
@@ -102,23 +107,21 @@ CLASS zcl_abapgit_html IMPLEMENTATION.
 
     DATA lv_mode TYPE tabname.
 
-    CREATE OBJECT go_single_tags_re EXPORTING pattern = '<(AREA|BASE|BR|COL|COMMAND|EMBED|HR|IMG|INPUT|LINK|META|PARAM|SOURCE|!)'
-                                              ignore_case = abap_false.
+    go_single_tags_re = NEW #( pattern = '<(AREA|BASE|BR|COL|COMMAND|EMBED|HR|IMG|INPUT|LINK|META|PARAM|SOURCE|!)'
+                               ignore_case = abap_false ).
 
     gv_spaces = repeat(
       val = ` `
       occ = c_max_indent ).
 
     GET PARAMETER ID 'DBT' FIELD lv_mode.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( lv_mode = 'HREF' ).
-    gv_debug_mode = temp1.
+    gv_debug_mode = xsdbool( lv_mode = 'HREF' ).
 
   ENDMETHOD.
 
 
   METHOD create.
-    CREATE OBJECT ri_instance TYPE zcl_abapgit_html.
+    ri_instance = NEW zcl_abapgit_html( ).
     IF iv_initial_chunk IS NOT INITIAL.
       ri_instance->add( iv_initial_chunk ).
     ENDIF.
@@ -227,6 +230,16 @@ CLASS zcl_abapgit_html IMPLEMENTATION.
       ELSE.
         cv_line = gv_spaces && cv_line.
       ENDIF.
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD parse_data_attr.
+
+    SPLIT iv_str AT '=' INTO rs_data_attr-name rs_data_attr-value.
+    IF rs_data_attr-name IS INITIAL.
+      CLEAR rs_data_attr.
     ENDIF.
 
   ENDMETHOD.
@@ -462,6 +475,17 @@ CLASS zcl_abapgit_html IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD zif_abapgit_html~div.
+    zif_abapgit_html~wrap(
+      iv_tag   = 'div'
+      iv_content = iv_content
+      ii_content = ii_content
+      iv_id    = iv_id
+      iv_class = iv_class ).
+    ri_self = me.
+  ENDMETHOD.
+
+
   METHOD zif_abapgit_html~icon.
 
     rv_str = icon(
@@ -474,9 +498,7 @@ CLASS zcl_abapgit_html IMPLEMENTATION.
 
 
   METHOD zif_abapgit_html~is_empty.
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( lines( mt_buffer ) = 0 ).
-    rv_yes = temp2.
+    rv_yes = xsdbool( lines( mt_buffer ) = 0 ).
   ENDMETHOD.
 
 
@@ -514,6 +536,7 @@ CLASS zcl_abapgit_html IMPLEMENTATION.
       ii_content = ii_content
       iv_id    = iv_id
       iv_class = iv_class
+      is_data_attr = is_data_attr
       iv_hint  = iv_hint ).
     ri_self = me.
   ENDMETHOD.
@@ -527,6 +550,7 @@ CLASS zcl_abapgit_html IMPLEMENTATION.
       ii_content = ii_content
       iv_id    = iv_id
       iv_class = iv_class
+      is_data_attr = is_data_attr
       iv_hint  = iv_hint ).
     ri_self = me.
   ENDMETHOD.
@@ -539,6 +563,7 @@ CLASS zcl_abapgit_html IMPLEMENTATION.
 
     DATA: lv_class TYPE string,
           lv_id    TYPE string,
+          lv_data_attr TYPE string,
           lv_title TYPE string.
 
     IF iv_id IS NOT INITIAL.
@@ -553,7 +578,11 @@ CLASS zcl_abapgit_html IMPLEMENTATION.
       lv_title = | title="{ iv_hint }"|.
     ENDIF.
 
-    lv_open_tag = |<{ iv_tag }{ lv_id }{ lv_class }{ lv_title }>|.
+    IF is_data_attr IS NOT INITIAL.
+      lv_data_attr = | data-{ is_data_attr-name }="{ is_data_attr-value }"|.
+    ENDIF.
+
+    lv_open_tag = |<{ iv_tag }{ lv_id }{ lv_class }{ lv_data_attr }{ lv_title }>|.
     lv_close_tag = |</{ iv_tag }>|.
 
     IF ii_content IS NOT BOUND AND iv_content IS INITIAL.

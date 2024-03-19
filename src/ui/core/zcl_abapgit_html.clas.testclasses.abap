@@ -45,7 +45,7 @@ ENDCLASS.
 CLASS ltcl_html IMPLEMENTATION.
 
   METHOD setup.
-    CREATE OBJECT mo_html TYPE zcl_abapgit_html.
+    mo_html = NEW zcl_abapgit_html( ).
   ENDMETHOD.
 
   METHOD indent1.
@@ -217,18 +217,24 @@ CLASS ltcl_html IMPLEMENTATION.
       iv_tag     = 'td'
       iv_content = 'Hello'
       iv_format_single_line = abap_true ).
+    mo_html->wrap(
+      iv_tag     = 'td'
+      iv_content = 'Hello'
+      is_data_attr = zcl_abapgit_html=>parse_data_attr( 'id=123' )
+      iv_format_single_line = abap_true ).
 
     cl_abap_unit_assert=>assert_equals(
       act = mo_html->render( )
       exp =
-        '<td></td>' && cl_abap_char_utilities=>newline &&
-        '<td>' && cl_abap_char_utilities=>newline &&
-        '  Hello' && cl_abap_char_utilities=>newline &&
-        '</td>' && cl_abap_char_utilities=>newline &&
-        '<td id="id" class="class" title="hint">' && cl_abap_char_utilities=>newline &&
-        '  Hello' && cl_abap_char_utilities=>newline &&
-        '</td>' && cl_abap_char_utilities=>newline &&
-        '<td>Hello</td>' ).
+        |<td></td>\n| &&
+        |<td>\n| &&
+        |  Hello\n| &&
+        |</td>\n| &&
+        |<td id="id" class="class" title="hint">\n| &&
+        |  Hello\n| &&
+        |</td>\n| &&
+        |<td>Hello</td>\n| &&
+        |<td data-id="123">Hello</td>| ).
 
   ENDMETHOD.
 
@@ -237,8 +243,8 @@ CLASS ltcl_html IMPLEMENTATION.
     DATA lo_good TYPE REF TO lcl_good_renderable.
     DATA lo_bad TYPE REF TO lcl_bad_renderable.
 
-    CREATE OBJECT lo_good.
-    CREATE OBJECT lo_bad.
+    lo_good = NEW #( ).
+    lo_bad = NEW #( ).
 
     cl_abap_unit_assert=>assert_equals(
       act = zcl_abapgit_html=>create( lo_good )->render( )
