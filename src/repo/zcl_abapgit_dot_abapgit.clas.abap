@@ -69,6 +69,13 @@ CLASS zcl_abapgit_dot_abapgit DEFINITION
         it_languages TYPE zif_abapgit_definitions=>ty_languages
       RAISING
         zcx_abapgit_exception .
+    METHODS determine_i18n_parameters
+      IMPORTING
+        !iv_main_language_only TYPE abap_bool
+      RETURNING
+        VALUE(rs_i18n_params)  TYPE zif_abapgit_definitions=>ty_i18n_params
+      RAISING
+        zcx_abapgit_exception.
     METHODS get_signature
       RETURNING
         VALUE(rs_signature) TYPE zif_abapgit_git_definitions=>ty_file_signature
@@ -163,7 +170,7 @@ CLASS zcl_abapgit_dot_abapgit IMPLEMENTATION.
     ls_data-starting_folder = '/src/'.
     ls_data-folder_logic    = zif_abapgit_dot_abapgit=>c_folder_logic-prefix.
 
-    CREATE OBJECT ro_dot_abapgit EXPORTING is_data = ls_data.
+    ro_dot_abapgit = NEW #( is_data = ls_data ).
 
   ENDMETHOD.
 
@@ -183,7 +190,19 @@ CLASS zcl_abapgit_dot_abapgit IMPLEMENTATION.
 
     ls_data = from_xml( lv_xml ).
 
-    CREATE OBJECT ro_dot_abapgit EXPORTING is_data = ls_data.
+    ro_dot_abapgit = NEW #( is_data = ls_data ).
+
+  ENDMETHOD.
+
+
+  METHOD determine_i18n_parameters.
+
+    rs_i18n_params-main_language         = get_main_language( ).
+    rs_i18n_params-use_lxe               = use_lxe( ).
+    rs_i18n_params-main_language_only    = iv_main_language_only.
+    rs_i18n_params-translation_languages = zcl_abapgit_lxe_texts=>get_translation_languages(
+      iv_main_language  = get_main_language( )
+      it_i18n_languages = get_i18n_languages( ) ).
 
   ENDMETHOD.
 
@@ -229,6 +248,9 @@ CLASS zcl_abapgit_dot_abapgit IMPLEMENTATION.
 
   METHOD get_main_language.
     rv_language = ms_data-master_language.
+    IF rv_language IS INITIAL.
+      rv_language = sy-langu.
+    ENDIF.
   ENDMETHOD.
 
 

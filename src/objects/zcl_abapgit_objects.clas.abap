@@ -205,14 +205,6 @@ CLASS zcl_abapgit_objects DEFINITION
       IMPORTING
         !is_item TYPE zif_abapgit_definitions=>ty_item
         !ii_log  TYPE REF TO zif_abapgit_log .
-    CLASS-METHODS determine_i18n_params
-      IMPORTING
-        !io_dot                TYPE REF TO zcl_abapgit_dot_abapgit
-        !iv_main_language_only TYPE abap_bool
-      RETURNING
-        VALUE(rs_i18n_params)  TYPE zif_abapgit_definitions=>ty_i18n_params
-      RAISING
-        zcx_abapgit_exception.
     CLASS-METHODS get_extra_from_filename
       IMPORTING
         !iv_filename    TYPE string
@@ -273,11 +265,10 @@ CLASS zcl_abapgit_objects IMPLEMENTATION.
 
   METHOD check_duplicates.
 
-    TYPES temp1 TYPE STANDARD TABLE OF string WITH DEFAULT KEY.
-DATA: lt_files          TYPE zif_abapgit_git_definitions=>ty_files_tt,
+    DATA: lt_files          TYPE zif_abapgit_git_definitions=>ty_files_tt,
           lv_path           TYPE string,
           lv_filename       TYPE string,
-          lt_duplicates     TYPE temp1,
+          lt_duplicates     TYPE STANDARD TABLE OF string WITH DEFAULT KEY,
           lv_duplicates     LIKE LINE OF lt_duplicates,
           lv_all_duplicates TYPE string.
 
@@ -423,8 +414,8 @@ DATA: lt_files          TYPE zif_abapgit_git_definitions=>ty_files_tt,
         RETURN.
       ENDIF.
 
-      CREATE OBJECT li_remote_version TYPE zcl_abapgit_xml_input EXPORTING iv_xml = zcl_abapgit_convert=>xstring_to_string_utf8( ls_remote_file-data )
-                                                                           iv_filename = ls_remote_file-filename.
+      li_remote_version = NEW zcl_abapgit_xml_input( iv_xml = zcl_abapgit_convert=>xstring_to_string_utf8( ls_remote_file-data )
+                                                     iv_filename = ls_remote_file-filename ).
 
       ls_result = li_comparator->compare( ii_remote = li_remote_version
                                           ii_log = ii_log ).
@@ -517,11 +508,11 @@ DATA: lt_files          TYPE zif_abapgit_git_definitions=>ty_files_tt,
         IF iv_native_only = abap_false.
           TRY. " 2nd step, try looking for plugins
               IF io_files IS BOUND AND io_i18n_params IS BOUND.
-                CREATE OBJECT ri_obj TYPE zcl_abapgit_objects_bridge EXPORTING is_item = is_item
-                                                                               io_files = io_files
-                                                                               io_i18n_params = io_i18n_params.
+                ri_obj = NEW zcl_abapgit_objects_bridge( is_item = is_item
+                                                         io_files = io_files
+                                                         io_i18n_params = io_i18n_params ).
               ELSE.
-                CREATE OBJECT ri_obj TYPE zcl_abapgit_objects_bridge EXPORTING is_item = is_item.
+                ri_obj = NEW zcl_abapgit_objects_bridge( is_item = is_item ).
               ENDIF.
             CATCH cx_sy_create_object_error.
               zcx_abapgit_exception=>raise( lv_message ).
@@ -654,6 +645,7 @@ DATA: lt_files          TYPE zif_abapgit_git_definitions=>ty_files_tt,
   METHOD deserialize.
 
     DATA: ls_item     TYPE zif_abapgit_definitions=>ty_item,
+          lo_dot      TYPE REF TO zcl_abapgit_dot_abapgit,
           li_obj      TYPE REF TO zif_abapgit_object,
           lt_remote   TYPE zif_abapgit_git_definitions=>ty_files_tt,
           lv_package  TYPE devclass,
@@ -680,6 +672,7 @@ DATA: lt_files          TYPE zif_abapgit_git_definitions=>ty_files_tt,
     lt_steps = get_deserialize_steps( ).
 
     lv_package = io_repo->get_package( ).
+    lo_dot     = io_repo->get_dot_abapgit( ).
 
     IF is_checks-transport-required = abap_true.
       zcl_abapgit_factory=>get_default_transport( )->set( is_checks-transport-transport ).
@@ -722,9 +715,8 @@ DATA: lt_files          TYPE zif_abapgit_git_definitions=>ty_files_tt,
       ii_log   = ii_log
       io_dot   = io_repo->get_dot_abapgit( ) ).
 
-    lo_i18n_params = zcl_abapgit_i18n_params=>new( is_params = determine_i18n_params(
-      io_dot                = io_repo->get_dot_abapgit( )
-      iv_main_language_only = io_repo->get_local_settings( )-main_language_only ) ).
+    lo_i18n_params = zcl_abapgit_i18n_params=>new( is_params =
+      lo_dot->determine_i18n_parameters( io_repo->get_local_settings( )-main_language_only ) ).
 
     IF lines( lt_items ) = 1.
       ii_log->add_info( |>>> Deserializing 1 object| ).
@@ -732,7 +724,7 @@ DATA: lt_files          TYPE zif_abapgit_git_definitions=>ty_files_tt,
       ii_log->add_info( |>>> Deserializing { lines( lt_items ) } objects| ).
     ENDIF.
 
-    CREATE OBJECT lo_abap_language_vers EXPORTING io_dot_abapgit = io_repo->get_dot_abapgit( ).
+    lo_abap_language_vers = NEW #( io_dot_abapgit = lo_dot ).
 
     lo_folder_logic = zcl_abapgit_folder_logic=>get_instance( ).
     LOOP AT lt_results ASSIGNING <ls_result>.
@@ -751,7 +743,7 @@ DATA: lt_files          TYPE zif_abapgit_git_definitions=>ty_files_tt,
             " If package does not exist yet, it will be created with this call
             lv_package = lo_folder_logic->path_to_package(
               iv_top  = io_repo->get_package( )
-              io_dot  = io_repo->get_dot_abapgit( )
+              io_dot  = lo_dot
               iv_path = <ls_result>-path ).
 
             check_main_package(
@@ -864,7 +856,7 @@ DATA: lt_files          TYPE zif_abapgit_git_definitions=>ty_files_tt,
     update_original_system(
       it_items     = lt_items
       ii_log       = ii_log
-      io_dot       = io_repo->get_dot_abapgit( )
+      io_dot       = lo_dot
       iv_transport = is_checks-transport-transport ).
 
     zcl_abapgit_factory=>get_default_transport( )->reset( ).
@@ -974,26 +966,6 @@ DATA: lt_files          TYPE zif_abapgit_git_definitions=>ty_files_tt,
 
     SORT ct_files BY path ASCENDING filename ASCENDING.
     DELETE ADJACENT DUPLICATES FROM ct_files. " Just in case
-
-  ENDMETHOD.
-
-
-  METHOD determine_i18n_params.
-
-    " TODO: unify with ZCL_ABAPGIT_SERIALIZE=>DETERMINE_I18N_PARAMS, same code
-
-    IF io_dot IS BOUND.
-      rs_i18n_params-main_language         = io_dot->get_main_language( ).
-      rs_i18n_params-use_lxe               = io_dot->use_lxe( ).
-      rs_i18n_params-main_language_only    = iv_main_language_only.
-      rs_i18n_params-translation_languages = zcl_abapgit_lxe_texts=>get_translation_languages(
-        iv_main_language  = io_dot->get_main_language( )
-        it_i18n_languages = io_dot->get_i18n_languages( ) ).
-    ENDIF.
-
-    IF rs_i18n_params-main_language IS INITIAL.
-      rs_i18n_params-main_language = sy-langu.
-    ENDIF.
 
   ENDMETHOD.
 
@@ -1235,16 +1207,14 @@ DATA: lt_files          TYPE zif_abapgit_git_definitions=>ty_files_tt,
       io_files       = lo_files
       io_i18n_params = io_i18n_params ).
 
-    CREATE OBJECT li_xml TYPE zcl_abapgit_xml_output.
+    li_xml = NEW zcl_abapgit_xml_output( ).
 
     rs_files_and_item-item = is_item.
 
     TRY.
         li_obj->serialize( li_xml ).
       CATCH zcx_abapgit_exception INTO lx_error.
-        DATA temp1 TYPE xsdboolean.
-        temp1 = boolc( li_obj->is_active( ) = abap_false ).
-        rs_files_and_item-item-inactive = temp1.
+        rs_files_and_item-item-inactive = xsdbool( li_obj->is_active( ) = abap_false ).
         RAISE EXCEPTION lx_error.
     ENDTRY.
 
@@ -1267,9 +1237,7 @@ DATA: lt_files          TYPE zif_abapgit_git_definitions=>ty_files_tt,
 
     check_duplicates( rs_files_and_item-files ).
 
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( li_obj->is_active( ) = abap_false ).
-    rs_files_and_item-item-inactive = temp2.
+    rs_files_and_item-item-inactive = xsdbool( li_obj->is_active( ) = abap_false ).
 
     LOOP AT rs_files_and_item-files ASSIGNING <ls_file>.
       <ls_file>-sha1 = zcl_abapgit_hash=>sha1_blob( <ls_file>-data ).
@@ -1280,8 +1248,7 @@ DATA: lt_files          TYPE zif_abapgit_git_definitions=>ty_files_tt,
 
   METHOD supported_list.
 
-    TYPES temp2 TYPE STANDARD TABLE OF ko100.
-DATA lt_objects            TYPE temp2.
+    DATA lt_objects            TYPE STANDARD TABLE OF ko100.
     DATA ls_item               TYPE zif_abapgit_definitions=>ty_item.
     DATA ls_supported_obj_type TYPE ty_supported_types.
     DATA lt_types              TYPE zif_abapgit_exit=>ty_object_types.
