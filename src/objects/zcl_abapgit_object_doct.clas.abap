@@ -90,7 +90,9 @@ CLASS zcl_abapgit_object_doct IMPLEMENTATION.
       WHERE id         = c_id
         AND object     = lv_object.     "#EC CI_GENBUFF "#EC CI_NOORDER
 
-    rv_bool = xsdbool( sy-subrc = 0 ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( sy-subrc = 0 ).
+    rv_bool = temp1.
 
   ENDMETHOD.
 
@@ -127,9 +129,10 @@ CLASS zcl_abapgit_object_doct IMPLEMENTATION.
 
   METHOD zif_abapgit_object~jump.
 
-    DATA: ls_dokentry TYPE dokentry,
+    TYPES temp1 TYPE STANDARD TABLE OF bdcdata.
+DATA: ls_dokentry TYPE dokentry,
           ls_bcdata   TYPE bdcdata,
-          lt_bcdata   TYPE STANDARD TABLE OF bdcdata.
+          lt_bcdata   TYPE temp1.
 
     " We need to modify dokentry directly, otherwise
     " Batch Input on SE61 wouldn't work because it stores
