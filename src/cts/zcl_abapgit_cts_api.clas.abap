@@ -173,9 +173,7 @@ CLASS zcl_abapgit_cts_api IMPLEMENTATION.
       zcx_abapgit_exception=>raise_t100( ).
     ENDIF.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( lv_lock_flag <> space ).
-    rv_locked = temp1.
+    rv_locked = xsdbool( lv_lock_flag <> space ).
   ENDMETHOD.
 
 
@@ -193,9 +191,7 @@ CLASS zcl_abapgit_cts_api IMPLEMENTATION.
       IMPORTING
         pe_result = lv_type_check_result.
 
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( lv_type_check_result = 'L' ).
-    rv_lockable = temp2.
+    rv_lockable = xsdbool( lv_type_check_result = 'L' ).
   ENDMETHOD.
 
 
@@ -213,15 +209,15 @@ CLASS zcl_abapgit_cts_api IMPLEMENTATION.
       IMPORTING
         pe_result = lv_type_check_result.
 
-    DATA temp3 TYPE xsdboolean.
-    temp3 = boolc( lv_type_check_result CA 'RTL' ).
-    rv_transportable = temp3.
+    rv_transportable = xsdbool( lv_type_check_result CA 'RTL' ).
   ENDMETHOD.
 
 
   METHOD zif_abapgit_cts_api~change_transport_type.
 
-    DATA ls_request_header TYPE trwbo_request_header.
+    DATA:
+      ls_request_header  TYPE trwbo_request_header,
+      lt_request_headers TYPE trwbo_request_headers.
 
     CALL FUNCTION 'ENQUEUE_E_TRKORR'
       EXPORTING
@@ -234,33 +230,49 @@ CLASS zcl_abapgit_cts_api IMPLEMENTATION.
       zcx_abapgit_exception=>raise_t100( ).
     ENDIF.
 
-    CALL FUNCTION 'TRINT_READ_REQUEST_HEADER'
+    CALL FUNCTION 'TR_READ_REQUEST_WITH_TASKS'
       EXPORTING
-        iv_read_e070   = abap_true
-        iv_read_e070c  = abap_true
-      CHANGING
-        cs_request     = ls_request_header
+        iv_trkorr          = iv_transport_request
+      IMPORTING
+        et_request_headers = lt_request_headers
       EXCEPTIONS
-        empty_trkorr   = 1
-        not_exist_e070 = 2
-        OTHERS         = 3.
+        invalid_input      = 1
+        OTHERS             = 2.
     IF sy-subrc <> 0.
       zcx_abapgit_exception=>raise_t100( ).
     ENDIF.
 
-    CALL FUNCTION 'TRINT_CHANGE_TRFUNCTION'
-      EXPORTING
-        iv_new_trfunction      = iv_transport_type
-      CHANGING
-        cs_request_header      = ls_request_header
-      EXCEPTIONS
-        action_aborted_by_user = 1
-        change_not_allowed     = 2
-        db_access_error        = 3
-        OTHERS                 = 4.
-    IF sy-subrc <> 0.
-      zcx_abapgit_exception=>raise_t100( ).
-    ENDIF.
+    LOOP AT lt_request_headers INTO ls_request_header WHERE trfunction = iv_transport_type_from.
+
+      CALL FUNCTION 'TRINT_READ_REQUEST_HEADER'
+        EXPORTING
+          iv_read_e070   = abap_true
+          iv_read_e070c  = abap_true
+        CHANGING
+          cs_request     = ls_request_header
+        EXCEPTIONS
+          empty_trkorr   = 1
+          not_exist_e070 = 2
+          OTHERS         = 3.
+      IF sy-subrc <> 0.
+        zcx_abapgit_exception=>raise_t100( ).
+      ENDIF.
+
+      CALL FUNCTION 'TRINT_CHANGE_TRFUNCTION'
+        EXPORTING
+          iv_new_trfunction      = iv_transport_type_to
+        CHANGING
+          cs_request_header      = ls_request_header
+        EXCEPTIONS
+          action_aborted_by_user = 1
+          change_not_allowed     = 2
+          db_access_error        = 3
+          OTHERS                 = 4.
+      IF sy-subrc <> 0.
+        zcx_abapgit_exception=>raise_t100( ).
+      ENDIF.
+
+    ENDLOOP.
 
     CALL FUNCTION 'DEQUEUE_E_TRKORR'
       EXPORTING
@@ -330,8 +342,7 @@ CLASS zcl_abapgit_cts_api IMPLEMENTATION.
   METHOD zif_abapgit_cts_api~create_transport_entries.
 
     DATA lt_tables      TYPE tredt_objects.
-    TYPES temp1 TYPE STANDARD TABLE OF e071k.
-DATA lt_table_keys  TYPE temp1.
+    DATA lt_table_keys  TYPE STANDARD TABLE OF e071k.
     DATA lv_with_dialog TYPE abap_bool.
 
     cl_table_utilities_brf=>create_transport_entries(
@@ -408,8 +419,7 @@ DATA lt_table_keys  TYPE temp1.
   METHOD zif_abapgit_cts_api~get_transports_for_list.
 
     DATA lv_request TYPE trkorr.
-    TYPES temp2 TYPE SORTED TABLE OF tlock WITH NON-UNIQUE KEY object hikey.
-DATA lt_tlock TYPE temp2.
+    DATA lt_tlock TYPE SORTED TABLE OF tlock WITH NON-UNIQUE KEY object hikey.
     DATA ls_object_key TYPE e071.
     DATA lv_type_check_result TYPE c LENGTH 1.
     DATA ls_lock_key TYPE tlock_int.
@@ -531,8 +541,7 @@ DATA lt_tlock TYPE temp2.
              trfunction TYPE e070-trfunction,
              strkorr    TYPE e070-strkorr,
            END OF ty_e070.
-    TYPES temp3 TYPE STANDARD TABLE OF ty_e070 WITH DEFAULT KEY.
-DATA lt_e070 TYPE temp3.
+    DATA lt_e070 TYPE STANDARD TABLE OF ty_e070 WITH DEFAULT KEY.
 
 * find all tasks first
     SELECT trkorr trfunction strkorr
@@ -563,10 +572,8 @@ DATA lt_e070 TYPE temp3.
              obj_name TYPE e071-obj_name,
            END OF ty_contents.
 
-    TYPES temp4 TYPE STANDARD TABLE OF trkorr WITH DEFAULT KEY.
-DATA lt_tasks    TYPE temp4.
-    TYPES temp5 TYPE STANDARD TABLE OF ty_contents WITH DEFAULT KEY.
-DATA lt_contents TYPE temp5.
+    DATA lt_tasks    TYPE STANDARD TABLE OF trkorr WITH DEFAULT KEY.
+    DATA lt_contents TYPE STANDARD TABLE OF ty_contents WITH DEFAULT KEY.
     DATA ls_contents LIKE LINE OF lt_contents.
     DATA ls_list     LIKE LINE OF rt_list.
 
