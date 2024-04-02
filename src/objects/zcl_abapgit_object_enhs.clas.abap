@@ -17,16 +17,16 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_OBJECT_ENHS IMPLEMENTATION.
+CLASS zcl_abapgit_object_enhs IMPLEMENTATION.
 
 
   METHOD factory.
 
     CASE iv_tool.
       WHEN cl_enh_tool_badi_def=>tooltype.
-        CREATE OBJECT ri_enho TYPE zcl_abapgit_object_enhs_badi_d.
+        ri_enho = NEW zcl_abapgit_object_enhs_badi_d( ).
       WHEN cl_enh_tool_hook_def=>tool_type.
-        CREATE OBJECT ri_enho TYPE zcl_abapgit_object_enhs_hook_d.
+        ri_enho = NEW zcl_abapgit_object_enhs_hook_d( ).
       WHEN OTHERS.
         zcx_abapgit_exception=>raise( |ENHS: Unsupported tool { iv_tool }| ).
     ENDCASE.
@@ -58,6 +58,16 @@ CLASS ZCL_ABAPGIT_OBJECT_ENHS IMPLEMENTATION.
     DATA: lv_spot_name  TYPE enhspotname,
           lx_enh_root   TYPE REF TO cx_enh_root,
           li_enh_object TYPE REF TO if_enh_object.
+
+    zcl_abapgit_sotr_handler=>delete_sotr(
+      iv_pgmid    = 'R3TR'
+      iv_object   = ms_item-obj_type
+      iv_obj_name = ms_item-obj_name ).
+
+    zcl_abapgit_sots_handler=>delete_sots(
+      iv_pgmid    = 'R3TR'
+      iv_object   = ms_item-obj_type
+      iv_obj_name = ms_item-obj_name ).
 
     lv_spot_name  = ms_item-obj_name.
 
@@ -122,6 +132,10 @@ CLASS ZCL_ABAPGIT_OBJECT_ENHS IMPLEMENTATION.
                           ii_enh_spot_tool = li_spot_ref ).
 
     zcl_abapgit_sotr_handler=>create_sotr(
+      iv_package = iv_package
+      io_xml     = io_xml ).
+
+    zcl_abapgit_sots_handler=>create_sots(
       iv_package = iv_package
       io_xml     = io_xml ).
 
@@ -218,11 +232,18 @@ CLASS ZCL_ABAPGIT_OBJECT_ENHS IMPLEMENTATION.
                         ii_enh_spot_tool = li_spot_ref ).
 
     zcl_abapgit_sotr_handler=>read_sotr(
-      iv_pgmid    = 'R3TR'
-      iv_object   = ms_item-obj_type
-      iv_obj_name = ms_item-obj_name
+      iv_pgmid       = 'R3TR'
+      iv_object      = ms_item-obj_type
+      iv_obj_name    = ms_item-obj_name
       io_i18n_params = mo_i18n_params
-      io_xml      = io_xml ).
+      io_xml         = io_xml ).
+
+    zcl_abapgit_sots_handler=>read_sots(
+      iv_pgmid       = 'R3TR'
+      iv_object      = ms_item-obj_type
+      iv_obj_name    = ms_item-obj_name
+      io_i18n_params = mo_i18n_params
+      io_xml         = io_xml ).
 
   ENDMETHOD.
 ENDCLASS.
