@@ -219,7 +219,8 @@ CLASS zcl_abapgit_object_udmo IMPLEMENTATION.
 
   METHOD deserialize_entities.
 
-    DATA lt_udmo_entities TYPE STANDARD TABLE OF dm41s WITH DEFAULT KEY.
+    TYPES temp1 TYPE STANDARD TABLE OF dm41s WITH DEFAULT KEY.
+DATA lt_udmo_entities TYPE temp1.
     DATA ls_udmo_entity LIKE LINE OF lt_udmo_entities.
 
 
@@ -247,7 +248,8 @@ CLASS zcl_abapgit_object_udmo IMPLEMENTATION.
     DATA content TYPE xstring.
     DATA END OF ls_udmo_long_text.
 
-    DATA lt_udmo_long_texts LIKE STANDARD TABLE OF ls_udmo_long_text.
+    TYPES temp2 LIKE STANDARD TABLE OF ls_udmo_long_text.
+DATA lt_udmo_long_texts TYPE temp2.
     DATA ls_header TYPE thead.
 
     io_xml->read( EXPORTING iv_name = 'UDMO_LONG_TEXTS'
@@ -325,7 +327,8 @@ CLASS zcl_abapgit_object_udmo IMPLEMENTATION.
 
   METHOD deserialize_short_texts.
 
-    DATA lt_udmo_texts TYPE STANDARD TABLE OF ty_udmo_text_type WITH DEFAULT KEY.
+    TYPES temp3 TYPE STANDARD TABLE OF ty_udmo_text_type WITH DEFAULT KEY.
+DATA lt_udmo_texts TYPE temp3.
     DATA ls_udmo_text  TYPE ty_udmo_text_type.
     DATA ls_dm40t TYPE dm40t.
 
@@ -405,7 +408,8 @@ CLASS zcl_abapgit_object_udmo IMPLEMENTATION.
 
   METHOD serialize_entities.
 
-    DATA lt_udmo_entities TYPE STANDARD TABLE OF dm41s WITH DEFAULT KEY.
+    TYPES temp4 TYPE STANDARD TABLE OF dm41s WITH DEFAULT KEY.
+DATA lt_udmo_entities TYPE temp4.
     FIELD-SYMBOLS <ls_udmo_entity> TYPE dm41s.
 
     SELECT * FROM dm41s
@@ -450,8 +454,10 @@ CLASS zcl_abapgit_object_udmo IMPLEMENTATION.
     DATA content TYPE xstring.
     DATA END OF ls_udmo_long_text.
 
-    DATA lt_udmo_long_texts LIKE STANDARD TABLE OF ls_udmo_long_text.
-    DATA lt_udmo_languages TYPE STANDARD TABLE OF ty_language_type.
+    TYPES temp5 LIKE STANDARD TABLE OF ls_udmo_long_text.
+DATA lt_udmo_long_texts TYPE temp5.
+    TYPES temp6 TYPE STANDARD TABLE OF ty_language_type.
+DATA lt_udmo_languages TYPE temp6.
     DATA ls_udmo_language  LIKE LINE OF lt_udmo_languages.
     DATA: lv_error_status  TYPE lxestatprc.
 
@@ -540,7 +546,8 @@ CLASS zcl_abapgit_object_udmo IMPLEMENTATION.
 
   METHOD serialize_short_texts.
 
-    DATA lt_udmo_texts TYPE STANDARD TABLE OF ty_udmo_text_type WITH DEFAULT KEY.
+    TYPES temp7 TYPE STANDARD TABLE OF ty_udmo_text_type WITH DEFAULT KEY.
+DATA lt_udmo_texts TYPE temp7.
     " You are reminded that administrative information, such as last changed by user, date, time is not serialized.
 
     " You are reminded that active short texts of all (existent) languages are serialized.
@@ -666,7 +673,9 @@ CLASS zcl_abapgit_object_udmo IMPLEMENTATION.
     SELECT COUNT( * ) FROM dm40l
       WHERE dmoid = mv_data_model AND as4local = mv_activation_state.
 
-    rv_bool = xsdbool( sy-subrc = 0 ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( sy-subrc = 0 ).
+    rv_bool = temp1.
 
 
 
@@ -713,7 +722,8 @@ CLASS zcl_abapgit_object_udmo IMPLEMENTATION.
     "    CALL FUNCTION 'SDU_MODEL_SHOW'
     "    CALL FUNCTION 'RS_TOOL_ACCESS'
 
-    DATA lt_bdcdata TYPE TABLE OF bdcdata.
+    TYPES temp8 TYPE TABLE OF bdcdata.
+DATA lt_bdcdata TYPE temp8.
 
     FIELD-SYMBOLS: <ls_bdcdata> LIKE LINE OF lt_bdcdata.
 
