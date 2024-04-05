@@ -61,7 +61,7 @@ CLASS zcl_abapgit_persist_packages IMPLEMENTATION.
 
     DATA lo_input TYPE REF TO zif_abapgit_xml_input.
 
-    CREATE OBJECT lo_input TYPE zcl_abapgit_xml_input EXPORTING iv_xml = iv_xml.
+    lo_input = NEW zcl_abapgit_xml_input( iv_xml = iv_xml ).
 
     lo_input->read(
       EXPORTING
@@ -75,7 +75,7 @@ CLASS zcl_abapgit_persist_packages IMPLEMENTATION.
   METHOD get_instance.
 
     IF go_persist IS NOT BOUND.
-      CREATE OBJECT go_persist.
+      go_persist = NEW #( ).
     ENDIF.
     ro_persist = go_persist.
 
@@ -144,7 +144,7 @@ CLASS zcl_abapgit_persist_packages IMPLEMENTATION.
 
     DATA li_output TYPE REF TO zif_abapgit_xml_output.
 
-    CREATE OBJECT li_output TYPE zcl_abapgit_xml_output.
+    li_output = NEW zcl_abapgit_xml_output( ).
 
     li_output->add(
       iv_name = zcl_abapgit_persistence_db=>c_type_packages

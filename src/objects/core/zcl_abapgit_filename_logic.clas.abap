@@ -46,6 +46,17 @@ CLASS zcl_abapgit_filename_logic DEFINITION
       RAISING
         zcx_abapgit_exception .
 
+    CLASS-METHODS i18n_file_to_object
+      IMPORTING
+        !iv_filename TYPE string
+        !iv_path     TYPE string
+      EXPORTING
+        !es_item     TYPE zif_abapgit_definitions=>ty_item
+        !ev_lang     TYPE laiso
+        !ev_ext      TYPE string
+      RAISING
+        zcx_abapgit_exception .
+
     CLASS-METHODS object_to_file
       IMPORTING
         !is_item           TYPE zif_abapgit_definitions=>ty_item
@@ -53,6 +64,14 @@ CLASS zcl_abapgit_filename_logic DEFINITION
         !iv_extra          TYPE clike OPTIONAL
       RETURNING
         VALUE(rv_filename) TYPE string .
+
+    CLASS-METHODS object_to_i18n_file
+      IMPORTING
+        !is_item           TYPE zif_abapgit_definitions=>ty_item
+        !iv_lang           TYPE laiso
+        !iv_ext            TYPE string
+      RETURNING
+        VALUE(rv_filename) TYPE string.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -100,12 +119,8 @@ CLASS zcl_abapgit_filename_logic IMPLEMENTATION.
 
   METHOD detect_obj_definition.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( iv_ext = to_upper( c_package_file-extension ) AND strlen( iv_type ) = 4 ).
-    ev_is_xml  = temp1.
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( iv_ext = to_upper( c_json_file-extension ) AND strlen( iv_type ) = 4 ).
-    ev_is_json = temp2.
+    ev_is_xml  = xsdbool( iv_ext = to_upper( c_package_file-extension ) AND strlen( iv_type ) = 4 ).
+    ev_is_json = xsdbool( iv_ext = to_upper( c_json_file-extension ) AND strlen( iv_type ) = 4 ).
 
   ENDMETHOD.
 
@@ -126,7 +141,9 @@ CLASS zcl_abapgit_filename_logic IMPLEMENTATION.
     REPLACE ALL OCCURRENCES OF '#' IN lv_ext WITH '/'.
 
     " Assume AFF namespace convention
-    CREATE OBJECT go_aff_registry TYPE zcl_abapgit_aff_registry.
+    IF go_aff_registry IS INITIAL.
+      go_aff_registry = NEW zcl_abapgit_aff_registry( ).
+    ENDIF.
 
     IF go_aff_registry->is_supported_object_type( |{ lv_type }| ) = abap_true.
       REPLACE ALL OCCURRENCES OF '(' IN lv_name WITH '/'.
@@ -161,6 +178,26 @@ CLASS zcl_abapgit_filename_logic IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD i18n_file_to_object.
+
+    DATA lo_dot TYPE REF TO zcl_abapgit_dot_abapgit.
+
+    lo_dot = zcl_abapgit_dot_abapgit=>build_default( ).
+
+    file_to_object(
+      EXPORTING
+        iv_filename = iv_filename
+        iv_path     = iv_path
+        io_dot      = lo_dot
+      IMPORTING
+        es_item     = es_item ).
+
+    FIND FIRST OCCURRENCE OF REGEX 'i18n\.([^.]{2})\.([^.]+)$' IN iv_filename
+      SUBMATCHES ev_lang ev_ext ##SUBRC_OK.
+
+  ENDMETHOD.
+
+
   METHOD is_obj_definition_file.
 
     DATA:
@@ -180,9 +217,7 @@ CLASS zcl_abapgit_filename_logic IMPLEMENTATION.
         ev_is_xml  = lv_xml
         ev_is_json = lv_json ).
 
-    DATA temp3 TYPE xsdboolean.
-    temp3 = boolc( lv_json = abap_true OR lv_xml = abap_true ).
-    rv_yes = temp3.
+    rv_yes = xsdbool( lv_json = abap_true OR lv_xml = abap_true ).
 
   ENDMETHOD.
 
@@ -291,7 +326,7 @@ CLASS zcl_abapgit_filename_logic IMPLEMENTATION.
     ENDTRY.
 
     " Handle namespaces
-    CREATE OBJECT go_aff_registry TYPE zcl_abapgit_aff_registry.
+    go_aff_registry = NEW zcl_abapgit_aff_registry( ).
 
     IF go_aff_registry->is_supported_object_type( is_item-obj_type ) = abap_true.
       FIND ALL OCCURRENCES OF `/` IN rv_filename MATCH COUNT lv_nb_of_slash.
@@ -304,6 +339,16 @@ CLASS zcl_abapgit_filename_logic IMPLEMENTATION.
     ENDIF.
 
     TRANSLATE rv_filename TO LOWER CASE.
+
+  ENDMETHOD.
+
+
+  METHOD object_to_i18n_file.
+
+    rv_filename = object_to_file(
+      is_item  = is_item
+      iv_extra = |i18n.{ iv_lang }|
+      iv_ext   = iv_ext ).
 
   ENDMETHOD.
 ENDCLASS.
