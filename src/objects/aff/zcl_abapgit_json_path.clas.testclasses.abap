@@ -39,7 +39,7 @@ CLASS ltcl_json_path IMPLEMENTATION.
     lo_ajson->delete( '/category/' ).
     lo_ajson->delete( '/proxy/' ).
 
-    CREATE OBJECT lo_cut.
+    lo_cut = NEW #( ).
     rt_result = lo_cut->serialize( lo_ajson->stringify( ) ).
   ENDMETHOD.
 
@@ -155,7 +155,7 @@ CLASS ltcl_json_path IMPLEMENTATION.
     APPEND `$.descriptions.methods[?(@.name=='METH1')].description=Sonne` TO lt_file.
     APPEND `$.descriptions.methods[?(@.name=='METH1')].parameters[?(@.name=='param2')].description=ABC` TO lt_file.
 
-    CREATE OBJECT lo_cut.
+    lo_cut = NEW #( ).
     lv_xact = lo_cut->deserialize( lt_file ).
 
     APPEND `{  "header": { "description": "Text" } ,` TO lt_exp.
@@ -190,7 +190,7 @@ CLASS ltcl_json_path IMPLEMENTATION.
 
     APPEND `$.header.description=Text` TO lt_file.
 
-    CREATE OBJECT lo_cut.
+    lo_cut = NEW #( ).
     lv_xact = lo_cut->deserialize( lt_file ).
     lv_act = zcl_abapgit_convert=>xstring_to_string_utf8( lv_xact ).
 
@@ -213,7 +213,7 @@ CLASS ltcl_json_path IMPLEMENTATION.
     APPEND `!this is a comment [abc]` TO lt_file.
     APPEND `` TO lt_file.
 
-    CREATE OBJECT lo_cut.
+    lo_cut = NEW #( ).
     lv_xact = lo_cut->deserialize( lt_file ).
     lv_act = zcl_abapgit_convert=>xstring_to_string_utf8( lv_xact ).
 
