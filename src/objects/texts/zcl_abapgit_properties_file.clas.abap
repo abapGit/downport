@@ -71,7 +71,7 @@ CLASS zcl_abapgit_properties_file IMPLEMENTATION.
 
     lv_translation = concat_lines_of( table = mt_translation
                                       sep   = cl_abap_char_utilities=>newline ).
-    lo_buf = NEW #( ).
+    CREATE OBJECT lo_buf.
     lo_buf->add( lv_translation ).
 
     lv_str = lo_buf->join_w_newline_and_flush( ) && cl_abap_char_utilities=>newline.
