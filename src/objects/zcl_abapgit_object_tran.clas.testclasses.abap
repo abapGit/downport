@@ -52,8 +52,10 @@ CLASS ltcl_split_parameters IMPLEMENTATION.
     ls_item-obj_name = 'ZDUMMY'.
     ls_item-obj_type = 'TRAN'.
 
-    CREATE OBJECT mo_cut EXPORTING is_item = ls_item
-                                   iv_language = sy-langu.
+    CREATE OBJECT mo_cut
+      EXPORTING
+        is_item     = ls_item
+        iv_language = sy-langu.
 
   ENDMETHOD.
 

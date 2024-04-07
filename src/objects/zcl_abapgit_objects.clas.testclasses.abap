@@ -209,7 +209,9 @@ CLASS ltcl_serialize IMPLEMENTATION.
     ls_item-obj_name = 'IF_BADI_TADIR_CHANGED'.
 
     lv_features = |{ zcl_abapgit_aff_registry=>c_aff_feature }, { zcl_abapgit_properties_file=>c_properties_feature }|.
-    CREATE OBJECT lo_settings EXPORTING iv_features = lv_features.
+    CREATE OBJECT lo_settings
+      EXPORTING
+        iv_features = lv_features.
 
     zcl_abapgit_persist_injector=>set_settings( lo_settings ).
 

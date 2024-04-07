@@ -1657,10 +1657,8 @@ CLASS ltcl_json_to_abap IMPLEMENTATION.
   METHOD to_abap_array_of_arrays_simple.
 
     DATA lo_cut   TYPE REF TO lcl_json_to_abap.
-    TYPES temp1 TYPE TABLE OF string_table.
-DATA lt_mock  TYPE temp1.
-    TYPES temp2 TYPE TABLE OF string_table.
-DATA lt_exp   TYPE temp2.
+    DATA lt_mock  TYPE TABLE OF string_table.
+    DATA lt_exp   TYPE TABLE OF string_table.
     DATA lt_tmp   TYPE string_table.
     DATA lo_nodes TYPE REF TO lcl_nodes_helper.
 
@@ -1693,10 +1691,8 @@ DATA lt_exp   TYPE temp2.
   METHOD to_abap_array_of_arrays.
 
     DATA lo_cut   TYPE REF TO lcl_json_to_abap.
-    TYPES temp3 TYPE TABLE OF string_table.
-DATA lt_mock  TYPE temp3.
-    TYPES temp4 TYPE TABLE OF string_table.
-DATA lt_exp   TYPE temp4.
+    DATA lt_mock  TYPE TABLE OF string_table.
+    DATA lt_exp   TYPE TABLE OF string_table.
     DATA lt_tmp   TYPE string_table.
     DATA lo_nodes TYPE REF TO lcl_nodes_helper.
 
@@ -1796,10 +1792,8 @@ DATA lt_exp   TYPE temp4.
   METHOD to_abap_hashed_plain_tab.
 
     DATA lo_cut TYPE REF TO lcl_json_to_abap.
-    TYPES temp5 TYPE HASHED TABLE OF string WITH UNIQUE KEY table_line.
-DATA lt_mock TYPE temp5.
-    TYPES temp6 TYPE HASHED TABLE OF string WITH UNIQUE KEY table_line.
-DATA lt_exp  TYPE temp6.
+    DATA lt_mock TYPE HASHED TABLE OF string WITH UNIQUE KEY table_line.
+    DATA lt_exp  TYPE HASHED TABLE OF string WITH UNIQUE KEY table_line.
 
     DATA lo_nodes TYPE REF TO lcl_nodes_helper.
     CREATE OBJECT lo_nodes.
@@ -2045,8 +2039,7 @@ DATA lt_exp  TYPE temp6.
     ENDTRY.
 
     TRY.
-        TYPES temp7 TYPE HASHED TABLE OF string WITH UNIQUE KEY table_line.
-DATA lt_hashed TYPE temp7.
+        DATA lt_hashed TYPE HASHED TABLE OF string WITH UNIQUE KEY table_line.
         CREATE OBJECT lo_nodes.
         lo_nodes->add( '            |           |array  |                          | ' ).
         lo_nodes->add( '/           |1          |str    |One                       |1' ).
@@ -2080,7 +2073,9 @@ DATA lt_hashed TYPE temp7.
 
     ls_exp-a  = 'test'.
 
-    CREATE OBJECT lo_cut EXPORTING iv_corresponding = abap_true.
+    CREATE OBJECT lo_cut
+      EXPORTING
+        iv_corresponding = abap_true.
 
     lo_cut->to_abap(
       EXPORTING
@@ -2602,8 +2597,7 @@ CLASS ltcl_writer_test IMPLEMENTATION.
     DATA lo_nodes TYPE REF TO lcl_nodes_helper.
     DATA lo_cut TYPE REF TO zcl_abapgit_ajson.
     DATA li_writer TYPE REF TO zif_abapgit_ajson.
-    TYPES temp8 TYPE HASHED TABLE OF string WITH UNIQUE KEY table_line.
-DATA lt_tab TYPE temp8.
+    DATA lt_tab TYPE HASHED TABLE OF string WITH UNIQUE KEY table_line.
 
     lo_cut = zcl_abapgit_ajson=>create_empty( ).
     li_writer = lo_cut.
@@ -3611,10 +3605,8 @@ CLASS ltcl_integrated IMPLEMENTATION.
 
   METHOD array_index.
 
-    TYPES temp9 TYPE TABLE OF ty_loc.
-DATA lt_act TYPE temp9.
-    TYPES temp10 TYPE TABLE OF ty_loc.
-DATA lt_exp TYPE temp10.
+    DATA lt_act TYPE TABLE OF ty_loc.
+    DATA lt_exp TYPE TABLE OF ty_loc.
     DATA ls_exp TYPE ty_loc.
 
     DATA lv_src TYPE string.
@@ -4266,8 +4258,7 @@ CLASS ltcl_abap_to_json IMPLEMENTATION.
     DATA lo_nodes_exp TYPE REF TO lcl_nodes_helper.
     DATA lt_nodes TYPE zif_abapgit_ajson_types=>ty_nodes_tt.
 
-    TYPES temp11 TYPE TABLE OF ty_struc.
-DATA lt_tab TYPE temp11.
+    DATA lt_tab TYPE TABLE OF ty_struc.
     FIELD-SYMBOLS <s> LIKE LINE OF lt_tab.
 
     APPEND INITIAL LINE TO lt_tab ASSIGNING <s>.
@@ -4335,8 +4326,7 @@ CLASS ltcl_filter_test DEFINITION FINAL
         type TYPE zif_abapgit_ajson_filter=>ty_visit_type,
       END OF ty_visit_history.
 
-    TYPES temp12_9418cd8b8d TYPE TABLE OF ty_visit_history.
-DATA mt_visit_history TYPE temp12_9418cd8b8d.
+    DATA mt_visit_history TYPE TABLE OF ty_visit_history.
 
     METHODS simple_test FOR TESTING RAISING zcx_abapgit_ajson_error.
     METHODS array_test FOR TESTING RAISING zcx_abapgit_ajson_error.
@@ -4357,9 +4347,7 @@ CLASS ltcl_filter_test IMPLEMENTATION.
       APPEND ls_visit_history TO mt_visit_history.
     ENDIF.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( NOT is_node-name CA 'xX' AND NOT is_node-value CA 'xX' ).
-    rv_keep = temp1.
+    rv_keep = boolc( NOT is_node-name CA 'xX' AND NOT is_node-value CA 'xX' ).
 
   ENDMETHOD.
 
@@ -4830,9 +4818,7 @@ CLASS ltcl_cloning_test IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD zif_abapgit_ajson_filter~keep_node.
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( is_node-name IS INITIAL OR is_node-name+0(1) <> 'x' ).
-    rv_keep = temp2.
+    rv_keep = boolc( is_node-name IS INITIAL OR is_node-name+0(1) <> 'x' ).
   ENDMETHOD.
 
   METHOD mapper_and_filter.

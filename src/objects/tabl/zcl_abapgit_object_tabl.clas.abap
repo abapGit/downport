@@ -452,9 +452,9 @@ CLASS zcl_abapgit_object_tabl IMPLEMENTATION.
   METHOD is_db_table_category.
 
     " values from domain TABCLASS
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( iv_tabclass = 'TRANSP' OR iv_tabclass = 'CLUSTER' OR iv_tabclass = 'POOL' ).
-    rv_is_db_table_type = temp1.
+    rv_is_db_table_type = boolc( iv_tabclass = 'TRANSP'
+                              OR iv_tabclass = 'CLUSTER'
+                              OR iv_tabclass = 'POOL' ).
 
   ENDMETHOD.
 
@@ -469,9 +469,7 @@ CLASS zcl_abapgit_object_tabl IMPLEMENTATION.
            FROM edisegment
            INTO lv_segment_type
            WHERE segtyp = lv_segment_type.
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( sy-subrc = 0 ).
-    rv_is_idoc_segment = temp2.
+    rv_is_idoc_segment = boolc( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -488,8 +486,7 @@ CLASS zcl_abapgit_object_tabl IMPLEMENTATION.
     DATA lv_segment_type        TYPE edilsegtyp.
     DATA lv_result              LIKE sy-subrc.
     DATA lv_devclass            TYPE devclass.
-    TYPES temp1 TYPE STANDARD TABLE OF edisegmdef.
-DATA lt_segmentdefinitions  TYPE temp1.
+    DATA lt_segmentdefinitions  TYPE STANDARD TABLE OF edisegmdef.
     DATA ls_segment_definition  TYPE zif_abapgit_object_tabl=>ty_segment_definition.
 
     FIELD-SYMBOLS: <ls_segemtndefinition> TYPE edisegmdef.
@@ -616,8 +613,7 @@ DATA lt_segmentdefinitions  TYPE temp1.
              as4time TYPE dd02l-as4time,
            END OF ty_data.
 
-    TYPES temp2 TYPE STANDARD TABLE OF ty_data WITH DEFAULT KEY.
-DATA: lt_data TYPE temp2,
+    DATA: lt_data TYPE STANDARD TABLE OF ty_data WITH DEFAULT KEY,
           ls_data LIKE LINE OF lt_data.
 
 
@@ -840,9 +836,7 @@ DATA: lt_data TYPE temp2,
       SELECT SINGLE tabname FROM dd02l INTO lv_tabname
         WHERE tabname = lv_tabname.                     "#EC CI_NOORDER
     ENDIF.
-    DATA temp3 TYPE xsdboolean.
-    temp3 = boolc( sy-subrc = 0 ).
-    rv_bool = temp3.
+    rv_bool = boolc( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -857,9 +851,14 @@ DATA: lt_data TYPE temp2,
 
     zif_abapgit_object~serialize( li_local_version_output ).
 
-    CREATE OBJECT li_local_version_input TYPE zcl_abapgit_xml_input EXPORTING iv_xml = li_local_version_output->render( ).
+    CREATE OBJECT li_local_version_input
+      TYPE zcl_abapgit_xml_input
+      EXPORTING
+        iv_xml = li_local_version_output->render( ).
 
-    CREATE OBJECT ri_comparator TYPE zcl_abapgit_object_tabl_compar EXPORTING ii_local = li_local_version_input.
+    CREATE OBJECT ri_comparator TYPE zcl_abapgit_object_tabl_compar
+      EXPORTING
+        ii_local = li_local_version_input.
 
   ENDMETHOD.
 

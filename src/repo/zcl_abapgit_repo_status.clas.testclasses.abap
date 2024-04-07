@@ -118,9 +118,7 @@ CLASS ltcl_run_checks IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD zif_abapgit_sap_namespace~exists.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( iv_namespace <> 'NOTEXIST' ).
-    rv_yes = temp1.
+    rv_yes = boolc( iv_namespace <> 'NOTEXIST' ).
   ENDMETHOD.
 
   METHOD zif_abapgit_sap_namespace~is_editable.
@@ -164,8 +162,10 @@ CLASS ltcl_run_checks IMPLEMENTATION.
 
     zcl_abapgit_injector=>set_sap_namespace( me ).
 
-    CREATE OBJECT mo_instance EXPORTING iv_root_package = '$Z$'
-                                        io_dot = mo_dot.
+    CREATE OBJECT mo_instance
+      EXPORTING
+        iv_root_package = '$Z$'
+        io_dot          = mo_dot.
 
   ENDMETHOD.
 
@@ -505,8 +505,10 @@ CLASS ltcl_run_checks IMPLEMENTATION.
                    iv_path     = '/'
                    iv_filename = '#notexist#zclass1.clas.xml' ).
 
-    CREATE OBJECT mo_instance EXPORTING iv_root_package = '/NOTEXIST/Z'
-                                        io_dot = mo_dot.
+    CREATE OBJECT mo_instance
+      EXPORTING
+        iv_root_package = '/NOTEXIST/Z'
+        io_dot          = mo_dot.
 
     mi_log = mo_instance->run_checks( mt_results ).
 
@@ -532,8 +534,10 @@ CLASS ltcl_run_checks IMPLEMENTATION.
                    iv_path     = '/'
                    iv_filename = '(notexist)zclass1.clas.json' ).
 
-    CREATE OBJECT mo_instance EXPORTING iv_root_package = '/NOTEXIST/Z'
-                                        io_dot = mo_dot.
+    CREATE OBJECT mo_instance
+      EXPORTING
+        iv_root_package = '/NOTEXIST/Z'
+        io_dot          = mo_dot.
 
     mi_log = mo_instance->run_checks( mt_results ).
 
@@ -567,8 +571,10 @@ CLASS ltcl_run_checks IMPLEMENTATION.
                    iv_path     = ''
                    iv_filename = 'package.devc.xml' ).
 
-    CREATE OBJECT mo_instance EXPORTING iv_root_package = '$MAIN'
-                                        io_dot = mo_dot.
+    CREATE OBJECT mo_instance
+      EXPORTING
+        iv_root_package = '$MAIN'
+        io_dot          = mo_dot.
 
     mi_log = mo_instance->run_checks( mt_results ).
 
@@ -683,9 +689,8 @@ CLASS ltcl_status_helper DEFINITION FOR TESTING.
              devclass TYPE tadir-devclass,
            END OF ty_tadir.
 
-    TYPES temp1_69da81890d TYPE STANDARD TABLE OF ty_tadir WITH DEFAULT KEY.
-DATA:
-      mt_tadir  TYPE temp1_69da81890d,
+    DATA:
+      mt_tadir  TYPE STANDARD TABLE OF ty_tadir WITH DEFAULT KEY,
       mt_local  TYPE zif_abapgit_definitions=>ty_files_item_tt,
       mt_remote TYPE zif_abapgit_git_definitions=>ty_files_tt,
       mt_state  TYPE zif_abapgit_git_definitions=>ty_file_signatures_tt.
@@ -774,15 +779,19 @@ CLASS ltcl_status_helper IMPLEMENTATION.
     lo_dot = zcl_abapgit_dot_abapgit=>build_default( ).
     lo_dot->set_starting_folder( '/' ). " assumed by unit tests
 
-    CREATE OBJECT lo_instance EXPORTING iv_root_package = iv_devclass
-                                        io_dot = lo_dot.
+    CREATE OBJECT lo_instance
+      EXPORTING
+        iv_root_package = iv_devclass
+        io_dot          = lo_dot.
 
     lt_results = lo_instance->calculate_status(
       it_local     = mt_local
       it_remote    = mt_remote
       it_cur_state = mt_state ).
 
-    CREATE OBJECT ro_result EXPORTING it_results = lt_results.
+    CREATE OBJECT ro_result
+      EXPORTING
+        it_results = lt_results.
 
   ENDMETHOD.
 

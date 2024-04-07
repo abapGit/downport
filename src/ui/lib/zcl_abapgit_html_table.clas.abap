@@ -151,9 +151,7 @@ CLASS ZCL_ABAPGIT_HTML_TABLE IMPLEMENTATION.
         sub  = c_sort_by_event_prefix
         with = '' ).
       SPLIT lv_req AT ':' INTO rs_sorting_request-column_id lv_req.
-      DATA temp1 TYPE xsdboolean.
-      temp1 = boolc( lv_req = 'dsc' ).
-      rs_sorting_request-descending = temp1.
+      rs_sorting_request-descending = boolc( lv_req = 'dsc' ).
 
     ENDIF.
 

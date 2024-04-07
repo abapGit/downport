@@ -120,19 +120,21 @@ CLASS zcl_abapgit_i18n_params IMPLEMENTATION.
 
   METHOD is_lxe_applicable.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( ms_params-main_language_only = abap_false AND ms_params-use_lxe = abap_true AND ms_params-translation_languages IS NOT INITIAL ).
-    rv_yes = temp1.
+    rv_yes = boolc( ms_params-main_language_only = abap_false AND
+       ms_params-use_lxe = abap_true AND
+       ms_params-translation_languages IS NOT INITIAL ).
 
   ENDMETHOD.
 
 
   METHOD new.
-    CREATE OBJECT ro_instance EXPORTING iv_main_language = iv_main_language
-                                        iv_main_language_only = iv_main_language_only
-                                        it_translation_langs = it_translation_langs
-                                        iv_use_lxe = iv_use_lxe
-                                        is_params = is_params.
+    CREATE OBJECT ro_instance
+      EXPORTING
+        iv_main_language      = iv_main_language
+        iv_main_language_only = iv_main_language_only
+        it_translation_langs  = it_translation_langs
+        iv_use_lxe            = iv_use_lxe
+        is_params             = is_params.
   ENDMETHOD.
 
 

@@ -202,7 +202,9 @@ CLASS zcl_abapgit_gui_page_data IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_data.
 
-    CREATE OBJECT lo_component EXPORTING iv_key = iv_key.
+    CREATE OBJECT lo_component
+      EXPORTING
+        iv_key = iv_key.
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title         = 'Data Config'

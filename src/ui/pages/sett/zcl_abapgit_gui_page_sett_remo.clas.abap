@@ -376,7 +376,9 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_sett_remo.
 
-    CREATE OBJECT lo_component EXPORTING io_repo = io_repo.
+    CREATE OBJECT lo_component
+      EXPORTING
+        io_repo = io_repo.
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Remote Settings'
@@ -776,9 +778,7 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
           lv_url         TYPE ty_remote_settings-url,
           lv_branch      TYPE ty_remote_settings-branch.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( mo_form_data->get( c_id-offline ) = abap_false ).
-    lv_offline_new = temp1.
+    lv_offline_new = boolc( mo_form_data->get( c_id-offline ) = abap_false ).
     mo_form_data->set(
       iv_key = c_id-offline
       iv_val = lv_offline_new ).

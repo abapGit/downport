@@ -211,11 +211,9 @@ CLASS zcl_abapgit_gui_page_sett_pers IMPLEMENTATION.
     CREATE OBJECT ro_form_data.
 
     " Startup
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( ms_settings-show_default_repo = abap_true ).
     ro_form_data->set(
       iv_key = c_id-show_default_repo
-      iv_val = temp1 ) ##TYPE.
+      iv_val = boolc( ms_settings-show_default_repo = abap_true ) ) ##TYPE.
 
     " UI
     ro_form_data->set(
@@ -232,31 +230,23 @@ CLASS zcl_abapgit_gui_page_sett_pers IMPLEMENTATION.
       iv_val = ms_settings-label_colors ).
 
     " Interaction
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( ms_settings-activate_wo_popup = abap_true ).
     ro_form_data->set(
       iv_key = c_id-activate_wo_popup
-      iv_val = temp2 ) ##TYPE.
-    DATA temp3 TYPE xsdboolean.
-    temp3 = boolc( ms_settings-adt_jump_enabled = abap_true ).
+      iv_val = boolc( ms_settings-activate_wo_popup = abap_true ) ) ##TYPE.
     ro_form_data->set(
       iv_key = c_id-adt_jump_enabled
-      iv_val = temp3 ) ##TYPE.
-    DATA temp4 TYPE xsdboolean.
-    temp4 = boolc( ms_settings-link_hints_enabled = abap_true ).
+      iv_val = boolc( ms_settings-adt_jump_enabled = abap_true ) ) ##TYPE.
     ro_form_data->set(
       iv_key = c_id-link_hints_enabled
-      iv_val = temp4 ) ##TYPE.
+      iv_val = boolc( ms_settings-link_hints_enabled = abap_true ) ) ##TYPE.
     ro_form_data->set(
       iv_key = c_id-link_hint_key
       iv_val = |{ ms_settings-link_hint_key }| ).
 
     " Resources
-    DATA temp5 TYPE xsdboolean.
-    temp5 = boolc( ms_settings-parallel_proc_disabled = abap_true ).
     ro_form_data->set(
       iv_key = c_id-parallel_proc_disabled
-      iv_val = temp5 ) ##TYPE.
+      iv_val = boolc( ms_settings-parallel_proc_disabled = abap_true ) ) ##TYPE.
 
   ENDMETHOD.
 

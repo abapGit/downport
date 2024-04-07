@@ -64,10 +64,9 @@ CLASS zcl_abapgit_object_nspc IMPLEMENTATION.
 
   METHOD deserialize_texts.
 
-    TYPES temp1 TYPE TABLE OF langu.
-DATA:
+    DATA:
       ls_trnspacett TYPE trnspacett,
-      lt_i18n_langs TYPE temp1,
+      lt_i18n_langs TYPE TABLE OF langu,
       lt_nspc_texts TYPE ty_nspc_texts.
 
     FIELD-SYMBOLS:
@@ -105,11 +104,10 @@ DATA:
 
   METHOD serialize_texts.
 
-    TYPES temp2 TYPE TABLE OF langu.
-DATA:
+    DATA:
       ls_trnspacett TYPE trnspacett,
       lt_nspc_texts TYPE ty_nspc_texts,
-      lt_i18n_langs TYPE temp2.
+      lt_i18n_langs TYPE TABLE OF langu.
 
     FIELD-SYMBOLS:
       <lv_lang>      LIKE LINE OF lt_i18n_langs,
@@ -253,9 +251,7 @@ DATA:
         namespace_not_valid = 1
         OTHERS              = 2.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_bool = temp1.
+    rv_bool = boolc( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -314,9 +310,7 @@ DATA:
         view_not_found               = 13
         OTHERS                       = 14.
 
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( sy-subrc = 0 ).
-    rv_exit = temp2.
+    rv_exit = boolc( sy-subrc = 0 ).
 
   ENDMETHOD.
 

@@ -533,9 +533,7 @@ CLASS ZCL_ABAPGIT_GUI_ROUTER IMPLEMENTATION.
     IF iv_line CO '0123456789'.
       lv_line_number = iv_line.
     ENDIF.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( iv_new_window IS NOT INITIAL ).
-    lv_new_window = temp1.
+    lv_new_window = boolc( iv_new_window IS NOT INITIAL ).
 
     TRY.
         li_html_viewer = zcl_abapgit_ui_factory=>get_html_viewer( ).
@@ -587,8 +585,7 @@ CLASS ZCL_ABAPGIT_GUI_ROUTER IMPLEMENTATION.
   METHOD other_utilities.
     TYPES ty_char600 TYPE c LENGTH 600.
     DATA lv_clip_content TYPE string.
-    TYPES temp1 TYPE STANDARD TABLE OF ty_char600.
-DATA lt_clipboard TYPE temp1.
+    DATA lt_clipboard TYPE STANDARD TABLE OF ty_char600.
 
     CASE ii_event->mv_action.
       WHEN zif_abapgit_definitions=>c_action-ie_devtools.

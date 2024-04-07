@@ -100,9 +100,11 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_PULL IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_pull.
 
-    CREATE OBJECT lo_component EXPORTING io_repo = io_repo
-                                         iv_trkorr = iv_trkorr
-                                         ii_obj_filter = ii_obj_filter.
+    CREATE OBJECT lo_component
+      EXPORTING
+        io_repo       = io_repo
+        iv_trkorr     = iv_trkorr
+        ii_obj_filter = ii_obj_filter.
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title         = 'Pull'

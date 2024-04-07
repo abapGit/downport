@@ -674,7 +674,8 @@ CLASS lcl_aff_metadata_handler IMPLEMENTATION.
       CREATE OBJECT lo_json_path.
       lt_translation = lo_json_path->serialize( lv_json ).
 
-      CREATE OBJECT lo_trans_file EXPORTING iv_lang = lv_langu.
+      CREATE OBJECT lo_trans_file
+        EXPORTING iv_lang = lv_langu.
 
       lo_trans_file->push_text_pairs( lt_translation ).
 

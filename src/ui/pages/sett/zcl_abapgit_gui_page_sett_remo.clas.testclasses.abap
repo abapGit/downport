@@ -82,7 +82,9 @@ CLASS ltd_git_transport IMPLEMENTATION.
 
     CONSTANTS: lc_dummy_data TYPE string VALUE '0000'.
 
-    CREATE OBJECT ro_branch_list TYPE ltd_branch_list EXPORTING iv_data = lc_dummy_data.
+    CREATE OBJECT ro_branch_list TYPE ltd_branch_list
+      EXPORTING
+        iv_data = lc_dummy_data.
 
   ENDMETHOD.
 

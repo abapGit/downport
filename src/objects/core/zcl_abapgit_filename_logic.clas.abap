@@ -119,12 +119,8 @@ CLASS zcl_abapgit_filename_logic IMPLEMENTATION.
 
   METHOD detect_obj_definition.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( iv_ext = to_upper( c_package_file-extension ) AND strlen( iv_type ) = 4 ).
-    ev_is_xml  = temp1.
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( iv_ext = to_upper( c_json_file-extension ) AND strlen( iv_type ) = 4 ).
-    ev_is_json = temp2.
+    ev_is_xml  = boolc( iv_ext = to_upper( c_package_file-extension ) AND strlen( iv_type ) = 4 ).
+    ev_is_json = boolc( iv_ext = to_upper( c_json_file-extension ) AND strlen( iv_type ) = 4 ).
 
   ENDMETHOD.
 
@@ -221,9 +217,7 @@ CLASS zcl_abapgit_filename_logic IMPLEMENTATION.
         ev_is_xml  = lv_xml
         ev_is_json = lv_json ).
 
-    DATA temp3 TYPE xsdboolean.
-    temp3 = boolc( lv_json = abap_true OR lv_xml = abap_true ).
-    rv_yes = temp3.
+    rv_yes = boolc( lv_json = abap_true OR lv_xml = abap_true ).
 
   ENDMETHOD.
 

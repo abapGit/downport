@@ -233,11 +233,13 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_STAGE IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_stage.
 
-    CREATE OBJECT lo_component EXPORTING io_repo = io_repo
-                                         iv_seed = iv_seed
-                                         iv_sci_result = iv_sci_result
-                                         ii_force_refresh = ii_force_refresh
-                                         ii_obj_filter = ii_obj_filter.
+    CREATE OBJECT lo_component
+      EXPORTING
+        io_repo       = io_repo
+        iv_seed       = iv_seed
+        iv_sci_result = iv_sci_result
+        ii_force_refresh = ii_force_refresh
+        ii_obj_filter = ii_obj_filter.
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title         = 'Stage'

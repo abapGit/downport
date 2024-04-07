@@ -78,7 +78,9 @@ CLASS zcl_abapgit_gui_page_merge_sel IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_merge_sel.
 
-    CREATE OBJECT lo_component EXPORTING ii_repo = ii_repo.
+    CREATE OBJECT lo_component
+      EXPORTING
+        ii_repo = ii_repo.
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Merge Branches'

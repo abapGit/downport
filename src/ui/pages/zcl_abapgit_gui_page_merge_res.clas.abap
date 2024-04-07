@@ -161,9 +161,11 @@ CLASS zcl_abapgit_gui_page_merge_res IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_merge_res.
 
-    CREATE OBJECT lo_component EXPORTING io_repo = io_repo
-                                         io_merge_page = io_merge_page
-                                         io_merge = io_merge.
+    CREATE OBJECT lo_component
+      EXPORTING
+        io_repo       = io_repo
+        io_merge_page = io_merge_page
+        io_merge      = io_merge.
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title         = 'Resolve Merge Conflicts'
@@ -472,8 +474,10 @@ CLASS zcl_abapgit_gui_page_merge_res IMPLEMENTATION.
     ENDIF.
 
     IF ms_diff_file-type <> 'binary'.
-      CREATE OBJECT ms_diff_file-o_diff EXPORTING iv_new = <ls_conflict>-source_data
-                                                  iv_old = <ls_conflict>-target_data.
+      CREATE OBJECT ms_diff_file-o_diff
+        EXPORTING
+          iv_new = <ls_conflict>-source_data
+          iv_old = <ls_conflict>-target_data.
     ENDIF.
 
   ENDMETHOD.
