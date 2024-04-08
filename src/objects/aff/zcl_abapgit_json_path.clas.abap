@@ -6,13 +6,23 @@ CLASS zcl_abapgit_json_path DEFINITION PUBLIC CREATE PUBLIC.
       RAISING   zcx_abapgit_exception.
     METHODS: deserialize
       IMPORTING it_json_path     TYPE string_table
-      RETURNING VALUE(rv_result) TYPE xstring
+      RETURNING VALUE(rv_result) TYPE string
       RAISING   zcx_abapgit_exception.
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
 
+
+
 CLASS zcl_abapgit_json_path IMPLEMENTATION.
+
+
+  METHOD deserialize.
+
+    rv_result = lcl_json_path=>deserialize( it_json_path ).
+
+  ENDMETHOD.
+
 
   METHOD serialize.
     DATA: lo_json_path    TYPE REF TO lcl_json_path,
@@ -34,16 +44,9 @@ CLASS zcl_abapgit_json_path IMPLEMENTATION.
 
     APPEND `$` TO lt_root_path.
 
-    CREATE OBJECT lo_json_path.
+    lo_json_path = NEW #( ).
     lo_json_path->serialize_rec( EXPORTING io_reader     = lo_reader
                                            it_path       = lt_root_path
                                  CHANGING  ct_json_paths = rt_result ).
   ENDMETHOD.
-
-  METHOD deserialize.
-
-    rv_result = lcl_json_path=>deserialize( it_json_path ).
-
-  ENDMETHOD.
-
 ENDCLASS.

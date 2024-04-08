@@ -35,9 +35,7 @@ CLASS zcl_abapgit_popup_tag_list IMPLEMENTATION.
 
 
   METHOD create.
-    CREATE OBJECT ri_popup TYPE zcl_abapgit_popup_tag_list
-      EXPORTING
-        iv_url = iv_url.
+    ri_popup = NEW zcl_abapgit_popup_tag_list( iv_url = iv_url ).
   ENDMETHOD.
 
 
@@ -48,11 +46,9 @@ CLASS zcl_abapgit_popup_tag_list IMPLEMENTATION.
 
   METHOD zif_abapgit_html_popup~create_picklist.
 
-    CREATE OBJECT ro_picklist
-      EXPORTING
-        iv_title         = 'Choose Tag'
-        it_list          = fetch_tag_list( )
-        ii_item_renderer = me.
+    ro_picklist = NEW #( iv_title = 'Choose Tag'
+                         it_list = fetch_tag_list( )
+                         ii_item_renderer = me ).
 
   ENDMETHOD.
 

@@ -122,7 +122,7 @@ CLASS zcl_abapgit_object_iext IMPLEMENTATION.
       EXCEPTIONS
         OTHERS    = 1.
 
-    rv_bool = boolc( sy-subrc = 0 ).
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 

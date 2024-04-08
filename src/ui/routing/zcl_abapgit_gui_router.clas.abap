@@ -288,7 +288,7 @@ CLASS ZCL_ABAPGIT_GUI_ROUTER IMPLEMENTATION.
 
         lo_repo ?= zcl_abapgit_repo_srv=>get_instance( )->get( lv_key ).
 
-        CREATE OBJECT lo_obj_filter_trans.
+        lo_obj_filter_trans = NEW #( ).
         lo_obj_filter_trans->set_filter_values( iv_package  = lo_repo->get_package( )
                                                 it_r_trkorr = lt_r_trkorr ).
 
@@ -533,7 +533,7 @@ CLASS ZCL_ABAPGIT_GUI_ROUTER IMPLEMENTATION.
     IF iv_line CO '0123456789'.
       lv_line_number = iv_line.
     ENDIF.
-    lv_new_window = boolc( iv_new_window IS NOT INITIAL ).
+    lv_new_window = xsdbool( iv_new_window IS NOT INITIAL ).
 
     TRY.
         li_html_viewer = zcl_abapgit_ui_factory=>get_html_viewer( ).
@@ -847,7 +847,7 @@ CLASS ZCL_ABAPGIT_GUI_ROUTER IMPLEMENTATION.
         lt_r_trkorr = zcl_abapgit_ui_factory=>get_popups( )->popup_select_wb_tc_tr_and_tsk( ).
         lo_repo ?= zcl_abapgit_repo_srv=>get_instance( )->get( lv_key ).
         lo_repo->refresh( ).
-        CREATE OBJECT lo_obj_filter_trans.
+        lo_obj_filter_trans = NEW #( ).
         lo_obj_filter_trans->set_filter_values( iv_package  = lo_repo->get_package( )
                                                 it_r_trkorr = lt_r_trkorr ).
 

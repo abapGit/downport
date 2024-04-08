@@ -83,8 +83,8 @@ CLASS zcl_abapgit_gui_page_sett_pers IMPLEMENTATION.
   METHOD constructor.
 
     super->constructor( ).
-    CREATE OBJECT mo_validation_log.
-    CREATE OBJECT mo_form_data.
+    mo_validation_log = NEW #( ).
+    mo_form_data = NEW #( ).
     mo_form = get_form_schema( ).
     mo_form_data = read_settings( ).
 
@@ -95,7 +95,7 @@ CLASS zcl_abapgit_gui_page_sett_pers IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_sett_pers.
 
-    CREATE OBJECT lo_component.
+    lo_component = NEW #( ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Personal Settings'
@@ -208,12 +208,12 @@ CLASS zcl_abapgit_gui_page_sett_pers IMPLEMENTATION.
     " Get settings from DB
     mo_settings = zcl_abapgit_persist_factory=>get_settings( )->read( ).
     ms_settings = mo_settings->get_user_settings( ).
-    CREATE OBJECT ro_form_data.
+    ro_form_data = NEW #( ).
 
     " Startup
     ro_form_data->set(
       iv_key = c_id-show_default_repo
-      iv_val = boolc( ms_settings-show_default_repo = abap_true ) ) ##TYPE.
+      iv_val = xsdbool( ms_settings-show_default_repo = abap_true ) ) ##TYPE.
 
     " UI
     ro_form_data->set(
@@ -232,13 +232,13 @@ CLASS zcl_abapgit_gui_page_sett_pers IMPLEMENTATION.
     " Interaction
     ro_form_data->set(
       iv_key = c_id-activate_wo_popup
-      iv_val = boolc( ms_settings-activate_wo_popup = abap_true ) ) ##TYPE.
+      iv_val = xsdbool( ms_settings-activate_wo_popup = abap_true ) ) ##TYPE.
     ro_form_data->set(
       iv_key = c_id-adt_jump_enabled
-      iv_val = boolc( ms_settings-adt_jump_enabled = abap_true ) ) ##TYPE.
+      iv_val = xsdbool( ms_settings-adt_jump_enabled = abap_true ) ) ##TYPE.
     ro_form_data->set(
       iv_key = c_id-link_hints_enabled
-      iv_val = boolc( ms_settings-link_hints_enabled = abap_true ) ) ##TYPE.
+      iv_val = xsdbool( ms_settings-link_hints_enabled = abap_true ) ) ##TYPE.
     ro_form_data->set(
       iv_key = c_id-link_hint_key
       iv_val = |{ ms_settings-link_hint_key }| ).
@@ -246,7 +246,7 @@ CLASS zcl_abapgit_gui_page_sett_pers IMPLEMENTATION.
     " Resources
     ro_form_data->set(
       iv_key = c_id-parallel_proc_disabled
-      iv_val = boolc( ms_settings-parallel_proc_disabled = abap_true ) ) ##TYPE.
+      iv_val = xsdbool( ms_settings-parallel_proc_disabled = abap_true ) ) ##TYPE.
 
   ENDMETHOD.
 
@@ -397,7 +397,7 @@ CLASS zcl_abapgit_gui_page_sett_pers IMPLEMENTATION.
 
     register_handlers( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
     ri_html->add( '<div class="form-container">' ).
     ri_html->add( mo_form->render(
       io_values         = mo_form_data

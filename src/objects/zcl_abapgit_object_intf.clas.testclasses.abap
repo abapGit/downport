@@ -142,15 +142,13 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     mo_files = zcl_abapgit_objects_files=>new( ms_item ).
 
-    CREATE OBJECT lo_cut
-      EXPORTING
-        is_item     = ms_item
-        iv_language = 'E'
-        io_files    = mo_files.
+    lo_cut = NEW #( is_item = ms_item
+                    iv_language = 'E'
+                    io_files = mo_files ).
 
-    CREATE OBJECT mo_log.
+    mo_log = NEW #( ).
 
-    CREATE OBJECT mo_object_fnc.
+    mo_object_fnc = NEW #( ).
     lo_cut->mi_object_oriented_object_fct  = mo_object_fnc.
 
     mo_cut = lo_cut.
@@ -166,9 +164,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA ls_expected_docu_line TYPE tline.
     DATA lt_expected_docu_lines TYPE tlinetab.
 
-    CREATE OBJECT lo_xmlin TYPE zcl_abapgit_xml_input
-      EXPORTING
-        iv_xml = get_xml( ).
+    lo_xmlin = NEW zcl_abapgit_xml_input( iv_xml = get_xml( ) ).
 
     mo_files->add_abap( get_source( ) ).
 
@@ -363,7 +359,6 @@ CLASS ltcl_aff_metadata IMPLEMENTATION.
   METHOD deserialize_non_defaults.
     DATA:
       lv_source                  TYPE string,
-      lv_source_xstring          TYPE xstring,
       ls_description_type        TYPE zif_abapgit_aff_oo_types_v1=>ty_component_description,
       ls_description_attr        TYPE zif_abapgit_aff_oo_types_v1=>ty_component_description,
       ls_description_meth_param  TYPE zif_abapgit_aff_oo_types_v1=>ty_component_description,
@@ -447,10 +442,8 @@ CLASS ltcl_aff_metadata IMPLEMENTATION.
       `  }` && cl_abap_char_utilities=>newline &&
       `}` && cl_abap_char_utilities=>newline.
 
-    lv_source_xstring = cl_abap_codepage=>convert_to( lv_source ).
-
     " cut
-    ls_actual = lcl_aff_metadata_handler=>deserialize( lv_source_xstring ).
+    ls_actual = lcl_aff_metadata_handler=>deserialize( lv_source ).
 
     cl_abap_unit_assert=>assert_equals( act = ls_actual
                                         exp = ls_expected ).
@@ -459,7 +452,6 @@ CLASS ltcl_aff_metadata IMPLEMENTATION.
   METHOD deserialize_defaults.
     DATA:
       lv_source         TYPE string,
-      lv_source_xstring TYPE xstring,
       ls_actual         TYPE zif_abapgit_aff_intf_v1=>ty_main,
       ls_expected       TYPE zif_abapgit_aff_intf_v1=>ty_main.
 
@@ -480,10 +472,8 @@ CLASS ltcl_aff_metadata IMPLEMENTATION.
       `  }` && cl_abap_char_utilities=>newline &&
       `}` && cl_abap_char_utilities=>newline.
 
-    lv_source_xstring = cl_abap_codepage=>convert_to( lv_source ).
-
     " cut
-    ls_actual = lcl_aff_metadata_handler=>deserialize( lv_source_xstring ).
+    ls_actual = lcl_aff_metadata_handler=>deserialize( lv_source ).
 
     cl_abap_unit_assert=>assert_equals( act = ls_actual
                                         exp = ls_expected ).

@@ -123,7 +123,7 @@ CLASS zcl_abapgit_object_intf IMPLEMENTATION.
 
     mi_object_oriented_object_fct = zcl_abapgit_oo_factory=>get_by_type( ms_item-obj_type ).
 
-    CREATE OBJECT li_aff_registry TYPE zcl_abapgit_aff_registry.
+    li_aff_registry = NEW zcl_abapgit_aff_registry( ).
 
     mv_aff_enabled = li_aff_registry->is_supported_object_type( 'INTF' ).
 
@@ -262,14 +262,14 @@ CLASS zcl_abapgit_object_intf IMPLEMENTATION.
 
 
   METHOD read_json.
-    DATA lv_json_data TYPE xstring.
+    DATA lv_json_data TYPE string.
     DATA ls_intf_aff TYPE zif_abapgit_aff_intf_v1=>ty_main.
     DATA lo_aff_mapper TYPE REF TO zif_abapgit_aff_type_mapping.
 
-    lv_json_data = mo_files->read_raw( 'json' ).
+    lv_json_data = mo_files->read_string( 'json' ).
     ls_intf_aff = lcl_aff_metadata_handler=>deserialize( lv_json_data ).
 
-    CREATE OBJECT lo_aff_mapper TYPE lcl_aff_type_mapping.
+    lo_aff_mapper = NEW lcl_aff_type_mapping( ).
     lo_aff_mapper->to_abapgit( EXPORTING iv_data        = ls_intf_aff
                                          iv_object_name = ms_item-obj_name
                                IMPORTING es_data        = rs_intf ).
@@ -535,6 +535,7 @@ CLASS zcl_abapgit_object_intf IMPLEMENTATION.
         lcl_aff_metadata_handler=>deserialize_translation(
           EXPORTING
             io_files           = mo_files
+            is_item            = ms_item
           IMPORTING
             et_description     = lt_description
             et_description_sub = lt_description_sub ).

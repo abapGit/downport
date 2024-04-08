@@ -13,7 +13,7 @@ CLASS lcl_json_path DEFINITION CREATE PUBLIC.
 
     CLASS-METHODS: deserialize
       IMPORTING it_json_path     TYPE string_table
-      RETURNING VALUE(rv_result) TYPE xstring
+      RETURNING VALUE(rv_result) TYPE string
       RAISING   zcx_abapgit_exception.
 
   PROTECTED SECTION.
@@ -98,7 +98,7 @@ CLASS lcl_json_path IMPLEMENTATION.
 
   METHOD path_contains_array.
     DATA lv_array_pattern TYPE string VALUE `.*\[.*\].*`.
-    rv_result = boolc( matches( val   = iv_path
+    rv_result = xsdbool( matches( val   = iv_path
                                 regex = lv_array_pattern ) ).
   ENDMETHOD.
 
@@ -170,7 +170,7 @@ CLASS lcl_json_path IMPLEMENTATION.
   METHOD is_primitiv.
 
     FIND REGEX `^.\w+` IN iv_string. " string start with .
-    rv_result = boolc( sy-subrc = 0 ).
+    rv_result = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -200,15 +200,15 @@ CLASS lcl_json_path IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD is_array.
-    rv_result = boolc( io_reader->name = 'array' ).
+    rv_result = xsdbool( io_reader->name = 'array' ).
   ENDMETHOD.
 
   METHOD is_string_open.
-    rv_result = boolc( io_reader->name = 'str' AND io_reader->node_type = if_sxml_node=>co_nt_element_open ).
+    rv_result = xsdbool( io_reader->name = 'str' AND io_reader->node_type = if_sxml_node=>co_nt_element_open ).
   ENDMETHOD.
 
   METHOD is_object.
-    rv_result = boolc( io_reader->name = 'object' ).
+    rv_result = xsdbool( io_reader->name = 'object' ).
   ENDMETHOD.
 
   METHOD serialize_rec.
@@ -343,8 +343,7 @@ CLASS lcl_json_path IMPLEMENTATION.
     DATA: lo_merged                 TYPE REF TO zif_abapgit_ajson,
           lv_json_path              TYPE string,
           lo_deserialization_result TYPE REF TO zif_abapgit_ajson,
-          lx_ajson                  TYPE REF TO zcx_abapgit_ajson_error,
-          lv_result_as_string       TYPE string.
+          lx_ajson                  TYPE REF TO zcx_abapgit_ajson_error.
 
     TRY.
         lo_merged = zcl_abapgit_ajson=>parse( `` ).
@@ -374,8 +373,7 @@ CLASS lcl_json_path IMPLEMENTATION.
     ENDLOOP.
 
     TRY.
-        lv_result_as_string = lo_merged->stringify( 2 ).
-        rv_result = zcl_abapgit_convert=>string_to_xstring( lv_result_as_string ).
+        rv_result = lo_merged->stringify( 2 ).
       CATCH zcx_abapgit_ajson_error INTO lx_ajson.
         zcx_abapgit_exception=>raise_with_text( lx_ajson ).
     ENDTRY.
