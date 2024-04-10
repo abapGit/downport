@@ -36,7 +36,7 @@ CLASS ltcl_oo_serialize IMPLEMENTATION.
 
   METHOD setup.
 
-    CREATE OBJECT mo_oo_serializer.
+    mo_oo_serializer = NEW #( ).
 
   ENDMETHOD.
 
