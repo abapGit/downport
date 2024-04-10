@@ -50,7 +50,7 @@ CLASS lcl_status_consistency_checks DEFINITION FINAL.
         zcx_abapgit_exception .
     METHODS check_namespace
       IMPORTING
-        !it_results      TYPE zif_abapgit_definitions=>ty_results_tt
+        !it_results TYPE zif_abapgit_definitions=>ty_results_tt
       RAISING
         zcx_abapgit_exception .
 
@@ -65,7 +65,7 @@ CLASS lcl_status_consistency_checks IMPLEMENTATION.
 
   METHOD run_checks.
 
-    CREATE OBJECT mi_log TYPE zcl_abapgit_log.
+    mi_log = NEW zcl_abapgit_log( ).
 
     " Find all objects which were assigned to a different package
     check_package_move( it_results ).
@@ -227,7 +227,12 @@ CLASS lcl_status_consistency_checks IMPLEMENTATION.
       lv_object = |{ <ls_result>-obj_type } { <ls_result>-obj_name }|.
 
       IF lv_path IS INITIAL.
-        mi_log->add_error( |{ lv_object } already exists outside of { iv_top } package hierarchy| ).
+        IF <ls_result>-package(1) = '$'.
+          mi_log->add_warning( |{ lv_object } exists but package { <ls_result>-package } is missing|
+            && | (might have been lost during an upgrade, SAP Note 2478895)| ).
+        ELSE.
+          mi_log->add_error( |{ lv_object } already exists outside of { iv_top } package hierarchy| ).
+        ENDIF.
       ELSEIF lv_path <> <ls_result>-path.
         mi_log->add_warning( |Package and path do not match for object { lv_object }| ).
       ENDIF.
