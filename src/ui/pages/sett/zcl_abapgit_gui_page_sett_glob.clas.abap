@@ -87,8 +87,8 @@ CLASS zcl_abapgit_gui_page_sett_glob IMPLEMENTATION.
   METHOD constructor.
 
     super->constructor( ).
-    mo_validation_log = NEW #( ).
-    mo_form_data = NEW #( ).
+    CREATE OBJECT mo_validation_log.
+    CREATE OBJECT mo_form_data.
     mo_form = get_form_schema( ).
     mo_form_data = read_settings( ).
 
@@ -99,7 +99,7 @@ CLASS zcl_abapgit_gui_page_sett_glob IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_sett_glob.
 
-    lo_component = NEW #( ).
+    CREATE OBJECT lo_component.
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Global Settings'
@@ -210,7 +210,7 @@ CLASS zcl_abapgit_gui_page_sett_glob IMPLEMENTATION.
 
     " Get settings from DB
     mo_settings = zcl_abapgit_persist_factory=>get_settings( )->read( ).
-    ro_form_data = NEW #( ).
+    CREATE OBJECT ro_form_data.
 
     " Proxy
     ro_form_data->set(
@@ -219,9 +219,11 @@ CLASS zcl_abapgit_gui_page_sett_glob IMPLEMENTATION.
     ro_form_data->set(
       iv_key = c_id-proxy_port
       iv_val = mo_settings->get_proxy_port( ) ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( mo_settings->get_proxy_authentication( ) = abap_true ).
     ro_form_data->set(
       iv_key = c_id-proxy_auth
-      iv_val = xsdbool( mo_settings->get_proxy_authentication( ) = abap_true ) ) ##TYPE.
+      iv_val = temp1 ) ##TYPE.
 
     read_proxy_bypass(
       io_settings = mo_settings
@@ -237,15 +239,19 @@ CLASS zcl_abapgit_gui_page_sett_glob IMPLEMENTATION.
     ro_form_data->set(
       iv_key = c_id-commitmsg_body_size
       iv_val = |{ mo_settings->get_commitmsg_body_size( ) }| ).
+    DATA temp2 TYPE xsdboolean.
+    temp2 = boolc( mo_settings->get_commitmsg_hide_author( ) = abap_true ).
     ro_form_data->set(
       iv_key = c_id-commitmsg_hide_author
-      iv_val = xsdbool( mo_settings->get_commitmsg_hide_author( ) = abap_true ) ) ##TYPE.
+      iv_val = temp2 ) ##TYPE.
 
     " Dev Internal
     IF zcl_abapgit_factory=>get_environment( )->is_merged( ) = abap_false.
+      DATA temp3 TYPE xsdboolean.
+      temp3 = boolc( mo_settings->get_run_critical_tests( ) = abap_true ).
       ro_form_data->set(
         iv_key = c_id-run_critical_tests
-        iv_val = xsdbool( mo_settings->get_run_critical_tests( ) = abap_true ) ) ##TYPE.
+        iv_val = temp3 ) ##TYPE.
       ro_form_data->set(
         iv_key = c_id-experimental_features
         iv_val = mo_settings->get_experimental_features( ) ).
@@ -256,8 +262,9 @@ CLASS zcl_abapgit_gui_page_sett_glob IMPLEMENTATION.
 
   METHOD save_proxy_bypass.
 
-    DATA:
-      lt_textarea     TYPE TABLE OF string,
+    TYPES temp1 TYPE TABLE OF string.
+DATA:
+      lt_textarea     TYPE temp1,
       lt_proxy_bypass TYPE zif_abapgit_definitions=>ty_range_proxy_bypass_url,
       ls_proxy_bypass LIKE LINE OF lt_proxy_bypass.
 
@@ -287,7 +294,9 @@ CLASS zcl_abapgit_gui_page_sett_glob IMPLEMENTATION.
     " Proxy
     mo_settings->set_proxy_url( mo_form_data->get( c_id-proxy_url ) ).
     mo_settings->set_proxy_port( mo_form_data->get( c_id-proxy_port ) ).
-    mo_settings->set_proxy_authentication( xsdbool( mo_form_data->get( c_id-proxy_auth ) = abap_true ) ).
+    DATA temp4 TYPE xsdboolean.
+    temp4 = boolc( mo_form_data->get( c_id-proxy_auth ) = abap_true ).
+    mo_settings->set_proxy_authentication( temp4 ).
 
     save_proxy_bypass( ).
 
@@ -297,11 +306,15 @@ CLASS zcl_abapgit_gui_page_sett_glob IMPLEMENTATION.
     mo_settings->set_commitmsg_comment_default( mo_form_data->get( c_id-commitmsg_comment_deflt ) ).
     lv_value = mo_form_data->get( c_id-commitmsg_body_size ).
     mo_settings->set_commitmsg_body_size( lv_value ).
-    mo_settings->set_commitmsg_hide_author( xsdbool( mo_form_data->get( c_id-commitmsg_hide_author ) = abap_true ) ).
+    DATA temp5 TYPE xsdboolean.
+    temp5 = boolc( mo_form_data->get( c_id-commitmsg_hide_author ) = abap_true ).
+    mo_settings->set_commitmsg_hide_author( temp5 ).
 
     " Dev Internal
     IF zcl_abapgit_factory=>get_environment( )->is_merged( ) = abap_false.
-      mo_settings->set_run_critical_tests( xsdbool( mo_form_data->get( c_id-run_critical_tests ) = abap_true ) ).
+      DATA temp6 TYPE xsdboolean.
+      temp6 = boolc( mo_form_data->get( c_id-run_critical_tests ) = abap_true ).
+      mo_settings->set_run_critical_tests( temp6 ).
       mo_settings->set_experimental_features( mo_form_data->get( c_id-experimental_features ) ).
     ENDIF.
 
@@ -368,7 +381,7 @@ CLASS zcl_abapgit_gui_page_sett_glob IMPLEMENTATION.
 
     register_handlers( ).
 
-    ri_html = NEW zcl_abapgit_html( ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
     ri_html->add( '<div class="form-container">' ).
     ri_html->add( mo_form->render(
       io_values         = mo_form_data
