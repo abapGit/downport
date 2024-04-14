@@ -93,7 +93,7 @@ CLASS zcl_abapgit_po_file IMPLEMENTATION.
     FIELD-SYMBOLS <ls_pair> LIKE LINE OF mt_pairs.
     FIELD-SYMBOLS <ls_comment> LIKE LINE OF <ls_pair>-comments.
 
-    CREATE OBJECT ro_buf.
+    ro_buf = NEW #( ).
 
     LOOP AT mt_pairs ASSIGNING <ls_pair>.
       IF sy-tabix <> 1.
@@ -116,7 +116,7 @@ CLASS zcl_abapgit_po_file IMPLEMENTATION.
 
   METHOD build_po_head.
 
-    CREATE OBJECT ro_buf.
+    ro_buf = NEW #( ).
 
     " TODO, more headers ? sample: https://www.gnu.org/software/trans-coord/manual/gnun/html_node/PO-Header.html
     " TODO, does \n really necessary ? check editors support for non-\n
