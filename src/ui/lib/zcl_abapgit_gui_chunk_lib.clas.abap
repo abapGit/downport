@@ -19,6 +19,11 @@ CLASS zcl_abapgit_gui_chunk_lib DEFINITION
         !iv_extra_style TYPE string OPTIONAL
       RETURNING
         VALUE(ri_html)  TYPE REF TO zif_abapgit_html .
+    CLASS-METHODS render_success
+      IMPORTING
+        iv_message TYPE string
+      RETURNING
+        VALUE(ri_html)  TYPE REF TO zif_abapgit_html .
     CLASS-METHODS render_repo_top
       IMPORTING
         !io_repo               TYPE REF TO zcl_abapgit_repo
@@ -184,6 +189,7 @@ CLASS zcl_abapgit_gui_chunk_lib DEFINITION
     CLASS-METHODS render_help_hint
       IMPORTING
         iv_text_to_wrap TYPE string
+        iv_add_class TYPE string OPTIONAL
       RETURNING
         VALUE(rv_html)  TYPE string.
 
@@ -195,7 +201,10 @@ CLASS zcl_abapgit_gui_chunk_lib DEFINITION
 
     CLASS-METHODS get_item_link
       IMPORTING
-        !is_item       TYPE zif_abapgit_definitions=>ty_repo_item
+        !is_item       TYPE zif_abapgit_definitions=>ty_repo_item OPTIONAL
+        !iv_obj_type   TYPE zif_abapgit_definitions=>ty_repo_item-obj_type OPTIONAL
+        !iv_obj_name   TYPE zif_abapgit_definitions=>ty_repo_item-obj_name OPTIONAL
+        PREFERRED PARAMETER is_item
       RETURNING
         VALUE(rv_html) TYPE string.
 
@@ -234,7 +243,7 @@ ENDCLASS.
 
 
 
-CLASS zcl_abapgit_gui_chunk_lib IMPLEMENTATION.
+CLASS ZCL_ABAPGIT_GUI_CHUNK_LIB IMPLEMENTATION.
 
 
   METHOD class_constructor.
@@ -288,15 +297,23 @@ CLASS zcl_abapgit_gui_chunk_lib IMPLEMENTATION.
 
     DATA lv_encode TYPE string.
     DATA li_html TYPE REF TO zif_abapgit_html.
+    DATA ls_item LIKE is_item.
 
-    CREATE OBJECT li_html TYPE zcl_abapgit_html.
+    IF is_item IS INITIAL.
+      ls_item-obj_type = iv_obj_type.
+      ls_item-obj_name = iv_obj_name.
+    ELSE.
+      ls_item = is_item.
+    ENDIF.
+
+    li_html = NEW zcl_abapgit_html( ).
 
     lv_encode = zcl_abapgit_html_action_utils=>jump_encode(
-      iv_obj_type = is_item-obj_type
-      iv_obj_name = is_item-obj_name ).
+      iv_obj_type = ls_item-obj_type
+      iv_obj_name = ls_item-obj_name ).
 
     rv_html = li_html->a(
-      iv_txt = |{ is_item-obj_name }|
+      iv_txt = |{ ls_item-obj_name }|
       iv_act = |{ zif_abapgit_definitions=>c_action-jump }?{ lv_encode }| ).
 
   ENDMETHOD.
@@ -376,7 +393,7 @@ CLASS zcl_abapgit_gui_chunk_lib IMPLEMENTATION.
         lv_hint  = 'Current commit'.
     ENDCASE.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
     ri_html->add( |<span class="{ lv_class }">| ).
     ri_html->add_icon( iv_name = lv_icon
                        iv_hint = lv_hint ).
@@ -400,7 +417,7 @@ CLASS zcl_abapgit_gui_chunk_lib IMPLEMENTATION.
       lv_class = lv_class && ` ` && iv_extra_style.
     ENDIF.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     IF ix_error IS BOUND.
       lv_error = ix_error->get_text( ).
@@ -428,7 +445,7 @@ CLASS zcl_abapgit_gui_chunk_lib IMPLEMENTATION.
       <lv_longtext_paragraph> TYPE string.
 
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     lv_error_text = ix_error->get_text( ).
     lv_longtext = ix_error->if_message~get_longtext( abap_true ).
@@ -532,7 +549,7 @@ CLASS zcl_abapgit_gui_chunk_lib IMPLEMENTATION.
 
   METHOD render_event_as_form.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add(
       |<form id="form_{ is_event-name }" method="{ is_event-method }" action="sapevent:{ is_event-name }"></form>| ).
@@ -542,22 +559,25 @@ CLASS zcl_abapgit_gui_chunk_lib IMPLEMENTATION.
 
   METHOD render_help_hint.
 
-    " TODO potentially move to or integrate with zcl_abapgit_html_form
-
-    DATA lt_fragments TYPE string_table.
     DATA li_html TYPE REF TO zif_abapgit_html.
+    DATA lv_add_class TYPE string.
+
     li_html = zcl_abapgit_html=>create( ).
 
-    APPEND `<div class="form-field-help-tooltip">` TO lt_fragments.
-    APPEND li_html->icon(
-      iv_name = 'question-circle-solid'
-      iv_class = 'blue' ) TO lt_fragments.
-    APPEND `<div class="form-field-help-tooltip-text">` TO lt_fragments.
-    APPEND iv_text_to_wrap TO lt_fragments.
-    APPEND `</div>` TO lt_fragments.
-    APPEND `</div>` TO lt_fragments.
+    IF iv_add_class IS NOT INITIAL.
+      lv_add_class = ` ` && iv_add_class.
+    ENDIF.
 
-    rv_html = concat_lines_of( lt_fragments ).
+    li_html->add( |<div class="form-field-help-tooltip{ lv_add_class }">| ).
+    li_html->add_icon(
+      iv_name = 'question-circle-solid'
+      iv_class = 'blue' ).
+    li_html->add( `<div class="form-field-help-tooltip-text">` ).
+    li_html->add( iv_text_to_wrap ).
+    li_html->add( `</div>` ).
+    li_html->add( `</div>` ).
+
+    rv_html = li_html->render( iv_no_line_breaks = abap_true ).
 
   ENDMETHOD.
 
@@ -567,7 +587,7 @@ CLASS zcl_abapgit_gui_chunk_lib IMPLEMENTATION.
     DATA lv_display TYPE string.
     DATA lv_class TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     IF iv_hide = abap_true. " Initially hide
       lv_display = 'display:none'.
@@ -648,7 +668,7 @@ CLASS zcl_abapgit_gui_chunk_lib IMPLEMENTATION.
 
 
   METHOD render_js_error_banner.
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
     ri_html->add( '<div id="js-error-banner" class="dummydiv error">' ).
     ri_html->add( |{ ri_html->icon( 'exclamation-triangle/red' ) }| &&
                   ' If this does not disappear soon,' &&
@@ -729,7 +749,7 @@ CLASS zcl_abapgit_gui_chunk_lib IMPLEMENTATION.
 
     FIELD-SYMBOLS: <ls_line> LIKE LINE OF lt_log.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     IF io_news IS NOT BOUND OR io_news->has_news( ) = abap_false.
       RETURN.
@@ -785,7 +805,7 @@ CLASS zcl_abapgit_gui_chunk_lib IMPLEMENTATION.
       lv_jump     TYPE string,
       lv_title    TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     IF iv_package IS INITIAL.
       RETURN.
@@ -823,7 +843,7 @@ CLASS zcl_abapgit_gui_chunk_lib IMPLEMENTATION.
       lv_folder  TYPE string,
       lt_folders TYPE STANDARD TABLE OF string WITH DEFAULT KEY.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     IF iv_path IS INITIAL.
       RETURN.
@@ -882,7 +902,7 @@ CLASS zcl_abapgit_gui_chunk_lib IMPLEMENTATION.
     lv_size = lines( lt_repo_list ).
     SORT lt_repo_list BY local_settings-display_name AS TEXT.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( 'var repoCatalog = [' ). " Maybe separate this into another method if needed in more places
     LOOP AT lt_repo_list ASSIGNING <ls_repo>.
@@ -914,8 +934,8 @@ CLASS zcl_abapgit_gui_chunk_lib IMPLEMENTATION.
           lv_hint        TYPE string,
           lv_icon        TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
-    CREATE OBJECT lo_pback.
+    ri_html = NEW zcl_abapgit_html( ).
+    lo_pback = NEW #( ).
 
     IF io_repo->is_offline( ) = abap_true.
       lv_icon = 'plug/darkgrey'.
@@ -1051,7 +1071,7 @@ CLASS zcl_abapgit_gui_chunk_lib IMPLEMENTATION.
                                     iv_class = 'pad-sides'
                                     iv_hint  = 'Commit' ).
 
-    CREATE OBJECT lo_url.
+    lo_url = NEW #( ).
 
     TRY.
         lv_display_url = lo_url->get_commit_display_url( io_repo_online ).
@@ -1110,9 +1130,20 @@ CLASS zcl_abapgit_gui_chunk_lib IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD render_success.
+
+    ri_html = zcl_abapgit_html=>create( ).
+    ri_html->add( '<div class="dummydiv success">' ).
+    ri_html->add_icon( 'check' ).
+    ri_html->add( iv_message ).
+    ri_html->add( '</div>' ).
+
+  ENDMETHOD.
+
+
   METHOD render_table_footer.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<tfoot>' ).
     ri_html->add( '<tr>' ).
@@ -1135,7 +1166,7 @@ CLASS zcl_abapgit_gui_chunk_lib IMPLEMENTATION.
 
     FIELD-SYMBOLS <ls_col> LIKE LINE OF it_col_spec.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<thead>' ).
     ri_html->add( '<tr>' ).
@@ -1197,7 +1228,7 @@ CLASS zcl_abapgit_gui_chunk_lib IMPLEMENTATION.
 
     DATA lv_attrs TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     IF iv_value IS NOT INITIAL.
       lv_attrs = | value="{ iv_value }"|.
@@ -1238,7 +1269,7 @@ CLASS zcl_abapgit_gui_chunk_lib IMPLEMENTATION.
       lv_title TYPE string,
       lv_jump  TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     IF iv_transport IS INITIAL.
       RETURN.
@@ -1277,7 +1308,7 @@ CLASS zcl_abapgit_gui_chunk_lib IMPLEMENTATION.
       lv_title TYPE string,
       lv_jump  TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     IF iv_username IS INITIAL.
       RETURN.
@@ -1314,7 +1345,7 @@ CLASS zcl_abapgit_gui_chunk_lib IMPLEMENTATION.
 
   METHOD render_warning_banner.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
     ri_html->add( '<div class="dummydiv warning">' ).
     ri_html->add( |{ ri_html->icon( 'exclamation-triangle/yellow' ) } { iv_text }| ).
     ri_html->add( '</div>' ).

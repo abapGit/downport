@@ -115,7 +115,7 @@ ENDCLASS.
 
 
 
-CLASS zcl_abapgit_gui IMPLEMENTATION.
+CLASS ZCL_ABAPGIT_GUI IMPLEMENTATION.
 
 
   METHOD back.
@@ -224,7 +224,7 @@ CLASS zcl_abapgit_gui IMPLEMENTATION.
       ENDIF.
     ENDIF.
 
-    CREATE OBJECT mo_html_parts.
+    mo_html_parts = NEW #( ).
 
     mv_rollback_on_error = iv_rollback_on_error.
     mi_asset_man      = ii_asset_man.
@@ -273,10 +273,10 @@ CLASS zcl_abapgit_gui IMPLEMENTATION.
       li_event     TYPE REF TO zif_abapgit_gui_event,
       ls_handled   TYPE zif_abapgit_gui_event_handler=>ty_handling_result.
 
-    CREATE OBJECT li_event TYPE zcl_abapgit_gui_event EXPORTING ii_gui_services = me
-                                                                iv_action = iv_action
-                                                                iv_getdata = iv_getdata
-                                                                it_postdata = it_postdata.
+    li_event = NEW zcl_abapgit_gui_event( ii_gui_services = me
+                                          iv_action = iv_action
+                                          iv_getdata = iv_getdata
+                                          it_postdata = it_postdata ).
 
     TRY.
         ls_handled = zcl_abapgit_exit=>get_instance( )->on_event( li_event ).
@@ -410,7 +410,7 @@ CLASS zcl_abapgit_gui IMPLEMENTATION.
     ENDIF.
 
     li_html = mi_cur_page->render( ).
-    lv_html = li_html->render( abap_true ).
+    lv_html = li_html->render( iv_no_indent_jscss = abap_true ).
 
     IF mi_html_processor IS BOUND.
       lv_html = mi_html_processor->process(
@@ -548,7 +548,7 @@ CLASS zcl_abapgit_gui IMPLEMENTATION.
   METHOD zif_abapgit_gui_services~get_log.
 
     IF iv_create_new = abap_true OR mi_common_log IS NOT BOUND.
-      CREATE OBJECT mi_common_log TYPE zcl_abapgit_log.
+      mi_common_log = NEW zcl_abapgit_log( ).
     ENDIF.
 
     ri_log = mi_common_log.
