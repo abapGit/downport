@@ -135,12 +135,10 @@ CLASS zcl_abapgit_object_nspc IMPLEMENTATION.
 
   METHOD deserialize_texts.
 
-    TYPES temp1 TYPE TABLE OF langu.
-TYPES temp2 TYPE TABLE OF cvers_ref.
-DATA:
+    DATA:
       ls_trnspacett TYPE trnspacett,
-      lt_i18n_langs TYPE temp1,
-      lt_cvers_refs TYPE temp2,
+      lt_i18n_langs TYPE TABLE OF langu,
+      lt_cvers_refs TYPE TABLE OF cvers_ref,
       ls_cvers_ref  TYPE cvers_ref,
       lt_nspc_texts TYPE ty_nspc_texts.
 
@@ -215,13 +213,11 @@ DATA:
 
   METHOD serialize_texts.
 
-    TYPES temp3 TYPE TABLE OF cvers_ref.
-TYPES temp4 TYPE TABLE OF langu.
-DATA:
+    DATA:
       ls_trnspacett TYPE trnspacett,
       lt_nspc_texts TYPE ty_nspc_texts,
-      lt_cvers_refs TYPE temp3,
-      lt_i18n_langs TYPE temp4.
+      lt_cvers_refs TYPE TABLE OF cvers_ref,
+      lt_i18n_langs TYPE TABLE OF langu.
 
     FIELD-SYMBOLS:
       <lv_lang>      LIKE LINE OF lt_i18n_langs,
@@ -375,9 +371,7 @@ DATA:
         namespace_not_valid = 1
         OTHERS              = 2.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -436,9 +430,7 @@ DATA:
         view_not_found               = 13
         OTHERS                       = 14.
 
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( sy-subrc = 0 ).
-    rv_exit = temp2.
+    rv_exit = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
