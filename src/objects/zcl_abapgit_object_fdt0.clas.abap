@@ -82,7 +82,9 @@ CLASS zcl_abapgit_object_fdt0 IMPLEMENTATION.
         WHERE object_type = 'AP'
         AND id = lv_application_id
         AND deleted = ''.
-      ev_create = xsdbool( lv_count = 0 ).
+      DATA temp1 TYPE xsdboolean.
+      temp1 = boolc( lv_count = 0 ).
+      ev_create = temp1.
     ENDIF.
 
     " Fill in user/time/system-specific fields
@@ -394,7 +396,8 @@ CLASS zcl_abapgit_object_fdt0 IMPLEMENTATION.
   METHOD zif_abapgit_object~delete.
 
     DATA lv_is_local TYPE abap_bool.
-    DATA lt_application_id TYPE TABLE OF fdt_admn_0000s-application_id.
+    TYPES temp1 TYPE TABLE OF fdt_admn_0000s-application_id.
+DATA lt_application_id TYPE temp1.
     DATA ls_object_category_sel TYPE if_fdt_query=>s_object_category_sel.
     DATA lv_failure TYPE abap_bool.
     DATA lx_fdt_input TYPE REF TO cx_fdt_input.
@@ -588,7 +591,9 @@ CLASS zcl_abapgit_object_fdt0 IMPLEMENTATION.
       AND name = ms_item-obj_name
       AND deleted = ''.
 
-    rv_bool = xsdbool( lv_count > 0 ).
+    DATA temp2 TYPE xsdboolean.
+    temp2 = boolc( lv_count > 0 ).
+    rv_bool = temp2.
 
   ENDMETHOD.
 
@@ -598,12 +603,12 @@ CLASS zcl_abapgit_object_fdt0 IMPLEMENTATION.
     DATA lo_local_version_output TYPE REF TO zcl_abapgit_xml_output.
     DATA lo_local_version_input  TYPE REF TO zcl_abapgit_xml_input.
 
-    lo_local_version_output = NEW #( ).
+    CREATE OBJECT lo_local_version_output.
     zif_abapgit_object~serialize( lo_local_version_output ).
 
-    lo_local_version_input = NEW #( iv_xml = lo_local_version_output->zif_abapgit_xml_output~render( ) ).
+    CREATE OBJECT lo_local_version_input EXPORTING iv_xml = lo_local_version_output->zif_abapgit_xml_output~render( ).
 
-    ri_comparator = NEW zcl_abapgit_object_tabl_compar( ii_local = lo_local_version_input ).
+    CREATE OBJECT ri_comparator TYPE zcl_abapgit_object_tabl_compar EXPORTING ii_local = lo_local_version_input.
 
   ENDMETHOD.
 
@@ -650,7 +655,9 @@ CLASS zcl_abapgit_object_fdt0 IMPLEMENTATION.
     lv_index = lines( lt_version ).
     READ TABLE lt_version ASSIGNING <ls_version> INDEX lv_index.
 
-    rv_active = xsdbool( <ls_version>-state = 'A' ).
+    DATA temp3 TYPE xsdboolean.
+    temp3 = boolc( <ls_version>-state = 'A' ).
+    rv_active = temp3.
 
   ENDMETHOD.
 
