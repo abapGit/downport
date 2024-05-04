@@ -245,7 +245,9 @@ CLASS zcl_abapgit_object_sush IMPLEMENTATION.
     SELECT SINGLE * FROM usobhash INTO ls_usobhash "#EC CI_ALL_FIELDS_NEEDED
         WHERE name = ms_item-obj_name.                "#EC CI_SGLSELECT
 
-    rv_bool = xsdbool( sy-subrc = 0 ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( sy-subrc = 0 ).
+    rv_bool = temp1.
 
   ENDMETHOD.
 
