@@ -103,9 +103,8 @@ CLASS lcl_startup IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD set_start_repo_from_package.
-    TYPES temp1 TYPE RANGE OF devclass.
-DATA: lo_repo          TYPE REF TO zcl_abapgit_repo,
-          lt_r_package     TYPE temp1,
+    DATA: lo_repo          TYPE REF TO zcl_abapgit_repo,
+          lt_r_package     TYPE RANGE OF devclass,
           ls_r_package     LIKE LINE OF lt_r_package,
           lt_superpackages TYPE zif_abapgit_sap_package=>ty_devclass_tt,
           li_package       TYPE REF TO zif_abapgit_sap_package,
@@ -257,9 +256,8 @@ ENDFORM.
 
 FORM output.
 
-  TYPES temp2 TYPE TABLE OF sy-ucomm.
-DATA: lx_error TYPE REF TO zcx_abapgit_exception,
-        lt_ucomm TYPE temp2.
+  DATA: lx_error TYPE REF TO zcx_abapgit_exception,
+        lt_ucomm TYPE TABLE OF sy-ucomm.
 
   PERFORM set_pf_status IN PROGRAM rsdbrunt IF FOUND.
 
@@ -339,9 +337,8 @@ FORM adjust_toolbar USING pv_dynnr TYPE sy-dynnr.
 
   " Remove toolbar on html screen but re-insert toolbar for variant maintenance.
   " Because otherwise important buttons are missing and variant maintenance is not possible.
-  DATA temp1 TYPE xsdboolean.
-  temp1 = boolc( zcl_abapgit_factory=>get_environment( )->is_variant_maintenance( ) = abap_false ).
-  lv_no_toolbar = temp1.
+  lv_no_toolbar = xsdbool( zcl_abapgit_factory=>get_environment(
+                                           )->is_variant_maintenance( ) = abap_false ).
 
   IF ls_header-no_toolbar = lv_no_toolbar.
     RETURN. " No change required
