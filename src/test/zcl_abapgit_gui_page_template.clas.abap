@@ -59,7 +59,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_TEMPLATE IMPLEMENTATION.
     " TODO: replace with name of class (self)
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_template.
 
-    CREATE OBJECT lo_component.
+    lo_component = NEW #( ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create( lo_component ).
 
