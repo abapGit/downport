@@ -119,8 +119,12 @@ CLASS zcl_abapgit_filename_logic IMPLEMENTATION.
 
   METHOD detect_obj_definition.
 
-    ev_is_xml  = xsdbool( iv_ext = to_upper( c_package_file-extension ) AND strlen( iv_type ) = 4 ).
-    ev_is_json = xsdbool( iv_ext = to_upper( c_json_file-extension ) AND strlen( iv_type ) = 4 ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( iv_ext = to_upper( c_package_file-extension ) AND strlen( iv_type ) = 4 ).
+    ev_is_xml  = temp1.
+    DATA temp2 TYPE xsdboolean.
+    temp2 = boolc( iv_ext = to_upper( c_json_file-extension ) AND strlen( iv_type ) = 4 ).
+    ev_is_json = temp2.
 
   ENDMETHOD.
 
@@ -142,7 +146,7 @@ CLASS zcl_abapgit_filename_logic IMPLEMENTATION.
 
     " Assume AFF namespace convention
     IF go_aff_registry IS INITIAL.
-      go_aff_registry = NEW zcl_abapgit_aff_registry( ).
+      CREATE OBJECT go_aff_registry TYPE zcl_abapgit_aff_registry.
     ENDIF.
 
     IF go_aff_registry->is_supported_object_type( |{ lv_type }| ) = abap_true.
@@ -217,7 +221,9 @@ CLASS zcl_abapgit_filename_logic IMPLEMENTATION.
         ev_is_xml  = lv_xml
         ev_is_json = lv_json ).
 
-    rv_yes = xsdbool( lv_json = abap_true OR lv_xml = abap_true ).
+    DATA temp3 TYPE xsdboolean.
+    temp3 = boolc( lv_json = abap_true OR lv_xml = abap_true ).
+    rv_yes = temp3.
 
   ENDMETHOD.
 
@@ -326,7 +332,7 @@ CLASS zcl_abapgit_filename_logic IMPLEMENTATION.
     ENDTRY.
 
     " Handle namespaces
-    go_aff_registry = NEW zcl_abapgit_aff_registry( ).
+    CREATE OBJECT go_aff_registry TYPE zcl_abapgit_aff_registry.
 
     IF go_aff_registry->is_supported_object_type( is_item-obj_type ) = abap_true.
       FIND ALL OCCURRENCES OF `/` IN rv_filename MATCH COUNT lv_nb_of_slash.
