@@ -43,22 +43,22 @@ CLASS zcl_abapgit_gui_page_pull DEFINITION
 
   PRIVATE SECTION.
 
-    DATA mo_repo       TYPE REF TO zcl_abapgit_repo.
-    DATA mi_obj_filter TYPE REF TO zif_abapgit_object_filter.
-    DATA mo_form_data  TYPE REF TO zcl_abapgit_string_map.
-    DATA ms_checks     TYPE zif_abapgit_definitions=>ty_deserialize_checks.
+    DATA mo_repo TYPE REF TO zcl_abapgit_repo .
+    DATA mi_obj_filter TYPE REF TO zif_abapgit_object_filter .
+    DATA mo_form_data TYPE REF TO zcl_abapgit_string_map .
+    DATA ms_checks TYPE zif_abapgit_definitions=>ty_deserialize_checks .
 
-
+    METHODS pull
+      RAISING
+        zcx_abapgit_exception .
     METHODS form
       RETURNING
         VALUE(ro_form) TYPE REF TO zcl_abapgit_html_form
       RAISING
-        zcx_abapgit_exception.
-
+        zcx_abapgit_exception .
     METHODS choose_transport_request
       RAISING
         zcx_abapgit_exception .
-
 ENDCLASS.
 
 
@@ -88,7 +88,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_PULL IMPLEMENTATION.
     mo_repo       = io_repo.
     mi_obj_filter = ii_obj_filter.
 
-    CREATE OBJECT mo_form_data.
+    mo_form_data = NEW #( ).
     mo_form_data->set(
       iv_key = c_id-transport_request
       iv_val = iv_trkorr ).
@@ -100,9 +100,9 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_PULL IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_pull.
 
-    CREATE OBJECT lo_component EXPORTING io_repo = io_repo
-                                         iv_trkorr = iv_trkorr
-                                         ii_obj_filter = ii_obj_filter.
+    lo_component = NEW #( io_repo = io_repo
+                          iv_trkorr = iv_trkorr
+                          ii_obj_filter = ii_obj_filter ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title         = 'Pull'
@@ -161,11 +161,43 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_PULL IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD zif_abapgit_gui_event_handler~on_event.
+  METHOD pull.
 
     DATA lv_value TYPE string.
 
     FIELD-SYMBOLS <ls_overwrite> LIKE LINE OF ms_checks-overwrite.
+    FIELD-SYMBOLS <ls_warning> LIKE LINE OF ms_checks-warning_package.
+
+
+    ms_checks-transport-transport = mo_form_data->get( c_id-transport_request ).
+
+    LOOP AT ms_checks-overwrite ASSIGNING <ls_overwrite>.
+      lv_value = mo_form_data->get( |{ <ls_overwrite>-obj_type }-{ <ls_overwrite>-obj_name }| ).
+      IF lv_value = 'on'.
+        <ls_overwrite>-decision = zif_abapgit_definitions=>c_yes.
+      ELSE.
+        <ls_overwrite>-decision = zif_abapgit_definitions=>c_no.
+      ENDIF.
+    ENDLOOP.
+
+    LOOP AT ms_checks-warning_package ASSIGNING <ls_warning>.
+      lv_value = mo_form_data->get( |{ <ls_warning>-obj_type }-{ <ls_warning>-obj_name }| ).
+      IF lv_value = 'on'.
+        <ls_warning>-decision = zif_abapgit_definitions=>c_yes.
+      ELSE.
+        <ls_warning>-decision = zif_abapgit_definitions=>c_no.
+      ENDIF.
+    ENDLOOP.
+
+* todo, show log?
+    zcl_abapgit_services_repo=>real_deserialize(
+      is_checks = ms_checks
+      io_repo   = mo_repo ).
+
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_gui_event_handler~on_event.
 
     mo_form_data->merge( ii_event->form_data( ) ).
 
@@ -177,22 +209,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_PULL IMPLEMENTATION.
         choose_transport_request( ).
         rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
       WHEN c_action-pull.
-        ms_checks-transport-transport = mo_form_data->get( c_id-transport_request ).
-
-        LOOP AT ms_checks-overwrite ASSIGNING <ls_overwrite>.
-          lv_value = mo_form_data->get( |{ <ls_overwrite>-obj_type }-{ <ls_overwrite>-obj_name }| ).
-          IF lv_value = 'on'.
-            <ls_overwrite>-decision = zif_abapgit_definitions=>c_yes.
-          ELSE.
-            <ls_overwrite>-decision = zif_abapgit_definitions=>c_no.
-          ENDIF.
-        ENDLOOP.
-
-* todo, show log?
-        zcl_abapgit_services_repo=>real_deserialize(
-          is_checks = ms_checks
-          io_repo   = mo_repo ).
-
+        pull( ).
         rs_handled-state = zcl_abapgit_gui=>c_event_state-go_back.
     ENDCASE.
 
@@ -201,7 +218,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_PULL IMPLEMENTATION.
 
   METHOD zif_abapgit_gui_menu_provider~get_menu.
 
-    CREATE OBJECT ro_toolbar EXPORTING iv_id = 'toolbar-main'.
+    ro_toolbar = NEW #( iv_id = 'toolbar-main' ).
 
     ro_toolbar->add(
       iv_txt = 'Refresh'
@@ -218,7 +235,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_PULL IMPLEMENTATION.
 
     register_handlers( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
     ri_html->add( '<div class="repo-overview">' ).
 
     ms_checks = mo_repo->deserialize_checks( ).
