@@ -103,7 +103,8 @@ CLASS zcl_abapgit_gui_page_data IMPLEMENTATION.
     ro_form->text(
       iv_label       = 'Table'
       iv_name        = c_id-table
-      iv_required    = abap_true ).
+      iv_required    = abap_true
+      iv_max         = 16 ).
 
     ro_form->checkbox(
       iv_label = 'Skip Initial Values'
@@ -219,8 +220,8 @@ CLASS zcl_abapgit_gui_page_data IMPLEMENTATION.
 
     super->constructor( ).
 
-    CREATE OBJECT mo_validation_log.
-    CREATE OBJECT mo_form_data.
+    mo_validation_log = NEW #( ).
+    mo_form_data = NEW #( ).
 
     mo_form = get_form_schema( ).
     mo_form_util = zcl_abapgit_html_form_utils=>create( mo_form ).
@@ -235,7 +236,7 @@ CLASS zcl_abapgit_gui_page_data IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_data.
 
-    CREATE OBJECT lo_component EXPORTING iv_key = iv_key.
+    lo_component = NEW #( iv_key = iv_key ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title         = 'Data Config'
@@ -301,14 +302,14 @@ CLASS zcl_abapgit_gui_page_data IMPLEMENTATION.
     DATA lt_configs TYPE zif_abapgit_data_config=>ty_config_tt.
     DATA ls_config LIKE LINE OF lt_configs.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
-    CREATE OBJECT lo_form_data.
+    ri_html = NEW zcl_abapgit_html( ).
+    lo_form_data = NEW #( ).
 
     lt_configs = mi_config->get_configs( ).
 
     LOOP AT lt_configs INTO ls_config.
       lo_form = zcl_abapgit_html_form=>create( ).
-      CREATE OBJECT lo_form_data.
+      lo_form_data = NEW #( ).
 
       lo_form_data->set(
         iv_key = c_id-table
@@ -316,7 +317,8 @@ CLASS zcl_abapgit_gui_page_data IMPLEMENTATION.
       lo_form->text(
         iv_label    = 'Table'
         iv_name     = c_id-table
-        iv_readonly = abap_true ).
+        iv_readonly = abap_true
+        iv_max      = 16 ).
 
       lo_form_data->set(
         iv_key = c_id-skip_initial
@@ -378,7 +380,7 @@ CLASS zcl_abapgit_gui_page_data IMPLEMENTATION.
 
   METHOD zif_abapgit_gui_menu_provider~get_menu.
 
-    CREATE OBJECT ro_toolbar.
+    ro_toolbar = NEW #( ).
 
     ro_toolbar->add( iv_txt = 'Add Via Transport'
                      iv_act = c_event-add_via_transport ).
@@ -392,7 +394,7 @@ CLASS zcl_abapgit_gui_page_data IMPLEMENTATION.
 
     register_handlers( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
     ri_html->add( '<div class="repo">' ).
     ri_html->add( render_existing( ) ).
     mo_form_data->delete( 'table' ).
