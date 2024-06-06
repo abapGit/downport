@@ -39,6 +39,9 @@ CLASS zcl_abapgit_gui_page_sett_pers DEFINITION
         hide_sapgui_hint       TYPE string VALUE 'hide_sapgui_hint',
         activate_wo_popup      TYPE string VALUE 'activate_wo_popup',
         label_colors           TYPE string VALUE 'label_colors',
+        git_default_values     TYPE string VALUE 'git_default_values',
+        default_git_uname      TYPE string VALUE 'default_git_uname',
+        default_git_email      TYPE string VALUE 'default_git_email',
       END OF c_id.
     CONSTANTS:
       BEGIN OF c_event,
@@ -83,8 +86,8 @@ CLASS zcl_abapgit_gui_page_sett_pers IMPLEMENTATION.
   METHOD constructor.
 
     super->constructor( ).
-    CREATE OBJECT mo_validation_log.
-    CREATE OBJECT mo_form_data.
+    mo_validation_log = NEW #( ).
+    mo_form_data = NEW #( ).
     mo_form = get_form_schema( ).
     mo_form_data = read_settings( ).
 
@@ -95,7 +98,7 @@ CLASS zcl_abapgit_gui_page_sett_pers IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_sett_pers.
 
-    CREATE OBJECT lo_component.
+    lo_component = NEW #( ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Personal Settings'
@@ -188,6 +191,15 @@ CLASS zcl_abapgit_gui_page_sett_pers IMPLEMENTATION.
       iv_name          = c_id-parallel_proc_disabled
       iv_label         = 'Disable Parallel Processing'
       iv_hint          = 'If disabled, abapGit will use only a single thread to serialize objects'
+    )->start_group(
+      iv_name          = c_id-git_default_values
+      iv_label         = 'Git Default Values'
+    )->text(
+      iv_name          = c_id-default_git_uname
+      iv_label         = 'Default User'
+    )->text(
+      iv_name          = c_id-default_git_email
+      iv_label         = 'Default Email'
     )->command(
       iv_label         = 'Save Settings'
       iv_cmd_type      = zif_abapgit_html_form=>c_cmd_type-input_main
@@ -208,14 +220,12 @@ CLASS zcl_abapgit_gui_page_sett_pers IMPLEMENTATION.
     " Get settings from DB
     mo_settings = zcl_abapgit_persist_factory=>get_settings( )->read( ).
     ms_settings = mo_settings->get_user_settings( ).
-    CREATE OBJECT ro_form_data.
+    ro_form_data = NEW #( ).
 
     " Startup
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( ms_settings-show_default_repo = abap_true ).
     ro_form_data->set(
       iv_key = c_id-show_default_repo
-      iv_val = temp1 ) ##TYPE.
+      iv_val = xsdbool( ms_settings-show_default_repo = abap_true ) ) ##TYPE.
 
     " UI
     ro_form_data->set(
@@ -232,31 +242,31 @@ CLASS zcl_abapgit_gui_page_sett_pers IMPLEMENTATION.
       iv_val = ms_settings-label_colors ).
 
     " Interaction
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( ms_settings-activate_wo_popup = abap_true ).
     ro_form_data->set(
       iv_key = c_id-activate_wo_popup
-      iv_val = temp2 ) ##TYPE.
-    DATA temp3 TYPE xsdboolean.
-    temp3 = boolc( ms_settings-adt_jump_enabled = abap_true ).
+      iv_val = xsdbool( ms_settings-activate_wo_popup = abap_true ) ) ##TYPE.
     ro_form_data->set(
       iv_key = c_id-adt_jump_enabled
-      iv_val = temp3 ) ##TYPE.
-    DATA temp4 TYPE xsdboolean.
-    temp4 = boolc( ms_settings-link_hints_enabled = abap_true ).
+      iv_val = xsdbool( ms_settings-adt_jump_enabled = abap_true ) ) ##TYPE.
     ro_form_data->set(
       iv_key = c_id-link_hints_enabled
-      iv_val = temp4 ) ##TYPE.
+      iv_val = xsdbool( ms_settings-link_hints_enabled = abap_true ) ) ##TYPE.
     ro_form_data->set(
       iv_key = c_id-link_hint_key
       iv_val = |{ ms_settings-link_hint_key }| ).
 
     " Resources
-    DATA temp5 TYPE xsdboolean.
-    temp5 = boolc( ms_settings-parallel_proc_disabled = abap_true ).
     ro_form_data->set(
       iv_key = c_id-parallel_proc_disabled
-      iv_val = temp5 ) ##TYPE.
+      iv_val = xsdbool( ms_settings-parallel_proc_disabled = abap_true ) ) ##TYPE.
+
+    " Git Default Values
+    ro_form_data->set(
+      iv_key = c_id-default_git_uname
+      iv_val = |{ ms_settings-default_git_uname }| ).
+    ro_form_data->set(
+      iv_key = c_id-default_git_email
+      iv_val = |{ ms_settings-default_git_email }| ).
 
   ENDMETHOD.
 
@@ -346,6 +356,10 @@ CLASS zcl_abapgit_gui_page_sett_pers IMPLEMENTATION.
     " Resources
     ms_settings-parallel_proc_disabled = mo_form_data->get( c_id-parallel_proc_disabled ).
 
+    " Git Default Values
+    ms_settings-default_git_uname = mo_form_data->get( c_id-default_git_uname ).
+    ms_settings-default_git_email = mo_form_data->get( c_id-default_git_email ).
+
     " Store in DB
     mo_settings->set_user_settings( ms_settings ).
 
@@ -407,7 +421,7 @@ CLASS zcl_abapgit_gui_page_sett_pers IMPLEMENTATION.
 
     register_handlers( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
     ri_html->add( '<div class="form-container">' ).
     ri_html->add( mo_form->render(
       io_values         = mo_form_data

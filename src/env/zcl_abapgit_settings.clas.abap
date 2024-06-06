@@ -156,6 +156,18 @@ CLASS zcl_abapgit_settings DEFINITION
     METHODS set_activate_wo_popup
       IMPORTING
         !iv_act_wo_popup TYPE zif_abapgit_definitions=>ty_s_user_settings-activate_wo_popup .
+    METHODS set_default_git_uname
+      IMPORTING
+        !iv_default_git_uname TYPE string.
+    METHODS get_default_git_uname
+      RETURNING
+        VALUE(rv_default_git_uname) TYPE string.
+    METHODS set_default_git_email
+      IMPORTING
+        !iv_default_git_email TYPE string.
+    METHODS get_default_git_email
+      RETURNING
+        VALUE(rv_default_git_email) TYPE string.
   PROTECTED SECTION.
   PRIVATE SECTION.
     TYPES: BEGIN OF ty_s_settings,
@@ -278,7 +290,7 @@ CLASS zcl_abapgit_settings IMPLEMENTATION.
     DATA: li_output TYPE REF TO zif_abapgit_xml_output.
 
 
-    CREATE OBJECT li_output TYPE zcl_abapgit_xml_output.
+    li_output = NEW zcl_abapgit_xml_output( ).
 
     li_output->add( iv_name = zcl_abapgit_persistence_db=>c_type_settings
                     ig_data = ms_settings ).
@@ -480,7 +492,7 @@ CLASS zcl_abapgit_settings IMPLEMENTATION.
     DATA: lo_input TYPE REF TO zif_abapgit_xml_input.
 
 
-    CREATE OBJECT lo_input TYPE zcl_abapgit_xml_input EXPORTING iv_xml = iv_settings_xml.
+    lo_input = NEW zcl_abapgit_xml_input( iv_xml = iv_settings_xml ).
 
     CLEAR ms_settings.
 
@@ -490,5 +502,25 @@ CLASS zcl_abapgit_settings IMPLEMENTATION.
       CHANGING
         cg_data = ms_settings ).
 
+  ENDMETHOD.
+
+
+  METHOD get_default_git_uname.
+    rv_default_git_uname = ms_user_settings-default_git_uname.
+  ENDMETHOD.
+
+
+  METHOD set_default_git_uname.
+    ms_user_settings-default_git_uname = iv_default_git_uname.
+  ENDMETHOD.
+
+
+  METHOD get_default_git_email.
+    rv_default_git_email = ms_user_settings-default_git_email.
+  ENDMETHOD.
+
+
+  METHOD set_default_git_email.
+    ms_user_settings-default_git_email = iv_default_git_email.
   ENDMETHOD.
 ENDCLASS.
