@@ -54,8 +54,8 @@ CLASS zcl_abapgit_properties_file IMPLEMENTATION.
       lo_json_path   TYPE REF TO zcl_abapgit_json_path,
       lx_exception   TYPE REF TO cx_static_check.
 
-    lo_ajson = NEW #( ).
-    lo_json_path = NEW #( ).
+    CREATE OBJECT lo_ajson.
+    CREATE OBJECT lo_json_path.
 
     TRY.
         lv_translation = lo_json_path->deserialize( mt_translation ).
