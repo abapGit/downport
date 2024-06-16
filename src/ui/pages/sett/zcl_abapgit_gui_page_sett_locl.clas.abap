@@ -42,6 +42,7 @@ CLASS zcl_abapgit_gui_page_sett_locl DEFINITION
         code_inspector_check_variant TYPE string VALUE 'code_inspector_check_variant',
         block_commit                 TYPE string VALUE 'block_commit',
         flow                         TYPE string VALUE 'flow',
+        exclude_remote_paths         TYPE string VALUE 'exclude_remote_paths',
       END OF c_id .
     CONSTANTS:
       BEGIN OF c_event,
@@ -103,7 +104,7 @@ ENDCLASS.
 
 
 
-CLASS zcl_abapgit_gui_page_sett_locl IMPLEMENTATION.
+CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_LOCL IMPLEMENTATION.
 
 
   METHOD choose_check_variant.
@@ -190,8 +191,8 @@ CLASS zcl_abapgit_gui_page_sett_locl IMPLEMENTATION.
   METHOD constructor.
 
     super->constructor( ).
-    CREATE OBJECT mo_validation_log.
-    CREATE OBJECT mo_form_data.
+    mo_validation_log = NEW #( ).
+    mo_form_data = NEW #( ).
     mo_repo = io_repo.
     mo_form = get_form_schema( ).
     mo_form_data = read_settings( ).
@@ -203,7 +204,7 @@ CLASS zcl_abapgit_gui_page_sett_locl IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_sett_locl.
 
-    CREATE OBJECT lo_component EXPORTING io_repo = io_repo.
+    lo_component = NEW #( io_repo = io_repo ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Local Settings & Checks'
@@ -272,12 +273,16 @@ CLASS zcl_abapgit_gui_page_sett_locl IMPLEMENTATION.
       iv_label       = 'Only Serialize Main Language'
       iv_hint        = 'Ignore translations; serialize only main language of repository' ).
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( li_package->are_changes_recorded_in_tr_req( ) = abap_false ).
     ro_form->checkbox(
       iv_name     = c_id-flow
-      iv_readonly = temp1
+      iv_readonly = xsdbool( li_package->are_changes_recorded_in_tr_req( ) = abap_false )
       iv_label    = 'BETA: Enable abapGit flow for this repository (requires transported packages)' ).
+
+    ro_form->textarea(
+      iv_name        = c_id-exclude_remote_paths
+      iv_label       = 'Exclude Paths'
+      iv_hint        = 'List of files patterns (CP operator) to exclude from' &&
+                       ' syncronization (e.g. unwanted parts of the package, examples...)' ).
 
     ro_form->start_group(
       iv_name        = c_id-checks
@@ -339,13 +344,14 @@ CLASS zcl_abapgit_gui_page_sett_locl IMPLEMENTATION.
 
   METHOD read_settings.
 
-    DATA: li_package TYPE REF TO zif_abapgit_sap_package.
+    DATA li_package TYPE REF TO zif_abapgit_sap_package.
+    DATA lv_excl_rem TYPE string.
 
     li_package = zcl_abapgit_factory=>get_sap_package( mo_repo->get_package( ) ).
 
     " Get settings from DB
     ms_settings = mo_repo->get_local_settings( ).
-    CREATE OBJECT ro_form_data.
+    ro_form_data = NEW #( ).
 
     " Local Settings
     ro_form_data->set(
@@ -367,39 +373,34 @@ CLASS zcl_abapgit_gui_page_sett_locl IMPLEMENTATION.
     ro_form_data->set(
       iv_key = c_id-labels
       iv_val = ms_settings-labels ).
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( ms_settings-ignore_subpackages = abap_true ).
     ro_form_data->set(
       iv_key = c_id-ignore_subpackages
-      iv_val = temp2 ) ##TYPE.
-    DATA temp3 TYPE xsdboolean.
-    temp3 = boolc( ms_settings-main_language_only = abap_true ).
+      iv_val = xsdbool( ms_settings-ignore_subpackages = abap_true ) ) ##TYPE.
     ro_form_data->set(
       iv_key = c_id-main_language_only
-      iv_val = temp3 ) ##TYPE.
-    DATA temp4 TYPE xsdboolean.
-    temp4 = boolc( ms_settings-flow = abap_true ).
+      iv_val = xsdbool( ms_settings-main_language_only = abap_true ) ) ##TYPE.
     ro_form_data->set(
       iv_key = c_id-flow
-      iv_val = temp4 ) ##TYPE.
-    DATA temp5 TYPE xsdboolean.
-    temp5 = boolc( ms_settings-write_protected = abap_true ).
+      iv_val = xsdbool( ms_settings-flow = abap_true ) ) ##TYPE.
     ro_form_data->set(
       iv_key = c_id-write_protected
-      iv_val = temp5 ) ##TYPE.
-    DATA temp6 TYPE xsdboolean.
-    temp6 = boolc( ms_settings-only_local_objects = abap_true ).
+      iv_val = xsdbool( ms_settings-write_protected = abap_true ) ) ##TYPE.
     ro_form_data->set(
       iv_key = c_id-only_local_objects
-      iv_val = temp6 ) ##TYPE.
+      iv_val = xsdbool( ms_settings-only_local_objects = abap_true ) ) ##TYPE.
     ro_form_data->set(
       iv_key = c_id-code_inspector_check_variant
       iv_val = |{ ms_settings-code_inspector_check_variant }| ).
-    DATA temp7 TYPE xsdboolean.
-    temp7 = boolc( ms_settings-block_commit = abap_true ).
     ro_form_data->set(
       iv_key = c_id-block_commit
-      iv_val = temp7 ) ##TYPE.
+      iv_val = xsdbool( ms_settings-block_commit = abap_true ) ) ##TYPE.
+
+    lv_excl_rem = concat_lines_of(
+      table = ms_settings-exclude_remote_paths
+      sep   = cl_abap_char_utilities=>newline ).
+    ro_form_data->set(
+      iv_key = c_id-exclude_remote_paths
+      iv_val = lv_excl_rem ).
 
   ENDMETHOD.
 
@@ -417,6 +418,10 @@ CLASS zcl_abapgit_gui_page_sett_locl IMPLEMENTATION.
     ms_settings-only_local_objects           = mo_form_data->get( c_id-only_local_objects ).
     ms_settings-code_inspector_check_variant = mo_form_data->get( c_id-code_inspector_check_variant ).
     ms_settings-block_commit                 = mo_form_data->get( c_id-block_commit ).
+    ms_settings-exclude_remote_paths         =
+      zcl_abapgit_convert=>split_string( mo_form_data->get( c_id-exclude_remote_paths ) ).
+
+    DELETE ms_settings-exclude_remote_paths WHERE table_line IS INITIAL.
 
     mo_repo->set_local_settings( ms_settings ).
 
@@ -552,7 +557,7 @@ CLASS zcl_abapgit_gui_page_sett_locl IMPLEMENTATION.
 
     handle_picklist_state( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( `<div class="repo">` ).
 

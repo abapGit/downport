@@ -181,11 +181,18 @@ CLASS zcl_abapgit_repo DEFINITION
     METHODS check_abap_language_version
       RAISING
         zcx_abapgit_exception .
+    METHODS remove_locally_excluded_files
+      CHANGING
+        !ct_rem_files TYPE zif_abapgit_git_definitions=>ty_files_tt OPTIONAL
+        !ct_loc_files TYPE zif_abapgit_definitions=>ty_files_item_tt OPTIONAL
+      RAISING
+        zcx_abapgit_exception .
+
 ENDCLASS.
 
 
 
-CLASS zcl_abapgit_repo IMPLEMENTATION.
+CLASS ZCL_ABAPGIT_REPO IMPLEMENTATION.
 
 
   METHOD bind_listener.
@@ -198,7 +205,7 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
     DATA lo_abapgit_abap_language_vers TYPE REF TO zcl_abapgit_abap_language_vers.
     DATA lv_text TYPE string.
 
-    CREATE OBJECT lo_abapgit_abap_language_vers EXPORTING io_dot_abapgit = get_dot_abapgit( ).
+    lo_abapgit_abap_language_vers = NEW #( io_dot_abapgit = get_dot_abapgit( ) ).
 
     IF lo_abapgit_abap_language_vers->is_import_allowed( ms_data-package ) = abap_false.
       lv_text = |Repository cannot be imported. | &&
@@ -263,7 +270,7 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
 
   METHOD create_new_log.
 
-    CREATE OBJECT mi_log TYPE zcl_abapgit_log.
+    mi_log = NEW zcl_abapgit_log( ).
     mi_log->set_title( iv_title ).
 
     ri_log = mi_log.
@@ -361,7 +368,7 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    CREATE OBJECT ri_config TYPE zcl_abapgit_data_config.
+    ri_config = NEW zcl_abapgit_data_config( ).
     mi_data_config = ri_config.
 
     " Assume remote data has been loaded already
@@ -461,7 +468,7 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
     CLEAR lt_tadir.
     INSERT ls_tadir INTO TABLE lt_tadir.
 
-    CREATE OBJECT lo_serialize.
+    lo_serialize = NEW #( ).
     lt_new_local_files = lo_serialize->serialize(
       iv_package = ms_data-package
       it_tadir   = lt_tadir ).
@@ -494,6 +501,42 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
       IF lo_dot->is_ignored( iv_path     = <ls_files>-path
                              iv_filename = <ls_files>-filename ) = abap_true.
         DELETE ct_files INDEX lv_index.
+      ENDIF.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD remove_locally_excluded_files.
+
+    DATA ls_ls TYPE zif_abapgit_persistence=>ty_repo-local_settings.
+    DATA lv_excl TYPE string.
+    DATA lv_full_path TYPE string.
+
+    FIELD-SYMBOLS <ls_rfile> LIKE LINE OF ct_rem_files.
+    FIELD-SYMBOLS <ls_lfile> LIKE LINE OF ct_loc_files.
+
+    ls_ls = get_local_settings( ).
+
+    LOOP AT ls_ls-exclude_remote_paths INTO lv_excl.
+      CHECK lv_excl IS NOT INITIAL.
+
+      IF ct_rem_files IS SUPPLIED.
+        LOOP AT ct_rem_files ASSIGNING <ls_rfile>.
+          lv_full_path = <ls_rfile>-path && <ls_rfile>-filename.
+          IF lv_full_path CP lv_excl.
+            DELETE ct_rem_files INDEX sy-tabix.
+          ENDIF.
+        ENDLOOP.
+
+      ELSEIF ct_loc_files IS SUPPLIED.
+        LOOP AT ct_loc_files ASSIGNING <ls_lfile>.
+          lv_full_path = <ls_lfile>-file-path && <ls_lfile>-file-filename.
+          IF lv_full_path CP lv_excl.
+            DELETE ct_loc_files INDEX sy-tabix.
+          ENDIF.
+        ENDLOOP.
+
       ENDIF.
     ENDLOOP.
 
@@ -634,7 +677,7 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
 
   METHOD zif_abapgit_repo~checksums.
 
-    CREATE OBJECT ri_checksums TYPE zcl_abapgit_repo_checksums EXPORTING iv_repo_key = ms_data-key.
+    ri_checksums = NEW zcl_abapgit_repo_checksums( iv_repo_key = ms_data-key ).
 
   ENDMETHOD.
 
@@ -734,7 +777,7 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
 
 
   METHOD zif_abapgit_repo~get_dot_abapgit.
-    CREATE OBJECT ro_dot_abapgit EXPORTING is_data = ms_data-dot_abapgit.
+    ro_dot_abapgit = NEW #( is_data = ms_data-dot_abapgit ).
   ENDMETHOD.
 
 
@@ -748,13 +791,15 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    CREATE OBJECT lo_serialize EXPORTING io_dot_abapgit = get_dot_abapgit( )
-                                         is_local_settings = get_local_settings( ).
+    lo_serialize = NEW #( io_dot_abapgit = get_dot_abapgit( )
+                          is_local_settings = get_local_settings( ) ).
 
     rt_files = lo_serialize->files_local(
       iv_package     = get_package( )
       ii_data_config = get_data_config( )
       ii_log         = ii_log ).
+
+    remove_locally_excluded_files( CHANGING ct_loc_files = rt_files ).
 
     mt_local                 = rt_files.
     mv_request_local_refresh = abap_false. " Fulfill refresh
@@ -768,8 +813,8 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
     DATA lt_filter TYPE zif_abapgit_definitions=>ty_tadir_tt.
 
 
-    CREATE OBJECT lo_serialize EXPORTING io_dot_abapgit = get_dot_abapgit( )
-                                         is_local_settings = get_local_settings( ).
+    lo_serialize = NEW #( io_dot_abapgit = get_dot_abapgit( )
+                          is_local_settings = get_local_settings( ) ).
 
     lt_filter = ii_obj_filter->get_filter( ).
 
@@ -793,10 +838,12 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
       remove_ignored_files( CHANGING ct_files = rt_files ).
     ENDIF.
 
+    remove_locally_excluded_files( CHANGING ct_rem_files = rt_files ).
+
     IF ii_obj_filter IS NOT INITIAL.
       lt_filter = ii_obj_filter->get_filter( ).
 
-      CREATE OBJECT lr_filter.
+      lr_filter = NEW #( ).
       lr_filter->apply_object_filter(
         EXPORTING
           it_filter   = lt_filter
@@ -850,9 +897,7 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
 
 
   METHOD zif_abapgit_repo~has_remote_source.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( lines( mt_remote ) > 0 ).
-    rv_yes = temp1.
+    rv_yes = xsdbool( lines( mt_remote ) > 0 ).
   ENDMETHOD.
 
 
