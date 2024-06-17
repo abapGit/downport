@@ -21,9 +21,7 @@ CLASS ltcl_timer IMPLEMENTATION.
   METHOD setup.
     DATA lv_skip TYPE c LENGTH 30.
     GET PARAMETER ID 'TSE' FIELD lv_skip.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-sysid = 'ABC' OR lv_skip CS 'SKIP_TIMER' ).
-    mv_disabled = temp1.
+    mv_disabled = xsdbool( sy-sysid = 'ABC' OR lv_skip CS 'SKIP_TIMER' ).
   ENDMETHOD.
 
 
