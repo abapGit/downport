@@ -82,7 +82,7 @@ CLASS ltd_git_transport IMPLEMENTATION.
 
     CONSTANTS: lc_dummy_data TYPE string VALUE '0000'.
 
-    CREATE OBJECT ro_branch_list TYPE ltd_branch_list EXPORTING iv_data = lc_dummy_data.
+    ro_branch_list = NEW ltd_branch_list( iv_data = lc_dummy_data ).
 
   ENDMETHOD.
 
@@ -118,7 +118,7 @@ CLASS ltcl_validate_form IMPLEMENTATION.
 
     DATA: ls_data TYPE zif_abapgit_persistence=>ty_repo.
 
-    CREATE OBJECT mo_git_transport_mock TYPE ltd_git_transport.
+    mo_git_transport_mock = NEW ltd_git_transport( ).
     zcl_abapgit_git_injector=>set_git_transport( mo_git_transport_mock ).
 
     " Disable GUI
@@ -127,14 +127,14 @@ CLASS ltcl_validate_form IMPLEMENTATION.
     ls_data-key = 1.
     ls_data-branch_name = 'main'.
 
-    CREATE OBJECT mo_repo EXPORTING is_data = ls_data.
+    mo_repo = NEW #( is_data = ls_data ).
 
-    CREATE OBJECT mo_given_form_data.
+    mo_given_form_data = NEW #( ).
     mo_given_form_data->set(
         iv_key = zcl_abapgit_gui_page_sett_remo=>c_id-branch
         iv_val = 'main' ).
 
-    CREATE OBJECT mo_cut EXPORTING io_repo = mo_repo.
+    mo_cut = NEW #( io_repo = mo_repo ).
 
   ENDMETHOD.
 
