@@ -61,9 +61,7 @@ CLASS zcl_abapgit_object_sxsd IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD zif_abapgit_object~exists.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( ms_badi_attr IS INITIAL ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( ms_badi_attr IS INITIAL ).
   ENDMETHOD.
 
   METHOD zif_abapgit_object~get_comparator.
