@@ -202,24 +202,21 @@ CLASS zcl_abapgit_convert IMPLEMENTATION.
   METHOD language_sap1_to_bcp47.
     DATA lv_converter_instance TYPE REF TO object.
     DATA lv_converter_class_name TYPE string VALUE `CL_AFF_LANGUAGE_CONVERTER`.
-    DATA lv_converter_method TYPE string VALUE `SAP1_TO_BCP47`.
 
     TRY.
         CALL METHOD (lv_converter_class_name)=>create_instance
           RECEIVING
             result = lv_converter_instance.
 
-        CALL METHOD lv_converter_instance->(lv_converter_method)
-          EXPORTING
-            language      = im_lang_sap1
-          RECEIVING
-            result        = re_lang_bcp47
-          EXCEPTIONS
-            no_assignment = 1
-            OTHERS        = 2.
-        IF sy-subrc <> 0.
-          RAISE no_assignment.
-        ENDIF.
+        TRY.
+            CALL METHOD lv_converter_instance->(`IF_AFF_LANGUAGE_CONVERTER~SAP1_TO_BCP47`)
+              EXPORTING
+                language      = im_lang_sap1
+              RECEIVING
+                result        = re_lang_bcp47.
+          CATCH cx_static_check.
+            RAISE no_assignment.
+        ENDTRY.
       CATCH cx_sy_dyn_call_error.
         TRY.
             re_lang_bcp47 = lcl_bcp47_language_table=>sap1_to_bcp47( im_lang_sap1 ).
@@ -232,8 +229,6 @@ CLASS zcl_abapgit_convert IMPLEMENTATION.
   METHOD language_bcp47_to_sap1.
     DATA lv_converter_instance TYPE REF TO object.
     DATA lv_converter_class_name TYPE string VALUE `CL_AFF_LANGUAGE_CONVERTER`.
-    DATA lv_converter_method TYPE string VALUE `SAP1_TO_BCP47`.
-
     DATA lv_regex TYPE REF TO cl_abap_regex.
     DATA lv_abap_matcher TYPE REF TO cl_abap_matcher.
 
@@ -244,23 +239,23 @@ CLASS zcl_abapgit_convert IMPLEMENTATION.
           RECEIVING
             result = lv_converter_instance.
 
-        CALL METHOD lv_converter_instance->(lv_converter_method)
-          EXPORTING
-            language      = im_lang_bcp47
-          RECEIVING
-            result        = re_lang_sap1
-          EXCEPTIONS
-            no_assignment = 1
-            OTHERS        = 2.
-        IF sy-subrc <> 0.
-          RAISE no_assignment.
-        ENDIF.
+        TRY.
+            CALL METHOD lv_converter_instance->(`IF_AFF_LANGUAGE_CONVERTER~BCP47_TO_SAP1`)
+              EXPORTING
+                language = im_lang_bcp47
+              RECEIVING
+                result   = re_lang_sap1.
+
+          CATCH cx_static_check.
+            RAISE no_assignment.
+        ENDTRY.
+
       CATCH cx_sy_dyn_call_error.
         TRY.
             re_lang_sap1 = lcl_bcp47_language_table=>bcp47_to_sap1( im_lang_bcp47 ).
           CATCH zcx_abapgit_exception.
 
-            CREATE OBJECT lv_regex EXPORTING pattern = `[A-Z0-9]{2}`.
+            lv_regex = NEW #( pattern = `[A-Z0-9]{2}` ).
             lv_abap_matcher = lv_regex->create_matcher( text = im_lang_bcp47 ).
 
             IF abap_true = lv_abap_matcher->match( ).
@@ -441,9 +436,8 @@ CLASS zcl_abapgit_convert IMPLEMENTATION.
     ev_size = xstrlen( iv_xstr ).
 
     APPEND INITIAL LINE TO et_bintab ASSIGNING <lg_line>.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( cl_abap_typedescr=>describe_by_data( <lg_line> )->type_kind = cl_abap_typedescr=>typekind_struct1 ).
-    lv_struct = temp1.
+    lv_struct = xsdbool(
+      cl_abap_typedescr=>describe_by_data( <lg_line> )->type_kind = cl_abap_typedescr=>typekind_struct1 ).
     IF lv_struct = abap_true.
       ASSIGN COMPONENT 1 OF STRUCTURE <lg_line> TO <lg_line>.
     ENDIF.
