@@ -12,7 +12,7 @@ CLASS lcl_memory_settings IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD zif_abapgit_persist_settings~read.
-    CREATE OBJECT ro_settings.
+    ro_settings = NEW #( ).
   ENDMETHOD.
 ENDCLASS.
 
@@ -24,14 +24,15 @@ CLASS ltcl_run_checks DEFINITION FOR TESTING RISK LEVEL HARMLESS
 
     METHODS:
       setup,
-      is_obj_def_file FOR TESTING,
-      dot_abapgit FOR TESTING RAISING zcx_abapgit_exception,
-      file_to_object FOR TESTING RAISING zcx_abapgit_exception,
-      object_to_file FOR TESTING RAISING zcx_abapgit_exception,
-      i18n_file_to_object FOR TESTING RAISING zcx_abapgit_exception,
-      object_to_i18n_file FOR TESTING RAISING zcx_abapgit_exception,
-      file_to_object_package FOR TESTING RAISING zcx_abapgit_exception,
-      object_to_file_package FOR TESTING RAISING zcx_abapgit_exception.
+      is_obj_def_file                FOR TESTING,
+      dot_abapgit                    FOR TESTING RAISING zcx_abapgit_exception,
+      file_to_object                 FOR TESTING RAISING zcx_abapgit_exception,
+      object_to_file                 FOR TESTING RAISING zcx_abapgit_exception,
+      i18n_file_to_object            FOR TESTING RAISING zcx_abapgit_exception,
+      object_to_i18n_file            FOR TESTING RAISING zcx_abapgit_exception,
+      file_to_object_package         FOR TESTING RAISING zcx_abapgit_exception,
+      object_to_file_package         FOR TESTING RAISING zcx_abapgit_exception,
+      i18n_file_to_object_is_initial FOR TESTING RAISING zcx_abapgit_exception.
 
 ENDCLASS.
 
@@ -44,7 +45,7 @@ CLASS ltcl_run_checks IMPLEMENTATION.
     " Assume for unit tests that starting folder is /src/ with prefix logic
     mo_dot = zcl_abapgit_dot_abapgit=>build_default( ).
 
-    CREATE OBJECT li_memory.
+    li_memory = NEW #( ).
     zcl_abapgit_persist_injector=>set_settings( li_memory ).
 
   ENDMETHOD.
@@ -382,6 +383,27 @@ CLASS ltcl_run_checks IMPLEMENTATION.
       act = lv_filename ).
 
   ENDMETHOD.
+
+  METHOD i18n_file_to_object_is_initial.
+    DATA lv_lang TYPE laiso.
+    DATA lv_ext TYPE string.
+
+    lv_ext = `txt`.
+    lv_lang = `E`.
+
+    zcl_abapgit_filename_logic=>i18n_file_to_object(
+      EXPORTING
+        iv_filename = 'zif_abapgit.intf.abap'
+        iv_path     = '/src/'
+      IMPORTING
+        ev_lang     = lv_lang
+        ev_ext      = lv_ext ).
+
+    cl_abap_unit_assert=>assert_initial( lv_ext ).
+    cl_abap_unit_assert=>assert_initial( lv_lang ).
+
+  ENDMETHOD.
+
 
   METHOD i18n_file_to_object.
 
