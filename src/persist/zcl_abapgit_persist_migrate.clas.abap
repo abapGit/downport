@@ -96,17 +96,21 @@ CLASS zcl_abapgit_persist_migrate IMPLEMENTATION.
     ENDTRY.
 
     " New exists and differs from own - then it is really new, needs to be installed
-    rv_exists = xsdbool( lv_h_own = lv_h_new ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( lv_h_own = lv_h_new ).
+    rv_exists = temp1.
 
   ENDMETHOD.
 
 
   METHOD lock_create.
 
-    DATA: lv_obj_name TYPE tadir-obj_name,
+    TYPES temp1 TYPE STANDARD TABLE OF dd26e WITH DEFAULT KEY.
+TYPES temp2 TYPE STANDARD TABLE OF dd27p WITH DEFAULT KEY.
+DATA: lv_obj_name TYPE tadir-obj_name,
           ls_dd25v    TYPE dd25v,
-          lt_dd26e    TYPE STANDARD TABLE OF dd26e WITH DEFAULT KEY,
-          lt_dd27p    TYPE STANDARD TABLE OF dd27p WITH DEFAULT KEY.
+          lt_dd26e    TYPE temp1,
+          lt_dd27p    TYPE temp2.
 
     FIELD-SYMBOLS: <ls_dd26e> LIKE LINE OF lt_dd26e,
                    <ls_dd27p> LIKE LINE OF lt_dd27p.
@@ -194,7 +198,9 @@ CLASS zcl_abapgit_persist_migrate IMPLEMENTATION.
 
     SELECT SINGLE viewname FROM dd25l INTO lv_viewname
       WHERE viewname = zcl_abapgit_persistence_db=>c_lock.
-    rv_exists = xsdbool( sy-subrc = 0 ).
+    DATA temp2 TYPE xsdboolean.
+    temp2 = boolc( sy-subrc = 0 ).
+    rv_exists = temp2.
 
   ENDMETHOD.
 
@@ -216,11 +222,12 @@ CLASS zcl_abapgit_persist_migrate IMPLEMENTATION.
 
   METHOD table_create.
 
-    DATA: lv_rc       LIKE sy-subrc,
+    TYPES temp3 TYPE STANDARD TABLE OF dd03p WITH DEFAULT KEY.
+DATA: lv_rc       LIKE sy-subrc,
           lv_obj_name TYPE tadir-obj_name,
           ls_dd02v    TYPE dd02v,
           ls_dd09l    TYPE dd09l,
-          lt_dd03p    TYPE STANDARD TABLE OF dd03p WITH DEFAULT KEY.
+          lt_dd03p    TYPE temp3.
 
     FIELD-SYMBOLS: <ls_dd03p> LIKE LINE OF lt_dd03p.
 
@@ -315,7 +322,9 @@ CLASS zcl_abapgit_persist_migrate IMPLEMENTATION.
 
     SELECT SINGLE tabname FROM dd02l INTO lv_tabname
       WHERE tabname = zcl_abapgit_persistence_db=>c_tabname. "#EC CI_NOORDER
-    rv_exists = xsdbool( sy-subrc = 0 ).
+    DATA temp3 TYPE xsdboolean.
+    temp3 = boolc( sy-subrc = 0 ).
+    rv_exists = temp3.
 
   ENDMETHOD.
 ENDCLASS.
