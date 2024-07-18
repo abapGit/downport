@@ -136,7 +136,7 @@ CLASS zcl_abapgit_object_intf IMPLEMENTATION.
 
     mi_object_oriented_object_fct = zcl_abapgit_oo_factory=>get_by_type( ms_item-obj_type ).
 
-    CREATE OBJECT li_aff_registry TYPE zcl_abapgit_aff_registry.
+    li_aff_registry = NEW zcl_abapgit_aff_registry( ).
 
     mv_aff_enabled = li_aff_registry->is_supported_object_type( 'INTF' ).
 
@@ -293,7 +293,7 @@ CLASS zcl_abapgit_object_intf IMPLEMENTATION.
     lv_json_data = mo_files->read_string( 'json' ).
     ls_intf_aff = lcl_aff_metadata_handler=>deserialize( lv_json_data ).
 
-    CREATE OBJECT lo_aff_mapper TYPE lcl_aff_type_mapping.
+    lo_aff_mapper = NEW lcl_aff_type_mapping( ).
     lo_aff_mapper->to_abapgit( EXPORTING iv_data        = ls_intf_aff
                                          iv_object_name = ms_item-obj_name
                                IMPORTING es_data        = rs_intf ).
@@ -581,6 +581,7 @@ CLASS zcl_abapgit_object_intf IMPLEMENTATION.
       ls_clskey          TYPE seoclskey,
       ls_intf            TYPE ty_intf,
       lt_description     TYPE zif_abapgit_oo_object_fnc=>ty_seocompotx_tt,
+      lt_description_int TYPE zif_abapgit_oo_object_fnc=>ty_seoclasstx_tt,
       lt_description_sub TYPE zif_abapgit_oo_object_fnc=>ty_seosubcotx_tt.
 
     IF iv_step = zif_abapgit_object=>gc_step_id-abap.
@@ -594,9 +595,11 @@ CLASS zcl_abapgit_object_intf IMPLEMENTATION.
             is_item            = ms_item
           IMPORTING
             et_description     = lt_description
+            et_description_int = lt_description_int
             et_description_sub = lt_description_sub ).
 
         APPEND LINES OF lt_description TO ls_intf-description.
+        APPEND LINES OF lt_description_int TO ls_intf-description_int.
         APPEND LINES OF lt_description_sub TO ls_intf-description_sub.
 
       ELSE.
