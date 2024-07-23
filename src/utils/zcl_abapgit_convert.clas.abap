@@ -122,6 +122,15 @@ CLASS zcl_abapgit_convert DEFINITION
       EXCEPTIONS
         no_assignment.
 
+    TYPES ty_char02 TYPE c LENGTH 2.
+    CLASS-METHODS uccp
+      IMPORTING
+        iv_uccp        TYPE string
+      RETURNING
+        VALUE(rv_char) TYPE ty_char02
+      EXCEPTIONS
+        no_assignment.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
     CLASS-METHODS xstring_remove_bom
@@ -134,7 +143,6 @@ ENDCLASS.
 
 
 CLASS zcl_abapgit_convert IMPLEMENTATION.
-
 
   METHOD base64_to_xstring.
 
@@ -255,7 +263,7 @@ CLASS zcl_abapgit_convert IMPLEMENTATION.
             re_lang_sap1 = lcl_bcp47_language_table=>bcp47_to_sap1( im_lang_bcp47 ).
           CATCH zcx_abapgit_exception.
 
-            CREATE OBJECT lv_regex EXPORTING pattern = `[A-Z0-9]{2}`.
+            lv_regex = NEW #( pattern = `[A-Z0-9]{2}` ).
             lv_abap_matcher = lv_regex->create_matcher( text = im_lang_bcp47 ).
 
             IF abap_true = lv_abap_matcher->match( ).
@@ -436,9 +444,8 @@ CLASS zcl_abapgit_convert IMPLEMENTATION.
     ev_size = xstrlen( iv_xstr ).
 
     APPEND INITIAL LINE TO et_bintab ASSIGNING <lg_line>.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( cl_abap_typedescr=>describe_by_data( <lg_line> )->type_kind = cl_abap_typedescr=>typekind_struct1 ).
-    lv_struct = temp1.
+    lv_struct = xsdbool(
+      cl_abap_typedescr=>describe_by_data( <lg_line> )->type_kind = cl_abap_typedescr=>typekind_struct1 ).
     IF lv_struct = abap_true.
       ASSIGN COMPONENT 1 OF STRUCTURE <lg_line> TO <lg_line>.
     ENDIF.
@@ -518,6 +525,41 @@ CLASS zcl_abapgit_convert IMPLEMENTATION.
     GET BIT 6 OF iv_x INTO rv_bitbyte+5(1).
     GET BIT 7 OF iv_x INTO rv_bitbyte+6(1).
     GET BIT 8 OF iv_x INTO rv_bitbyte+7(1).
+
+  ENDMETHOD.
+
+  METHOD uccp.
+
+    DATA lv_class    TYPE string.
+    DATA lv_xstr     TYPE xstring.
+    DATA lo_instance TYPE REF TO object.
+
+    lv_class = 'CL_ABAP_CONV_IN_CE'.
+
+    TRY.
+        CALL METHOD (lv_class)=>uccp
+          EXPORTING
+            uccp = iv_uccp
+          RECEIVING
+            char = rv_char.
+      CATCH cx_sy_dyn_call_illegal_class.
+        lv_xstr = iv_uccp.
+
+        CALL METHOD ('CL_ABAP_CONV_CODEPAGE')=>create_in
+          EXPORTING
+            codepage = 'UTF-16'
+          RECEIVING
+            instance = lo_instance.
+
+* convert endianness
+        CONCATENATE lv_xstr+1(1) lv_xstr(1) INTO lv_xstr IN BYTE MODE.
+
+        CALL METHOD lo_instance->('IF_ABAP_CONV_IN~CONVERT')
+          EXPORTING
+            source = lv_xstr
+          RECEIVING
+            result = rv_char.
+    ENDTRY.
 
   ENDMETHOD.
 ENDCLASS.
