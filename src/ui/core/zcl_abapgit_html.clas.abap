@@ -34,6 +34,9 @@ CLASS zcl_abapgit_html DEFINITION
         iv_str         TYPE string OPTIONAL
       RETURNING
         VALUE(rs_data_attr) TYPE zif_abapgit_html=>ty_data_attr .
+    CLASS-METHODS set_debug_mode
+      IMPORTING
+        iv_mode TYPE abap_bool.
   PROTECTED SECTION.
   PRIVATE SECTION.
 
@@ -105,25 +108,22 @@ CLASS ZCL_ABAPGIT_HTML IMPLEMENTATION.
 
   METHOD class_constructor.
 
-    DATA lv_mode TYPE tabname.
-
-    CREATE OBJECT go_single_tags_re EXPORTING pattern = '<(AREA|BASE|BR|COL|COMMAND|EMBED|HR|IMG|INPUT|LINK|META|PARAM|SOURCE|!)'
-                                              ignore_case = abap_false.
+    go_single_tags_re = NEW #( pattern = '<(AREA|BASE|BR|COL|COMMAND|EMBED|HR|IMG|INPUT|LINK|META|PARAM|SOURCE|!)'
+                               ignore_case = abap_false ).
 
     gv_spaces = repeat(
       val = ` `
       occ = c_max_indent ).
 
-    GET PARAMETER ID 'DBT' FIELD lv_mode.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( lv_mode = 'HREF' ).
-    gv_debug_mode = temp1.
-
   ENDMETHOD.
 
 
+  METHOD set_debug_mode.
+    gv_debug_mode = iv_mode.
+  ENDMETHOD.
+
   METHOD create.
-    CREATE OBJECT ri_instance TYPE zcl_abapgit_html.
+    ri_instance = NEW zcl_abapgit_html( ).
     IF iv_initial_chunk IS NOT INITIAL.
       ri_instance->add( iv_initial_chunk ).
     ENDIF.
@@ -502,9 +502,7 @@ CLASS ZCL_ABAPGIT_HTML IMPLEMENTATION.
 
 
   METHOD zif_abapgit_html~is_empty.
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( lines( mt_buffer ) = 0 ).
-    rv_yes = temp2.
+    rv_yes = xsdbool( lines( mt_buffer ) = 0 ).
   ENDMETHOD.
 
 
