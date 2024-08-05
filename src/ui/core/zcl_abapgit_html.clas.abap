@@ -108,8 +108,8 @@ CLASS ZCL_ABAPGIT_HTML IMPLEMENTATION.
 
   METHOD class_constructor.
 
-    CREATE OBJECT go_single_tags_re EXPORTING pattern = '<(AREA|BASE|BR|COL|COMMAND|EMBED|HR|IMG|INPUT|LINK|META|PARAM|SOURCE|!)'
-                                              ignore_case = abap_false.
+    go_single_tags_re = NEW #( pattern = '<(AREA|BASE|BR|COL|COMMAND|EMBED|HR|IMG|INPUT|LINK|META|PARAM|SOURCE|!)'
+                               ignore_case = abap_false ).
 
     gv_spaces = repeat(
       val = ` `
@@ -123,7 +123,7 @@ CLASS ZCL_ABAPGIT_HTML IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD create.
-    CREATE OBJECT ri_instance TYPE zcl_abapgit_html.
+    ri_instance = NEW zcl_abapgit_html( ).
     IF iv_initial_chunk IS NOT INITIAL.
       ri_instance->add( iv_initial_chunk ).
     ENDIF.
@@ -136,8 +136,6 @@ CLASS ZCL_ABAPGIT_HTML IMPLEMENTATION.
           lv_name       TYPE string,
           lv_color      TYPE string,
           lv_class      TYPE string,
-          lv_large_icon TYPE string,
-          lv_xpixel     TYPE i,
           lv_onclick    TYPE string.
 
     SPLIT iv_name AT '/' INTO lv_name lv_color.
@@ -155,15 +153,7 @@ CLASS ZCL_ABAPGIT_HTML IMPLEMENTATION.
       lv_color = | { lv_color }|.
     ENDIF.
 
-    " Automatic icon scaling (could be overwritten by personal setting)
-    " see zcl_abapgit_gui_page->html_head
-    lv_xpixel = cl_gui_cfw=>compute_pixel_from_metric( x_or_y = 'X'
-                                                       in = 1 ).
-    IF lv_xpixel >= 2.
-      lv_large_icon = ' large'.
-    ENDIF.
-
-    rv_str = |<i class="icon{ lv_large_icon } icon-{ lv_name }{ lv_color }|.
+    rv_str = |<i class="icon icon-{ lv_name }{ lv_color }|.
     rv_str = |{ rv_str }{ lv_class }"{ lv_onclick }{ lv_hint }></i>|.
 
   ENDMETHOD.
@@ -502,9 +492,7 @@ CLASS ZCL_ABAPGIT_HTML IMPLEMENTATION.
 
 
   METHOD zif_abapgit_html~is_empty.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( lines( mt_buffer ) = 0 ).
-    rv_yes = temp1.
+    rv_yes = xsdbool( lines( mt_buffer ) = 0 ).
   ENDMETHOD.
 
 
