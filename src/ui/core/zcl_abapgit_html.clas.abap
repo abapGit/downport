@@ -108,8 +108,8 @@ CLASS ZCL_ABAPGIT_HTML IMPLEMENTATION.
 
   METHOD class_constructor.
 
-    go_single_tags_re = NEW #( pattern = '<(AREA|BASE|BR|COL|COMMAND|EMBED|HR|IMG|INPUT|LINK|META|PARAM|SOURCE|!)'
-                               ignore_case = abap_false ).
+    CREATE OBJECT go_single_tags_re EXPORTING pattern = '<(AREA|BASE|BR|COL|COMMAND|EMBED|HR|IMG|INPUT|LINK|META|PARAM|SOURCE|!)'
+                                              ignore_case = abap_false.
 
     gv_spaces = repeat(
       val = ` `
@@ -123,7 +123,7 @@ CLASS ZCL_ABAPGIT_HTML IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD create.
-    ri_instance = NEW zcl_abapgit_html( ).
+    CREATE OBJECT ri_instance TYPE zcl_abapgit_html.
     IF iv_initial_chunk IS NOT INITIAL.
       ri_instance->add( iv_initial_chunk ).
     ENDIF.
@@ -492,7 +492,9 @@ CLASS ZCL_ABAPGIT_HTML IMPLEMENTATION.
 
 
   METHOD zif_abapgit_html~is_empty.
-    rv_yes = xsdbool( lines( mt_buffer ) = 0 ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( lines( mt_buffer ) = 0 ).
+    rv_yes = temp1.
   ENDMETHOD.
 
 
