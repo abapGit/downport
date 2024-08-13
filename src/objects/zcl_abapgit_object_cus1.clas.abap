@@ -129,9 +129,7 @@ CLASS zcl_abapgit_object_cus1 IMPLEMENTATION.
         activity_exists_not = 1
         OTHERS              = 2.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -167,8 +165,7 @@ CLASS zcl_abapgit_object_cus1 IMPLEMENTATION.
 
 
   METHOD zif_abapgit_object~jump.
-    TYPES temp1 TYPE STANDARD TABLE OF bdcdata.
-DATA: lt_bdc_data TYPE temp1.
+    DATA: lt_bdc_data TYPE STANDARD TABLE OF bdcdata.
     FIELD-SYMBOLS: <ls_bdc_data> TYPE bdcdata.
 
     APPEND INITIAL LINE TO lt_bdc_data ASSIGNING <ls_bdc_data>.
