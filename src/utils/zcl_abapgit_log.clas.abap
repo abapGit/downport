@@ -51,7 +51,7 @@ CLASS zcl_abapgit_log IMPLEMENTATION.
 
   METHOD from_exception.
 
-    CREATE OBJECT ro_log.
+    ro_log = NEW #( ).
 
     IF io_x IS BOUND.
       ro_log->zif_abapgit_log~add_exception( io_x ).
@@ -179,7 +179,7 @@ CLASS zcl_abapgit_log IMPLEMENTATION.
 
     DATA lo_log TYPE REF TO zcl_abapgit_log.
 
-    CREATE OBJECT lo_log EXPORTING iv_title = mv_title.
+    lo_log = NEW #( iv_title = mv_title ).
     lo_log->mt_log = mt_log.
     ri_log = lo_log.
 
