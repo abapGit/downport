@@ -481,9 +481,10 @@ CLASS zcl_abapgit_git_pack IMPLEMENTATION.
       ls_node-chmod = lv_chmod.
       IF ls_node-chmod <> zif_abapgit_git_definitions=>c_chmod-dir
           AND ls_node-chmod <> zif_abapgit_git_definitions=>c_chmod-file
+          AND ls_node-chmod <> zif_abapgit_git_definitions=>c_chmod-symbolic_link
           AND ls_node-chmod <> zif_abapgit_git_definitions=>c_chmod-executable
           AND ls_node-chmod <> zif_abapgit_git_definitions=>c_chmod-submodule.
-        zcx_abapgit_exception=>raise( |Unknown chmod| ).
+        zcx_abapgit_exception=>raise( |Unknown chmod { ls_node-chmod }| ).
       ENDIF.
 
       lv_offset = lv_match + 1.
@@ -522,7 +523,7 @@ CLASS zcl_abapgit_git_pack IMPLEMENTATION.
     FIELD-SYMBOLS: <ls_object> LIKE LINE OF ct_objects.
 
 
-    CREATE OBJECT lo_stream EXPORTING iv_data = is_object-data.
+    lo_stream = NEW #( iv_data = is_object-data ).
 
 * find base
     READ TABLE ct_objects ASSIGNING <ls_object>
