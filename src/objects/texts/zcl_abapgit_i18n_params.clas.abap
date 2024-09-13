@@ -15,7 +15,7 @@ CLASS zcl_abapgit_i18n_params DEFINITION
         !iv_use_lxe            TYPE abap_bool DEFAULT abap_false
         !is_params             TYPE zif_abapgit_definitions=>ty_i18n_params OPTIONAL
       RETURNING
-        VALUE(ro_instance) TYPE REF TO zcl_abapgit_i18n_params .
+        VALUE(ro_instance)     TYPE REF TO zcl_abapgit_i18n_params .
     METHODS constructor
       IMPORTING
         !iv_main_language      TYPE spras DEFAULT zif_abapgit_definitions=>c_english
@@ -32,7 +32,7 @@ CLASS zcl_abapgit_i18n_params DEFINITION
         VALUE(rt_language_filter) TYPE zif_abapgit_environment=>ty_system_language_filter .
     METHODS trim_saplang_list
       CHANGING
-        ct_sap_langs  TYPE zif_abapgit_definitions=>ty_sap_langu_tab
+        ct_sap_langs TYPE zif_abapgit_definitions=>ty_sap_langu_tab
       RAISING
         zcx_abapgit_exception.
     METHODS trim_saplang_keyed_table
@@ -50,7 +50,7 @@ CLASS zcl_abapgit_i18n_params DEFINITION
 
     CLASS-METHODS iso_langs_to_lang_filter
       IMPORTING
-        it_iso_filter      TYPE zif_abapgit_definitions=>ty_languages
+        it_iso_filter             TYPE zif_abapgit_definitions=>ty_languages
       RETURNING
         VALUE(rt_language_filter) TYPE zif_abapgit_environment=>ty_system_language_filter.
 
@@ -120,19 +120,19 @@ CLASS zcl_abapgit_i18n_params IMPLEMENTATION.
 
   METHOD is_lxe_applicable.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( ms_params-main_language_only = abap_false AND ms_params-use_lxe = abap_true AND ms_params-translation_languages IS NOT INITIAL ).
-    rv_yes = temp1.
+    rv_yes = xsdbool( ms_params-main_language_only = abap_false AND
+       ms_params-use_lxe = abap_true AND
+       ms_params-translation_languages IS NOT INITIAL ).
 
   ENDMETHOD.
 
 
   METHOD new.
-    CREATE OBJECT ro_instance EXPORTING iv_main_language = iv_main_language
-                                        iv_main_language_only = iv_main_language_only
-                                        it_translation_langs = it_translation_langs
-                                        iv_use_lxe = iv_use_lxe
-                                        is_params = is_params.
+    ro_instance = NEW #( iv_main_language = iv_main_language
+                         iv_main_language_only = iv_main_language_only
+                         it_translation_langs = it_translation_langs
+                         iv_use_lxe = iv_use_lxe
+                         is_params = is_params ).
   ENDMETHOD.
 
 

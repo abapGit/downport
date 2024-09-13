@@ -15,8 +15,8 @@ CLASS zcl_abapgit_gui_page_whereused DEFINITION
 
     CLASS-METHODS create
       IMPORTING
-        iv_package TYPE devclass OPTIONAL
-        ii_repo    TYPE REF TO zif_abapgit_repo OPTIONAL
+        iv_package     TYPE devclass OPTIONAL
+        ii_repo        TYPE REF TO zif_abapgit_repo OPTIONAL
         PREFERRED PARAMETER iv_package
       RETURNING
         VALUE(ri_page) TYPE REF TO zif_abapgit_gui_renderable
@@ -90,8 +90,8 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_WHEREUSED IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_whereused.
 
-    CREATE OBJECT lo_component EXPORTING ii_repo = ii_repo
-                                         iv_package = iv_package.
+    lo_component = NEW #( ii_repo = ii_repo
+                          iv_package = iv_package ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create( lo_component ).
 
@@ -196,9 +196,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_WHEREUSED IMPLEMENTATION.
         run_where_used( ).
         rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
       WHEN c_action-show_used_obj.
-        DATA temp1 TYPE xsdboolean.
-        temp1 = boolc( mv_show_used_obj = abap_false ).
-        mv_show_used_obj = temp1.
+        mv_show_used_obj = xsdbool( mv_show_used_obj = abap_false ).
         rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
     ENDCASE.
 
