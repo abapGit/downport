@@ -104,10 +104,10 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_CODE_INSP IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_code_insp.
 
-    lo_component = NEW #( io_repo = io_repo
-                          io_stage = io_stage
-                          iv_check_variant = iv_check_variant
-                          iv_raise_when_no_results = iv_raise_when_no_results ).
+    CREATE OBJECT lo_component EXPORTING io_repo = io_repo
+                                         io_stage = io_stage
+                                         iv_check_variant = iv_check_variant
+                                         iv_raise_when_no_results = iv_raise_when_no_results.
 
     ri_page = zcl_abapgit_gui_page_hoc=>create( lo_component ).
 
@@ -132,15 +132,18 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_CODE_INSP IMPLEMENTATION.
   METHOD has_inspection_errors.
 
     READ TABLE mt_result TRANSPORTING NO FIELDS WITH KEY kind = 'E'.
-    rv_has_inspection_errors = xsdbool( sy-subrc = 0 ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( sy-subrc = 0 ).
+    rv_has_inspection_errors = temp1.
 
   ENDMETHOD.
 
 
   METHOD is_stage_allowed.
 
-    rv_is_stage_allowed = xsdbool( NOT (
-      mo_repo->get_local_settings( )-block_commit = abap_true AND has_inspection_errors( ) = abap_true ) ).
+    DATA temp2 TYPE xsdboolean.
+    temp2 = boolc( NOT ( mo_repo->get_local_settings( )-block_commit = abap_true AND has_inspection_errors( ) = abap_true ) ).
+    rv_is_stage_allowed = temp2.
 
   ENDMETHOD.
 
@@ -300,7 +303,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_CODE_INSP IMPLEMENTATION.
 
     register_handlers( ).
 
-    ri_html = NEW zcl_abapgit_html( ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
 
     ri_html->div(
       iv_class = 'repo'
