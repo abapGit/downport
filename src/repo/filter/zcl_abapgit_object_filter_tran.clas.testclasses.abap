@@ -1,5 +1,3 @@
-*"* use this source file for your ABAP unit test classes
-
 CLASS ltcl_adjust_filter DEFINITION FINAL FOR TESTING INHERITING FROM zcl_abapgit_object_filter_tran
   DURATION SHORT
   RISK LEVEL HARMLESS.
@@ -24,7 +22,7 @@ ENDCLASS.
 CLASS ltcl_adjust_filter IMPLEMENTATION.
 
   METHOD setup.
-    CREATE OBJECT mo_cut.
+    mo_cut = NEW #( ).
   ENDMETHOD.
 
   METHOD teardown.
