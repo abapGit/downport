@@ -103,11 +103,11 @@ CLASS ltcl_diff IMPLEMENTATION.
     lv_xnew = zcl_abapgit_convert=>string_to_xstring_utf8( lv_new ).
     lv_xold = zcl_abapgit_convert=>string_to_xstring_utf8( lv_old ).
 
-    CREATE OBJECT lo_diff EXPORTING iv_new = lv_xnew
-                                    iv_old = lv_xold
-                                    iv_ignore_indentation = iv_ignore_indentation
-                                    iv_ignore_comments = iv_ignore_comments
-                                    iv_ignore_case = iv_ignore_case.
+    lo_diff = NEW #( iv_new = lv_xnew
+                     iv_old = lv_xold
+                     iv_ignore_indentation = iv_ignore_indentation
+                     iv_ignore_comments = iv_ignore_comments
+                     iv_ignore_case = iv_ignore_case ).
 
     IF iv_check_beacons = abap_true.
       cl_abap_unit_assert=>assert_equals(
@@ -526,12 +526,14 @@ CLASS ltcl_diff IMPLEMENTATION.
     add_new( ` ` ). " one space
     add_new( `   ` ). " some spaces
     add_new( 'E' ).
+    add_new( 'X' ). " no trailing space
 
     add_old( 'A' ).
     add_old( `     ` ). " some spaces
     add_old( `  ` ). " two spaces
     add_old( `` ). " empty line
     add_old( 'E' ).
+    add_old( `X  ` ). " some trailing space
 
     add_expected( iv_new_num = '    1'
                   iv_new     = 'A'
@@ -558,6 +560,11 @@ CLASS ltcl_diff IMPLEMENTATION.
                   iv_result  = zif_abapgit_definitions=>c_diff-unchanged
                   iv_old_num = '    5'
                   iv_old     = 'E' ).
+    add_expected( iv_new_num = '    6'
+                  iv_new     = 'X'
+                  iv_result  = zif_abapgit_definitions=>c_diff-update
+                  iv_old_num = '    6'
+                  iv_old     = `X  ` ).
 
     test( ).
 
