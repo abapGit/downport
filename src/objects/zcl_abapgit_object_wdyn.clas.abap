@@ -14,11 +14,9 @@ CLASS zcl_abapgit_object_wdyn DEFINITION
     CONSTANTS c_longtext_id_wd TYPE dokil-id VALUE 'WD' ##NO_TEXT.
     CONSTANTS c_longtext_name_wc TYPE string VALUE 'LONGTEXTS_WC' ##NO_TEXT.
 
-    TYPES temp1_cda9d1eaa8 TYPE TABLE OF wdy_ctlr_compo_vrs.
-TYPES temp2_cda9d1eaa8 TYPE TABLE OF wdy_ctlr_compo_source_vrs.
-DATA:
-      mt_components TYPE temp1_cda9d1eaa8,
-      mt_sources    TYPE temp2_cda9d1eaa8.
+    DATA:
+      mt_components TYPE TABLE OF wdy_ctlr_compo_vrs,
+      mt_sources    TYPE TABLE OF wdy_ctlr_compo_source_vrs.
 
     METHODS:
       get_limu_objects
@@ -61,6 +59,12 @@ DATA:
         IMPORTING is_view         TYPE wdy_md_view_meta_data
         RETURNING VALUE(rs_delta) TYPE svrs2_xversionable_object
         RAISING   zcx_abapgit_exception,
+      deserialize_sources
+        IMPORTING ii_xml TYPE REF TO zif_abapgit_xml_input
+        RAISING   zcx_abapgit_exception,
+      serialize_sources
+        IMPORTING ii_xml TYPE REF TO zif_abapgit_xml_output
+        RAISING   zcx_abapgit_exception,
       add_fm_param_exporting
         IMPORTING iv_name  TYPE string
                   ig_value TYPE any
@@ -81,7 +85,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_OBJECT_WDYN IMPLEMENTATION.
+CLASS zcl_abapgit_object_wdyn IMPLEMENTATION.
 
 
   METHOD add_fm_exception.
@@ -384,6 +388,61 @@ CLASS ZCL_ABAPGIT_OBJECT_WDYN IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD deserialize_sources.
+
+    DATA:
+      lv_extra   TYPE string,
+      lt_extra   TYPE string_table,
+      ls_abap    TYPE abaptxt255,
+      lt_abap    TYPE abaptxt255_tab,
+      lv_line    TYPE wdy_ctlr_compo_source_vrs-line_number,
+      lv_cmpname TYPE wdy_ctlr_compo_source_vrs-cmpname,
+      ls_sources LIKE LINE OF mt_sources.
+
+    " Old format
+    ii_xml->read( EXPORTING iv_name  = 'SOURCES'
+                  CHANGING cg_data = mt_sources ).
+
+    IF mt_sources IS NOT INITIAL.
+      RETURN.
+    ENDIF.
+
+    " New format
+    ii_xml->read( EXPORTING iv_name  = 'FILES'
+                  CHANGING cg_data = lt_extra ).
+
+    LOOP AT lt_extra INTO lv_extra.
+      lv_line = 0.
+      lt_abap = mo_files->read_abap( iv_extra = lv_extra ).
+      LOOP AT lt_abap INTO ls_abap.
+        " Start of method
+        FIND REGEX '\s*method\s+(.*)\s*\.' IN ls_abap-line IGNORING CASE SUBMATCHES lv_cmpname.
+        IF sy-subrc = 0.
+          lv_line = 1.
+        ENDIF.
+
+        IF lv_cmpname IS NOT INITIAL AND lv_line > 0.
+          CLEAR ls_sources.
+          ls_sources-component_name  = ms_item-obj_name.
+          ls_sources-controller_name = to_upper( lv_extra ).
+          ls_sources-cmpname         = to_upper( lv_cmpname ).
+          ls_sources-line_number     = lv_line.
+          ls_sources-source_line     = ls_abap-line.
+          INSERT ls_sources INTO TABLE mt_sources.
+          lv_line = lv_line + 1.
+        ENDIF.
+
+        " End of method
+        FIND REGEX '\s*endmethod\s*\.' IN ls_abap-line IGNORING CASE.
+        IF sy-subrc = 0.
+          lv_line = 0.
+        ENDIF.
+      ENDLOOP.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
   METHOD get_limu_objects.
 
     DATA: lv_name TYPE wdy_component_name.
@@ -500,16 +559,11 @@ CLASS ZCL_ABAPGIT_OBJECT_WDYN IMPLEMENTATION.
 
   METHOD read_controller.
 
-    TYPES temp3 TYPE TABLE OF wdy_ctlr_compo_vrs.
-TYPES temp4 TYPE TABLE OF wdy_ctlr_compo_source_vrs.
-TYPES temp1 TYPE TABLE OF wdy_controller.
-TYPES temp2 TYPE TABLE OF smodilog.
-TYPES temp5 TYPE TABLE OF smodisrc.
-DATA: lt_components   TYPE temp3,
-          lt_sources      TYPE temp4,
-          lt_definition   TYPE temp1,
-          lt_psmodilog    TYPE temp2,
-          lt_psmodisrc    TYPE temp5,
+    DATA: lt_components   TYPE TABLE OF wdy_ctlr_compo_vrs,
+          lt_sources      TYPE TABLE OF wdy_ctlr_compo_source_vrs,
+          lt_definition   TYPE TABLE OF wdy_controller,
+          lt_psmodilog    TYPE TABLE OF smodilog,
+          lt_psmodisrc    TYPE TABLE OF smodisrc,
           lt_fm_param     TYPE abap_func_parmbind_tab,
           lt_fm_exception TYPE abap_func_excpbind_tab.
 
@@ -617,12 +671,9 @@ DATA: lt_components   TYPE temp3,
 
   METHOD read_definition.
 
-    TYPES temp8 TYPE TABLE OF wdy_component.
-TYPES temp9 TYPE TABLE OF smodilog.
-TYPES temp6 TYPE TABLE OF smodisrc.
-DATA: lt_definition TYPE temp8,
-          lt_psmodilog  TYPE temp9,
-          lt_psmodisrc  TYPE temp6.
+    DATA: lt_definition TYPE TABLE OF wdy_component,
+          lt_psmodilog  TYPE TABLE OF smodilog,
+          lt_psmodisrc  TYPE TABLE OF smodisrc.
 
 
     CALL FUNCTION 'WDYD_GET_OBJECT'
@@ -665,12 +716,9 @@ DATA: lt_definition TYPE temp8,
 
   METHOD read_view.
 
-    TYPES temp11 TYPE TABLE OF wdy_view_vrs.
-TYPES temp12 TYPE TABLE OF smodilog.
-TYPES temp7 TYPE TABLE OF smodisrc.
-DATA: lt_definition TYPE temp11,
-          lt_psmodilog  TYPE temp12,
-          lt_psmodisrc  TYPE temp7.
+    DATA: lt_definition TYPE TABLE OF wdy_view_vrs,
+          lt_psmodilog  TYPE TABLE OF smodilog,
+          lt_psmodisrc  TYPE TABLE OF smodisrc.
 
     FIELD-SYMBOLS: <ls_definition> LIKE LINE OF lt_definition.
 
@@ -799,6 +847,47 @@ DATA: lt_definition TYPE temp11,
   ENDMETHOD.
 
 
+  METHOD serialize_sources.
+
+    DATA:
+      lv_extra TYPE string,
+      lt_extra TYPE string_table,
+      ls_abap  TYPE abaptxt255,
+      lt_abap  TYPE abaptxt255_tab.
+
+    FIELD-SYMBOLS <ls_sources> LIKE LINE OF mt_sources.
+
+    " Store code as separate ABAP files instead of XML (assumes sorted data, see "read")
+    LOOP AT mt_sources ASSIGNING <ls_sources>.
+      AT NEW controller_name.
+        CLEAR lt_abap.
+        lv_extra = to_lower( <ls_sources>-controller_name ).
+      ENDAT.
+
+      ls_abap-line = <ls_sources>-source_line.
+      INSERT ls_abap INTO TABLE lt_abap.
+
+      AT END OF cmpname.
+        CLEAR ls_abap.
+        INSERT ls_abap INTO TABLE lt_abap.
+      ENDAT.
+      AT END OF controller_name.
+        IF lt_abap IS NOT INITIAL.
+          mo_files->add_abap(
+            iv_extra = lv_extra
+            it_abap  = lt_abap ).
+          INSERT lv_extra INTO TABLE lt_extra.
+        ENDIF.
+      ENDAT.
+    ENDLOOP.
+
+    ii_xml->add(
+      iv_name = 'FILES'
+      ig_data = lt_extra ).
+
+  ENDMETHOD.
+
+
   METHOD zif_abapgit_object~changed_by.
     SELECT SINGLE changedby FROM wdy_component INTO rv_user
       WHERE component_name = ms_item-obj_name AND version = 'A'.
@@ -816,12 +905,12 @@ DATA: lt_definition TYPE temp11,
           lv_object_name TYPE seu_objkey.
 
 
-    CREATE OBJECT lo_component.
+    lo_component = NEW #( ).
 
     lv_object_name = ms_item-obj_name.
-    CREATE OBJECT lo_request EXPORTING p_object_type = 'YC'
-                                       p_object_name = lv_object_name
-                                       p_operation = swbm_c_op_delete_no_dialog.
+    lo_request = NEW #( p_object_type = 'YC'
+                        p_object_name = lv_object_name
+                        p_operation = swbm_c_op_delete_no_dialog ).
 
     lo_component->if_wb_program~process_wb_request(
       p_wb_request       = lo_request
@@ -842,8 +931,8 @@ DATA: lt_definition TYPE temp11,
                   CHANGING cg_data = ls_component ).
     io_xml->read( EXPORTING iv_name  = 'COMPONENTS'
                   CHANGING cg_data = mt_components ).
-    io_xml->read( EXPORTING iv_name  = 'SOURCES'
-                  CHANGING cg_data = mt_sources ).
+
+    deserialize_sources( io_xml ).
 
     ls_component-comp_metadata-definition-author = sy-uname.
     ls_component-comp_metadata-definition-createdon = sy-datum.
@@ -890,9 +979,7 @@ DATA: lt_definition TYPE temp11,
     SELECT SINGLE component_name FROM wdy_component
       INTO lv_component_name
       WHERE component_name = ms_item-obj_name.          "#EC CI_GENBUFF
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -944,13 +1031,11 @@ DATA: lt_definition TYPE temp11,
 
   METHOD zif_abapgit_object~serialize.
 
-    TYPES temp14 TYPE STANDARD TABLE OF dokil-object WITH DEFAULT KEY.
-TYPES temp15 TYPE STANDARD TABLE OF dokil WITH DEFAULT KEY.
-DATA: ls_component   TYPE wdy_component_metadata,
+    DATA: ls_component   TYPE wdy_component_metadata,
           ls_comp        TYPE wdy_ctlr_compo_vrs,
           lv_object      TYPE dokil-object,
-          lt_object      TYPE temp14,
-          lt_dokil       TYPE temp15,
+          lt_object      TYPE STANDARD TABLE OF dokil-object WITH DEFAULT KEY,
+          lt_dokil       TYPE STANDARD TABLE OF dokil WITH DEFAULT KEY,
           ls_description TYPE wdy_ext_ctx_map.
 
     ls_component = read( ).
@@ -959,8 +1044,8 @@ DATA: ls_component   TYPE wdy_component_metadata,
                  ig_data = ls_component ).
     io_xml->add( ig_data = mt_components
                  iv_name = 'COMPONENTS' ).
-    io_xml->add( ig_data = mt_sources
-                 iv_name = 'SOURCES' ).
+
+    serialize_sources( io_xml ).
 
     READ TABLE ls_component-comp_metadata-descriptions INTO ls_description INDEX 1.
     IF sy-subrc = 0.
