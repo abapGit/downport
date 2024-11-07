@@ -321,9 +321,7 @@ CLASS zcl_abapgit_object_sprx IMPLEMENTATION.
         status      = lv_status
         status_text = lv_status_text ).
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( lv_status = if_proxy=>c_state_active ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( lv_status = if_proxy=>c_state_active ).
 
   ENDMETHOD.
 
