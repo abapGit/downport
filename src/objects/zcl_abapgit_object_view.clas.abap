@@ -5,18 +5,41 @@ CLASS zcl_abapgit_object_view DEFINITION PUBLIC INHERITING FROM zcl_abapgit_obje
   PROTECTED SECTION.
     "! get additional data like table authorization group
     "! @parameter iv_name | name of the view
-    METHODS read_extras IMPORTING iv_name               TYPE ddobjname
-                        RETURNING VALUE(rs_tabl_extras) TYPE zif_abapgit_object_tabl=>ty_tabl_extras.
+    METHODS read_extras
+      IMPORTING
+        iv_name               TYPE ddobjname
+      RETURNING
+        VALUE(rs_tabl_extras) TYPE zif_abapgit_object_tabl=>ty_tabl_extras.
 
     "! Update additional data
     "! @parameter iv_name | name of the table
+    "! @parameter iv_transport | transport request
     "! @parameter is_tabl_extras | additional view data
-    METHODS update_extras IMPORTING iv_name        TYPE ddobjname
-                                    is_tabl_extras TYPE zif_abapgit_object_tabl=>ty_tabl_extras.
+    METHODS update_extras
+      IMPORTING
+        iv_name        TYPE ddobjname
+        iv_transport   TYPE trkorr
+        is_tabl_extras TYPE zif_abapgit_object_tabl=>ty_tabl_extras
+      RAISING
+        zcx_abapgit_exception.
 
     "! Delete additional data
     "! @parameter iv_name | name of the view
-    METHODS delete_extras IMPORTING iv_name TYPE ddobjname.
+    "! @parameter iv_transport | transport request
+    METHODS delete_extras
+      IMPORTING
+        iv_name      TYPE ddobjname
+        iv_transport TYPE trkorr
+      RAISING
+        zcx_abapgit_exception.
+
+    METHODS insert_transport
+      IMPORTING
+        iv_name      TYPE ddobjname
+        iv_transport TYPE trkorr
+      RAISING
+        zcx_abapgit_exception.
+
   PRIVATE SECTION.
     TYPES: ty_dd26v TYPE STANDARD TABLE OF dd26v
                           WITH NON-UNIQUE DEFAULT KEY,
@@ -66,22 +89,25 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_OBJECT_VIEW IMPLEMENTATION.
+CLASS zcl_abapgit_object_view IMPLEMENTATION.
 
 
   METHOD delete_extras.
 
     DELETE FROM tddat WHERE tabname = iv_name.
 
+    insert_transport(
+      iv_name      = iv_name
+      iv_transport = iv_transport ).
+
   ENDMETHOD.
 
 
   METHOD deserialize_texts.
 
-    TYPES temp1 TYPE TABLE OF langu.
-DATA:
+    DATA:
       lv_name       TYPE ddobjname,
-      lt_i18n_langs TYPE temp1,
+      lt_i18n_langs TYPE TABLE OF langu,
       lt_dd25_texts TYPE ty_dd25_texts,
       ls_dd25v_tmp  TYPE dd25v.
 
@@ -131,6 +157,27 @@ DATA:
   ENDMETHOD.
 
 
+  METHOD insert_transport.
+
+    DATA:
+      ls_key  TYPE tddat,
+      lt_keys TYPE TABLE OF tddat.
+
+    IF iv_transport IS INITIAL.
+      RETURN.
+    ENDIF.
+
+    ls_key-tabname = iv_name.
+    INSERT ls_key INTO TABLE lt_keys.
+
+    zcl_abapgit_factory=>get_cts_api( )->create_transport_entries(
+      iv_transport = iv_transport
+      it_table_ins = lt_keys
+      iv_tabname   = 'TDDAT' ).
+
+  ENDMETHOD.
+
+
   METHOD read_extras.
 
     SELECT SINGLE * FROM tddat INTO rs_tabl_extras-tddat WHERE tabname = iv_name.
@@ -172,12 +219,11 @@ DATA:
 
   METHOD serialize_texts.
 
-    TYPES temp2 TYPE TABLE OF langu.
-DATA:
+    DATA:
       lv_index           TYPE i,
       ls_dd25v           TYPE dd25v,
       lt_dd25_texts      TYPE ty_dd25_texts,
-      lt_i18n_langs      TYPE temp2,
+      lt_i18n_langs      TYPE TABLE OF langu,
       lt_language_filter TYPE zif_abapgit_environment=>ty_system_language_filter.
 
     FIELD-SYMBOLS:
@@ -240,9 +286,15 @@ DATA:
   METHOD update_extras.
 
     IF is_tabl_extras-tddat IS INITIAL.
-      delete_extras( iv_name ).
+      delete_extras(
+        iv_name      = iv_name
+        iv_transport = iv_transport ).
     ELSE.
       MODIFY tddat FROM is_tabl_extras-tddat.
+
+      insert_transport(
+        iv_name      = iv_name
+        iv_transport = iv_transport ).
     ENDIF.
 
   ENDMETHOD.
@@ -271,24 +323,23 @@ DATA:
 
     lv_objname = ms_item-obj_name.
     delete_ddic( 'V' ).
-    delete_extras( lv_objname ).
+
+    delete_extras(
+      iv_name      = lv_objname
+      iv_transport = iv_transport ).
 
   ENDMETHOD.
 
 
   METHOD zif_abapgit_object~deserialize.
 
-    TYPES temp3 TYPE TABLE OF dd26v.
-TYPES temp1 TYPE TABLE OF dd27p.
-TYPES temp2 TYPE TABLE OF dd28j.
-TYPES temp4 TYPE TABLE OF dd28v.
-DATA: lv_name   TYPE ddobjname,
+    DATA: lv_name   TYPE ddobjname,
           ls_dd25v  TYPE dd25v,
           ls_dd09l  TYPE dd09l,
-          lt_dd26v  TYPE temp3,
-          lt_dd27p  TYPE temp1,
-          lt_dd28j  TYPE temp2,
-          lt_dd28v  TYPE temp4,
+          lt_dd26v  TYPE TABLE OF dd26v,
+          lt_dd27p  TYPE TABLE OF dd27p,
+          lt_dd28j  TYPE TABLE OF dd28j,
+          lt_dd28v  TYPE TABLE OF dd28v,
           ls_extras TYPE zif_abapgit_object_tabl=>ty_internal-extras.
 
     FIELD-SYMBOLS: <ls_dd27p> LIKE LINE OF lt_dd27p.
@@ -356,6 +407,7 @@ DATA: lv_name   TYPE ddobjname,
                            iv_longtext_id = c_longtext_id_view ).
 
     update_extras( iv_name        = lv_name
+                   iv_transport   = iv_transport
                    is_tabl_extras = ls_extras ).
 
     zcl_abapgit_objects_activation=>add_item( ms_item ).
@@ -370,9 +422,7 @@ DATA: lv_name   TYPE ddobjname,
 
     SELECT SINGLE viewname FROM dd25l INTO lv_viewname
       WHERE viewname = ms_item-obj_name.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
     IF rv_bool = abap_true.
       TRY.
