@@ -175,7 +175,7 @@ CLASS zcl_abapgit_file_deserialize IMPLEMENTATION.
 
     lt_items = map_results_to_items( it_results ).
 
-    CREATE OBJECT lo_graph EXPORTING it_items = lt_items.
+    lo_graph = NEW #( it_items = lt_items ).
 
     LOOP AT lt_items INTO ls_item.
       CLEAR lt_requires.
@@ -245,6 +245,12 @@ CLASS zcl_abapgit_file_deserialize IMPLEMENTATION.
         WHEN 'ENSC'.
           lt_requires = lt_items.
           DELETE lt_requires WHERE obj_type <> 'ENHS'.
+        WHEN 'IWMO' OR 'IWSV' OR 'IWVB' OR 'SUSH'.
+          lt_requires = lt_items.
+          DELETE lt_requires WHERE obj_type <> 'SRVB'.
+        WHEN 'SRVB'.
+          lt_requires = lt_items.
+          DELETE lt_requires WHERE obj_type <> 'SRVD'.
       ENDCASE.
 * TODO: END extract to object handler method
 

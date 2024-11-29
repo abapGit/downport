@@ -129,6 +129,18 @@ CLASS zcl_abapgit_object_srvb IMPLEMENTATION.
       CHANGING
         cs_service_binding = cs_service_binding ).
 
+    clear_field(
+      EXPORTING
+        iv_fieldname       = 'METADATA-RESPONSIBLE'
+      CHANGING
+        cs_service_binding = cs_service_binding ).
+
+    clear_field(
+      EXPORTING
+        iv_fieldname       = 'METADATA-MASTER_LANGUAGE'
+      CHANGING
+        cs_service_binding = cs_service_binding ).
+
   ENDMETHOD.
 
 
@@ -423,9 +435,7 @@ CLASS zcl_abapgit_object_srvb IMPLEMENTATION.
               p_object_data    = lo_object_data ).
 
         ENDIF.
-        DATA temp1 TYPE xsdboolean.
-        temp1 = boolc( lo_object_data IS NOT INITIAL AND lo_object_data->get_object_key( ) IS NOT INITIAL ).
-        rv_bool = temp1.
+        rv_bool = xsdbool( lo_object_data IS NOT INITIAL AND lo_object_data->get_object_key( ) IS NOT INITIAL ).
       CATCH cx_root.
         rv_bool = abap_false.
     ENDTRY.
