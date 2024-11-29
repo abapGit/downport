@@ -116,9 +116,7 @@ CLASS zcl_abapgit_gui_jumper IMPLEMENTATION.
         jump_not_possible = 1
         OTHERS            = 2.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_exit = temp1.
+    rv_exit = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -137,9 +135,7 @@ CLASS zcl_abapgit_gui_jumper IMPLEMENTATION.
         invalid_object_type = 2
         OTHERS              = 3.
 
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( sy-subrc = 0 ).
-    rv_exit = temp2.
+    rv_exit = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -164,9 +160,7 @@ CLASS zcl_abapgit_gui_jumper IMPLEMENTATION.
           invalid_object_type = 2
           OTHERS              = 3.
 
-      DATA temp3 TYPE xsdboolean.
-      temp3 = boolc( sy-subrc = 0 ).
-      rv_exit = temp3.
+      rv_exit = xsdbool( sy-subrc = 0 ).
 
     ENDIF.
 
@@ -230,8 +224,7 @@ CLASS zcl_abapgit_gui_jumper IMPLEMENTATION.
 
   METHOD zif_abapgit_gui_jumper~jump_abapgit.
 
-    TYPES temp1 TYPE STANDARD TABLE OF rfc_spagpa.
-DATA lt_spagpa        TYPE temp1.
+    DATA lt_spagpa        TYPE STANDARD TABLE OF rfc_spagpa.
     DATA ls_spagpa        LIKE LINE OF lt_spagpa.
     DATA lv_save_sy_langu TYPE sy-langu.
     DATA lv_subrc         TYPE syst-subrc.
