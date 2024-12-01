@@ -48,9 +48,9 @@ CLASS zcl_abapgit_repo_item_state IMPLEMENTATION.
 
 
   METHOD is_unchanged.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( mv_is_reassigned = abap_false AND mv_lstate = zif_abapgit_definitions=>c_state-unchanged AND mv_rstate = zif_abapgit_definitions=>c_state-unchanged ).
-    rv_is_unchanged = temp1.
+    rv_is_unchanged = xsdbool( mv_is_reassigned = abap_false
+      AND mv_lstate = zif_abapgit_definitions=>c_state-unchanged
+      AND mv_rstate = zif_abapgit_definitions=>c_state-unchanged ).
   ENDMETHOD.
 
 
@@ -86,9 +86,7 @@ CLASS zcl_abapgit_repo_item_state IMPLEMENTATION.
     mv_rstate = reduce(
       iv_prev = mv_rstate
       iv_cur  = is_repo_item-rstate ).
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( mv_is_reassigned = abap_true OR is_repo_item-packmove = abap_true ).
-    mv_is_reassigned = temp2.
+    mv_is_reassigned = xsdbool( mv_is_reassigned = abap_true OR is_repo_item-packmove = abap_true ).
 
   ENDMETHOD.
 
@@ -101,9 +99,7 @@ CLASS zcl_abapgit_repo_item_state IMPLEMENTATION.
     mv_rstate = reduce(
       iv_prev = mv_rstate
       iv_cur  = is_status_item-rstate ).
-    DATA temp3 TYPE xsdboolean.
-    temp3 = boolc( mv_is_reassigned = abap_true OR is_status_item-packmove = abap_true ).
-    mv_is_reassigned = temp3.
+    mv_is_reassigned = xsdbool( mv_is_reassigned = abap_true OR is_status_item-packmove = abap_true ).
 
   ENDMETHOD.
 ENDCLASS.
