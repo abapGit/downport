@@ -37,13 +37,17 @@ CLASS zcl_abapgit_object_msag DEFINITION PUBLIC INHERITING FROM zcl_abapgit_obje
         zcx_abapgit_exception .
     METHODS delete_msgid
       IMPORTING
-        !iv_message_id TYPE arbgb .
+        !iv_message_id TYPE arbgb
+      RAISING
+        zcx_abapgit_exception.
     METHODS free_access_permission
       IMPORTING
         !iv_message_id TYPE arbgb .
     METHODS delete_documentation
       IMPORTING
-        !iv_message_id TYPE arbgb .
+        !iv_message_id TYPE arbgb
+      RAISING
+        zcx_abapgit_exception.
 ENDCLASS.
 
 
@@ -61,9 +65,7 @@ CLASS zcl_abapgit_object_msag IMPLEMENTATION.
         element  = iv_message_id
         addition = '   '
       IMPORTING
-        object   = lv_key_s
-      EXCEPTIONS
-        OTHERS   = 0.
+        object   = lv_key_s.
 
     CALL FUNCTION 'DOKU_DELETE_ALL'
       EXPORTING
@@ -80,7 +82,11 @@ CLASS zcl_abapgit_object_msag IMPLEMENTATION.
         no_docu_found                  = 4
         object_is_already_enqueued     = 5
         object_is_enqueued_by_corr     = 6
-        user_break                     = 7.
+        user_break                     = 7
+        OTHERS                         = 8.
+    IF sy-subrc <> 0.
+      zcx_abapgit_exception=>raise( 'Error deleting longtext for message' ).
+    ENDIF.
 
   ENDMETHOD.
 
@@ -110,13 +116,11 @@ CLASS zcl_abapgit_object_msag IMPLEMENTATION.
 
   METHOD deserialize_texts.
 
-    TYPES temp1 TYPE TABLE OF t100t.
-TYPES temp2 TYPE TABLE OF t100u.
-DATA: lv_msg_id     TYPE rglif-message_id,
+    DATA: lv_msg_id     TYPE rglif-message_id,
           ls_t100       TYPE t100,
-          lt_t100t      TYPE temp1,
+          lt_t100t      TYPE TABLE OF t100t,
           lt_t100_texts TYPE ty_t100_texts,
-          lt_t100u      TYPE temp2.
+          lt_t100u      TYPE TABLE OF t100u.
 
     FIELD-SYMBOLS: <ls_t100_text> TYPE ty_t100_text.
 
@@ -173,9 +177,9 @@ DATA: lv_msg_id     TYPE rglif-message_id,
 
   METHOD serialize_longtexts_msag.
 
-    TYPES temp3 TYPE STANDARD TABLE OF dokhl-object WITH NON-UNIQUE DEFAULT KEY.
-DATA: lv_doku_object_name  TYPE dokhl-object,
-          lt_doku_object_names TYPE temp3,
+    DATA: lv_doku_object_name  TYPE dokhl-object,
+          lt_doku_object_names TYPE STANDARD TABLE OF dokhl-object
+                          WITH NON-UNIQUE DEFAULT KEY,
           lt_dokil             TYPE zif_abapgit_definitions=>ty_dokil_tt,
           ls_dokil             LIKE LINE OF lt_dokil,
           lt_language_filter   TYPE zif_abapgit_environment=>ty_system_language_filter.
@@ -225,12 +229,10 @@ DATA: lv_doku_object_name  TYPE dokhl-object,
 
   METHOD serialize_texts.
 
-    TYPES temp4 TYPE TABLE OF t100t.
-TYPES temp3 TYPE TABLE OF langu.
-DATA: lv_msg_id          TYPE rglif-message_id,
+    DATA: lv_msg_id          TYPE rglif-message_id,
           lt_t100_texts      TYPE ty_t100_texts,
-          lt_t100t           TYPE temp4,
-          lt_i18n_langs      TYPE temp3,
+          lt_t100t           TYPE TABLE OF t100t,
+          lt_i18n_langs      TYPE TABLE OF langu,
           lt_language_filter TYPE zif_abapgit_environment=>ty_system_language_filter.
 
     lv_msg_id = ms_item-obj_name.
@@ -345,13 +347,11 @@ DATA: lv_msg_id          TYPE rglif-message_id,
   METHOD zif_abapgit_object~deserialize.
 * fm RPY_MESSAGE_ID_INSERT almost works, but not in older versions
 
-    TYPES temp6 TYPE TABLE OF t100.
-TYPES temp4 TYPE TABLE OF t100u.
-DATA: ls_t100a  TYPE t100a,
+    DATA: ls_t100a  TYPE t100a,
           ls_t100t  TYPE t100t,
           ls_t100u  TYPE t100u,
-          lt_t100   TYPE temp6,
-          lt_before TYPE temp4.
+          lt_t100   TYPE TABLE OF t100,
+          lt_before TYPE TABLE OF t100u.
 
     FIELD-SYMBOLS: <ls_t100> LIKE LINE OF lt_t100.
 
@@ -426,9 +426,7 @@ DATA: ls_t100a  TYPE t100a,
 
     SELECT SINGLE arbgb FROM t100a INTO lv_arbgb
       WHERE arbgb = ms_item-obj_name.                   "#EC CI_GENBUFF
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
