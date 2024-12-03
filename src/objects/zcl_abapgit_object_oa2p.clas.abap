@@ -90,7 +90,7 @@ CLASS zcl_abapgit_object_oa2p IMPLEMENTATION.
 
     "authority check
     AUTHORITY-CHECK OBJECT 'S_OA2C_ADM'
-      ID 'ACTVT'     FIELD lc_actvt.
+      ID 'ACTVT' FIELD lc_actvt ##AUTH_OBJ_OK.
     IF sy-subrc <> 0.
       MESSAGE e463(01) WITH mv_profile INTO zcx_abapgit_exception=>null.
       zcx_abapgit_exception=>raise_t100( ).
@@ -104,7 +104,7 @@ CLASS zcl_abapgit_object_oa2p IMPLEMENTATION.
         CALL METHOD lo_persist->('IF_WB_OBJECT_PERSIST~DELETE')
           EXPORTING
             p_object_key = lv_profile_key.   " Object Key
-      CATCH cx_swb_object_does_not_exist.
+      CATCH cx_swb_object_does_not_exist ##NO_HANDLER.
       CATCH cx_swb_exception.
         zcx_abapgit_exception=>raise( |Error when deleting OAuth2 Profile { lv_profile_key }.| ).
     ENDTRY.
@@ -194,10 +194,9 @@ CLASS zcl_abapgit_object_oa2p IMPLEMENTATION.
 
   METHOD zif_abapgit_object~is_locked.
 
-    TYPES temp1 TYPE STANDARD TABLE OF seqg3.
-DATA: lv_profile_name TYPE eqegraarg,
+    DATA: lv_profile_name TYPE eqegraarg,
           lv_lock_number  TYPE i,
-          lt_locks        TYPE temp1.
+          lt_locks        TYPE STANDARD TABLE OF seqg3.
 
     lv_profile_name = mv_profile.
 
@@ -212,9 +211,7 @@ DATA: lv_profile_name TYPE eqegraarg,
         enq     = lt_locks.    " Number of chosen lock entries
 
 
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( lv_lock_number > 0 ).
-    rv_is_locked = temp2.
+    rv_is_locked = xsdbool( lv_lock_number > 0 ).
 
   ENDMETHOD.
 

@@ -451,9 +451,9 @@ CLASS zcl_abapgit_object_ueno IMPLEMENTATION.
 
   METHOD get_generic.
 
-    CREATE OBJECT ro_generic EXPORTING io_field_rules = get_field_rules( )
-                                       is_item = ms_item
-                                       iv_language = mv_language.
+    ro_generic = NEW #( io_field_rules = get_field_rules( )
+                        is_item = ms_item
+                        iv_language = mv_language ).
 
   ENDMETHOD.
 
@@ -567,7 +567,7 @@ CLASS zcl_abapgit_object_ueno IMPLEMENTATION.
           header  = ls_docu-header
           content = ls_docu-content
           itf     = ls_docu-itf
-          pstatus = lv_error_status.
+          pstatus = lv_error_status ##ARG_OK.
 
       CHECK lv_error_status = 'S'. "Success
 

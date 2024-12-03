@@ -73,7 +73,7 @@ CLASS lcl_task_definition IMPLEMENTATION.
 
     DATA lo_taskdef TYPE REF TO lcl_task_definition.
 
-    CREATE OBJECT lo_taskdef.
+    lo_taskdef = NEW #( ).
     lo_taskdef->mv_objid = iv_objid.
     lo_taskdef->supply_instance( ).
 
@@ -172,7 +172,7 @@ CLASS lcl_task_definition IMPLEMENTATION.
       IF sy-subrc <> 0.
         TRY.
             li_container->element_remove( name = lv_element ).
-          CATCH cx_swf_cnt_container.
+          CATCH cx_swf_cnt_container ##NO_HANDLER.
             "Shouldn't happen, doesn't matter if it does
         ENDTRY.
       ENDIF.
@@ -185,7 +185,7 @@ CLASS lcl_task_definition IMPLEMENTATION.
   METHOD create.
     DATA lo_task TYPE REF TO lcl_task_definition.
 
-    CREATE OBJECT lo_task TYPE lcl_task_definition.
+    lo_task = NEW lcl_task_definition( ).
     lo_task->mv_objid = iv_objid.
     lo_task->ms_task = is_task_data.
     ri_result = lo_task.
