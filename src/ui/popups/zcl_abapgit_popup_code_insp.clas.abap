@@ -24,11 +24,11 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_POPUP_CODE_INSP IMPLEMENTATION.
+CLASS zcl_abapgit_popup_code_insp IMPLEMENTATION.
 
 
   METHOD create.
-    CREATE OBJECT ri_popup TYPE zcl_abapgit_popup_code_insp.
+    ri_popup = NEW zcl_abapgit_popup_code_insp( ).
   ENDMETHOD.
 
 
@@ -44,7 +44,6 @@ CLASS ZCL_ABAPGIT_POPUP_CODE_INSP IMPLEMENTATION.
     FIELD-SYMBOLS <ls_item> TYPE LINE OF zif_abapgit_code_inspector=>ty_variants.
 
     ASSIGN iv_item TO <ls_item>.
-    ASSERT sy-subrc = 0.
 
     ri_html = zcl_abapgit_html=>create( |<b>{ <ls_item>-name }</b> - { <ls_item>-description }| ).
 
@@ -53,9 +52,9 @@ CLASS ZCL_ABAPGIT_POPUP_CODE_INSP IMPLEMENTATION.
 
   METHOD zif_abapgit_html_popup~create_picklist.
 
-    CREATE OBJECT ro_picklist EXPORTING iv_title = 'Choose Variant'
-                                        it_list = fetch_list( )
-                                        ii_item_renderer = me.
+    ro_picklist = NEW #( iv_title = 'Choose Variant'
+                         it_list = fetch_list( )
+                         ii_item_renderer = me ).
 
   ENDMETHOD.
 ENDCLASS.

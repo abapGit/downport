@@ -54,7 +54,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_GUI_PAGE_HOC IMPLEMENTATION.
+CLASS zcl_abapgit_gui_page_hoc IMPLEMENTATION.
 
 
   METHOD constructor.
@@ -96,19 +96,19 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_HOC IMPLEMENTATION.
     IF ls_control-page_menu_provider IS NOT BOUND. " try component itself
       TRY.
           ls_control-page_menu_provider ?= ii_child_component.
-        CATCH cx_sy_move_cast_error.
+        CATCH cx_sy_move_cast_error ##NO_HANDLER.
       ENDTRY.
     ENDIF.
 
     IF ls_control-page_title_provider IS NOT BOUND. " try component itself
       TRY.
           ls_control-page_title_provider ?= ii_child_component.
-        CATCH cx_sy_move_cast_error.
+        CATCH cx_sy_move_cast_error ##NO_HANDLER.
       ENDTRY.
     ENDIF.
 
-    CREATE OBJECT lo_page EXPORTING ii_child_component = ii_child_component
-                                    is_control = ls_control.
+    lo_page = NEW #( ii_child_component = ii_child_component
+                     is_control = ls_control ).
 
     ri_page_wrap = lo_page.
 
@@ -130,7 +130,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_HOC IMPLEMENTATION.
     TRY.
         li_modal ?= mi_child.
         rv_is_modal = li_modal->is_modal( ).
-      CATCH cx_sy_move_cast_error.
+      CATCH cx_sy_move_cast_error ##NO_HANDLER.
     ENDTRY.
 
   ENDMETHOD.
@@ -139,7 +139,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_HOC IMPLEMENTATION.
   METHOD detect_title_provider.
     TRY.
         ri_ref ?= mi_child.
-      CATCH cx_sy_move_cast_error.
+      CATCH cx_sy_move_cast_error ##NO_HANDLER.
     ENDTRY.
   ENDMETHOD.
 

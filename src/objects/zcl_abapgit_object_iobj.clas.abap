@@ -61,7 +61,7 @@ CLASS zcl_abapgit_object_iobj IMPLEMENTATION.
         iobj_not_found   = 1
         illegal_input    = 2
         bct_comp_invalid = 3
-        not_authorized   = 4
+*        not_authorized   = 4 " not in lower releases
         OTHERS           = 5.
     IF sy-subrc = 0.
       ASSIGN COMPONENT 'TSTPNM' OF STRUCTURE <lg_viobj> TO <lg_tstpnm>.
@@ -77,8 +77,7 @@ CLASS zcl_abapgit_object_iobj IMPLEMENTATION.
              objnm TYPE c LENGTH 30.
     TYPES END OF ty_iobj.
 
-    TYPES temp1 TYPE STANDARD TABLE OF ty_iobj.
-DATA: lt_iobjname TYPE temp1,
+    DATA: lt_iobjname TYPE STANDARD TABLE OF ty_iobj,
           lv_subrc    TYPE sy-subrc.
 
     APPEND ms_item-obj_name TO lt_iobjname.
@@ -108,12 +107,11 @@ DATA: lt_iobjname TYPE temp1,
 
   METHOD zif_abapgit_object~deserialize.
 
-    TYPES temp2 TYPE STANDARD TABLE OF bapiret2.
-DATA:
+    DATA:
       lr_details                  TYPE REF TO data,
       lr_infoobj                  TYPE REF TO data,
       ls_return                   TYPE bapiret2,
-      lt_return                   TYPE temp2,
+      lt_return                   TYPE STANDARD TABLE OF bapiret2,
       lr_compounds                TYPE REF TO data,
       lr_attributes               TYPE REF TO data,
       lr_navigationattributes     TYPE REF TO data,
@@ -202,36 +200,67 @@ DATA:
         ASSERT sy-subrc = 0.
 
         IF zif_abapgit_object~exists( ) = abap_false.
-          CALL FUNCTION 'BAPI_IOBJ_CREATE'
-            EXPORTING
-              details                  = <lg_details>
-            IMPORTING
-              return                   = ls_return
-            TABLES
-              compounds                = <lt_compounds>
-              attributes               = <lt_attributes>
-              navigationattributes     = <lt_navigationattributes>
-              atrnavinfoprovider       = <lt_atrnavinfoprovider>
-              hierarchycharacteristics = <lt_hierarchycharacteristics>
-              elimination              = <lt_elimination>
-              hanafieldsmapping        = <lt_hanafieldsmapping>
-              xxlattributes            = <lt_xxlattributes>.
+          TRY.
+              CALL FUNCTION 'BAPI_IOBJ_CREATE'
+                EXPORTING
+                  details                  = <lg_details>
+                IMPORTING
+                  return                   = ls_return
+                TABLES
+                  compounds                = <lt_compounds>
+                  attributes               = <lt_attributes>
+                  navigationattributes     = <lt_navigationattributes>
+                  atrnavinfoprovider       = <lt_atrnavinfoprovider>
+                  hierarchycharacteristics = <lt_hierarchycharacteristics>
+                  elimination              = <lt_elimination>
+                  hanafieldsmapping        = <lt_hanafieldsmapping>
+                  xxlattributes            = <lt_xxlattributes> ##ARG_OK.
+            CATCH cx_sy_dyn_call_param_not_found.
+              CALL FUNCTION 'BAPI_IOBJ_CREATE'
+                EXPORTING
+                  details                  = <lg_details>
+                IMPORTING
+                  return                   = ls_return
+                TABLES
+                  compounds                = <lt_compounds>
+                  attributes               = <lt_attributes>
+                  navigationattributes     = <lt_navigationattributes>
+                  atrnavinfoprovider       = <lt_atrnavinfoprovider>
+                  hierarchycharacteristics = <lt_hierarchycharacteristics>
+                  elimination              = <lt_elimination>.
+          ENDTRY.
         ELSE.
-          CALL FUNCTION 'BAPI_IOBJ_CHANGE'
-            EXPORTING
-              infoobject               = <lg_infoobject>
-              details                  = <lg_details>
-            IMPORTING
-              return                   = ls_return
-            TABLES
-              compounds                = <lt_compounds>
-              attributes               = <lt_attributes>
-              navigationattributes     = <lt_navigationattributes>
-              atrnavinfoprovider       = <lt_atrnavinfoprovider>
-              hierarchycharacteristics = <lt_hierarchycharacteristics>
-              elimination              = <lt_elimination>
-              hanafieldsmapping        = <lt_hanafieldsmapping>
-              xxlattributes            = <lt_xxlattributes>.
+          TRY.
+              CALL FUNCTION 'BAPI_IOBJ_CHANGE'
+                EXPORTING
+                  infoobject               = <lg_infoobject>
+                  details                  = <lg_details>
+                IMPORTING
+                  return                   = ls_return
+                TABLES
+                  compounds                = <lt_compounds>
+                  attributes               = <lt_attributes>
+                  navigationattributes     = <lt_navigationattributes>
+                  atrnavinfoprovider       = <lt_atrnavinfoprovider>
+                  hierarchycharacteristics = <lt_hierarchycharacteristics>
+                  elimination              = <lt_elimination>
+                  hanafieldsmapping        = <lt_hanafieldsmapping>
+                  xxlattributes            = <lt_xxlattributes> ##ARG_OK.
+            CATCH cx_sy_dyn_call_param_not_found.
+              CALL FUNCTION 'BAPI_IOBJ_CHANGE'
+                EXPORTING
+                  infoobject               = <lg_infoobject>
+                  details                  = <lg_details>
+                IMPORTING
+                  return                   = ls_return
+                TABLES
+                  compounds                = <lt_compounds>
+                  attributes               = <lt_attributes>
+                  navigationattributes     = <lt_navigationattributes>
+                  atrnavinfoprovider       = <lt_atrnavinfoprovider>
+                  hierarchycharacteristics = <lt_hierarchycharacteristics>
+                  elimination              = <lt_elimination>.
+          ENDTRY.
         ENDIF.
 
         IF ls_return-type = 'E'.
@@ -270,9 +299,7 @@ DATA:
       INTO lv_iobjnm
       WHERE iobjnm = ms_item-obj_name.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -413,21 +440,37 @@ DATA:
 
     lv_iobjnam = ms_item-obj_name.
 
-    CALL FUNCTION 'BAPI_IOBJ_GETDETAIL'
-      EXPORTING
-        infoobject               = lv_iobjnam
-      IMPORTING
-        details                  = <lg_details>
-        return                   = ls_return
-      TABLES
-        compounds                = <lt_compounds>
-        attributes               = <lt_attributes>
-        navigationattributes     = <lt_navigationattributes>
-        atrnavinfoprovider       = <lt_atrnavinfoprovider>
-        hierarchycharacteristics = <lt_hierarchycharacteristics>
-        elimination              = <lt_elimination>
-        hanafieldsmapping        = <lt_hanafieldsmapping>
-        xxlattributes            = <lt_xxlattributes>.
+    TRY.
+        CALL FUNCTION 'BAPI_IOBJ_GETDETAIL'
+          EXPORTING
+            infoobject               = lv_iobjnam
+          IMPORTING
+            details                  = <lg_details>
+            return                   = ls_return
+          TABLES
+            compounds                = <lt_compounds>
+            attributes               = <lt_attributes>
+            navigationattributes     = <lt_navigationattributes>
+            atrnavinfoprovider       = <lt_atrnavinfoprovider>
+            hierarchycharacteristics = <lt_hierarchycharacteristics>
+            elimination              = <lt_elimination>
+            hanafieldsmapping        = <lt_hanafieldsmapping>
+            xxlattributes            = <lt_xxlattributes> ##ARG_OK.
+      CATCH cx_sy_dyn_call_param_not_found.
+        CALL FUNCTION 'BAPI_IOBJ_GETDETAIL'
+          EXPORTING
+            infoobject               = lv_iobjnam
+          IMPORTING
+            details                  = <lg_details>
+            return                   = ls_return
+          TABLES
+            compounds                = <lt_compounds>
+            attributes               = <lt_attributes>
+            navigationattributes     = <lt_navigationattributes>
+            atrnavinfoprovider       = <lt_atrnavinfoprovider>
+            hierarchycharacteristics = <lt_hierarchycharacteristics>
+            elimination              = <lt_elimination>.
+    ENDTRY.
 
     IF ls_return-type = 'E'.
       zcx_abapgit_exception=>raise( |Error getting details of InfoObject: { ls_return-message }| ).

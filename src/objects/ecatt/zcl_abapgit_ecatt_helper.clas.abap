@@ -53,7 +53,7 @@ CLASS zcl_abapgit_ecatt_helper IMPLEMENTATION.
     "download method will create the xml stream
     "note: it's the redefined download( ) of each object type specific download, which is called
     TRY.
-        CREATE OBJECT lo_load_help_dummy EXPORTING im_maintain_function = ''.
+        lo_load_help_dummy = NEW #( im_maintain_function = '' ).
 
         io_download->download( im_object_name    = iv_object_name
                                im_object_version = iv_object_version
@@ -64,7 +64,7 @@ CLASS zcl_abapgit_ecatt_helper IMPLEMENTATION.
         lv_text = lx_ecatt->get_text( ).
         zcx_abapgit_exception=>raise( lv_text ).
         " note, exception cx_ecatt_ui_attachment doesn't exist in 702
-      CATCH cx_ecatt.
+      CATCH cx_ecatt ##NO_HANDLER.
         "will never be raised from download, when called with mv_generate_xml_no_download = 'X'.
     ENDTRY.
 

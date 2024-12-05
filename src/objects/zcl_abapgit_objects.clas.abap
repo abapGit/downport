@@ -4,9 +4,6 @@ CLASS zcl_abapgit_objects DEFINITION
 
   PUBLIC SECTION.
 
-    TYPES:
-      ty_types_tt TYPE SORTED TABLE OF tadir-object WITH UNIQUE KEY table_line .
-
     CLASS-METHODS serialize
       IMPORTING
         !is_item                 TYPE zif_abapgit_definitions=>ty_item
@@ -71,7 +68,7 @@ CLASS zcl_abapgit_objects DEFINITION
         VALUE(rv_bool) TYPE abap_bool .
     CLASS-METHODS supported_list
       RETURNING
-        VALUE(rt_types) TYPE ty_types_tt .
+        VALUE(rt_types) TYPE zif_abapgit_objects=>ty_types_tt.
     CLASS-METHODS is_active
       IMPORTING
         !is_item         TYPE zif_abapgit_definitions=>ty_item
@@ -265,11 +262,10 @@ CLASS zcl_abapgit_objects IMPLEMENTATION.
 
   METHOD check_duplicates.
 
-    TYPES temp1 TYPE STANDARD TABLE OF string WITH DEFAULT KEY.
-DATA: lt_files          TYPE zif_abapgit_git_definitions=>ty_files_tt,
+    DATA: lt_files          TYPE zif_abapgit_git_definitions=>ty_files_tt,
           lv_path           TYPE string,
           lv_filename       TYPE string,
-          lt_duplicates     TYPE temp1,
+          lt_duplicates     TYPE STANDARD TABLE OF string WITH DEFAULT KEY,
           lv_duplicates     LIKE LINE OF lt_duplicates,
           lv_all_duplicates TYPE string.
 
@@ -415,8 +411,8 @@ DATA: lt_files          TYPE zif_abapgit_git_definitions=>ty_files_tt,
         RETURN.
       ENDIF.
 
-      CREATE OBJECT li_remote_version TYPE zcl_abapgit_xml_input EXPORTING iv_xml = zcl_abapgit_convert=>xstring_to_string_utf8( ls_remote_file-data )
-                                                                           iv_filename = ls_remote_file-filename.
+      li_remote_version = NEW zcl_abapgit_xml_input( iv_xml = zcl_abapgit_convert=>xstring_to_string_utf8( ls_remote_file-data )
+                                                     iv_filename = ls_remote_file-filename ).
 
       ls_result = li_comparator->compare( ii_remote = li_remote_version
                                           ii_log = ii_log ).
@@ -509,11 +505,11 @@ DATA: lt_files          TYPE zif_abapgit_git_definitions=>ty_files_tt,
         IF iv_native_only = abap_false.
           TRY. " 2nd step, try looking for plugins
               IF io_files IS BOUND AND io_i18n_params IS BOUND.
-                CREATE OBJECT ri_obj TYPE zcl_abapgit_objects_bridge EXPORTING is_item = is_item
-                                                                               io_files = io_files
-                                                                               io_i18n_params = io_i18n_params.
+                ri_obj = NEW zcl_abapgit_objects_bridge( is_item = is_item
+                                                         io_files = io_files
+                                                         io_i18n_params = io_i18n_params ).
               ELSE.
-                CREATE OBJECT ri_obj TYPE zcl_abapgit_objects_bridge EXPORTING is_item = is_item.
+                ri_obj = NEW zcl_abapgit_objects_bridge( is_item = is_item ).
               ENDIF.
             CATCH cx_sy_create_object_error.
               zcx_abapgit_exception=>raise( lv_message ).
@@ -657,7 +653,7 @@ DATA: lt_files          TYPE zif_abapgit_git_definitions=>ty_files_tt,
           li_progress TYPE REF TO zif_abapgit_progress,
           lv_path     TYPE string,
           lt_items    TYPE zif_abapgit_definitions=>ty_items_tt,
-          lt_steps_id TYPE zif_abapgit_definitions=>ty_deserialization_step_tt,
+          lt_steps_id TYPE zif_abapgit_objects=>ty_deserialization_step_tt,
           lt_steps    TYPE zif_abapgit_objects=>ty_step_data_tt,
           lx_exc      TYPE REF TO zcx_abapgit_exception.
     DATA lo_folder_logic TYPE REF TO zcl_abapgit_folder_logic.
@@ -666,7 +662,7 @@ DATA: lt_files          TYPE zif_abapgit_git_definitions=>ty_files_tt,
     DATA lo_abap_language_vers TYPE REF TO zcl_abapgit_abap_language_vers.
 
     FIELD-SYMBOLS: <ls_result>  TYPE zif_abapgit_definitions=>ty_result,
-                   <lv_step_id> TYPE LINE OF zif_abapgit_definitions=>ty_deserialization_step_tt,
+                   <lv_step_id> TYPE LINE OF zif_abapgit_objects=>ty_deserialization_step_tt,
                    <ls_step>    TYPE LINE OF zif_abapgit_objects=>ty_step_data_tt,
                    <ls_deser>   TYPE LINE OF zif_abapgit_objects=>ty_deserialization_tt.
 
@@ -725,7 +721,7 @@ DATA: lt_files          TYPE zif_abapgit_git_definitions=>ty_files_tt,
       ii_log->add_info( |>>> Deserializing { lines( lt_items ) } objects| ).
     ENDIF.
 
-    CREATE OBJECT lo_abap_language_vers EXPORTING io_dot_abapgit = lo_dot.
+    lo_abap_language_vers = NEW #( io_dot_abapgit = lo_dot ).
 
     lo_folder_logic = zcl_abapgit_folder_logic=>get_instance( ).
     LOOP AT lt_results ASSIGNING <ls_result>.
@@ -1208,16 +1204,14 @@ DATA: lt_files          TYPE zif_abapgit_git_definitions=>ty_files_tt,
       io_files       = lo_files
       io_i18n_params = io_i18n_params ).
 
-    CREATE OBJECT li_xml TYPE zcl_abapgit_xml_output.
+    li_xml = NEW zcl_abapgit_xml_output( ).
 
     rs_files_and_item-item = is_item.
 
     TRY.
         li_obj->serialize( li_xml ).
       CATCH zcx_abapgit_exception INTO lx_error.
-        DATA temp1 TYPE xsdboolean.
-        temp1 = boolc( li_obj->is_active( ) = abap_false ).
-        rs_files_and_item-item-inactive = temp1.
+        rs_files_and_item-item-inactive = xsdbool( li_obj->is_active( ) = abap_false ).
         RAISE EXCEPTION lx_error.
     ENDTRY.
 
@@ -1240,9 +1234,7 @@ DATA: lt_files          TYPE zif_abapgit_git_definitions=>ty_files_tt,
 
     check_duplicates( rs_files_and_item-files ).
 
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( li_obj->is_active( ) = abap_false ).
-    rs_files_and_item-item-inactive = temp2.
+    rs_files_and_item-item-inactive = xsdbool( li_obj->is_active( ) = abap_false ).
 
     LOOP AT rs_files_and_item-files ASSIGNING <ls_file>.
       <ls_file>-sha1 = zcl_abapgit_hash=>sha1_blob( <ls_file>-data ).
@@ -1253,8 +1245,7 @@ DATA: lt_files          TYPE zif_abapgit_git_definitions=>ty_files_tt,
 
   METHOD supported_list.
 
-    TYPES temp2 TYPE STANDARD TABLE OF ko100.
-DATA lt_objects            TYPE temp2.
+    DATA lt_objects            TYPE STANDARD TABLE OF ko100.
     DATA ls_item               TYPE zif_abapgit_definitions=>ty_item.
     DATA ls_supported_obj_type TYPE ty_supported_types.
     DATA lt_types              TYPE zif_abapgit_exit=>ty_object_types.

@@ -42,7 +42,7 @@ CLASS zcl_abapgit_popup_pull_request IMPLEMENTATION.
 
   METHOD create.
 
-    CREATE OBJECT ri_popup TYPE zcl_abapgit_popup_pull_request EXPORTING iv_url = iv_url.
+    ri_popup = NEW zcl_abapgit_popup_pull_request( iv_url = iv_url ).
 
   ENDMETHOD.
 
@@ -65,7 +65,6 @@ CLASS zcl_abapgit_popup_pull_request IMPLEMENTATION.
     FIELD-SYMBOLS <ls_pr> TYPE zif_abapgit_pr_enum_provider=>ty_pull_request.
 
     ASSIGN iv_item TO <ls_pr>.
-    ASSERT sy-subrc = 0.
 
     ri_html = zcl_abapgit_html=>create( |<b>{ <ls_pr>-number }</b> - { <ls_pr>-title } @{ <ls_pr>-user }| ).
 
@@ -74,9 +73,9 @@ CLASS zcl_abapgit_popup_pull_request IMPLEMENTATION.
 
   METHOD zif_abapgit_html_popup~create_picklist.
 
-    CREATE OBJECT ro_picklist EXPORTING iv_title = 'Choose Pull Request'
-                                        it_list = fetch_pull_request_list( )
-                                        ii_item_renderer = me.
+    ro_picklist = NEW #( iv_title = 'Choose Pull Request'
+                         it_list = fetch_pull_request_list( )
+                         ii_item_renderer = me ).
 
   ENDMETHOD.
 ENDCLASS.

@@ -611,7 +611,7 @@ CLASS zcl_abapgit_oo_class IMPLEMENTATION.
             component_error = 4
             no_access       = 5
             other           = 6
-            OTHERS          = 7.
+            OTHERS          = 7 ##FM_SUBRC_OK.
       CATCH cx_sy_dyn_call_param_not_found.
         CALL FUNCTION 'SEO_CLASS_CREATE_COMPLETE'
           EXPORTING
@@ -628,7 +628,7 @@ CLASS zcl_abapgit_oo_class IMPLEMENTATION.
             component_error = 4
             no_access       = 5
             other           = 6
-            OTHERS          = 7.
+            OTHERS          = 7 ##FM_SUBRC_OK.
     ENDTRY.
     IF sy-subrc <> 0.
       zcx_abapgit_exception=>raise_t100( ).
@@ -806,9 +806,7 @@ CLASS zcl_abapgit_oo_class IMPLEMENTATION.
         no_text       = 4
         inconsistent  = 5
         OTHERS        = 6.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 OR sy-subrc = 4 ).
-    rv_exists = temp1.
+    rv_exists = xsdbool( sy-subrc = 0 OR sy-subrc = 4 ).
   ENDMETHOD.
 
 
@@ -1000,5 +998,4 @@ CLASS zcl_abapgit_oo_class IMPLEMENTATION.
       zcx_abapgit_exception=>raise( |Class { ls_clskey-clsname } has syntax errors | ).
     ENDIF.
   ENDMETHOD.
-
 ENDCLASS.

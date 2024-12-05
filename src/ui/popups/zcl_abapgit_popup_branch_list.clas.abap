@@ -22,6 +22,7 @@ CLASS zcl_abapgit_popup_branch_list DEFINITION
         !iv_default_branch  TYPE string OPTIONAL
         !iv_show_new_option TYPE abap_bool DEFAULT abap_false.
 
+  PROTECTED SECTION.
   PRIVATE SECTION.
 
     DATA mv_repo_url TYPE string.
@@ -41,13 +42,6 @@ ENDCLASS.
 CLASS zcl_abapgit_popup_branch_list IMPLEMENTATION.
 
 
-  METHOD create.
-    CREATE OBJECT ri_popup TYPE zcl_abapgit_popup_branch_list EXPORTING iv_url = iv_url
-                                                                        iv_default_branch = iv_default_branch
-                                                                        iv_show_new_option = iv_show_new_option.
-  ENDMETHOD.
-
-
   METHOD constructor.
     mv_repo_url        = iv_url.
     mv_default_branch  = zif_abapgit_git_definitions=>c_git_branch-heads_prefix && iv_default_branch.
@@ -55,12 +49,10 @@ CLASS zcl_abapgit_popup_branch_list IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD zif_abapgit_html_popup~create_picklist.
-
-    CREATE OBJECT ro_picklist EXPORTING iv_title = 'Choose Branch'
-                                        it_list = fetch_branch_list( )
-                                        ii_item_renderer = me.
-
+  METHOD create.
+    ri_popup = NEW zcl_abapgit_popup_branch_list( iv_url = iv_url
+                                                  iv_default_branch = iv_default_branch
+                                                  iv_show_new_option = iv_show_new_option ).
   ENDMETHOD.
 
 
@@ -105,7 +97,6 @@ CLASS zcl_abapgit_popup_branch_list IMPLEMENTATION.
     FIELD-SYMBOLS <ls_b> TYPE zif_abapgit_git_definitions=>ty_git_branch.
 
     ASSIGN iv_item TO <ls_b>.
-    ASSERT sy-subrc = 0.
 
     " TODO render mv_default_branch properly, needs respecting support from the picklist components
 
@@ -114,6 +105,15 @@ CLASS zcl_abapgit_popup_branch_list IMPLEMENTATION.
     ENDIF.
 
     ri_html = zcl_abapgit_html=>create( |{ <ls_b>-display_name }{ lv_head_marker }| ).
+
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_html_popup~create_picklist.
+
+    ro_picklist = NEW #( iv_title = 'Choose Branch'
+                         it_list = fetch_branch_list( )
+                         ii_item_renderer = me ).
 
   ENDMETHOD.
 ENDCLASS.
