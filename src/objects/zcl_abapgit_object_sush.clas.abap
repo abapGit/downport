@@ -23,10 +23,10 @@ CLASS zcl_abapgit_object_sush DEFINITION
     METHODS clear_metadata
       CHANGING
         cs_data_head TYPE any
-        ct_usobx     TYPE table
-        ct_usobt     TYPE table
-        ct_usobx_ext TYPE table
-        ct_usobt_ext TYPE table.
+        ct_usobx     TYPE STANDARD TABLE
+        ct_usobt     TYPE STANDARD TABLE
+        ct_usobx_ext TYPE STANDARD TABLE
+        ct_usobt_ext TYPE STANDARD TABLE.
 
 ENDCLASS.
 
@@ -245,9 +245,7 @@ CLASS zcl_abapgit_object_sush IMPLEMENTATION.
     SELECT SINGLE * FROM usobhash INTO ls_usobhash "#EC CI_ALL_FIELDS_NEEDED
         WHERE name = ms_item-obj_name.                "#EC CI_SGLSELECT
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 

@@ -18,7 +18,7 @@ CLASS zcl_abapgit_json_handler DEFINITION
         mappings TYPE ty_json_abap_mappings,
       END OF ty_enum_mapping .
     TYPES:
-      ty_enum_mappings TYPE TABLE OF ty_enum_mapping WITH DEFAULT KEY .
+      ty_enum_mappings TYPE STANDARD TABLE OF ty_enum_mapping WITH DEFAULT KEY .
     TYPES:
       BEGIN OF ty_path_value_pair,
         path  TYPE string,
@@ -246,7 +246,7 @@ CLASS zcl_abapgit_json_handler IMPLEMENTATION.
     map2json_custom_enum( EXPORTING it_enum_mappings = iv_enum_mappings
                           CHANGING co_ajson          = lo_ajson ).
 
-    CREATE OBJECT lo_filter EXPORTING iv_skip_paths = iv_skip_paths.
+    lo_filter = NEW #( iv_skip_paths = iv_skip_paths ).
 
     " files end with an empty line (EOF)
     lv_json = lo_ajson->clone( )->filter( lo_filter )->stringify( 2 ) && cl_abap_char_utilities=>newline.
