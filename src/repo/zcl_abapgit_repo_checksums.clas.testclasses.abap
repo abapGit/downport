@@ -370,7 +370,9 @@ CLASS ltcl_test_checksums IMPLEMENTATION.
 
     ltcl_test_checksum_serializer=>get_mock( IMPORTING et_checksums = lt_checksums_exp ).
 
-    CREATE OBJECT li_cut TYPE zcl_abapgit_repo_checksums EXPORTING iv_repo_key = '1'.
+    CREATE OBJECT li_cut TYPE zcl_abapgit_repo_checksums
+      EXPORTING
+        iv_repo_key = '1'.
 
     cl_abap_unit_assert=>assert_equals(
       act = li_cut->get( )
@@ -404,7 +406,9 @@ CLASS ltcl_test_checksums IMPLEMENTATION.
     lo_r_builder->add( '/ $pkg.devc.xml    hash3' ).
     lo_mock->mt_remote_files = lo_r_builder->mt_tab.
 
-    CREATE OBJECT li_cut TYPE zcl_abapgit_repo_checksums EXPORTING iv_repo_key = '1'.
+    CREATE OBJECT li_cut TYPE zcl_abapgit_repo_checksums
+      EXPORTING
+        iv_repo_key = '1'.
 
     li_cut->rebuild( ).
 
@@ -440,7 +444,9 @@ CLASS ltcl_test_checksums IMPLEMENTATION.
     lo_f_builder->add( '/ zhello.prog.abap hash1' ).
     lo_f_builder->add( '/ zhello.prog.xml  hashNEW' ).
 
-    CREATE OBJECT li_cut TYPE zcl_abapgit_repo_checksums EXPORTING iv_repo_key = '1'.
+    CREATE OBJECT li_cut TYPE zcl_abapgit_repo_checksums
+      EXPORTING
+        iv_repo_key = '1'.
 
     li_cut->update( lo_f_builder->mt_tab ).
 
@@ -504,7 +510,9 @@ CLASS ltcl_test_checksums IMPLEMENTATION.
     lo_r_builder->add( '/ $pkg.devc.xml    hash3' ).
     lo_mock->mt_remote_files = lo_r_builder->mt_tab.
 
-    CREATE OBJECT li_cut TYPE zcl_abapgit_repo_checksums EXPORTING iv_repo_key = '1'.
+    CREATE OBJECT li_cut TYPE zcl_abapgit_repo_checksums
+      EXPORTING
+        iv_repo_key = '1'.
 
     li_cut->rebuild( ).
 

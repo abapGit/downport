@@ -76,9 +76,7 @@ CLASS zcl_abapgit_exit IMPLEMENTATION.
       EXCEPTIONS
         type_not_found = 1
         OTHERS         = 2 ).
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_running_in_test_context = temp1.
+    rv_running_in_test_context = boolc( sy-subrc = 0 ).
 
   ENDMETHOD.
 

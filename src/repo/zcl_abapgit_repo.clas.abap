@@ -205,7 +205,9 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
     DATA lo_abapgit_abap_language_vers TYPE REF TO zcl_abapgit_abap_language_vers.
     DATA lv_text TYPE string.
 
-    CREATE OBJECT lo_abapgit_abap_language_vers EXPORTING io_dot_abapgit = get_dot_abapgit( ).
+    CREATE OBJECT lo_abapgit_abap_language_vers
+      EXPORTING
+        io_dot_abapgit = get_dot_abapgit( ).
 
     IF lo_abapgit_abap_language_vers->is_import_allowed( ms_data-package ) = abap_false.
       lv_text = |Repository cannot be imported. | &&
@@ -677,7 +679,9 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
 
   METHOD zif_abapgit_repo~checksums.
 
-    CREATE OBJECT ri_checksums TYPE zcl_abapgit_repo_checksums EXPORTING iv_repo_key = ms_data-key.
+    CREATE OBJECT ri_checksums TYPE zcl_abapgit_repo_checksums
+      EXPORTING
+        iv_repo_key = ms_data-key.
 
   ENDMETHOD.
 
@@ -777,7 +781,9 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
 
 
   METHOD zif_abapgit_repo~get_dot_abapgit.
-    CREATE OBJECT ro_dot_abapgit EXPORTING is_data = ms_data-dot_abapgit.
+    CREATE OBJECT ro_dot_abapgit
+      EXPORTING
+        is_data = ms_data-dot_abapgit.
   ENDMETHOD.
 
 
@@ -791,8 +797,10 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    CREATE OBJECT lo_serialize EXPORTING io_dot_abapgit = get_dot_abapgit( )
-                                         is_local_settings = get_local_settings( ).
+    CREATE OBJECT lo_serialize
+      EXPORTING
+        io_dot_abapgit    = get_dot_abapgit( )
+        is_local_settings = get_local_settings( ).
 
     rt_files = lo_serialize->files_local(
       iv_package     = get_package( )
@@ -813,8 +821,10 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
     DATA lt_filter TYPE zif_abapgit_definitions=>ty_tadir_tt.
 
 
-    CREATE OBJECT lo_serialize EXPORTING io_dot_abapgit = get_dot_abapgit( )
-                                         is_local_settings = get_local_settings( ).
+    CREATE OBJECT lo_serialize
+      EXPORTING
+        io_dot_abapgit    = get_dot_abapgit( )
+        is_local_settings = get_local_settings( ).
 
     lt_filter = ii_obj_filter->get_filter( ).
 
@@ -897,9 +907,7 @@ CLASS zcl_abapgit_repo IMPLEMENTATION.
 
 
   METHOD zif_abapgit_repo~has_remote_source.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( lines( mt_remote ) > 0 ).
-    rv_yes = temp1.
+    rv_yes = boolc( lines( mt_remote ) > 0 ).
   ENDMETHOD.
 
 

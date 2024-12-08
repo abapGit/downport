@@ -150,7 +150,9 @@ CLASS ltcl_abap_language_version IMPLEMENTATION.
     mo_dot_abapgit = zcl_abapgit_dot_abapgit=>build_default( ).
     mo_dot_abapgit->set_abap_language_version( iv_abap_language_version ).
 
-    CREATE OBJECT mo_cut EXPORTING io_dot_abapgit = mo_dot_abapgit.
+    CREATE OBJECT mo_cut
+      EXPORTING
+        io_dot_abapgit = mo_dot_abapgit.
   ENDMETHOD.
 
   METHOD set_environment.
@@ -417,9 +419,7 @@ CLASS ltcl_abap_language_version IMPLEMENTATION.
         clskey = ls_clskey
       EXCEPTIONS
         OTHERS = 1.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    mv_has_language_cfg = temp1.
+    mv_has_language_cfg = boolc( sy-subrc = 0 ).
 
     LOOP AT mt_versions INTO lv_version.
 

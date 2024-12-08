@@ -63,8 +63,10 @@ CLASS zcl_abapgit_gui_page_merge IMPLEMENTATION.
 
     io_repo->select_branch( |{ zif_abapgit_git_definitions=>c_git_branch-heads_prefix }{ iv_target }| ).
 
-    CREATE OBJECT mi_merge TYPE zcl_abapgit_merge EXPORTING io_repo = io_repo
-                                                            iv_source_branch = iv_source.
+    CREATE OBJECT mi_merge TYPE zcl_abapgit_merge
+      EXPORTING
+        io_repo          = io_repo
+        iv_source_branch = iv_source.
 
     mi_merge->run( ).
 
@@ -75,9 +77,11 @@ CLASS zcl_abapgit_gui_page_merge IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_merge.
 
-    CREATE OBJECT lo_component EXPORTING io_repo = io_repo
-                                         iv_source = iv_source
-                                         iv_target = iv_target.
+    CREATE OBJECT lo_component
+      EXPORTING
+        io_repo   = io_repo
+        iv_source = iv_source
+        iv_target = iv_target.
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title         = 'Merge'

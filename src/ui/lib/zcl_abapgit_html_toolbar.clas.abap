@@ -137,7 +137,9 @@ CLASS ZCL_ABAPGIT_HTML_TOOLBAR IMPLEMENTATION.
 
 
   METHOD create.
-    CREATE OBJECT ro_instance EXPORTING iv_id = iv_id.
+    CREATE OBJECT ro_instance
+      EXPORTING
+        iv_id = iv_id.
   ENDMETHOD.
 
 

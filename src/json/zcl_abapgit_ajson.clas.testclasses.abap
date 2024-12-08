@@ -304,8 +304,7 @@ CLASS ltcl_parser_test IMPLEMENTATION.
     DATA lo_cut TYPE REF TO lcl_json_parser.
     DATA lx TYPE REF TO zcx_abapgit_ajson_error.
     DATA lv_numc TYPE n LENGTH 10.
-    TYPES temp1 TYPE HASHED TABLE OF string WITH UNIQUE DEFAULT KEY.
-DATA lt_hashed TYPE temp1.
+    DATA lt_hashed TYPE HASHED TABLE OF string WITH UNIQUE DEFAULT KEY.
 
     CREATE OBJECT lo_cut.
 
@@ -1749,10 +1748,8 @@ CLASS ltcl_json_to_abap IMPLEMENTATION.
   METHOD to_abap_array_of_arrays_simple.
 
     DATA lo_cut   TYPE REF TO lcl_json_to_abap.
-    TYPES temp2 TYPE TABLE OF string_table.
-DATA lt_mock  TYPE temp2.
-    TYPES temp3 TYPE TABLE OF string_table.
-DATA lt_exp   TYPE temp3.
+    DATA lt_mock  TYPE TABLE OF string_table.
+    DATA lt_exp   TYPE TABLE OF string_table.
     DATA lt_tmp   TYPE string_table.
     DATA lo_nodes TYPE REF TO lcl_nodes_helper.
 
@@ -1785,10 +1782,8 @@ DATA lt_exp   TYPE temp3.
   METHOD to_abap_array_of_arrays.
 
     DATA lo_cut   TYPE REF TO lcl_json_to_abap.
-    TYPES temp4 TYPE TABLE OF string_table.
-DATA lt_mock  TYPE temp4.
-    TYPES temp5 TYPE TABLE OF string_table.
-DATA lt_exp   TYPE temp5.
+    DATA lt_mock  TYPE TABLE OF string_table.
+    DATA lt_exp   TYPE TABLE OF string_table.
     DATA lt_tmp   TYPE string_table.
     DATA lo_nodes TYPE REF TO lcl_nodes_helper.
 
@@ -1888,10 +1883,8 @@ DATA lt_exp   TYPE temp5.
   METHOD to_abap_hashed_plain_tab.
 
     DATA lo_cut TYPE REF TO lcl_json_to_abap.
-    TYPES temp6 TYPE HASHED TABLE OF string WITH UNIQUE KEY table_line.
-DATA lt_mock TYPE temp6.
-    TYPES temp7 TYPE HASHED TABLE OF string WITH UNIQUE KEY table_line.
-DATA lt_exp  TYPE temp7.
+    DATA lt_mock TYPE HASHED TABLE OF string WITH UNIQUE KEY table_line.
+    DATA lt_exp  TYPE HASHED TABLE OF string WITH UNIQUE KEY table_line.
 
     DATA lo_nodes TYPE REF TO lcl_nodes_helper.
     CREATE OBJECT lo_nodes.
@@ -2137,8 +2130,7 @@ DATA lt_exp  TYPE temp7.
     ENDTRY.
 
     TRY.
-        TYPES temp8 TYPE HASHED TABLE OF string WITH UNIQUE KEY table_line.
-DATA lt_hashed TYPE temp8.
+        DATA lt_hashed TYPE HASHED TABLE OF string WITH UNIQUE KEY table_line.
         CREATE OBJECT lo_nodes.
         lo_nodes->add( '            |           |array  |                          | ' ).
         lo_nodes->add( '/           |1          |str    |One                       |1' ).
@@ -2172,7 +2164,9 @@ DATA lt_hashed TYPE temp8.
 
     ls_exp-a  = 'test'.
 
-    CREATE OBJECT lo_cut EXPORTING iv_corresponding = abap_true.
+    CREATE OBJECT lo_cut
+      EXPORTING
+        iv_corresponding = abap_true.
 
     lo_cut->to_abap(
       EXPORTING
@@ -2293,8 +2287,7 @@ DATA lt_hashed TYPE temp8.
              bar TYPE string,
            END OF ty_foo_bar.
 
-    TYPES temp9 TYPE STANDARD TABLE OF ty_foo_bar.
-DATA lt_foo_bar TYPE temp9.
+    DATA lt_foo_bar TYPE STANDARD TABLE OF ty_foo_bar.
     DATA ls_foo_bar LIKE LINE OF lt_foo_bar.
     DATA lo_ajson TYPE REF TO zcl_abapgit_ajson.
     DATA lv_json TYPE string.
@@ -2327,8 +2320,7 @@ DATA lt_foo_bar TYPE temp9.
              bar TYPE string,
            END OF ty_foo_bar.
 
-    TYPES temp10 TYPE STANDARD TABLE OF ty_foo_bar WITH NON-UNIQUE KEY foo.
-DATA lt_foo_bar TYPE temp10.
+    DATA lt_foo_bar TYPE STANDARD TABLE OF ty_foo_bar WITH NON-UNIQUE KEY foo.
     DATA ls_foo_bar LIKE LINE OF lt_foo_bar.
     DATA lo_ajson TYPE REF TO zcl_abapgit_ajson.
     DATA lv_json TYPE string.
@@ -2361,8 +2353,7 @@ DATA lt_foo_bar TYPE temp10.
              bar TYPE string,
            END OF ty_foo_bar.
 
-    TYPES temp11 TYPE SORTED TABLE OF ty_foo_bar WITH NON-UNIQUE KEY foo.
-DATA lt_foo_bar TYPE temp11.
+    DATA lt_foo_bar TYPE SORTED TABLE OF ty_foo_bar WITH NON-UNIQUE KEY foo.
     DATA ls_foo_bar LIKE LINE OF lt_foo_bar.
     DATA lo_ajson TYPE REF TO zcl_abapgit_ajson.
     DATA lv_json TYPE string.
@@ -2395,8 +2386,7 @@ DATA lt_foo_bar TYPE temp11.
              bar TYPE string,
            END OF ty_foo_bar.
 
-    TYPES temp12 TYPE SORTED TABLE OF ty_foo_bar WITH UNIQUE KEY foo.
-DATA lt_foo_bar TYPE temp12.
+    DATA lt_foo_bar TYPE SORTED TABLE OF ty_foo_bar WITH UNIQUE KEY foo.
     DATA ls_foo_bar LIKE LINE OF lt_foo_bar.
     DATA lo_ajson TYPE REF TO zcl_abapgit_ajson.
     DATA lv_json TYPE string.
@@ -2429,8 +2419,7 @@ DATA lt_foo_bar TYPE temp12.
              bar TYPE string,
            END OF ty_foo_bar.
 
-    TYPES temp13 TYPE HASHED TABLE OF ty_foo_bar WITH UNIQUE KEY foo.
-DATA lt_foo_bar TYPE temp13.
+    DATA lt_foo_bar TYPE HASHED TABLE OF ty_foo_bar WITH UNIQUE KEY foo.
     DATA ls_foo_bar LIKE LINE OF lt_foo_bar.
     DATA lo_ajson TYPE REF TO zcl_abapgit_ajson.
     DATA lv_json TYPE string.
@@ -2865,8 +2854,7 @@ CLASS ltcl_writer_test IMPLEMENTATION.
     DATA lo_nodes TYPE REF TO lcl_nodes_helper.
     DATA lo_cut TYPE REF TO zcl_abapgit_ajson.
     DATA li_writer TYPE REF TO zif_abapgit_ajson.
-    TYPES temp14 TYPE HASHED TABLE OF string WITH UNIQUE KEY table_line.
-DATA lt_tab TYPE temp14.
+    DATA lt_tab TYPE HASHED TABLE OF string WITH UNIQUE KEY table_line.
 
     lo_cut = zcl_abapgit_ajson=>create_empty( ).
     li_writer = lo_cut.
@@ -3895,10 +3883,8 @@ CLASS ltcl_integrated IMPLEMENTATION.
 
   METHOD array_index.
 
-    TYPES temp15 TYPE TABLE OF ty_loc.
-DATA lt_act TYPE temp15.
-    TYPES temp16 TYPE TABLE OF ty_loc.
-DATA lt_exp TYPE temp16.
+    DATA lt_act TYPE TABLE OF ty_loc.
+    DATA lt_exp TYPE TABLE OF ty_loc.
     DATA ls_exp TYPE ty_loc.
 
     DATA lv_src TYPE string.
@@ -4550,8 +4536,7 @@ CLASS ltcl_abap_to_json IMPLEMENTATION.
     DATA lo_nodes_exp TYPE REF TO lcl_nodes_helper.
     DATA lt_nodes TYPE zif_abapgit_ajson_types=>ty_nodes_tt.
 
-    TYPES temp17 TYPE TABLE OF ty_struc.
-DATA lt_tab TYPE temp17.
+    DATA lt_tab TYPE TABLE OF ty_struc.
     FIELD-SYMBOLS <s> LIKE LINE OF lt_tab.
 
     APPEND INITIAL LINE TO lt_tab ASSIGNING <s>.
@@ -4619,8 +4604,7 @@ CLASS ltcl_filter_test DEFINITION FINAL
         type TYPE zif_abapgit_ajson_filter=>ty_visit_type,
       END OF ty_visit_history.
 
-    TYPES temp18_9418cd8b8d TYPE TABLE OF ty_visit_history.
-DATA mt_visit_history TYPE temp18_9418cd8b8d.
+    DATA mt_visit_history TYPE TABLE OF ty_visit_history.
 
     METHODS simple_test FOR TESTING RAISING zcx_abapgit_ajson_error.
     METHODS array_test FOR TESTING RAISING zcx_abapgit_ajson_error.
@@ -4641,9 +4625,7 @@ CLASS ltcl_filter_test IMPLEMENTATION.
       APPEND ls_visit_history TO mt_visit_history.
     ENDIF.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( NOT is_node-name CA 'xX' AND NOT is_node-value CA 'xX' ).
-    rv_keep = temp1.
+    rv_keep = boolc( NOT is_node-name CA 'xX' AND NOT is_node-value CA 'xX' ).
 
   ENDMETHOD.
 
@@ -5146,9 +5128,7 @@ CLASS ltcl_cloning_test IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD zif_abapgit_ajson_filter~keep_node.
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( is_node-name IS INITIAL OR is_node-name+0(1) <> 'x' ).
-    rv_keep = temp2.
+    rv_keep = boolc( is_node-name IS INITIAL OR is_node-name+0(1) <> 'x' ).
   ENDMETHOD.
 
   METHOD mapper_and_filter.

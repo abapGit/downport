@@ -167,7 +167,9 @@ CLASS ltcl_create_package IMPLEMENTATION.
 
   METHOD when_create_package.
 
-    CREATE OBJECT mo_sap_package_mock EXPORTING iv_package = mv_package.
+    CREATE OBJECT mo_sap_package_mock
+      EXPORTING
+        iv_package = mv_package.
 
     zcl_abapgit_injector=>set_sap_package(
         iv_package     = mv_package
@@ -310,9 +312,7 @@ CLASS ltcl_sap_package_mock IMPLEMENTATION.
 
   METHOD zif_abapgit_sap_package~exists.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( c_package-existing = mv_package ).
-    rv_bool = temp1.
+    rv_bool = boolc( c_package-existing = mv_package ).
 
   ENDMETHOD.
 

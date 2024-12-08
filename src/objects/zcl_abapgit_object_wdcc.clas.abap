@@ -69,14 +69,12 @@ CLASS zcl_abapgit_object_wdcc IMPLEMENTATION.
 
   METHOD zif_abapgit_object~deserialize.
 
-    TYPES temp1 TYPE TABLE OF wdy_config_compt.
-TYPES temp2 TYPE TABLE OF wdy_config_datt.
-DATA: lv_config_id   TYPE c LENGTH 32,
+    DATA: lv_config_id   TYPE c LENGTH 32,
           lv_config_type TYPE n LENGTH 2,
           lv_config_var  TYPE c LENGTH 6,
-          lt_otr_texts   TYPE temp1,
+          lt_otr_texts   TYPE TABLE OF wdy_config_compt,
           ls_orig_config TYPE wdy_config_data,
-          lt_config_datt TYPE temp2,
+          lt_config_datt TYPE TABLE OF wdy_config_datt,
           lv_xml_string  TYPE string,
           lv_xml_xstring TYPE xstring.
 
@@ -289,8 +287,7 @@ DATA: lv_config_id   TYPE c LENGTH 32,
 
   METHOD zif_abapgit_object~is_locked.
 
-    TYPES temp3 TYPE STANDARD TABLE OF seqg3.
-DATA: lt_enq   TYPE temp3,
+    DATA: lt_enq   TYPE STANDARD TABLE OF seqg3,
           lv_subrc TYPE sysubrc,
           lv_garg  TYPE eqegraarg.
 
@@ -312,9 +309,7 @@ DATA: lt_enq   TYPE temp3,
       zcx_abapgit_exception=>raise( 'Error check object lock WDCC: ' && ms_item-obj_name ).
     ENDIF.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( lines( lt_enq ) > 0 ).
-    rv_is_locked = temp1.
+    rv_is_locked = boolc( lines( lt_enq ) > 0 ).
 
   ENDMETHOD.
 
@@ -336,11 +331,9 @@ DATA: lt_enq   TYPE temp3,
 
   METHOD zif_abapgit_object~serialize.
 
-    TYPES temp4 TYPE TABLE OF wdy_config_compt.
-TYPES temp3 TYPE TABLE OF wdy_config_datt.
-DATA: lv_xml_xstring TYPE xstring,
-          lt_otr_texts   TYPE temp4,
-          lt_cc_text     TYPE temp3,
+    DATA: lv_xml_xstring TYPE xstring,
+          lt_otr_texts   TYPE TABLE OF wdy_config_compt,
+          lt_cc_text     TYPE TABLE OF wdy_config_datt,
           ls_orig_config TYPE wdy_config_data,
           ls_outline     TYPE wdy_cfg_outline_data,
           ls_config_key  TYPE wdy_config_key,

@@ -361,7 +361,9 @@ CLASS zcl_abapgit_gui_page_repo_over IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_repo_over.
 
-    CREATE OBJECT lo_component EXPORTING iv_only_favorites = iv_only_favorites.
+    CREATE OBJECT lo_component
+      EXPORTING
+        iv_only_favorites = iv_only_favorites.
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title         = 'Repository List'
@@ -702,9 +704,7 @@ CLASS zcl_abapgit_gui_page_repo_over IMPLEMENTATION.
       lv_lock           TYPE string,
       lv_flow           TYPE string.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( is_repo-type = abap_false ).
-    lv_is_online_repo = temp1.
+    lv_is_online_repo = boolc( is_repo-type = abap_false ).
 
     " Start of row
     IF is_repo-favorite = abap_true.
@@ -899,18 +899,14 @@ CLASS zcl_abapgit_gui_page_repo_over IMPLEMENTATION.
         IF ii_event->query( )->has( 'FORCE_STATE' ) = abap_true.
           ms_list_settings-only_favorites = ii_event->query( )->get( 'FORCE_STATE' ).
         ELSE.
-          DATA temp2 TYPE xsdboolean.
-          temp2 = boolc( ms_list_settings-only_favorites = abap_false ).
-          ms_list_settings-only_favorites = temp2.
+          ms_list_settings-only_favorites = boolc( ms_list_settings-only_favorites = abap_false ).
         ENDIF.
         save_settings( ).
         rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
 
       WHEN zif_abapgit_definitions=>c_action-direction.
 
-        DATA temp3 TYPE xsdboolean.
-        temp3 = boolc( ii_event->query( )->get( 'DIRECTION' ) = 'DESCENDING' ).
-        set_order_direction( temp3 ).
+        set_order_direction( boolc( ii_event->query( )->get( 'DIRECTION' ) = 'DESCENDING' ) ).
         rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
 
       WHEN c_action-apply_filter.

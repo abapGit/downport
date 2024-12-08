@@ -329,9 +329,7 @@ CLASS zcl_abapgit_object_form IMPLEMENTATION.
       IMPORTING
         olanguage        = lv_lang.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( lv_lang IS NOT INITIAL ).
-    rv_bool = temp1.
+    rv_bool = boolc( lv_lang IS NOT INITIAL ).
 
   ENDMETHOD.
 
@@ -380,8 +378,7 @@ CLASS zcl_abapgit_object_form IMPLEMENTATION.
 
   METHOD zif_abapgit_object~jump.
 
-    TYPES temp1 TYPE TABLE OF bdcdata.
-DATA: lt_bdcdata TYPE temp1.
+    DATA: lt_bdcdata TYPE TABLE OF bdcdata.
 
     FIELD-SYMBOLS: <ls_bdcdata> LIKE LINE OF lt_bdcdata.
 

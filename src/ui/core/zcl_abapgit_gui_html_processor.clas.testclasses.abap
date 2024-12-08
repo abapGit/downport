@@ -91,7 +91,9 @@ CLASS ltcl_html_processor_test IMPLEMENTATION.
                                   iv_type = 'text/css'
                                   iv_inline = 'dummy3' ).
 
-    CREATE OBJECT mo_cut EXPORTING ii_asset_man = li_asset_man.
+    CREATE OBJECT mo_cut
+      EXPORTING
+        ii_asset_man = li_asset_man.
 
     CREATE OBJECT mo_gui_mock.
 
