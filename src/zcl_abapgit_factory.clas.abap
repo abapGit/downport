@@ -102,9 +102,7 @@ CLASS ZCL_ABAPGIT_FACTORY IMPLEMENTATION.
     IF sy-subrc <> 0.
       ls_code_inspector-package = iv_package.
 
-      CREATE OBJECT ls_code_inspector-instance TYPE zcl_abapgit_code_inspector
-        EXPORTING
-          iv_package = iv_package.
+      ls_code_inspector-instance = NEW zcl_abapgit_code_inspector( iv_package = iv_package ).
 
       INSERT ls_code_inspector
              INTO TABLE gt_code_inspector
@@ -119,7 +117,7 @@ CLASS ZCL_ABAPGIT_FACTORY IMPLEMENTATION.
 
   METHOD get_cts_api.
     IF gi_cts_api IS NOT BOUND.
-      CREATE OBJECT gi_cts_api TYPE zcl_abapgit_cts_api.
+      gi_cts_api = NEW zcl_abapgit_cts_api( ).
     ENDIF.
 
     ri_cts_api = gi_cts_api.
@@ -129,7 +127,7 @@ CLASS ZCL_ABAPGIT_FACTORY IMPLEMENTATION.
   METHOD get_default_transport.
 
     IF gi_default_transport IS NOT BOUND.
-      CREATE OBJECT gi_default_transport TYPE zcl_abapgit_default_transport.
+      gi_default_transport = NEW zcl_abapgit_default_transport( ).
     ENDIF.
 
     ri_default_transport = gi_default_transport.
@@ -139,7 +137,7 @@ CLASS ZCL_ABAPGIT_FACTORY IMPLEMENTATION.
 
   METHOD get_environment.
     IF gi_environment IS NOT BOUND.
-      CREATE OBJECT gi_environment TYPE zcl_abapgit_environment.
+      gi_environment = NEW zcl_abapgit_environment( ).
     ENDIF.
     ri_environment = gi_environment.
   ENDMETHOD.
@@ -148,7 +146,7 @@ CLASS ZCL_ABAPGIT_FACTORY IMPLEMENTATION.
   METHOD get_function_module.
 
     IF gi_function_module IS INITIAL.
-      CREATE OBJECT gi_function_module TYPE zcl_abapgit_function_module.
+      gi_function_module = NEW zcl_abapgit_function_module( ).
     ENDIF.
 
     ri_function_module = gi_function_module.
@@ -170,7 +168,7 @@ CLASS ZCL_ABAPGIT_FACTORY IMPLEMENTATION.
   METHOD get_longtexts.
 
     IF gi_longtext IS NOT BOUND.
-      CREATE OBJECT gi_longtext TYPE zcl_abapgit_longtexts.
+      gi_longtext = NEW zcl_abapgit_longtexts( ).
     ENDIF.
     ri_longtexts = gi_longtext.
 
@@ -180,7 +178,7 @@ CLASS ZCL_ABAPGIT_FACTORY IMPLEMENTATION.
   METHOD get_lxe_texts.
 
     IF gi_lxe_texts IS NOT BOUND.
-      CREATE OBJECT gi_lxe_texts TYPE zcl_abapgit_lxe_texts.
+      gi_lxe_texts = NEW zcl_abapgit_lxe_texts( ).
     ENDIF.
     ri_lxe_texts = gi_lxe_texts.
 
@@ -190,7 +188,7 @@ CLASS ZCL_ABAPGIT_FACTORY IMPLEMENTATION.
   METHOD get_sap_namespace.
 
     IF gi_sap_namespace IS NOT BOUND.
-      CREATE OBJECT gi_sap_namespace TYPE zcl_abapgit_sap_namespace.
+      gi_sap_namespace = NEW zcl_abapgit_sap_namespace( ).
     ENDIF.
 
     ri_namespace = gi_sap_namespace.
@@ -208,9 +206,7 @@ CLASS ZCL_ABAPGIT_FACTORY IMPLEMENTATION.
     IF sy-subrc <> 0.
 
       ls_sap_package-package = iv_package.
-      CREATE OBJECT ls_sap_package-instance TYPE zcl_abapgit_sap_package
-        EXPORTING
-          iv_package = iv_package.
+      ls_sap_package-instance = NEW zcl_abapgit_sap_package( iv_package = iv_package ).
 
       INSERT ls_sap_package
              INTO TABLE gt_sap_package
@@ -226,7 +222,7 @@ CLASS ZCL_ABAPGIT_FACTORY IMPLEMENTATION.
   METHOD get_sap_report.
 
     IF gi_sap_report IS NOT BOUND.
-      CREATE OBJECT gi_sap_report TYPE zcl_abapgit_sap_report.
+      gi_sap_report = NEW zcl_abapgit_sap_report( ).
     ENDIF.
 
     ri_report = gi_sap_report.
@@ -237,7 +233,7 @@ CLASS ZCL_ABAPGIT_FACTORY IMPLEMENTATION.
   METHOD get_stage_logic.
 
     IF gi_stage_logic IS INITIAL.
-      CREATE OBJECT gi_stage_logic TYPE zcl_abapgit_stage_logic.
+      gi_stage_logic = NEW zcl_abapgit_stage_logic( ).
     ENDIF.
 
     ri_logic = gi_stage_logic.
@@ -248,7 +244,7 @@ CLASS ZCL_ABAPGIT_FACTORY IMPLEMENTATION.
   METHOD get_tadir.
 
     IF gi_tadir IS INITIAL.
-      CREATE OBJECT gi_tadir TYPE zcl_abapgit_tadir.
+      gi_tadir = NEW zcl_abapgit_tadir( ).
     ENDIF.
 
     ri_tadir = gi_tadir.

@@ -191,8 +191,8 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_LOCL IMPLEMENTATION.
   METHOD constructor.
 
     super->constructor( ).
-    CREATE OBJECT mo_validation_log.
-    CREATE OBJECT mo_form_data.
+    mo_validation_log = NEW #( ).
+    mo_form_data = NEW #( ).
     mo_repo = io_repo.
     mo_form = get_form_schema( ).
     mo_form_data = read_settings( ).
@@ -204,9 +204,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_LOCL IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_sett_locl.
 
-    CREATE OBJECT lo_component
-      EXPORTING
-        io_repo = io_repo.
+    lo_component = NEW #( io_repo = io_repo ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Local Settings & Checks'
@@ -277,7 +275,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_LOCL IMPLEMENTATION.
 
     ro_form->checkbox(
       iv_name     = c_id-flow
-      iv_readonly = boolc( li_package->are_changes_recorded_in_tr_req( ) = abap_false )
+      iv_readonly = xsdbool( li_package->are_changes_recorded_in_tr_req( ) = abap_false )
       iv_label    = 'BETA: Enable abapGit flow for this repository (requires transported packages)' ).
 
     ro_form->textarea(
@@ -353,7 +351,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_LOCL IMPLEMENTATION.
 
     " Get settings from DB
     ms_settings = mo_repo->get_local_settings( ).
-    CREATE OBJECT ro_form_data.
+    ro_form_data = NEW #( ).
 
     " Local Settings
     ro_form_data->set(
@@ -377,25 +375,25 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_LOCL IMPLEMENTATION.
       iv_val = ms_settings-labels ).
     ro_form_data->set(
       iv_key = c_id-ignore_subpackages
-      iv_val = boolc( ms_settings-ignore_subpackages = abap_true ) ) ##TYPE.
+      iv_val = xsdbool( ms_settings-ignore_subpackages = abap_true ) ) ##TYPE.
     ro_form_data->set(
       iv_key = c_id-main_language_only
-      iv_val = boolc( ms_settings-main_language_only = abap_true ) ) ##TYPE.
+      iv_val = xsdbool( ms_settings-main_language_only = abap_true ) ) ##TYPE.
     ro_form_data->set(
       iv_key = c_id-flow
-      iv_val = boolc( ms_settings-flow = abap_true ) ) ##TYPE.
+      iv_val = xsdbool( ms_settings-flow = abap_true ) ) ##TYPE.
     ro_form_data->set(
       iv_key = c_id-write_protected
-      iv_val = boolc( ms_settings-write_protected = abap_true ) ) ##TYPE.
+      iv_val = xsdbool( ms_settings-write_protected = abap_true ) ) ##TYPE.
     ro_form_data->set(
       iv_key = c_id-only_local_objects
-      iv_val = boolc( ms_settings-only_local_objects = abap_true ) ) ##TYPE.
+      iv_val = xsdbool( ms_settings-only_local_objects = abap_true ) ) ##TYPE.
     ro_form_data->set(
       iv_key = c_id-code_inspector_check_variant
       iv_val = |{ ms_settings-code_inspector_check_variant }| ).
     ro_form_data->set(
       iv_key = c_id-block_commit
-      iv_val = boolc( ms_settings-block_commit = abap_true ) ) ##TYPE.
+      iv_val = xsdbool( ms_settings-block_commit = abap_true ) ) ##TYPE.
 
     lv_excl_rem = concat_lines_of(
       table = ms_settings-exclude_remote_paths
@@ -559,7 +557,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_LOCL IMPLEMENTATION.
 
     handle_picklist_state( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( `<div class="repo">` ).
 

@@ -61,10 +61,8 @@ CLASS ltc_smoke_test IMPLEMENTATION.
     ls_item-obj_name = '99999999'.
 
     TRY.
-        CREATE OBJECT mo_cut TYPE zcl_abapgit_object_pdts
-          EXPORTING
-            is_item     = ls_item
-            iv_language = sy-langu.
+        mo_cut = NEW zcl_abapgit_object_pdts( is_item = ls_item
+                                              iv_language = sy-langu ).
       CATCH zcx_abapgit_exception.
         cl_abap_unit_assert=>fail( ).
     ENDTRY.

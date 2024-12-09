@@ -31,7 +31,7 @@ CLASS zcl_abapgit_function_module IMPLEMENTATION.
           EXCEPTIONS
             function_not_exist = 1
             OTHERS             = 2.
-        rv_exists = boolc( sy-subrc = 0 ).
+        rv_exists = xsdbool( sy-subrc = 0 ).
       CATCH cx_sy_dyn_call_illegal_func.
 * then its running in ABAP Cloud Programming Model, assume nothing is released
 * I could not find any way to check for this -Hvam

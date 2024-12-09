@@ -98,7 +98,7 @@ CLASS lcl_json_path IMPLEMENTATION.
 
   METHOD path_contains_array.
     DATA lv_array_pattern TYPE string VALUE `.*\[.*\].*`.
-    rv_result = boolc( matches( val   = iv_path
+    rv_result = xsdbool( matches( val   = iv_path
                                 regex = lv_array_pattern ) ).
   ENDMETHOD.
 
@@ -170,7 +170,7 @@ CLASS lcl_json_path IMPLEMENTATION.
   METHOD is_primitiv.
 
     FIND REGEX `^.\w+` IN iv_string. " string start with .
-    rv_result = boolc( sy-subrc = 0 ).
+    rv_result = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -200,15 +200,15 @@ CLASS lcl_json_path IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD is_array.
-    rv_result = boolc( io_reader->name = 'array' ).
+    rv_result = xsdbool( io_reader->name = 'array' ).
   ENDMETHOD.
 
   METHOD is_string_open.
-    rv_result = boolc( io_reader->name = 'str' AND io_reader->node_type = if_sxml_node=>co_nt_element_open ).
+    rv_result = xsdbool( io_reader->name = 'str' AND io_reader->node_type = if_sxml_node=>co_nt_element_open ).
   ENDMETHOD.
 
   METHOD is_object.
-    rv_result = boolc( io_reader->name = 'object' ).
+    rv_result = xsdbool( io_reader->name = 'object' ).
   ENDMETHOD.
 
   METHOD serialize_rec.

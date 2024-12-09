@@ -18,9 +18,7 @@ CLASS ltcl_test IMPLEMENTATION.
       APPEND 8 TO lt_lengths.
     ENDDO.
 
-    CREATE OBJECT lo_huffman
-      EXPORTING
-        it_lengths = lt_lengths.
+    lo_huffman = NEW #( it_lengths = lt_lengths ).
 
   ENDMETHOD.
 
@@ -43,9 +41,7 @@ CLASS ltcl_test IMPLEMENTATION.
       APPEND 8 TO lt_lengths.
     ENDDO.
 
-    CREATE OBJECT lo_huffman
-      EXPORTING
-        it_lengths = lt_lengths.
+    lo_huffman = NEW #( it_lengths = lt_lengths ).
 
 
   ENDMETHOD.

@@ -321,7 +321,7 @@ CLASS zcl_abapgit_object_xinx IMPLEMENTATION.
       zcx_abapgit_exception=>raise( 'Error reading index' ).
     ENDIF.
 
-    rv_bool = boolc( ls_dd12v IS NOT INITIAL ).
+    rv_bool = xsdbool( ls_dd12v IS NOT INITIAL ).
 
   ENDMETHOD.
 

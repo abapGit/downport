@@ -148,7 +148,7 @@ CLASS zcl_abapgit_object_ssst IMPLEMENTATION.
       WHERE active    = c_style_active
         AND stylename = ms_item-obj_name
         AND vari      = ''.
-    rv_bool = boolc( sy-subrc = 0 ).
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 

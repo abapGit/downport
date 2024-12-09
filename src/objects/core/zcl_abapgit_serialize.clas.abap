@@ -217,7 +217,7 @@ CLASS zcl_abapgit_serialize IMPLEMENTATION.
       ii_log                = ii_log
       it_filter             = it_filter ).
 
-    CREATE OBJECT lo_filter.
+    lo_filter = NEW #( ).
 
     lo_filter->apply( EXPORTING it_filter = it_filter
                       CHANGING  ct_tadir  = lt_tadir ).
@@ -225,7 +225,7 @@ CLASS zcl_abapgit_serialize IMPLEMENTATION.
 * if there are less than 10 objects run in single thread
 * this helps a lot when debugging, plus performance gain
 * with low number of objects does not matter much
-    lv_force = boolc( lines( lt_tadir ) < 10 ).
+    lv_force = xsdbool( lines( lt_tadir ) < 10 ).
 
     lt_found = serialize(
       iv_package          = iv_package
@@ -271,9 +271,7 @@ CLASS zcl_abapgit_serialize IMPLEMENTATION.
       ms_i18n_params-main_language_only = is_local_settings-main_language_only.
     ENDIF.
 
-    CREATE OBJECT mo_abap_language_version
-      EXPORTING
-        io_dot_abapgit = mo_dot_abapgit.
+    mo_abap_language_version = NEW #( io_dot_abapgit = mo_dot_abapgit ).
 
   ENDMETHOD.
 
@@ -481,7 +479,7 @@ CLASS zcl_abapgit_serialize IMPLEMENTATION.
 
   METHOD is_parallelization_possible.
 
-    rv_result = boolc( zcl_abapgit_factory=>get_environment( )->is_merged( ) = abap_false
+    rv_result = xsdbool( zcl_abapgit_factory=>get_environment( )->is_merged( ) = abap_false
                    AND zcl_abapgit_persist_factory=>get_settings( )->read( )->get_parallel_proc_disabled( ) = abap_false
                    AND mv_group IS NOT INITIAL
                    " The function module below should always exist here as is_merged evaluated to false above.

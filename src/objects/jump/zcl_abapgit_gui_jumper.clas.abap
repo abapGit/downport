@@ -116,7 +116,7 @@ CLASS zcl_abapgit_gui_jumper IMPLEMENTATION.
         jump_not_possible = 1
         OTHERS            = 2.
 
-    rv_exit = boolc( sy-subrc = 0 ).
+    rv_exit = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -135,7 +135,7 @@ CLASS zcl_abapgit_gui_jumper IMPLEMENTATION.
         invalid_object_type = 2
         OTHERS              = 3.
 
-    rv_exit = boolc( sy-subrc = 0 ).
+    rv_exit = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -160,7 +160,7 @@ CLASS zcl_abapgit_gui_jumper IMPLEMENTATION.
           invalid_object_type = 2
           OTHERS              = 3.
 
-      rv_exit = boolc( sy-subrc = 0 ).
+      rv_exit = xsdbool( sy-subrc = 0 ).
 
     ENDIF.
 
@@ -253,7 +253,8 @@ CLASS zcl_abapgit_gui_jumper IMPLEMENTATION.
       EXCEPTIONS
         communication_failure = 1 MESSAGE lv_msg
         system_failure        = 2 MESSAGE lv_msg
-        OTHERS                = 3.
+        resource_failure      = 3
+        OTHERS                = 4.
 
     lv_subrc = sy-subrc.
 

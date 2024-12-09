@@ -92,9 +92,7 @@ CLASS zcl_abapgit_merge IMPLEMENTATION.
 
     lt_files = all_files( ).
 
-    CREATE OBJECT ms_merge-stage
-      EXPORTING
-        iv_merge_source = ms_merge-source-sha1.
+    ms_merge-stage = NEW #( iv_merge_source = ms_merge-source-sha1 ).
 
     LOOP AT lt_files ASSIGNING <ls_file>.
 
@@ -112,9 +110,9 @@ CLASS zcl_abapgit_merge IMPLEMENTATION.
         WITH KEY path_name
         COMPONENTS path = <ls_file>-path name = <ls_file>-name. "#EC CI_SUBRC
 
-      lv_found_source = boolc( <ls_source> IS ASSIGNED ).
-      lv_found_target = boolc( <ls_target> IS ASSIGNED ).
-      lv_found_common = boolc( <ls_common> IS ASSIGNED ).
+      lv_found_source = xsdbool( <ls_source> IS ASSIGNED ).
+      lv_found_target = xsdbool( <ls_target> IS ASSIGNED ).
+      lv_found_common = xsdbool( <ls_common> IS ASSIGNED ).
 
       IF lv_found_source = abap_false
           AND lv_found_target = abap_false.
@@ -371,7 +369,7 @@ CLASS zcl_abapgit_merge IMPLEMENTATION.
 
   METHOD zif_abapgit_merge~has_conflicts.
 
-    rv_conflicts_exists = boolc( lines( mt_conflicts ) > 0 ).
+    rv_conflicts_exists = xsdbool( lines( mt_conflicts ) > 0 ).
 
   ENDMETHOD.
 
