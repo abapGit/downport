@@ -14,14 +14,15 @@ CLASS ltcl_test DEFINITION FOR TESTING DURATION SHORT RISK LEVEL HARMLESS FINAL.
       merge_with_min_level FOR TESTING,
       empty FOR TESTING,
       clone FOR TESTING,
-      add FOR TESTING.
+      add FOR TESTING,
+      add_with_id_number FOR TESTING.
 ENDCLASS.
 
 
 CLASS ltcl_test IMPLEMENTATION.
 
   METHOD setup.
-    CREATE OBJECT mi_cut TYPE zcl_abapgit_log.
+    mi_cut = NEW zcl_abapgit_log( ).
   ENDMETHOD.
 
   METHOD empty.
@@ -64,6 +65,44 @@ CLASS ltcl_test IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD add_with_id_number.
+
+    DATA lv_message TYPE string.
+    DATA lt_messages TYPE zif_abapgit_log=>ty_log_outs.
+    DATA ls_message LIKE LINE OF lt_messages.
+
+    lv_message = 'abracadabra'.
+
+    mi_cut->add(
+      iv_msg    = lv_message
+      iv_type   = 'W'
+      iv_class  = 'SL'
+      iv_number = '123' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = mi_cut->count( )
+      exp = 1 ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = mi_cut->get_status( )
+      exp = 'W' ).
+
+    lt_messages = mi_cut->get_messages( ).
+    READ TABLE lt_messages INDEX 1 INTO ls_message.
+    cl_abap_unit_assert=>assert_subrc( ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_message-text
+      exp = lv_message ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_message-id
+      exp = 'SL' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_message-number
+      exp = '123' ).
+
+  ENDMETHOD.
+
   METHOD get_status.
 
     DATA lo_x TYPE REF TO zcx_abapgit_exception.
@@ -92,7 +131,7 @@ CLASS ltcl_test IMPLEMENTATION.
       act = mi_cut->get_status( )
       exp = zif_abapgit_log=>c_status-ok ).
 
-    CREATE OBJECT lo_x EXPORTING msgv1 = 'x'.
+    lo_x = NEW #( msgv1 = 'x' ).
     mi_cut->add_exception( lo_x ).
 
     cl_abap_unit_assert=>assert_equals(
@@ -106,7 +145,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA li_secondary_log LIKE mi_cut.
     DATA lt_act_msgs TYPE zif_abapgit_log=>ty_log_outs.
 
-    CREATE OBJECT li_secondary_log TYPE zcl_abapgit_log.
+    li_secondary_log = NEW zcl_abapgit_log( ).
 
     mi_cut->add_success( 'success' ).
     li_secondary_log->add_warning( 'warn' ).
@@ -130,7 +169,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA li_secondary_log LIKE mi_cut.
     DATA lt_act_msgs TYPE zif_abapgit_log=>ty_log_outs.
 
-    CREATE OBJECT li_secondary_log TYPE zcl_abapgit_log.
+    li_secondary_log = NEW zcl_abapgit_log( ).
 
     mi_cut->add_success( 'success' ).
     li_secondary_log->add_warning( 'warn' ).
@@ -223,7 +262,7 @@ CLASS ltcl_test IMPLEMENTATION.
       act = mi_cut->get_log_level( )
       exp = zif_abapgit_log=>c_log_level-error ).
 
-    CREATE OBJECT lo_x EXPORTING msgv1 = 'x'.
+    lo_x = NEW #( msgv1 = 'x' ).
     mi_cut->add_exception( lo_x ).
 
     cl_abap_unit_assert=>assert_equals(

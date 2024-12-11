@@ -51,7 +51,7 @@ CLASS zcl_abapgit_log IMPLEMENTATION.
 
   METHOD from_exception.
 
-    CREATE OBJECT ro_log.
+    ro_log = NEW #( ).
 
     IF io_x IS BOUND.
       ro_log->zif_abapgit_log~add_exception( io_x ).
@@ -90,10 +90,12 @@ CLASS zcl_abapgit_log IMPLEMENTATION.
     FIELD-SYMBOLS: <ls_log> LIKE LINE OF mt_log.
 
     APPEND INITIAL LINE TO mt_log ASSIGNING <ls_log>.
-    <ls_log>-msg-text  = iv_msg.
-    <ls_log>-msg-type  = iv_type.
-    <ls_log>-item      = is_item.
-    <ls_log>-exception = ix_exc.
+    <ls_log>-msg-text   = iv_msg.
+    <ls_log>-msg-type   = iv_type.
+    <ls_log>-msg-id     = iv_class.
+    <ls_log>-msg-number = iv_number.
+    <ls_log>-item       = is_item.
+    <ls_log>-exception  = ix_exc.
 
     CASE iv_type.
       WHEN 'E' OR 'A' OR 'X'.
@@ -179,7 +181,7 @@ CLASS zcl_abapgit_log IMPLEMENTATION.
 
     DATA lo_log TYPE REF TO zcl_abapgit_log.
 
-    CREATE OBJECT lo_log EXPORTING iv_title = mv_title.
+    lo_log = NEW #( iv_title = mv_title ).
     lo_log->mt_log = mt_log.
     ri_log = lo_log.
 
@@ -252,6 +254,8 @@ CLASS zcl_abapgit_log IMPLEMENTATION.
     FIELD-SYMBOLS <ls_log> TYPE ty_log.
     LOOP AT mt_log ASSIGNING <ls_log>.
       ls_msg-type      = <ls_log>-msg-type.
+      ls_msg-id        = <ls_log>-msg-id.
+      ls_msg-number    = <ls_log>-msg-number.
       ls_msg-text      = <ls_log>-msg-text.
       ls_msg-obj_type  = <ls_log>-item-obj_type.
       ls_msg-obj_name  = <ls_log>-item-obj_name.
