@@ -67,9 +67,11 @@ CLASS zcl_abapgit_environment IMPLEMENTATION.
     " Changes to repository objects are not permitted in this client (TK 729)
     " Shadow system
     " Running upgrade
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( lv_systemedit <> 'N' AND lv_sys_cliinddep_edit NA '23' AND lv_is_shadow <> abap_true AND lv_is_upgrade <> abap_true ).
-    rv_result = temp1.
+    rv_result = xsdbool(
+      lv_systemedit <> 'N' AND
+      lv_sys_cliinddep_edit NA '23' AND
+      lv_is_shadow <> abap_true AND
+      lv_is_upgrade <> abap_true ).
 
   ENDMETHOD.
 
@@ -200,16 +202,14 @@ CLASS zcl_abapgit_environment IMPLEMENTATION.
 
   METHOD zif_abapgit_environment~is_variant_maintenance.
 
-    TYPES temp1 TYPE STANDARD TABLE OF rsdynnr WITH NON-UNIQUE DEFAULT KEY.
-DATA:
-      lt_variscreens TYPE temp1.
+    DATA:
+      lt_variscreens TYPE STANDARD TABLE OF rsdynnr
+                          WITH NON-UNIQUE DEFAULT KEY.
 
     " Memory is set in LSVARF08 / EXPORT_SCREEN_TABLES.
     IMPORT variscreens = lt_variscreens FROM MEMORY ID '%_SCRNR_%'.
 
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( lines( lt_variscreens ) > 0 ).
-    rv_is_variant_maintenance = temp2.
+    rv_is_variant_maintenance = xsdbool( lines( lt_variscreens ) > 0 ).
 
   ENDMETHOD.
 
