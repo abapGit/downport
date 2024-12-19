@@ -45,7 +45,7 @@ CLASS zcl_abapgit_gui_menus IMPLEMENTATION.
 
   METHOD advanced.
 
-    CREATE OBJECT ro_menu EXPORTING iv_id = 'toolbar-advanced'.
+    ro_menu = NEW #( iv_id = 'toolbar-advanced' ).
 
     ro_menu->add(
       iv_txt = 'Database Utility'
@@ -74,7 +74,7 @@ CLASS zcl_abapgit_gui_menus IMPLEMENTATION.
 
   METHOD back.
 
-    CREATE OBJECT ro_menu EXPORTING iv_id = 'toolbar-back'.
+    ro_menu = NEW #( iv_id = 'toolbar-back' ).
 
     ro_menu->add(
       iv_txt = 'Back'
@@ -96,7 +96,7 @@ CLASS zcl_abapgit_gui_menus IMPLEMENTATION.
 
   METHOD help.
 
-    CREATE OBJECT ro_menu EXPORTING iv_id = 'toolbar-help'.
+    ro_menu = NEW #( iv_id = 'toolbar-help' ).
 
     ro_menu->add(
       iv_txt = 'Tutorial'
@@ -119,38 +119,28 @@ CLASS zcl_abapgit_gui_menus IMPLEMENTATION.
 
   METHOD repo_settings.
 
-    CREATE OBJECT ro_menu EXPORTING iv_id = 'toolbar-repo-settings'.
+    ro_menu = NEW #( iv_id = 'toolbar-repo-settings' ).
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( iv_act = zif_abapgit_definitions=>c_action-repo_settings ).
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( iv_act = zif_abapgit_definitions=>c_action-repo_local_settings ).
-    DATA temp3 TYPE xsdboolean.
-    temp3 = boolc( iv_act = zif_abapgit_definitions=>c_action-repo_remote_settings ).
-    DATA temp4 TYPE xsdboolean.
-    temp4 = boolc( iv_act = zif_abapgit_definitions=>c_action-repo_background ).
-    DATA temp5 TYPE xsdboolean.
-    temp5 = boolc( iv_act = zif_abapgit_definitions=>c_action-repo_infos ).
     ro_menu->add(
       iv_txt = 'Repository'
       iv_act = |{ zif_abapgit_definitions=>c_action-repo_settings }?key={ iv_key }|
-      iv_cur = temp1
+      iv_cur = xsdbool( iv_act = zif_abapgit_definitions=>c_action-repo_settings )
     )->add(
       iv_txt = 'Local'
       iv_act = |{ zif_abapgit_definitions=>c_action-repo_local_settings }?key={ iv_key }|
-      iv_cur = temp2
+      iv_cur = xsdbool( iv_act = zif_abapgit_definitions=>c_action-repo_local_settings )
     )->add(
       iv_txt = 'Remote'
       iv_act = |{ zif_abapgit_definitions=>c_action-repo_remote_settings }?key={ iv_key }|
-      iv_cur = temp3
+      iv_cur = xsdbool( iv_act = zif_abapgit_definitions=>c_action-repo_remote_settings )
     )->add(
       iv_txt = 'Background'
       iv_act = |{ zif_abapgit_definitions=>c_action-repo_background }?key={ iv_key }|
-      iv_cur = temp4
+      iv_cur = xsdbool( iv_act = zif_abapgit_definitions=>c_action-repo_background )
     )->add(
       iv_txt = 'Stats'
       iv_act = |{ zif_abapgit_definitions=>c_action-repo_infos }?key={ iv_key }|
-      iv_cur = temp5 ).
+      iv_cur = xsdbool( iv_act = zif_abapgit_definitions=>c_action-repo_infos ) ).
 
     zcl_abapgit_exit=>get_instance( )->enhance_repo_toolbar(
       io_menu = ro_menu
@@ -162,20 +152,16 @@ CLASS zcl_abapgit_gui_menus IMPLEMENTATION.
 
   METHOD settings.
 
-    CREATE OBJECT ro_menu EXPORTING iv_id = 'toolbar-settings'.
+    ro_menu = NEW #( iv_id = 'toolbar-settings' ).
 
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( iv_act = zif_abapgit_definitions=>c_action-go_settings ).
-    DATA temp3 TYPE xsdboolean.
-    temp3 = boolc( iv_act = zif_abapgit_definitions=>c_action-go_settings_personal ).
     ro_menu->add(
       iv_txt = 'Global'
       iv_act = zif_abapgit_definitions=>c_action-go_settings
-      iv_cur = temp2
+      iv_cur = xsdbool( iv_act = zif_abapgit_definitions=>c_action-go_settings )
     )->add(
       iv_txt = 'Personal'
       iv_act = zif_abapgit_definitions=>c_action-go_settings_personal
-      iv_cur = temp3 ).
+      iv_cur = xsdbool( iv_act = zif_abapgit_definitions=>c_action-go_settings_personal ) ).
 
   ENDMETHOD.
 ENDCLASS.
