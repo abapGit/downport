@@ -99,6 +99,11 @@ CLASS zcl_abapgit_serialize DEFINITION
         VALUE(ct_files) TYPE zif_abapgit_definitions=>ty_files_item_tt
       RAISING
         zcx_abapgit_exception .
+    METHODS determine_rfc_server_group
+      RETURNING
+        VALUE(rv_group) TYPE rzlli_apcl
+      RAISING
+        zcx_abapgit_exception.
     METHODS determine_max_processes
       IMPORTING
         !iv_force_sequential TYPE abap_bool DEFAULT abap_false
@@ -217,7 +222,7 @@ CLASS zcl_abapgit_serialize IMPLEMENTATION.
       ii_log                = ii_log
       it_filter             = it_filter ).
 
-    CREATE OBJECT lo_filter.
+    lo_filter = NEW #( ).
 
     lo_filter->apply( EXPORTING it_filter = it_filter
                       CHANGING  ct_tadir  = lt_tadir ).
@@ -225,9 +230,7 @@ CLASS zcl_abapgit_serialize IMPLEMENTATION.
 * if there are less than 10 objects run in single thread
 * this helps a lot when debugging, plus performance gain
 * with low number of objects does not matter much
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( lines( lt_tadir ) < 10 ).
-    lv_force = temp1.
+    lv_force = xsdbool( lines( lt_tadir ) < 10 ).
 
     lt_found = serialize(
       iv_package          = iv_package
@@ -257,11 +260,7 @@ CLASS zcl_abapgit_serialize IMPLEMENTATION.
 
   METHOD constructor.
 
-    DATA li_exit TYPE REF TO zif_abapgit_exit.
-
-    mv_group = 'parallel_generators'.
-    li_exit = zcl_abapgit_exit=>get_instance( ).
-    li_exit->change_rfc_server_group( CHANGING cv_group = mv_group ).
+    mv_group = determine_rfc_server_group( ).
 
     mo_dot_abapgit = io_dot_abapgit.
     ms_local_settings = is_local_settings.
@@ -273,7 +272,7 @@ CLASS zcl_abapgit_serialize IMPLEMENTATION.
       ms_i18n_params-main_language_only = is_local_settings-main_language_only.
     ENDIF.
 
-    CREATE OBJECT mo_abap_language_version EXPORTING io_dot_abapgit = mo_dot_abapgit.
+    mo_abap_language_version = NEW #( io_dot_abapgit = mo_dot_abapgit ).
 
   ENDMETHOD.
 
@@ -330,6 +329,29 @@ CLASS zcl_abapgit_serialize IMPLEMENTATION.
     ENDIF.
 
     ASSERT rv_processes >= 1.
+
+  ENDMETHOD.
+
+
+  METHOD determine_rfc_server_group.
+
+    DATA:
+      li_exit   TYPE REF TO zif_abapgit_exit,
+      lv_exists TYPE abap_bool.
+
+    " According to SAP Note 3215918 it's recommended NOT to use this group anymore.
+    " However, we keep it for compatibility. If it does not exist, we switch to the
+    " recommended DEFAULT behaviour.
+    rv_group = 'parallel_generators'.
+
+    li_exit = zcl_abapgit_exit=>get_instance( ).
+    li_exit->change_rfc_server_group( CHANGING cv_group = rv_group ).
+
+    " Check if RFC server group exists and fallback to the default
+    lv_exists = zcl_abapgit_factory=>get_environment( )->check_parallel_processing( rv_group ).
+    IF lv_exists = abap_false.
+      rv_group = ''.
+    ENDIF.
 
   ENDMETHOD.
 
@@ -493,9 +515,13 @@ CLASS zcl_abapgit_serialize IMPLEMENTATION.
 
   METHOD is_parallelization_possible.
 
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( zcl_abapgit_factory=>get_environment( )->is_merged( ) = abap_false AND zcl_abapgit_persist_factory=>get_settings( )->read( )->get_parallel_proc_disabled( ) = abap_false AND mv_group IS NOT INITIAL AND zcl_abapgit_factory=>get_function_module( )->function_exists( 'Z_ABAPGIT_SERIALIZE_PARALLEL' ) = abap_true ).
-    rv_result = temp2.
+    rv_result = xsdbool( zcl_abapgit_factory=>get_environment( )->is_merged( ) = abap_false
+                   AND zcl_abapgit_persist_factory=>get_settings( )->read( )->get_parallel_proc_disabled( ) = abap_false
+                   " The function module below should always exist here as is_merged evaluated to false above.
+                   " It does however not exist in the transpiled version which then causes unit tests to fail.
+                   " Therefore the check needs to stay.
+                   AND zcl_abapgit_factory=>get_function_module(
+                                         )->function_exists( 'Z_ABAPGIT_SERIALIZE_PARALLEL' ) = abap_true ).
 
   ENDMETHOD.
 
@@ -552,6 +578,7 @@ CLASS zcl_abapgit_serialize IMPLEMENTATION.
 
     DO.
       lv_task = |{ iv_task }-{ sy-index }|.
+      " An initial server group is handled like DEFAULT meaning all instances are used
       CALL FUNCTION 'Z_ABAPGIT_SERIALIZE_PARALLEL'
         STARTING NEW TASK lv_task
         DESTINATION IN GROUP mv_group

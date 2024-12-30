@@ -1,5 +1,6 @@
 CLASS ltcl_determine_max_processes DEFINITION DEFERRED.
-CLASS zcl_abapgit_serialize DEFINITION LOCAL FRIENDS ltcl_determine_max_processes.
+CLASS ltcl_determine_server_group DEFINITION DEFERRED.
+CLASS zcl_abapgit_serialize DEFINITION LOCAL FRIENDS ltcl_determine_max_processes ltcl_determine_server_group.
 
 CLASS ltd_settings DEFINITION FINAL FOR TESTING
   DURATION SHORT
@@ -27,7 +28,7 @@ CLASS ltd_settings IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD zif_abapgit_persist_settings~read.
-    CREATE OBJECT ro_settings.
+    ro_settings = NEW #( ).
     ro_settings->set_parallel_proc_disabled( mv_parallel_proc_disabled ).
   ENDMETHOD.
 
@@ -67,6 +68,9 @@ CLASS ltd_environment DEFINITION FINAL FOR TESTING
       zif_abapgit_environment.
 
     METHODS:
+      set_server_group
+        IMPORTING iv_group TYPE rzlli_apcl,
+
       set_is_merged
         IMPORTING iv_is_merged TYPE abap_bool,
 
@@ -78,6 +82,7 @@ CLASS ltd_environment DEFINITION FINAL FOR TESTING
 
   PRIVATE SECTION.
     DATA:
+      mv_group               TYPE rzlli_apcl,
       mv_is_merged           TYPE abap_bool,
       mv_available_sessions  TYPE i,
       mv_free_work_processes TYPE i.
@@ -123,6 +128,14 @@ CLASS ltd_environment IMPLEMENTATION.
     rv_free_work_processes = mv_free_work_processes.
   ENDMETHOD.
 
+  METHOD zif_abapgit_environment~check_parallel_processing.
+    rv_checked = xsdbool( iv_group = mv_group ).
+  ENDMETHOD.
+
+  METHOD set_server_group.
+    mv_group = iv_group.
+  ENDMETHOD.
+
   METHOD set_is_merged.
     mv_is_merged = iv_is_merged.
   ENDMETHOD.
@@ -147,12 +160,16 @@ CLASS ltd_exit DEFINITION FINAL FOR TESTING
       zif_abapgit_exit.
 
     METHODS:
+      set_server_group
+        IMPORTING iv_group TYPE rzlli_apcl,
+
       set_max_parallel_processes
         IMPORTING
           iv_max_parallel_processes TYPE i.
 
   PRIVATE SECTION.
     DATA:
+      mv_group                  TYPE rzlli_apcl,
       mv_max_parallel_processes TYPE i.
 
 ENDCLASS.
@@ -188,6 +205,9 @@ CLASS ltd_exit IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD zif_abapgit_exit~change_rfc_server_group.
+    IF mv_group IS NOT INITIAL.
+      cv_group = mv_group.
+    ENDIF.
   ENDMETHOD.
 
   METHOD zif_abapgit_exit~change_supported_data_objects.
@@ -241,8 +261,116 @@ CLASS ltd_exit IMPLEMENTATION.
   METHOD zif_abapgit_exit~wall_message_repo.
   ENDMETHOD.
 
+  METHOD set_server_group.
+    mv_group = iv_group.
+  ENDMETHOD.
+
   METHOD set_max_parallel_processes.
     mv_max_parallel_processes = iv_max_parallel_processes.
+  ENDMETHOD.
+
+ENDCLASS.
+
+
+CLASS ltcl_determine_server_group DEFINITION FOR TESTING DURATION SHORT RISK LEVEL HARMLESS FINAL.
+
+  PRIVATE SECTION.
+    DATA:
+      mo_cut                TYPE REF TO zcl_abapgit_serialize,
+      mo_environment_double TYPE REF TO ltd_environment,
+      mo_exit               TYPE REF TO ltd_exit,
+      mv_act_group          TYPE rzlli_apcl.
+
+    METHODS:
+      setup,
+
+      default_server_group FOR TESTING RAISING zcx_abapgit_exception,
+      legacy_server_group FOR TESTING RAISING zcx_abapgit_exception,
+      exit_server_group FOR TESTING RAISING zcx_abapgit_exception,
+      exit_not_exist_server_group FOR TESTING RAISING zcx_abapgit_exception,
+
+      teardown,
+
+      given_db_server_group
+        IMPORTING
+          iv_group TYPE rzlli_apcl,
+
+      given_exit_chg_server_group
+        IMPORTING
+          iv_group TYPE rzlli_apcl,
+
+      when_determine_server_group
+        RAISING
+          zcx_abapgit_exception,
+
+      then_we_shd_have_server_group
+        IMPORTING
+          iv_exp_group TYPE rzlli_apcl.
+
+ENDCLASS.
+
+CLASS ltcl_determine_server_group IMPLEMENTATION.
+
+  METHOD setup.
+
+    mo_environment_double = NEW #( ).
+    zcl_abapgit_injector=>set_environment( mo_environment_double ).
+
+    mo_exit = NEW #( ).
+    zcl_abapgit_injector=>set_exit( mo_exit ).
+
+    TRY.
+        mo_cut = NEW #( ).
+      CATCH zcx_abapgit_exception.
+        cl_abap_unit_assert=>fail( 'Error creating serializer' ).
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD teardown.
+    CLEAR: mo_cut->mv_group.
+  ENDMETHOD.
+
+  METHOD default_server_group.
+    when_determine_server_group( ).
+    then_we_shd_have_server_group( '' ).
+  ENDMETHOD.
+
+  METHOD legacy_server_group.
+    given_db_server_group( 'parallel_generators' ).
+    when_determine_server_group( ).
+    then_we_shd_have_server_group( 'parallel_generators' ).
+  ENDMETHOD.
+
+  METHOD exit_server_group.
+    given_db_server_group( 'my_group' ).
+    given_exit_chg_server_group( 'my_group' ).
+    when_determine_server_group( ).
+    then_we_shd_have_server_group( 'my_group' ).
+  ENDMETHOD.
+
+  METHOD exit_not_exist_server_group.
+    given_exit_chg_server_group( 'my_servers' ).
+    when_determine_server_group( ).
+    then_we_shd_have_server_group( '' ).
+  ENDMETHOD.
+
+  METHOD given_db_server_group.
+    mo_environment_double->set_server_group( iv_group ).
+  ENDMETHOD.
+
+  METHOD given_exit_chg_server_group.
+    mo_exit->set_server_group( iv_group ).
+  ENDMETHOD.
+
+  METHOD when_determine_server_group.
+    mv_act_group = mo_cut->determine_rfc_server_group( ).
+  ENDMETHOD.
+
+  METHOD then_we_shd_have_server_group.
+    cl_abap_unit_assert=>assert_equals(
+      act = mv_act_group
+      exp = iv_exp_group ).
   ENDMETHOD.
 
 ENDCLASS.
@@ -309,20 +437,20 @@ CLASS ltcl_determine_max_processes IMPLEMENTATION.
 
   METHOD setup.
 
-    CREATE OBJECT mo_settings_double.
+    mo_settings_double = NEW #( ).
     zcl_abapgit_persist_injector=>set_settings( mo_settings_double ).
 
-    CREATE OBJECT mo_environment_double.
+    mo_environment_double = NEW #( ).
     zcl_abapgit_injector=>set_environment( mo_environment_double ).
 
-    CREATE OBJECT mo_function_module_double.
+    mo_function_module_double = NEW #( ).
     zcl_abapgit_injector=>set_function_module( mo_function_module_double ).
 
-    CREATE OBJECT mo_exit.
+    mo_exit = NEW #( ).
     zcl_abapgit_injector=>set_exit( mo_exit ).
 
     TRY.
-        CREATE OBJECT mo_cut.
+        mo_cut = NEW #( ).
       CATCH zcx_abapgit_exception.
         cl_abap_unit_assert=>fail( 'Error creating serializer' ).
     ENDTRY.
@@ -507,7 +635,7 @@ CLASS ltcl_serialize IMPLEMENTATION.
     mo_dot = zcl_abapgit_dot_abapgit=>build_default( ).
 
     TRY.
-        CREATE OBJECT mo_cut EXPORTING io_dot_abapgit = mo_dot.
+        mo_cut = NEW #( io_dot_abapgit = mo_dot ).
       CATCH zcx_abapgit_exception.
         cl_abap_unit_assert=>fail( 'Error creating serializer' ).
     ENDTRY.
@@ -558,13 +686,13 @@ CLASS ltcl_serialize IMPLEMENTATION.
     <ls_tadir>-object   = 'ABCD'.
     <ls_tadir>-obj_name = 'OBJECT'.
 
-    CREATE OBJECT li_log1 TYPE zcl_abapgit_log.
+    li_log1 = NEW zcl_abapgit_log( ).
     mo_cut->serialize(
       it_tadir            = lt_tadir
       ii_log              = li_log1
       iv_force_sequential = abap_true ).
 
-    CREATE OBJECT li_log2 TYPE zcl_abapgit_log.
+    li_log2 = NEW zcl_abapgit_log( ).
     mo_cut->serialize(
       it_tadir            = lt_tadir
       ii_log              = li_log2
@@ -612,14 +740,14 @@ CLASS ltcl_serialize IMPLEMENTATION.
     <ls_tadir>-obj_name = 'ZCL_TEST_IGNORE'.
     <ls_tadir>-devclass = '$ZTEST'.
 
-    CREATE OBJECT li_log1 TYPE zcl_abapgit_log.
+    li_log1 = NEW zcl_abapgit_log( ).
     mo_cut->serialize(
       iv_package          = '$ZTEST'
       it_tadir            = lt_tadir
       ii_log              = li_log1
       iv_force_sequential = abap_true ).
 
-    CREATE OBJECT li_log2 TYPE zcl_abapgit_log.
+    li_log2 = NEW zcl_abapgit_log( ).
     mo_cut->serialize(
       iv_package          = '$ZTEST'
       it_tadir            = lt_tadir
@@ -675,9 +803,9 @@ CLASS ltcl_i18n IMPLEMENTATION.
     " ls_data-i18n_languages needs to be initial to get classic I18N data
 
     TRY.
-        CREATE OBJECT mo_dot_abapgit EXPORTING is_data = ls_data.
+        mo_dot_abapgit = NEW #( is_data = ls_data ).
 
-        CREATE OBJECT mo_cut EXPORTING io_dot_abapgit = mo_dot_abapgit.
+        mo_cut = NEW #( io_dot_abapgit = mo_dot_abapgit ).
       CATCH zcx_abapgit_exception.
         cl_abap_unit_assert=>fail( 'Error creating serializer' ).
     ENDTRY.
@@ -714,7 +842,7 @@ CLASS ltcl_i18n IMPLEMENTATION.
 
     lv_xml = zcl_abapgit_convert=>xstring_to_string_utf8( <ls_result>-file-data ).
 
-    CREATE OBJECT lo_input EXPORTING iv_xml = lv_xml.
+    lo_input = NEW #( iv_xml = lv_xml ).
 
     lo_input->zif_abapgit_xml_input~read( EXPORTING iv_name = 'DD02V'
                                           CHANGING  cg_data = ls_dd02v ).

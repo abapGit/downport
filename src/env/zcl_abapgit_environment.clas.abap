@@ -2,11 +2,11 @@ CLASS zcl_abapgit_environment DEFINITION
   PUBLIC
   FINAL
   CREATE PRIVATE
-  GLOBAL FRIENDS zcl_abapgit_factory .
+  GLOBAL FRIENDS zcl_abapgit_factory.
 
   PUBLIC SECTION.
 
-    INTERFACES zif_abapgit_environment .
+    INTERFACES zif_abapgit_environment.
   PROTECTED SECTION.
   PRIVATE SECTION.
 
@@ -16,7 +16,7 @@ CLASS zcl_abapgit_environment DEFINITION
 
     METHODS is_system_changes_allowed
       RETURNING
-        VALUE(rv_result) TYPE abap_bool .
+        VALUE(rv_result) TYPE abap_bool.
 ENDCLASS.
 
 
@@ -67,9 +67,54 @@ CLASS zcl_abapgit_environment IMPLEMENTATION.
     " Changes to repository objects are not permitted in this client (TK 729)
     " Shadow system
     " Running upgrade
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( lv_systemedit <> 'N' AND lv_sys_cliinddep_edit NA '23' AND lv_is_shadow <> abap_true AND lv_is_upgrade <> abap_true ).
-    rv_result = temp1.
+    rv_result = xsdbool(
+      lv_systemedit <> 'N' AND
+      lv_sys_cliinddep_edit NA '23' AND
+      lv_is_shadow <> abap_true AND
+      lv_is_upgrade <> abap_true ).
+
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_environment~check_parallel_processing.
+
+    " If check fails, see transactions RZ12
+    DATA:
+      lt_setup      TYPE STANDARD TABLE OF rzllitab,
+      ls_setup      LIKE LINE OF lt_setup,
+      lt_erfc_setup TYPE STANDARD TABLE OF rzlliclass,
+      lt_instances  TYPE STANDARD TABLE OF msxxlist WITH DEFAULT KEY.
+
+    " Check if server group for parallel processing exists
+    CALL FUNCTION 'SMLG_GET_SETUP'
+      EXPORTING
+        grouptype          = 'S'
+      TABLES
+        setup              = lt_setup
+        erfc_setup         = lt_erfc_setup
+      EXCEPTIONS
+        foreign_lock       = 1
+        system_failure     = 2
+        invalid_group_type = 3
+        OTHERS             = 4.
+    IF sy-subrc <> 0.
+      RETURN.
+    ENDIF.
+
+    READ TABLE lt_setup INTO ls_setup WITH KEY classname = iv_group.
+    IF sy-subrc = 0 AND ls_setup-applserver IS NOT INITIAL.
+
+      " Check if assigned server instance exists
+      CALL FUNCTION 'TH_SERVER_LIST'
+        TABLES
+          list = lt_instances.
+
+      READ TABLE lt_instances TRANSPORTING NO FIELDS WITH KEY name = ls_setup-applserver.
+      IF sy-subrc = 0.
+        rv_checked = abap_true.
+      ENDIF.
+
+    ENDIF.
 
   ENDMETHOD.
 
@@ -248,16 +293,14 @@ CLASS zcl_abapgit_environment IMPLEMENTATION.
 
   METHOD zif_abapgit_environment~is_variant_maintenance.
 
-    TYPES temp1 TYPE STANDARD TABLE OF rsdynnr WITH NON-UNIQUE DEFAULT KEY.
-DATA:
-      lt_variscreens TYPE temp1.
+    DATA:
+      lt_variscreens TYPE STANDARD TABLE OF rsdynnr
+                          WITH NON-UNIQUE DEFAULT KEY.
 
     " Memory is set in LSVARF08 / EXPORT_SCREEN_TABLES.
     IMPORT variscreens = lt_variscreens FROM MEMORY ID '%_SCRNR_%'.
 
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( lines( lt_variscreens ) > 0 ).
-    rv_is_variant_maintenance = temp2.
+    rv_is_variant_maintenance = xsdbool( lines( lt_variscreens ) > 0 ).
 
   ENDMETHOD.
 ENDCLASS.
