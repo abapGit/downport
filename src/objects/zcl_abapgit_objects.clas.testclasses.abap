@@ -73,7 +73,7 @@ CLASS lcl_settings_with_features IMPLEMENTATION.
 
   METHOD zif_abapgit_persist_settings~read.
 
-    CREATE OBJECT ro_settings.
+    ro_settings = NEW #( ).
     ro_settings->set_experimental_features( mv_features ).
 
   ENDMETHOD.
@@ -209,7 +209,7 @@ CLASS ltcl_serialize IMPLEMENTATION.
     ls_item-obj_name = 'IF_BADI_TADIR_CHANGED'.
 
     lv_features = |{ zcl_abapgit_aff_registry=>c_aff_feature }, { zcl_abapgit_properties_file=>c_properties_feature }|.
-    CREATE OBJECT lo_settings EXPORTING iv_features = lv_features.
+    lo_settings = NEW #( iv_features = lv_features ).
 
     zcl_abapgit_persist_injector=>set_settings( lo_settings ).
 
