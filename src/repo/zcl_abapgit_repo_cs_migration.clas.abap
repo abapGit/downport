@@ -71,7 +71,7 @@ CLASS ZCL_ABAPGIT_REPO_CS_MIGRATION IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    lo_cs = NEW #( iv_repo_key = iv_repo_key ).
+    CREATE OBJECT lo_cs EXPORTING iv_repo_key = iv_repo_key.
     lo_cs->force_write( ls_repo_extract-local_checksums ).
 
   ENDMETHOD.
