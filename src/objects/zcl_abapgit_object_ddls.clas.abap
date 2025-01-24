@@ -220,12 +220,10 @@ CLASS zcl_abapgit_object_ddls IMPLEMENTATION.
 
   METHOD zif_abapgit_object~delete.
 
-    TYPES temp1 TYPE TABLE OF dcdeltb.
-TYPES temp2 TYPE TABLE OF dcgentb.
-DATA:
-      lt_deltab TYPE temp1,
+    DATA:
+      lt_deltab TYPE TABLE OF dcdeltb,
       ls_deltab TYPE dcdeltb,
-      lt_gentab TYPE temp2,
+      lt_gentab TYPE TABLE OF dcgentb,
       lv_rc     TYPE sy-subrc.
 
     " CL_DD_DDL_HANDLER->DELETE does not work for CDS views that reference other views
@@ -278,11 +276,12 @@ DATA:
       lx_error         TYPE REF TO cx_root.
 
     FIELD-SYMBOLS:
-      <lg_data>             TYPE any,
-      <lg_data_baseinfo>    TYPE any,
-      <lg_source>           TYPE any,
-      <lg_baseinfo_string>  TYPE any,
-      <lg_baseinfo_ddlname> TYPE any.
+      <lg_data>                  TYPE any,
+      <lg_data_baseinfo>         TYPE any,
+      <lg_source>                TYPE any,
+      <lg_baseinfo_string>       TYPE any,
+      <lg_baseinfo_ddlname>      TYPE any,
+      <lg_abap_language_version> TYPE any.
 
     TRY.
         CREATE DATA lr_data TYPE ('DDDDLSRCV').
@@ -294,6 +293,11 @@ DATA:
         ASSIGN COMPONENT 'SOURCE' OF STRUCTURE <lg_data> TO <lg_source>.
         ASSERT sy-subrc = 0.
         <lg_source> = mo_files->read_string( 'asddls' ).
+
+        ASSIGN COMPONENT 'ABAP_LANGUAGE_VERSION' OF STRUCTURE <lg_data> TO <lg_abap_language_version>.
+        IF sy-subrc = 0.
+          set_abap_language_version( CHANGING cv_abap_language_version = <lg_abap_language_version> ).
+        ENDIF.
 
         CALL METHOD ('CL_DD_DDL_HANDLER_FACTORY')=>('CREATE')
           RECEIVING
@@ -312,12 +316,22 @@ DATA:
           ASSERT sy-subrc = 0.
           <lg_baseinfo_ddlname> = ms_item-obj_name.
 
-          CALL METHOD lo_ddl->('IF_DD_DDL_HANDLER~SAVE')
-            EXPORTING
-              name            = ms_item-obj_name
-              put_state       = 'N'
-              ddddlsrcv_wa    = <lg_data>
-              baseinfo_string = <lg_data_baseinfo>.
+          TRY.
+              CALL METHOD lo_ddl->('IF_DD_DDL_HANDLER~SAVE')
+                EXPORTING
+                  name                  = ms_item-obj_name
+                  put_state             = 'N'
+                  ddddlsrcv_wa          = <lg_data>
+                  baseinfo_string       = <lg_data_baseinfo>
+                  save_language_version = abap_true.
+            CATCH cx_sy_dyn_call_param_not_found.
+              CALL METHOD lo_ddl->('IF_DD_DDL_HANDLER~SAVE')
+                EXPORTING
+                  name            = ms_item-obj_name
+                  put_state       = 'N'
+                  ddddlsrcv_wa    = <lg_data>
+                  baseinfo_string = <lg_data_baseinfo>.
+          ENDTRY.
         ELSE.
           CALL METHOD lo_ddl->('IF_DD_DDL_HANDLER~SAVE')
             EXPORTING
@@ -369,9 +383,7 @@ DATA:
             name      = ms_item-obj_name
           IMPORTING
             got_state = lv_state.
-        DATA temp1 TYPE xsdboolean.
-        temp1 = boolc( NOT lv_state IS INITIAL ).
-        rv_bool = temp1.
+        rv_bool = xsdbool( NOT lv_state IS INITIAL ).
       CATCH cx_root.
         rv_bool = abap_false.
     ENDTRY.
@@ -445,20 +457,20 @@ DATA:
 
   METHOD zif_abapgit_object~serialize.
 
-    TYPES temp3 TYPE STANDARD TABLE OF fieldname WITH DEFAULT KEY.
-DATA: lo_ddl           TYPE REF TO object,
+    DATA: lo_ddl           TYPE REF TO object,
           lr_data          TYPE REF TO data,
           lr_data_baseinfo TYPE REF TO data,
-          lt_clr_comps     TYPE temp3,
+          lt_clr_comps     TYPE STANDARD TABLE OF fieldname WITH DEFAULT KEY,
           lx_error         TYPE REF TO cx_root.
 
-    FIELD-SYMBOLS: <lg_data>          TYPE any,
-                   <lg_field>         TYPE any,
-                   <lv_comp>          LIKE LINE OF lt_clr_comps,
-                   <lt_data_baseinfo> TYPE ANY TABLE,
-                   <lg_data_baseinfo> TYPE any,
-                   <lg_ddlname>       TYPE any,
-                   <lg_as4local>      TYPE any.
+    FIELD-SYMBOLS: <lg_data>                  TYPE any,
+                   <lg_field>                 TYPE any,
+                   <lv_comp>                  LIKE LINE OF lt_clr_comps,
+                   <lt_data_baseinfo>         TYPE ANY TABLE,
+                   <lg_data_baseinfo>         TYPE any,
+                   <lg_ddlname>               TYPE any,
+                   <lg_as4local>              TYPE any,
+                   <lg_abap_language_version> TYPE any.
 
 
     TRY.
@@ -511,12 +523,16 @@ DATA: lo_ddl           TYPE REF TO object,
         zcx_abapgit_exception=>raise_with_text( lx_error ).
     ENDTRY.
 
+    ASSIGN COMPONENT 'ABAP_LANGUAGE_VERSION' OF STRUCTURE <lg_data> TO <lg_abap_language_version>.
+    IF sy-subrc = 0.
+      clear_abap_language_version( CHANGING cv_abap_language_version = <lg_abap_language_version> ).
+    ENDIF.
+
     APPEND 'AS4USER'               TO lt_clr_comps.
     APPEND 'AS4DATE'               TO lt_clr_comps.
     APPEND 'AS4TIME'               TO lt_clr_comps.
     APPEND 'ACTFLAG'               TO lt_clr_comps.
     APPEND 'CHGFLAG'               TO lt_clr_comps.
-    APPEND 'ABAP_LANGUAGE_VERSION' TO lt_clr_comps.
     APPEND 'ABAP_LANGU_VERSION'    TO lt_clr_comps.
 
     LOOP AT lt_clr_comps ASSIGNING <lv_comp>.
