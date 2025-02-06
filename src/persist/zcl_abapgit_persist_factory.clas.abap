@@ -30,7 +30,7 @@ CLASS ZCL_ABAPGIT_PERSIST_FACTORY IMPLEMENTATION.
   METHOD get_repo.
 
     IF gi_repo IS INITIAL.
-      CREATE OBJECT gi_repo TYPE zcl_abapgit_persistence_repo.
+      gi_repo = NEW zcl_abapgit_persistence_repo( ).
     ENDIF.
 
     ri_repo = gi_repo.
@@ -41,7 +41,7 @@ CLASS ZCL_ABAPGIT_PERSIST_FACTORY IMPLEMENTATION.
   METHOD get_repo_cs.
 
     IF gi_repo_cs IS INITIAL.
-      CREATE OBJECT gi_repo_cs TYPE zcl_abapgit_persistence_repo.
+      gi_repo_cs = NEW zcl_abapgit_persistence_repo( ).
     ENDIF.
 
     ri_repo_cs = gi_repo_cs.
@@ -52,7 +52,7 @@ CLASS ZCL_ABAPGIT_PERSIST_FACTORY IMPLEMENTATION.
   METHOD get_settings.
 
     IF gi_settings IS INITIAL.
-      CREATE OBJECT gi_settings TYPE zcl_abapgit_persist_settings.
+      gi_settings = NEW zcl_abapgit_persist_settings( ).
     ENDIF.
 
     ri_settings = gi_settings.
