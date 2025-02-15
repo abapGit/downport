@@ -65,7 +65,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_GUI_PAGE_WHEREUSED IMPLEMENTATION.
+CLASS zcl_abapgit_gui_page_whereused IMPLEMENTATION.
 
 
   METHOD constructor.
@@ -90,8 +90,8 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_WHEREUSED IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_whereused.
 
-    CREATE OBJECT lo_component EXPORTING ii_repo = ii_repo
-                                         iv_package = iv_package.
+    lo_component = NEW #( ii_repo = ii_repo
+                          iv_package = iv_package ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create( lo_component ).
 
@@ -196,9 +196,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_WHEREUSED IMPLEMENTATION.
         run_where_used( ).
         rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
       WHEN c_action-show_used_obj.
-        DATA temp1 TYPE xsdboolean.
-        temp1 = boolc( mv_show_used_obj = abap_false ).
-        mv_show_used_obj = temp1.
+        mv_show_used_obj = xsdbool( mv_show_used_obj = abap_false ).
         rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
     ENDCASE.
 
@@ -220,7 +218,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_WHEREUSED IMPLEMENTATION.
       lv_show_used_txt = 'Show Used Type'.
     ENDIF.
 
-    ro_toolbar = zcl_abapgit_html_toolbar=>create(
+    ro_toolbar = zcl_abapgit_html_toolbar=>create( 'toolbar-where-used'
       )->add(
         iv_txt    = lv_show_used_txt
         iv_title  = 'Show/Hide used type or object (when available)'

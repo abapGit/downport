@@ -119,7 +119,7 @@ CLASS zcl_abapgit_gui_page_db IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_db.
 
-    CREATE OBJECT lo_component.
+    lo_component = NEW #( ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title         = 'Database Utility'
@@ -154,7 +154,7 @@ CLASS zcl_abapgit_gui_page_db IMPLEMENTATION.
     lv_text = |\n|.
     INSERT lv_text INTO TABLE lt_toc.
 
-    CREATE OBJECT lo_zip.
+    lo_zip = NEW #( ).
 
     LOOP AT lt_data ASSIGNING <ls_data>.
       IF <ls_data>-type = zcl_abapgit_persistence_db=>c_type_repo_csum.
@@ -266,7 +266,7 @@ CLASS zcl_abapgit_gui_page_db IMPLEMENTATION.
 
     lv_zip = li_fe_serv->file_upload( lv_path ).
 
-    CREATE OBJECT lo_zip.
+    lo_zip = NEW #( ).
 
     lo_zip->load(
       EXPORTING
@@ -509,7 +509,7 @@ CLASS zcl_abapgit_gui_page_db IMPLEMENTATION.
 
     DATA lo_buf TYPE REF TO zcl_abapgit_string_buffer.
 
-    CREATE OBJECT lo_buf.
+    lo_buf = NEW #( ).
 
     " @@abapmerge include zabapgit_css_page_db.w3mi.data.css > lo_buf->add( '$$' ).
     gui_services( )->register_page_asset(
@@ -595,7 +595,7 @@ CLASS zcl_abapgit_gui_page_db IMPLEMENTATION.
 
   METHOD zif_abapgit_gui_menu_provider~get_menu.
 
-    CREATE OBJECT ro_toolbar.
+    ro_toolbar = zcl_abapgit_html_toolbar=>create( 'toolbar-database-utility' ).
 
     ro_toolbar->add(
       iv_txt = 'Backup'
@@ -648,7 +648,7 @@ CLASS zcl_abapgit_gui_page_db IMPLEMENTATION.
         rs_render-css_class = 'data'.
       WHEN 'cmd'.
         lv_action  = zcl_abapgit_html_action_utils=>dbkey_encode( is_row ).
-        lo_toolbar = zcl_abapgit_html_toolbar=>create(
+        lo_toolbar = zcl_abapgit_html_toolbar=>create( 'actionbar-database-utility'
           )->add(
             iv_txt = 'Display'
             iv_act = |{ zif_abapgit_definitions=>c_action-db_display }?{ lv_action }|
@@ -658,6 +658,9 @@ CLASS zcl_abapgit_gui_page_db IMPLEMENTATION.
           )->add(
             iv_txt = 'Delete'
             iv_act = |{ c_action-delete }?{ lv_action }| ).
+
+        zcl_abapgit_exit=>get_instance( )->enhance_any_toolbar( lo_toolbar ).
+
         rs_render-html = lo_toolbar->render( ).
 
     ENDCASE.
