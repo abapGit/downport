@@ -85,6 +85,24 @@ ENDCLASS.
 CLASS zcl_abapgit_gui_event IMPLEMENTATION.
 
 
+  METHOD class_constructor.
+
+    CONSTANTS lc_nbsp TYPE xstring VALUE 'C2A0'. " &nbsp;
+
+    TRY.
+        gv_non_breaking_space = zcl_abapgit_convert=>xstring_to_string_utf8( lc_nbsp ).
+      CATCH zcx_abapgit_exception.
+        " Fallback for non-Unicode systems
+        IF cl_abap_char_utilities=>charsize < 2.
+          gv_non_breaking_space = |X'A0'|.
+        ELSE.
+          ASSERT 0 = 1.
+        ENDIF.
+    ENDTRY.
+
+  ENDMETHOD.
+
+
   METHOD constructor.
 
     " Edge Webview control returns upper case action but abapGit requires lower case (#4841)
@@ -103,7 +121,7 @@ CLASS zcl_abapgit_gui_event IMPLEMENTATION.
   METHOD fields_to_map.
     FIELD-SYMBOLS <ls_field> LIKE LINE OF it_fields.
 
-    CREATE OBJECT ro_string_map EXPORTING iv_case_insensitive = abap_true.
+    ro_string_map = NEW #( iv_case_insensitive = abap_true ).
     LOOP AT it_fields ASSIGNING <ls_field>.
       ro_string_map->set(
         iv_key = <ls_field>-name
@@ -112,56 +130,22 @@ CLASS zcl_abapgit_gui_event IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD field_keys_to_upper.
+
+    FIELD-SYMBOLS <ls_field> LIKE LINE OF ct_fields.
+
+    LOOP AT ct_fields ASSIGNING <ls_field>.
+      <ls_field>-name = to_upper( <ls_field>-name ).
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
   METHOD new.
-    CREATE OBJECT ro_instance EXPORTING ii_gui_services = ii_gui_services
-                                        iv_action = iv_action
-                                        iv_getdata = iv_getdata
-                                        it_postdata = it_postdata.
-  ENDMETHOD.
-
-
-  METHOD zif_abapgit_gui_event~form_data.
-
-    IF mo_form_data IS NOT BOUND.
-      mo_form_data = fields_to_map( parse_post_form_data( zif_abapgit_gui_event~mt_postdata ) ).
-      mo_form_data->freeze( ).
-    ENDIF.
-    ro_string_map = mo_form_data.
-
-  ENDMETHOD.
-
-
-  METHOD zif_abapgit_gui_event~query.
-
-    IF mo_query IS NOT BOUND.
-      mo_query = fields_to_map( parse_fields( zif_abapgit_gui_event~mv_getdata ) ).
-      mo_query->freeze( ).
-    ENDIF.
-    ro_string_map = mo_query.
-
-  ENDMETHOD.
-
-
-  METHOD parse_fields_upper_case_name.
-
-    rt_fields = parse_fields(
-      iv_string      = iv_string
-      iv_upper_cased = abap_true ).
-
-  ENDMETHOD.
-
-
-  METHOD parse_post_form_data.
-
-    DATA lv_serialized_post_data TYPE string.
-
-    lv_serialized_post_data = translate_postdata( it_post_data ).
-    IF iv_upper_cased = abap_true.
-      rt_fields = parse_fields_upper_case_name( lv_serialized_post_data ).
-    ELSE.
-      rt_fields = parse_fields( lv_serialized_post_data ).
-    ENDIF.
-
+    ro_instance = NEW #( ii_gui_services = ii_gui_services
+                         iv_action = iv_action
+                         iv_getdata = iv_getdata
+                         it_postdata = it_postdata ).
   ENDMETHOD.
 
 
@@ -204,6 +188,29 @@ CLASS zcl_abapgit_gui_event IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD parse_fields_upper_case_name.
+
+    rt_fields = parse_fields(
+      iv_string      = iv_string
+      iv_upper_cased = abap_true ).
+
+  ENDMETHOD.
+
+
+  METHOD parse_post_form_data.
+
+    DATA lv_serialized_post_data TYPE string.
+
+    lv_serialized_post_data = translate_postdata( it_post_data ).
+    IF iv_upper_cased = abap_true.
+      rt_fields = parse_fields_upper_case_name( lv_serialized_post_data ).
+    ELSE.
+      rt_fields = parse_fields( lv_serialized_post_data ).
+    ENDIF.
+
+  ENDMETHOD.
+
+
   METHOD translate_postdata.
 
     DATA: lt_post_data       TYPE zif_abapgit_html_viewer=>ty_post_data,
@@ -231,17 +238,6 @@ CLASS zcl_abapgit_gui_event IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD field_keys_to_upper.
-
-    FIELD-SYMBOLS <ls_field> LIKE LINE OF ct_fields.
-
-    LOOP AT ct_fields ASSIGNING <ls_field>.
-      <ls_field>-name = to_upper( <ls_field>-name ).
-    ENDLOOP.
-
-  ENDMETHOD.
-
-
   METHOD unescape.
 
 * do not use cl_http_utility as it does strange things with the encoding
@@ -259,15 +255,24 @@ CLASS zcl_abapgit_gui_event IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD class_constructor.
+  METHOD zif_abapgit_gui_event~form_data.
 
-    CONSTANTS lc_nbsp TYPE xstring VALUE 'C2A0'. " &nbsp;
+    IF mo_form_data IS NOT BOUND.
+      mo_form_data = fields_to_map( parse_post_form_data( zif_abapgit_gui_event~mt_postdata ) ).
+      mo_form_data->freeze( ).
+    ENDIF.
+    ro_string_map = mo_form_data.
 
-    TRY.
-        gv_non_breaking_space = zcl_abapgit_convert=>xstring_to_string_utf8( lc_nbsp ).
-      CATCH zcx_abapgit_exception.
-        ASSERT 0 = 1.
-    ENDTRY.
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_gui_event~query.
+
+    IF mo_query IS NOT BOUND.
+      mo_query = fields_to_map( parse_fields( zif_abapgit_gui_event~mv_getdata ) ).
+      mo_query->freeze( ).
+    ENDIF.
+    ro_string_map = mo_query.
 
   ENDMETHOD.
 ENDCLASS.
