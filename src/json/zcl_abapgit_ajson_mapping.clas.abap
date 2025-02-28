@@ -77,8 +77,8 @@ CLASS zcl_abapgit_ajson_mapping IMPLEMENTATION.
 
   METHOD create_camel_case.
 
-    CREATE OBJECT ri_mapping TYPE lcl_mapping_camel EXPORTING it_mapping_fields = it_mapping_fields
-                                                              iv_first_json_upper = iv_first_json_upper.
+    ri_mapping = NEW lcl_mapping_camel( it_mapping_fields = it_mapping_fields
+                                        iv_first_json_upper = iv_first_json_upper ).
 
   ENDMETHOD.
 
@@ -93,50 +93,50 @@ CLASS zcl_abapgit_ajson_mapping IMPLEMENTATION.
     APPEND LINES OF it_more TO lt_queue.
     DELETE lt_queue WHERE table_line IS INITIAL.
 
-    CREATE OBJECT ri_mapping TYPE lcl_compound_mapper EXPORTING it_queue = lt_queue.
+    ri_mapping = NEW lcl_compound_mapper( it_queue = lt_queue ).
 
   ENDMETHOD.
 
 
   METHOD create_field_mapping.
 
-    CREATE OBJECT ri_mapping TYPE lcl_mapping_fields EXPORTING it_mapping_fields = it_mapping_fields.
+    ri_mapping = NEW lcl_mapping_fields( it_mapping_fields = it_mapping_fields ).
 
   ENDMETHOD.
 
 
   METHOD create_lower_case.
 
-    CREATE OBJECT ri_mapping TYPE lcl_mapping_to_lower EXPORTING it_mapping_fields = it_mapping_fields.
+    ri_mapping = NEW lcl_mapping_to_lower( it_mapping_fields = it_mapping_fields ).
 
   ENDMETHOD.
 
 
   METHOD create_rename.
 
-    CREATE OBJECT ri_mapping TYPE lcl_rename EXPORTING it_rename_map = it_rename_map
-                                                       iv_rename_by = iv_rename_by.
+    ri_mapping = NEW lcl_rename( it_rename_map = it_rename_map
+                                 iv_rename_by = iv_rename_by ).
 
   ENDMETHOD.
 
 
   METHOD create_to_camel_case.
 
-    CREATE OBJECT ri_mapping TYPE lcl_to_camel EXPORTING iv_first_json_upper = iv_first_json_upper.
+    ri_mapping = NEW lcl_to_camel( iv_first_json_upper = iv_first_json_upper ).
 
   ENDMETHOD.
 
 
   METHOD create_to_snake_case.
 
-    CREATE OBJECT ri_mapping TYPE lcl_to_snake.
+    ri_mapping = NEW lcl_to_snake( ).
 
   ENDMETHOD.
 
 
   METHOD create_upper_case.
 
-    CREATE OBJECT ri_mapping TYPE lcl_mapping_to_upper EXPORTING it_mapping_fields = it_mapping_fields.
+    ri_mapping = NEW lcl_mapping_to_upper( it_mapping_fields = it_mapping_fields ).
 
   ENDMETHOD.
 ENDCLASS.
