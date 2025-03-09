@@ -79,9 +79,8 @@ CLASS zcl_abapgit_object_http IMPLEMENTATION.
 
   METHOD zif_abapgit_object~deserialize.
 
-    TYPES temp1 TYPE TABLE OF ty_handler.
-DATA: lv_http_servid       TYPE c LENGTH 30,
-          lt_handler           TYPE temp1,
+    DATA: lv_http_servid       TYPE c LENGTH 30,
+          lt_handler           TYPE TABLE OF ty_handler,
           ls_handler           LIKE LINE OF lt_handler,
           ls_description       TYPE ty_uconhttpservtext,
           lv_check_object_name TYPE c LENGTH 40,
@@ -188,9 +187,7 @@ DATA: lv_http_servid       TYPE c LENGTH 30,
 
     TRY.
         SELECT SINGLE id FROM ('UCONHTTPSERVHEAD') INTO lv_id WHERE id = ms_item-obj_name AND version = 'A'.
-        DATA temp1 TYPE xsdboolean.
-        temp1 = boolc( sy-subrc = 0 ).
-        rv_bool = temp1.
+        rv_bool = xsdbool( sy-subrc = 0 ).
       CATCH cx_root.
         zcx_abapgit_exception=>raise( 'HTTP not supported' ).
     ENDTRY.
@@ -244,10 +241,9 @@ DATA: lv_http_servid       TYPE c LENGTH 30,
 
   METHOD zif_abapgit_object~serialize.
 
-    TYPES temp2 TYPE TABLE OF ty_uconservhttphandler.
-DATA: lv_http_srv_id TYPE c LENGTH 30,
+    DATA: lv_http_srv_id TYPE c LENGTH 30,
           lo_serv        TYPE REF TO object, "if_ucon_api_http_service
-          lt_handler     TYPE temp2,
+          lt_handler     TYPE TABLE OF ty_uconservhttphandler,
           ls_description TYPE ty_uconhttpservtext,
           lx_root        TYPE REF TO cx_root,
           lv_icfnode     TYPE ty_icf_node,
