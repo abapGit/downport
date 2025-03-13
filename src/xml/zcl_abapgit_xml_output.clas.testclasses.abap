@@ -29,7 +29,7 @@ CLASS ltcl_xml_output IMPLEMENTATION.
     ls_input-foo = '2'.
     ls_input-bar = 'A'.
 
-    CREATE OBJECT lo_output.
+    lo_output = NEW #( ).
     lo_output->zif_abapgit_xml_output~add( iv_name = 'DATA'
                     ig_data = ls_input ).
 
@@ -69,7 +69,7 @@ CLASS ltcl_xml_output IMPLEMENTATION.
 
     REPLACE ALL OCCURRENCES OF '#' IN lv_value WITH cl_abap_char_utilities=>newline.
 
-    CREATE OBJECT lo_output.
+    lo_output = NEW #( ).
     lo_output->zif_abapgit_xml_output~add( iv_name = 'DATA'
                                            ig_data = ls_input ).
 
@@ -85,8 +85,11 @@ CLASS ltcl_xml_output IMPLEMENTATION.
 
     lv_xstring = lo_conv_out_string->get_buffer( ).
 
-    lv_bom = cl_abap_char_utilities=>byte_order_mark_little. "UTF-16LE, 4103
-    CONCATENATE lv_bom lv_xstring INTO lv_xstring IN BYTE MODE.
+    " Add BOM for Unicode systems
+    IF cl_abap_char_utilities=>charsize > 1.
+      lv_bom = cl_abap_char_utilities=>byte_order_mark_little. "UTF-16LE, 4103
+      CONCATENATE lv_bom lv_xstring INTO lv_xstring IN BYTE MODE.
+    ENDIF.
 
     lo_conv_in_string = cl_abap_conv_in_ce=>create(
       encoding = lv_encoding

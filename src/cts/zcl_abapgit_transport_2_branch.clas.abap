@@ -48,9 +48,9 @@ CLASS zcl_abapgit_transport_2_branch IMPLEMENTATION.
 
     io_repository->create_branch( lv_branch_name ).
 
-    CREATE OBJECT lo_stage.
+    lo_stage = NEW #( ).
 
-    ls_stage_objects = zcl_abapgit_factory=>get_stage_logic( )->get( io_repository ).
+    ls_stage_objects = zcl_abapgit_stage_logic=>get_stage_logic( )->get( io_repository ).
 
     lt_object_statuses = zcl_abapgit_repo_status=>calculate( io_repository ).
 
@@ -76,7 +76,7 @@ CLASS zcl_abapgit_transport_2_branch IMPLEMENTATION.
 
   METHOD stage_transport_objects.
     DATA lo_transport_objects TYPE REF TO zcl_abapgit_transport_objects.
-    CREATE OBJECT lo_transport_objects EXPORTING it_transport_objects = it_transport_objects.
+    lo_transport_objects = NEW #( it_transport_objects = it_transport_objects ).
 
     lo_transport_objects->to_stage(
       io_stage           = io_stage

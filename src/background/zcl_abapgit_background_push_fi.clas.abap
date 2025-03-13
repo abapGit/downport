@@ -73,11 +73,11 @@ CLASS zcl_abapgit_background_push_fi IMPLEMENTATION.
                    <ls_remote> LIKE LINE OF ls_files-remote.
 
 
-    ls_files = zcl_abapgit_factory=>get_stage_logic( )->get( io_repo ).
+    ls_files = zcl_abapgit_stage_logic=>get_stage_logic( )->get( io_repo ).
     ASSERT lines( ls_files-local ) > 0
         OR lines( ls_files-remote ) > 0.
 
-    CREATE OBJECT lo_stage.
+    lo_stage = NEW #( ).
 
     LOOP AT ls_files-local ASSIGNING <ls_local>.
       mi_log->add_info( |stage: { <ls_local>-file-path } { <ls_local>-file-filename }| ).
@@ -142,7 +142,7 @@ CLASS zcl_abapgit_background_push_fi IMPLEMENTATION.
           lv_email   TYPE string.
 
     mi_log = ii_log.
-    ls_files = zcl_abapgit_factory=>get_stage_logic( )->get( io_repo ).
+    ls_files = zcl_abapgit_stage_logic=>get_stage_logic( )->get( io_repo ).
 
     IF lines( ls_files-local ) = 0 AND lines( ls_files-remote ) = 0.
       ii_log->add_info( 'Nothing to stage' ).
