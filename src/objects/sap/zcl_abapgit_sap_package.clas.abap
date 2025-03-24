@@ -32,6 +32,28 @@ CLASS zcl_abapgit_sap_package IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD get_transport_layer.
+
+    " Get default transport layer
+    CALL FUNCTION 'TR_GET_TRANSPORT_TARGET'
+      EXPORTING
+        iv_use_default             = abap_true
+        iv_get_layer_only          = abap_true
+      IMPORTING
+        ev_layer                   = rv_transport_layer
+      EXCEPTIONS
+        wrong_call                 = 1
+        invalid_input              = 2
+        cts_initialization_failure = 3
+        OTHERS                     = 4.
+    IF sy-subrc <> 0.
+      " Return empty layer (i.e. "local workbench request" for the package)
+      CLEAR rv_transport_layer.
+    ENDIF.
+
+  ENDMETHOD.
+
+
   METHOD zif_abapgit_sap_package~are_changes_recorded_in_tr_req.
 
     DATA: li_package TYPE REF TO if_package.
@@ -54,9 +76,7 @@ CLASS zcl_abapgit_sap_package IMPLEMENTATION.
         rv_are_changes_rec_in_tr_req = li_package->wbo_korr_flag.
       WHEN 1.
         " For new packages, derive from package name
-        DATA temp1 TYPE xsdboolean.
-        temp1 = boolc( mv_package(1) <> '$' AND mv_package(1) <> 'T' ).
-        rv_are_changes_rec_in_tr_req = temp1.
+        rv_are_changes_rec_in_tr_req = xsdbool( mv_package(1) <> '$' AND mv_package(1) <> 'T' ).
       WHEN OTHERS.
         zcx_abapgit_exception=>raise_t100( ).
     ENDCASE.
@@ -233,31 +253,39 @@ CLASS zcl_abapgit_sap_package IMPLEMENTATION.
         intern_err                 = 3
         no_access                  = 4
         object_locked_and_modified = 5 ).
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( sy-subrc <> 1 ).
-    rv_bool = temp2.
+    rv_bool = xsdbool( sy-subrc <> 1 ).
 
   ENDMETHOD.
 
 
-  METHOD get_transport_layer.
+  METHOD zif_abapgit_sap_package~get.
 
-    " Get default transport layer
-    CALL FUNCTION 'TR_GET_TRANSPORT_TARGET'
+    DATA li_package TYPE REF TO if_package.
+
+    cl_package_factory=>load_package(
       EXPORTING
-        iv_use_default             = abap_true
-        iv_get_layer_only          = abap_true
+        i_package_name             = mv_package
       IMPORTING
-        ev_layer                   = rv_transport_layer
+        e_package                  = li_package
       EXCEPTIONS
-        wrong_call                 = 1
-        invalid_input              = 2
-        cts_initialization_failure = 3
-        OTHERS                     = 4.
+        object_not_existing        = 1
+        unexpected_error           = 2
+        intern_err                 = 3
+        no_access                  = 4
+        object_locked_and_modified = 5
+        OTHERS                     = 6 ).
+
     IF sy-subrc <> 0.
-      " Return empty layer (i.e. "local workbench request" for the package)
-      CLEAR rv_transport_layer.
+      zcx_abapgit_exception=>raise_t100( ).
     ENDIF.
+
+    rs_package-devclass  = li_package->package_name.
+    rs_package-dlvunit   = li_package->software_component.
+    rs_package-component = li_package->application_component.
+    rs_package-ctext     = li_package->short_text.
+    rs_package-parentcl  = li_package->super_package_name.
+    rs_package-pdevclass = li_package->transport_layer.
+    rs_package-as4user   = li_package->changed_by.
 
   ENDMETHOD.
 

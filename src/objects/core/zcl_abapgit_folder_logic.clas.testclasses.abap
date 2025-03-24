@@ -92,6 +92,10 @@ CLASS ltcl_folder_logic_package IMPLEMENTATION.
     RETURN.
   ENDMETHOD.
 
+  METHOD zif_abapgit_sap_package~get.
+    RETURN.
+  ENDMETHOD.
+
   METHOD zif_abapgit_sap_package~exists.
     rv_bool = abap_true.
   ENDMETHOD.
@@ -183,6 +187,10 @@ CLASS ltcl_folder_logic IMPLEMENTATION.
     RETURN.
   ENDMETHOD.
 
+  METHOD zif_abapgit_sap_package~get.
+    RETURN.
+  ENDMETHOD.
+
   METHOD zif_abapgit_sap_package~exists.
     rv_bool = abap_true.
   ENDMETHOD.
@@ -207,7 +215,7 @@ CLASS ltcl_folder_logic IMPLEMENTATION.
 
     DATA lo_top_foo TYPE REF TO ltcl_folder_logic_package.
 
-    CREATE OBJECT lo_top_foo.
+    lo_top_foo = NEW #( ).
 
     zcl_abapgit_injector=>set_sap_package( iv_package     = c_top
                                            ii_sap_package = me ).
@@ -401,6 +409,10 @@ CLASS ltcl_folder_logic_namespaces IMPLEMENTATION.
     RETURN.
   ENDMETHOD.
 
+  METHOD zif_abapgit_sap_package~get.
+    RETURN.
+  ENDMETHOD.
+
   METHOD zif_abapgit_sap_package~exists.
     rv_bool = abap_true.
   ENDMETHOD.
@@ -533,6 +545,10 @@ CLASS ltcl_folder_logic_no_parent IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD zif_abapgit_sap_package~create_child.
+    RETURN.
+  ENDMETHOD.
+
+  METHOD zif_abapgit_sap_package~get.
     RETURN.
   ENDMETHOD.
 

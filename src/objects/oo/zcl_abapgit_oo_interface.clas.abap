@@ -291,9 +291,11 @@ CLASS zcl_abapgit_oo_interface IMPLEMENTATION.
 
 
   METHOD zif_abapgit_oo_object_fnc~exists.
+    DATA ls_object_name TYPE seoclskey.
+    ls_object_name = iv_object_name.
     CALL FUNCTION 'SEO_INTERFACE_EXISTENCE_CHECK'
       EXPORTING
-        intkey        = is_object_name
+        intkey        = ls_object_name
       EXCEPTIONS
         not_specified = 1
         not_existing  = 2
@@ -301,9 +303,7 @@ CLASS zcl_abapgit_oo_interface IMPLEMENTATION.
         no_text       = 4
         inconsistent  = 5
         OTHERS        = 6.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 OR sy-subrc = 4 ).
-    rv_exists = temp1.
+    rv_exists = xsdbool( sy-subrc = 0 OR sy-subrc = 4 ).
   ENDMETHOD.
 
 

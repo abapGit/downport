@@ -488,7 +488,7 @@ CLASS zcl_abapgit_gui_router IMPLEMENTATION.
 
     lo_repo ?= zcl_abapgit_repo_srv=>get_instance( )->get( iv_key ).
 
-    CREATE OBJECT ro_filter.
+    ro_filter = NEW #( ).
     ro_filter->set_filter_values( iv_package  = lo_repo->get_package( )
                                   it_r_trkorr = lt_r_trkorr ).
 
@@ -550,9 +550,7 @@ CLASS zcl_abapgit_gui_router IMPLEMENTATION.
     IF iv_line CO '0123456789'.
       lv_line_number = iv_line.
     ENDIF.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( iv_new_window IS NOT INITIAL ).
-    lv_new_window = temp1.
+    lv_new_window = xsdbool( iv_new_window IS NOT INITIAL ).
 
     TRY.
         li_html_viewer = zcl_abapgit_ui_factory=>get_html_viewer( ).
@@ -604,8 +602,7 @@ CLASS zcl_abapgit_gui_router IMPLEMENTATION.
   METHOD other_utilities.
     TYPES ty_char600 TYPE c LENGTH 600.
     DATA lv_clip_content TYPE string.
-    TYPES temp1 TYPE STANDARD TABLE OF ty_char600.
-DATA lt_clipboard TYPE temp1.
+    DATA lt_clipboard TYPE STANDARD TABLE OF ty_char600.
 
     CASE ii_event->mv_action.
       WHEN zif_abapgit_definitions=>c_action-ie_devtools.
@@ -703,6 +700,9 @@ DATA lt_clipboard TYPE temp1.
       WHEN zif_abapgit_definitions=>c_action-repo_infos.                      " Repo infos
         rs_handled-page  = zcl_abapgit_gui_page_sett_info=>create( lo_repo ).
         rs_handled-state = get_state_settings( ii_event ).
+      WHEN zif_abapgit_definitions=>c_action-repo_change_package.             " Repo change package
+        rs_handled-page  = zcl_abapgit_gui_page_chg_pckg=>create( lo_repo ).
+        rs_handled-state = get_state_settings( ii_event ).
       WHEN zif_abapgit_definitions=>c_action-repo_log.                        " Repo log
         li_log = lo_repo->get_log( ).
         zcl_abapgit_log_viewer=>show_log( li_log ).
@@ -792,7 +792,7 @@ DATA lt_clipboard TYPE temp1.
     lt_r_trkorr = zcl_abapgit_ui_factory=>get_popups( )->popup_select_wb_tc_tr_and_tsk( ).
     lo_repo ?= zcl_abapgit_repo_srv=>get_instance( )->get( iv_key ).
     lo_repo->refresh( ).
-    CREATE OBJECT lo_obj_filter_trans.
+    lo_obj_filter_trans = NEW #( ).
     lo_obj_filter_trans->set_filter_values( iv_package  = lo_repo->get_package( )
                                             it_r_trkorr = lt_r_trkorr ).
 

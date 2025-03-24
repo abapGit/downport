@@ -62,7 +62,7 @@ ENDCLASS.
 CLASS lcl_persist_settings IMPLEMENTATION.
 
   METHOD constructor.
-    CREATE OBJECT mo_settings.
+    mo_settings = NEW #( ).
   ENDMETHOD.
 
   METHOD zif_abapgit_persist_settings~modify.
@@ -135,10 +135,10 @@ ENDCLASS.
 CLASS ltcl_abap_language_version IMPLEMENTATION.
 
   METHOD setup.
-    CREATE OBJECT mo_environment.
+    mo_environment = NEW #( ).
     zcl_abapgit_injector=>set_environment( mo_environment ).
 
-    CREATE OBJECT mi_persistency TYPE lcl_persist_settings.
+    mi_persistency = NEW lcl_persist_settings( ).
     zcl_abapgit_persist_injector=>set_settings( mi_persistency ).
 
     APPEND zif_abapgit_dot_abapgit=>c_abap_language_version-undefined TO mt_versions.
@@ -154,7 +154,7 @@ CLASS ltcl_abap_language_version IMPLEMENTATION.
     mo_dot_abapgit = zcl_abapgit_dot_abapgit=>build_default( ).
     mo_dot_abapgit->set_abap_language_version( iv_abap_language_version ).
 
-    CREATE OBJECT mo_cut EXPORTING io_dot_abapgit = mo_dot_abapgit.
+    mo_cut = NEW #( io_dot_abapgit = mo_dot_abapgit ).
   ENDMETHOD.
 
   METHOD set_environment.
@@ -409,21 +409,11 @@ CLASS ltcl_abap_language_version IMPLEMENTATION.
   METHOD is_import_allowed.
 
     DATA lv_version TYPE string.
-    DATA ls_clskey TYPE seoclskey.
-
-    ls_clskey-clsname = c_language_cfg.
 
     " Tests using ABAP language version "standard" only work if the required
     " SAP class is available. In older releases, all packages will have
     " ABAP language version "undefined" and are handled like a new package
-    CALL FUNCTION 'SEO_CLASS_EXISTENCE_CHECK'
-      EXPORTING
-        clskey = ls_clskey
-      EXCEPTIONS
-        OTHERS = 1.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    mv_has_language_cfg = temp1.
+    mv_has_language_cfg = zcl_abapgit_oo_factory=>get_by_type( 'CLAS' )->exists( c_language_cfg ).
 
     LOOP AT mt_versions INTO lv_version.
 
