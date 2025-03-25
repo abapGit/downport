@@ -201,8 +201,8 @@ CLASS zcl_abapgit_gui_page_chg_pckg IMPLEMENTATION.
 
     super->constructor( ).
     mo_repo = io_repo.
-    CREATE OBJECT mo_validation_log.
-    CREATE OBJECT mo_form_data.
+    mo_validation_log = NEW #( ).
+    mo_form_data = NEW #( ).
     mo_form = get_form_schema( ).
     mo_form_util = zcl_abapgit_html_form_utils=>create( mo_form ).
 
@@ -221,7 +221,7 @@ CLASS zcl_abapgit_gui_page_chg_pckg IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_chg_pckg.
 
-    CREATE OBJECT lo_component EXPORTING io_repo = io_repo.
+    lo_component = NEW #( io_repo = io_repo ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Change Repository Package'
@@ -365,7 +365,7 @@ CLASS zcl_abapgit_gui_page_chg_pckg IMPLEMENTATION.
 
     lv_key = mo_repo->get_key( ).
 
-    CREATE OBJECT lo_checksums EXPORTING iv_repo_key = lv_key.
+    lo_checksums = NEW #( iv_repo_key = lv_key ).
 
     lt_checksums = lo_checksums->zif_abapgit_repo_checksums~get( ).
 
@@ -419,8 +419,9 @@ CLASS zcl_abapgit_gui_page_chg_pckg IMPLEMENTATION.
     FIELD-SYMBOLS <ls_map> LIKE LINE OF it_mapping.
 
     LOOP AT it_mapping ASSIGNING <ls_map>.
-      UPDATE sotr_head SET paket = <ls_map>-new_package WHERE paket = <ls_map>-old_package ##SUBRC_OK.
-      UPDATE sotr_headu SET paket = <ls_map>-new_package WHERE paket = <ls_map>-old_package ##SUBRC_OK.
+      zcl_abapgit_sotr_handler=>change_sotr_package(
+        iv_old_package = <ls_map>-old_package
+        iv_new_package = <ls_map>-new_package ).
     ENDLOOP.
 
   ENDMETHOD.
