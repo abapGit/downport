@@ -41,7 +41,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_GUI_PAGE_SYNTAX IMPLEMENTATION.
+CLASS zcl_abapgit_gui_page_syntax IMPLEMENTATION.
 
 
   METHOD constructor.
@@ -55,7 +55,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SYNTAX IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_syntax.
 
-    CREATE OBJECT lo_component EXPORTING io_repo = io_repo.
+    lo_component = NEW #( io_repo = io_repo ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create( lo_component ).
 
@@ -66,7 +66,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SYNTAX IMPLEMENTATION.
 
     DATA: li_syntax_check TYPE REF TO zif_abapgit_code_inspector.
 
-    li_syntax_check = zcl_abapgit_factory=>get_code_inspector( mo_repo->get_package( ) ).
+    li_syntax_check = zcl_abapgit_code_inspector=>get_code_inspector( mo_repo->get_package( ) ).
 
     TRY.
         mt_result = li_syntax_check->run( c_variant ).
@@ -129,7 +129,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SYNTAX IMPLEMENTATION.
 
     register_handlers( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->div(
       iv_class   = 'repo'

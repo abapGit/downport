@@ -28,13 +28,13 @@ CLASS zcl_abapgit_popup_code_insp IMPLEMENTATION.
 
 
   METHOD create.
-    CREATE OBJECT ri_popup TYPE zcl_abapgit_popup_code_insp.
+    ri_popup = NEW zcl_abapgit_popup_code_insp( ).
   ENDMETHOD.
 
 
   METHOD fetch_list.
 
-    rt_list = zcl_abapgit_factory=>get_code_inspector( '$TMP' )->list_global_variants( ).
+    rt_list = zcl_abapgit_code_inspector=>get_code_inspector( '$TMP' )->list_global_variants( ).
 
   ENDMETHOD.
 
@@ -52,9 +52,9 @@ CLASS zcl_abapgit_popup_code_insp IMPLEMENTATION.
 
   METHOD zif_abapgit_html_popup~create_picklist.
 
-    CREATE OBJECT ro_picklist EXPORTING iv_title = 'Choose Variant'
-                                        it_list = fetch_list( )
-                                        ii_item_renderer = me.
+    ro_picklist = NEW #( iv_title = 'Choose Variant'
+                         it_list = fetch_list( )
+                         ii_item_renderer = me ).
 
   ENDMETHOD.
 ENDCLASS.
