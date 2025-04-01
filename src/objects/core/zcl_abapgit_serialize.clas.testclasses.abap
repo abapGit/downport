@@ -28,7 +28,7 @@ CLASS ltd_settings IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD zif_abapgit_persist_settings~read.
-    CREATE OBJECT ro_settings.
+    ro_settings = NEW #( ).
     ro_settings->set_parallel_proc_disabled( mv_parallel_proc_disabled ).
   ENDMETHOD.
 
@@ -84,7 +84,7 @@ CLASS ltd_environment DEFINITION FINAL FOR TESTING
     DATA:
       mv_group               TYPE rzlli_apcl,
       mv_is_merged           TYPE abap_bool,
-      mv_available_sessions  TYPE i,
+      mv_available_sessions  TYPE i VALUE 6, " system default
       mv_free_work_processes TYPE i.
 
 ENDCLASS.
@@ -129,9 +129,7 @@ CLASS ltd_environment IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD zif_abapgit_environment~check_parallel_processing.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( iv_group = mv_group ).
-    rv_checked = temp1.
+    rv_checked = xsdbool( iv_group = mv_group ).
   ENDMETHOD.
 
   METHOD set_server_group.
@@ -318,14 +316,14 @@ CLASS ltcl_determine_server_group IMPLEMENTATION.
 
   METHOD setup.
 
-    CREATE OBJECT mo_environment_double.
+    mo_environment_double = NEW #( ).
     zcl_abapgit_injector=>set_environment( mo_environment_double ).
 
-    CREATE OBJECT mo_exit.
+    mo_exit = NEW #( ).
     zcl_abapgit_injector=>set_exit( mo_exit ).
 
     TRY.
-        CREATE OBJECT mo_cut.
+        mo_cut = NEW #( ).
       CATCH zcx_abapgit_exception.
         cl_abap_unit_assert=>fail( 'Error creating serializer' ).
     ENDTRY.
@@ -397,10 +395,12 @@ CLASS ltcl_determine_max_processes DEFINITION FOR TESTING DURATION SHORT RISK LE
 
       determine_max_processes_free FOR TESTING RAISING zcx_abapgit_exception,
       det_max_processes_not_free FOR TESTING RAISING zcx_abapgit_exception,
+      det_max_proc_none_available FOR TESTING RAISING zcx_abapgit_exception,
       det_max_proc_amdahls_law FOR TESTING RAISING zcx_abapgit_exception,
       determine_max_processes_no_pp FOR TESTING RAISING zcx_abapgit_exception,
       determine_max_processes_merged FOR TESTING RAISING zcx_abapgit_exception,
-      determine_max_processes_exit FOR TESTING RAISING zcx_abapgit_exception,
+      determine_max_proc_exit_lower FOR TESTING RAISING zcx_abapgit_exception,
+      determine_max_proc_exit_higher FOR TESTING RAISING zcx_abapgit_exception,
       determine_max_processes_capped FOR TESTING RAISING zcx_abapgit_exception,
       force FOR TESTING RAISING zcx_abapgit_exception,
 
@@ -442,26 +442,25 @@ CLASS ltcl_determine_max_processes IMPLEMENTATION.
 
   METHOD setup.
 
-    CREATE OBJECT mo_settings_double.
+    mo_settings_double = NEW #( ).
     zcl_abapgit_persist_injector=>set_settings( mo_settings_double ).
 
-    CREATE OBJECT mo_environment_double.
+    mo_environment_double = NEW #( ).
     zcl_abapgit_injector=>set_environment( mo_environment_double ).
 
-    CREATE OBJECT mo_function_module_double.
+    mo_function_module_double = NEW #( ).
     zcl_abapgit_injector=>set_function_module( mo_function_module_double ).
 
-    CREATE OBJECT mo_exit.
+    mo_exit = NEW #( ).
     zcl_abapgit_injector=>set_exit( mo_exit ).
 
     TRY.
-        CREATE OBJECT mo_cut.
+        mo_cut = NEW #( ).
       CATCH zcx_abapgit_exception.
         cl_abap_unit_assert=>fail( 'Error creating serializer' ).
     ENDTRY.
 
   ENDMETHOD.
-
 
   METHOD teardown.
 
@@ -469,19 +468,18 @@ CLASS ltcl_determine_max_processes IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD determine_max_processes_free.
 
     given_parallel_proc_disabled( abap_false ).
     given_is_merged( abap_false ).
     given_free_work_processes( 10 ).
+    given_available_sessions( 10 ).
 
     when_determine_max_processes( ).
 
     then_we_shd_have_n_processes( 9 ).
 
   ENDMETHOD.
-
 
   METHOD det_max_processes_not_free.
 
@@ -495,19 +493,31 @@ CLASS ltcl_determine_max_processes IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD det_max_proc_none_available.
+
+    given_parallel_proc_disabled( abap_false ).
+    given_is_merged( abap_false ).
+    given_free_work_processes( 10 ).
+    given_available_sessions( 0 ).
+
+    when_determine_max_processes( ).
+
+    then_we_shd_have_n_processes( 1 ).
+
+  ENDMETHOD.
 
   METHOD det_max_proc_amdahls_law.
 
     given_parallel_proc_disabled( abap_false ).
     given_is_merged( abap_false ).
     given_free_work_processes( 50 ).
+    given_available_sessions( 50 ).
 
     when_determine_max_processes( ).
 
     then_we_shd_have_n_processes( 32 ).
 
   ENDMETHOD.
-
 
   METHOD determine_max_processes_no_pp.
 
@@ -520,7 +530,6 @@ CLASS ltcl_determine_max_processes IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD determine_max_processes_merged.
 
     given_parallel_proc_disabled( abap_false ).
@@ -532,12 +541,25 @@ CLASS ltcl_determine_max_processes IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD determine_max_proc_exit_lower.
 
-  METHOD determine_max_processes_exit.
+    given_free_work_processes( 26 ).
+    given_available_sessions( 11 ).
 
     given_exit_chg_max_processes( 7 ).
     when_determine_max_processes( ).
     then_we_shd_have_n_processes( 7 ).
+
+  ENDMETHOD.
+
+  METHOD determine_max_proc_exit_higher.
+
+    given_free_work_processes( 20 ).
+    given_available_sessions( 15 ).
+
+    given_exit_chg_max_processes( 30 ).
+    when_determine_max_processes( ).
+    then_we_shd_have_n_processes( 30 ).
 
   ENDMETHOD.
 
@@ -554,7 +576,6 @@ CLASS ltcl_determine_max_processes IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD force.
 
     when_determine_max_processes( abap_true ).
@@ -563,13 +584,11 @@ CLASS ltcl_determine_max_processes IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD given_parallel_proc_disabled.
 
     mo_settings_double->set_parallel_proc_disabled( iv_parallel_proc_disabled ).
 
   ENDMETHOD.
-
 
   METHOD given_is_merged.
 
@@ -583,13 +602,11 @@ CLASS ltcl_determine_max_processes IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD given_free_work_processes.
 
     mo_environment_double->set_free_work_processes( iv_free_work_processes ).
 
   ENDMETHOD.
-
 
   METHOD when_determine_max_processes.
 
@@ -599,7 +616,6 @@ CLASS ltcl_determine_max_processes IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD then_we_shd_have_n_processes.
 
     cl_abap_unit_assert=>assert_equals(
@@ -607,7 +623,6 @@ CLASS ltcl_determine_max_processes IMPLEMENTATION.
       exp = iv_exp_processes ).
 
   ENDMETHOD.
-
 
   METHOD given_exit_chg_max_processes.
 
@@ -640,7 +655,7 @@ CLASS ltcl_serialize IMPLEMENTATION.
     mo_dot = zcl_abapgit_dot_abapgit=>build_default( ).
 
     TRY.
-        CREATE OBJECT mo_cut EXPORTING io_dot_abapgit = mo_dot.
+        mo_cut = NEW #( io_dot_abapgit = mo_dot ).
       CATCH zcx_abapgit_exception.
         cl_abap_unit_assert=>fail( 'Error creating serializer' ).
     ENDTRY.
@@ -686,18 +701,17 @@ CLASS ltcl_serialize IMPLEMENTATION.
 
     FIELD-SYMBOLS: <ls_tadir> LIKE LINE OF lt_tadir.
 
-
     APPEND INITIAL LINE TO lt_tadir ASSIGNING <ls_tadir>.
     <ls_tadir>-object   = 'ABCD'.
     <ls_tadir>-obj_name = 'OBJECT'.
 
-    CREATE OBJECT li_log1 TYPE zcl_abapgit_log.
+    li_log1 = NEW zcl_abapgit_log( ).
     mo_cut->serialize(
       it_tadir            = lt_tadir
       ii_log              = li_log1
       iv_force_sequential = abap_true ).
 
-    CREATE OBJECT li_log2 TYPE zcl_abapgit_log.
+    li_log2 = NEW zcl_abapgit_log( ).
     mo_cut->serialize(
       it_tadir            = lt_tadir
       ii_log              = li_log2
@@ -745,14 +759,14 @@ CLASS ltcl_serialize IMPLEMENTATION.
     <ls_tadir>-obj_name = 'ZCL_TEST_IGNORE'.
     <ls_tadir>-devclass = '$ZTEST'.
 
-    CREATE OBJECT li_log1 TYPE zcl_abapgit_log.
+    li_log1 = NEW zcl_abapgit_log( ).
     mo_cut->serialize(
       iv_package          = '$ZTEST'
       it_tadir            = lt_tadir
       ii_log              = li_log1
       iv_force_sequential = abap_true ).
 
-    CREATE OBJECT li_log2 TYPE zcl_abapgit_log.
+    li_log2 = NEW zcl_abapgit_log( ).
     mo_cut->serialize(
       iv_package          = '$ZTEST'
       it_tadir            = lt_tadir
@@ -794,7 +808,6 @@ CLASS ltcl_i18n DEFINITION FOR TESTING DURATION SHORT RISK LEVEL HARMLESS FINAL.
       setup,
       test FOR TESTING RAISING zcx_abapgit_exception.
 
-
 ENDCLASS.
 
 
@@ -808,9 +821,9 @@ CLASS ltcl_i18n IMPLEMENTATION.
     " ls_data-i18n_languages needs to be initial to get classic I18N data
 
     TRY.
-        CREATE OBJECT mo_dot_abapgit EXPORTING is_data = ls_data.
+        mo_dot_abapgit = NEW #( is_data = ls_data ).
 
-        CREATE OBJECT mo_cut EXPORTING io_dot_abapgit = mo_dot_abapgit.
+        mo_cut = NEW #( io_dot_abapgit = mo_dot_abapgit ).
       CATCH zcx_abapgit_exception.
         cl_abap_unit_assert=>fail( 'Error creating serializer' ).
     ENDTRY.
@@ -847,7 +860,7 @@ CLASS ltcl_i18n IMPLEMENTATION.
 
     lv_xml = zcl_abapgit_convert=>xstring_to_string_utf8( <ls_result>-file-data ).
 
-    CREATE OBJECT lo_input EXPORTING iv_xml = lv_xml.
+    lo_input = NEW #( iv_xml = lv_xml ).
 
     lo_input->zif_abapgit_xml_input~read( EXPORTING iv_name = 'DD02V'
                                           CHANGING  cg_data = ls_dd02v ).
@@ -865,4 +878,5 @@ CLASS ltcl_i18n IMPLEMENTATION.
     cl_abap_unit_assert=>assert_subrc( ).
 
   ENDMETHOD.
+
 ENDCLASS.

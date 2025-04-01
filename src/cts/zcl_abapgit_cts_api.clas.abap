@@ -89,6 +89,9 @@ CLASS zcl_abapgit_cts_api IMPLEMENTATION.
     DATA: lv_object_lockable   TYPE abap_bool,
           lv_locked            TYPE abap_bool,
           lv_transport_request TYPE trkorr,
+          ls_tlock             TYPE tlock,
+          lt_tlock             TYPE STANDARD TABLE OF tlock WITH DEFAULT KEY,
+          lt_transports        TYPE STANDARD TABLE OF trkorr WITH DEFAULT KEY,
           lv_task              TYPE trkorr,
           lv_tr_object_name    TYPE trobj_name.
 
@@ -104,6 +107,8 @@ CLASS zcl_abapgit_cts_api IMPLEMENTATION.
         we_locked            = lv_locked
         we_lock_order        = lv_transport_request
         we_lock_task         = lv_task
+      TABLES
+        wt_tlock             = lt_tlock
       EXCEPTIONS
         empty_key            = 1
         no_systemname        = 2
@@ -122,7 +127,15 @@ CLASS zcl_abapgit_cts_api IMPLEMENTATION.
       zcx_abapgit_exception=>raise( |Object type { iv_program_id }-{ iv_object_type } not lockable| ).
     ENDIF.
 
-    rv_transport = lv_transport_request.
+    LOOP AT lt_tlock INTO ls_tlock.
+      COLLECT ls_tlock-trkorr INTO lt_transports.
+    ENDLOOP.
+
+    IF lines( lt_transports ) = 1.
+      rv_transport = lv_transport_request.
+    ELSE.
+      rv_transport = zif_abapgit_definitions=>c_multiple_transports.
+    ENDIF.
 
   ENDMETHOD.
 
@@ -173,9 +186,7 @@ CLASS zcl_abapgit_cts_api IMPLEMENTATION.
       zcx_abapgit_exception=>raise_t100( ).
     ENDIF.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( lv_lock_flag <> space ).
-    rv_locked = temp1.
+    rv_locked = xsdbool( lv_lock_flag <> space ).
   ENDMETHOD.
 
 
@@ -193,9 +204,7 @@ CLASS zcl_abapgit_cts_api IMPLEMENTATION.
       IMPORTING
         pe_result = lv_type_check_result.
 
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( lv_type_check_result = 'L' ).
-    rv_lockable = temp2.
+    rv_lockable = xsdbool( lv_type_check_result = 'L' ).
   ENDMETHOD.
 
 
@@ -213,9 +222,7 @@ CLASS zcl_abapgit_cts_api IMPLEMENTATION.
       IMPORTING
         pe_result = lv_type_check_result.
 
-    DATA temp3 TYPE xsdboolean.
-    temp3 = boolc( lv_type_check_result CA 'RTL' OR iv_object_type = 'TABU' ).
-    rv_transportable = temp3.
+    rv_transportable = xsdbool( lv_type_check_result CA 'RTL' OR iv_object_type = 'TABU' ).
   ENDMETHOD.
 
 
@@ -348,8 +355,7 @@ CLASS zcl_abapgit_cts_api IMPLEMENTATION.
   METHOD zif_abapgit_cts_api~create_transport_entries.
 
     DATA lt_tables      TYPE tredt_objects.
-    TYPES temp1 TYPE STANDARD TABLE OF e071k.
-DATA lt_table_keys  TYPE temp1.
+    DATA lt_table_keys  TYPE STANDARD TABLE OF e071k.
     DATA lv_with_dialog TYPE abap_bool.
 
     FIELD-SYMBOLS <ls_table> LIKE LINE OF lt_tables.
@@ -439,8 +445,7 @@ DATA lt_table_keys  TYPE temp1.
   METHOD zif_abapgit_cts_api~get_transports_for_list.
 
     DATA lv_request TYPE trkorr.
-    TYPES temp2 TYPE SORTED TABLE OF tlock WITH NON-UNIQUE KEY object hikey.
-DATA lt_tlock TYPE temp2.
+    DATA lt_tlock TYPE SORTED TABLE OF tlock WITH NON-UNIQUE KEY object hikey.
     DATA ls_object_key TYPE e071.
     DATA lv_type_check_result TYPE c LENGTH 1.
     DATA ls_lock_key TYPE tlock_int.
@@ -478,8 +483,12 @@ DATA lt_tlock TYPE temp2.
             WHERE object = ls_lock_key-obj
             AND hikey >= ls_lock_key-low
             AND lokey <= ls_lock_key-hi.                  "#EC PORTABLE
-          lv_request = <ls_tlock>-trkorr.
-          EXIT.
+          IF lv_request IS INITIAL.
+            lv_request = <ls_tlock>-trkorr.
+          ELSE.
+            lv_request = zif_abapgit_definitions=>c_multiple_transports.
+            EXIT.
+          ENDIF.
         ENDLOOP.
       ELSEIF is_object_type_transportable( <ls_item>-obj_type ) = abap_true.
         lv_request = get_current_transport_from_db(
@@ -562,8 +571,7 @@ DATA lt_tlock TYPE temp2.
              trfunction TYPE e070-trfunction,
              strkorr    TYPE e070-strkorr,
            END OF ty_e070.
-    TYPES temp3 TYPE STANDARD TABLE OF ty_e070 WITH DEFAULT KEY.
-DATA lt_e070 TYPE temp3.
+    DATA lt_e070 TYPE STANDARD TABLE OF ty_e070 WITH DEFAULT KEY.
 
 * find all tasks first
     SELECT trkorr trfunction strkorr
@@ -594,10 +602,8 @@ DATA lt_e070 TYPE temp3.
              obj_name TYPE e071-obj_name,
            END OF ty_contents.
 
-    TYPES temp4 TYPE STANDARD TABLE OF trkorr WITH DEFAULT KEY.
-DATA lt_tasks    TYPE temp4.
-    TYPES temp5 TYPE STANDARD TABLE OF ty_contents WITH DEFAULT KEY.
-DATA lt_contents TYPE temp5.
+    DATA lt_tasks    TYPE STANDARD TABLE OF trkorr WITH DEFAULT KEY.
+    DATA lt_contents TYPE STANDARD TABLE OF ty_contents WITH DEFAULT KEY.
     DATA ls_contents LIKE LINE OF lt_contents.
     DATA ls_list     LIKE LINE OF rt_list.
 

@@ -120,6 +120,8 @@ CLASS zcl_abapgit_gui_router DEFINITION
     CLASS-METHODS jump_display_transport
       IMPORTING
         !iv_transport TYPE trkorr
+        iv_obj_type   TYPE tadir-object OPTIONAL
+        iv_obj_name   TYPE tadir-obj_name OPTIONAL
       RAISING
         zcx_abapgit_exception .
     CLASS-METHODS jump_display_user
@@ -488,7 +490,7 @@ CLASS zcl_abapgit_gui_router IMPLEMENTATION.
 
     lo_repo ?= zcl_abapgit_repo_srv=>get_instance( )->get( iv_key ).
 
-    CREATE OBJECT ro_filter.
+    ro_filter = NEW #( ).
     ro_filter->set_filter_values( iv_package  = lo_repo->get_package( )
                                   it_r_trkorr = lt_r_trkorr ).
 
@@ -498,20 +500,38 @@ CLASS zcl_abapgit_gui_router IMPLEMENTATION.
   METHOD jump_display_transport.
 
     DATA:
+      ls_e071 TYPE e071,
       lv_adt_link         TYPE string,
       lv_adt_jump_enabled TYPE abap_bool.
 
     lv_adt_jump_enabled = zcl_abapgit_persist_factory=>get_settings( )->read( )->get_adt_jump_enabled( ).
-    IF lv_adt_jump_enabled = abap_true.
+    IF lv_adt_jump_enabled = abap_true AND iv_transport <> zif_abapgit_definitions=>c_multiple_transports.
       TRY.
           lv_adt_link = zcl_abapgit_adt_link=>link_transport( iv_transport ).
           zcl_abapgit_ui_factory=>get_frontend_services( )->execute( iv_document = lv_adt_link ).
+          RETURN.
         CATCH zcx_abapgit_exception.
           " Fallback if ADT link execution failed or was cancelled
-          CALL FUNCTION 'TR_DISPLAY_REQUEST'
-            EXPORTING
-              i_trkorr = iv_transport.
       ENDTRY.
+    ENDIF.
+
+    IF iv_transport = zif_abapgit_definitions=>c_multiple_transports.
+      ls_e071-pgmid    = 'R3TR'.
+      ls_e071-object   = iv_obj_type.
+      ls_e071-obj_name = iv_obj_name.
+
+      CALL FUNCTION 'TR_SHOW_OBJECT_LOCKS'
+        EXPORTING
+          iv_e071             = ls_e071
+        EXCEPTIONS
+          object_not_lockable = 1
+          empty_key           = 2
+          unknown_object      = 3
+          unallowed_locks     = 4
+          OTHERS              = 5.
+      IF sy-subrc <> 0.
+        zcx_abapgit_exception=>raise_t100( ).
+      ENDIF.
     ELSE.
       CALL FUNCTION 'TR_DISPLAY_REQUEST'
         EXPORTING
@@ -550,9 +570,7 @@ CLASS zcl_abapgit_gui_router IMPLEMENTATION.
     IF iv_line CO '0123456789'.
       lv_line_number = iv_line.
     ENDIF.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( iv_new_window IS NOT INITIAL ).
-    lv_new_window = temp1.
+    lv_new_window = xsdbool( iv_new_window IS NOT INITIAL ).
 
     TRY.
         li_html_viewer = zcl_abapgit_ui_factory=>get_html_viewer( ).
@@ -604,8 +622,7 @@ CLASS zcl_abapgit_gui_router IMPLEMENTATION.
   METHOD other_utilities.
     TYPES ty_char600 TYPE c LENGTH 600.
     DATA lv_clip_content TYPE string.
-    TYPES temp1 TYPE STANDARD TABLE OF ty_char600.
-DATA lt_clipboard TYPE temp1.
+    DATA lt_clipboard TYPE STANDARD TABLE OF ty_char600.
 
     CASE ii_event->mv_action.
       WHEN zif_abapgit_definitions=>c_action-ie_devtools.
@@ -735,7 +752,10 @@ DATA lt_clipboard TYPE temp1.
         rs_handled-state = zcl_abapgit_gui=>c_event_state-no_more_act.
 
       WHEN zif_abapgit_definitions=>c_action-jump_transport.
-        jump_display_transport( |{ ii_event->query( )->get( 'TRANSPORT' ) }| ).
+        jump_display_transport(
+          iv_transport = |{ ii_event->query( )->get( 'TRANSPORT' ) }|
+          iv_obj_type  = |{ ii_event->query( )->get( 'TYPE' ) }|
+          iv_obj_name  = |{ ii_event->query( )->get( 'NAME' ) }| ).
         rs_handled-state = zcl_abapgit_gui=>c_event_state-no_more_act.
 
       WHEN zif_abapgit_definitions=>c_action-jump_user.
@@ -795,7 +815,7 @@ DATA lt_clipboard TYPE temp1.
     lt_r_trkorr = zcl_abapgit_ui_factory=>get_popups( )->popup_select_wb_tc_tr_and_tsk( ).
     lo_repo ?= zcl_abapgit_repo_srv=>get_instance( )->get( iv_key ).
     lo_repo->refresh( ).
-    CREATE OBJECT lo_obj_filter_trans.
+    lo_obj_filter_trans = NEW #( ).
     lo_obj_filter_trans->set_filter_values( iv_package  = lo_repo->get_package( )
                                             it_r_trkorr = lt_r_trkorr ).
 

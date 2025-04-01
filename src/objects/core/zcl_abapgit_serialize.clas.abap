@@ -128,6 +128,12 @@ CLASS zcl_abapgit_serialize DEFINITION
       RETURNING
         VALUE(rv_result) TYPE abap_bool.
 
+    METHODS is_no_parallel
+      IMPORTING
+        !iv_object_type  TYPE tadir-object
+      RETURNING
+        VALUE(rv_result) TYPE abap_bool.
+
 ENDCLASS.
 
 
@@ -222,7 +228,7 @@ CLASS zcl_abapgit_serialize IMPLEMENTATION.
       ii_log                = ii_log
       it_filter             = it_filter ).
 
-    CREATE OBJECT lo_filter.
+    lo_filter = NEW #( ).
 
     lo_filter->apply( EXPORTING it_filter = it_filter
                       CHANGING  ct_tadir  = lt_tadir ).
@@ -230,9 +236,7 @@ CLASS zcl_abapgit_serialize IMPLEMENTATION.
 * if there are less than 10 objects run in single thread
 * this helps a lot when debugging, plus performance gain
 * with low number of objects does not matter much
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( lines( lt_tadir ) < 10 ).
-    lv_force = temp1.
+    lv_force = xsdbool( lines( lt_tadir ) < 10 ).
 
     lt_found = serialize(
       iv_package          = iv_package
@@ -274,7 +278,7 @@ CLASS zcl_abapgit_serialize IMPLEMENTATION.
       ms_i18n_params-main_language_only = is_local_settings-main_language_only.
     ENDIF.
 
-    CREATE OBJECT mo_abap_language_version EXPORTING io_dot_abapgit = mo_dot_abapgit.
+    mo_abap_language_version = NEW #( io_dot_abapgit = mo_dot_abapgit ).
 
   ENDMETHOD.
 
@@ -312,23 +316,27 @@ CLASS zcl_abapgit_serialize IMPLEMENTATION.
 
     ASSERT rv_processes >= 1.
 
+    " Avoid going over the maximum available user sessions
+    IF sy-batch IS INITIAL.
+      lv_available_sessions = zcl_abapgit_factory=>get_environment( )->get_available_user_sessions( ).
+
+      IF lv_available_sessions = 0.
+        " No available session -> disable parallel processing
+        rv_processes = 1.
+      ELSEIF rv_processes > lv_available_sessions.
+        rv_processes = lv_available_sessions.
+      ENDIF.
+    ENDIF.
+
+    ASSERT rv_processes >= 1.
+
+    " Exit setting has highest priority to change maximum sessions
     li_exit = zcl_abapgit_exit=>get_instance( ).
     li_exit->change_max_parallel_processes(
       EXPORTING
         iv_package       = iv_package
       CHANGING
         cv_max_processes = rv_processes ).
-
-    ASSERT rv_processes >= 1. " check exit above
-
-    " Avoid going over the maximum available user sessions
-    IF sy-batch IS INITIAL.
-      lv_available_sessions = zcl_abapgit_factory=>get_environment( )->get_available_user_sessions( ).
-
-      IF rv_processes > lv_available_sessions AND lv_available_sessions <> 0.
-        rv_processes = lv_available_sessions.
-      ENDIF.
-    ENDIF.
 
     ASSERT rv_processes >= 1.
 
@@ -515,11 +523,27 @@ CLASS zcl_abapgit_serialize IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD is_no_parallel.
+
+    " Currently know object types that do not support parallel processing:
+    " ECTC/ECTD - ECATT Test Config/Data (see #7148)
+    " Should this list become longer, it should become a flag of the object type serializer
+    IF iv_object_type = 'ECTC' OR iv_object_type = 'ECTD'.
+      rv_result = abap_true.
+    ENDIF.
+
+  ENDMETHOD.
+
+
   METHOD is_parallelization_possible.
 
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( zcl_abapgit_factory=>get_environment( )->is_merged( ) = abap_false AND zcl_abapgit_persist_factory=>get_settings( )->read( )->get_parallel_proc_disabled( ) = abap_false AND zcl_abapgit_factory=>get_function_module( )->function_exists( 'Z_ABAPGIT_SERIALIZE_PARALLEL' ) = abap_true ).
-    rv_result = temp2.
+    rv_result = xsdbool( zcl_abapgit_factory=>get_environment( )->is_merged( ) = abap_false
+                   AND zcl_abapgit_persist_factory=>get_settings( )->read( )->get_parallel_proc_disabled( ) = abap_false
+                   " The function module below should always exist here as is_merged evaluated to false above.
+                   " It does however not exist in the transpiled version which then causes unit tests to fail.
+                   " Therefore the check needs to stay.
+                   AND zcl_abapgit_factory=>get_function_module(
+                                         )->function_exists( 'Z_ABAPGIT_SERIALIZE_PARALLEL' ) = abap_true ).
 
   ENDMETHOD.
 
@@ -680,7 +704,7 @@ CLASS zcl_abapgit_serialize IMPLEMENTATION.
       iv_count = lv_count )->start( ).
 
     LOOP AT lt_tadir ASSIGNING <ls_tadir>.
-      IF lv_max = 1.
+      IF lv_max = 1 OR is_no_parallel( <ls_tadir>-object ) = abap_true.
         li_progress->show(
           iv_current = sy-tabix
           iv_text    = |Serialize { <ls_tadir>-obj_name }, { lv_max } thread| ).
