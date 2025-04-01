@@ -62,7 +62,7 @@ CLASS zcl_abapgit_pr_enumerator IMPLEMENTATION.
     DATA lv_user TYPE string.
     DATA lv_repo TYPE string.
 
-    li_agent = zcl_abapgit_factory=>get_http_agent( ).
+    li_agent = zcl_abapgit_http_agent=>create( ).
 
     FIND ALL OCCURRENCES OF REGEX 'github\.com\/([^\/]+)\/([^\/]+)'
       IN iv_repo_url
@@ -72,8 +72,8 @@ CLASS zcl_abapgit_pr_enumerator IMPLEMENTATION.
         val = lv_repo
         regex = '\.git$'
         with = '' ).
-      CREATE OBJECT ri_provider TYPE zcl_abapgit_pr_enum_github EXPORTING iv_user_and_repo = |{ lv_user }/{ lv_repo }|
-                                                                          ii_http_agent = li_agent.
+      ri_provider = NEW zcl_abapgit_pr_enum_github( iv_user_and_repo = |{ lv_user }/{ lv_repo }|
+                                                    ii_http_agent = li_agent ).
     ELSE.
       zcx_abapgit_exception=>raise( |PR enumeration is not supported for { iv_repo_url }| ).
     ENDIF.
@@ -95,6 +95,6 @@ CLASS zcl_abapgit_pr_enumerator IMPLEMENTATION.
 
 
   METHOD new.
-    CREATE OBJECT ro_instance EXPORTING iv_url = iv_url.
+    ro_instance = NEW #( iv_url = iv_url ).
   ENDMETHOD.
 ENDCLASS.
