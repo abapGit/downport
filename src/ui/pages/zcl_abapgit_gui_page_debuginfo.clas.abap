@@ -62,6 +62,10 @@ CLASS zcl_abapgit_gui_page_debuginfo DEFINITION
         !iv_obj_name   TYPE csequence
       RETURNING
         VALUE(rv_html) TYPE string .
+    METHODS resolve_exit_include
+      CHANGING
+        !cv_clsname TYPE seoclsname
+        !ct_source  TYPE string_table.
 ENDCLASS.
 
 
@@ -87,7 +91,7 @@ CLASS zcl_abapgit_gui_page_debuginfo IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_debuginfo.
 
-    CREATE OBJECT lo_component.
+    lo_component = NEW #( ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Debug Info'
@@ -102,7 +106,7 @@ CLASS zcl_abapgit_gui_page_debuginfo IMPLEMENTATION.
     DATA lv_encode TYPE string.
     DATA li_html TYPE REF TO zif_abapgit_html.
 
-    CREATE OBJECT li_html TYPE zcl_abapgit_html.
+    li_html = NEW zcl_abapgit_html( ).
 
     lv_encode = zcl_abapgit_html_action_utils=>jump_encode( iv_obj_type = |{ iv_obj_type }|
                                                             iv_obj_name = |{ iv_obj_name }| ).
@@ -128,7 +132,7 @@ CLASS zcl_abapgit_gui_page_debuginfo IMPLEMENTATION.
         " Continue rendering even if this fails
     ENDTRY.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     IF zcl_abapgit_factory=>get_environment( )->is_merged( ) = abap_true.
       ri_html->add( '<h2>abapGit - Standalone Version</h2>' ).
@@ -179,7 +183,7 @@ CLASS zcl_abapgit_gui_page_debuginfo IMPLEMENTATION.
     DATA lo_oo_serializer TYPE REF TO zcl_abapgit_oo_serializer.
     DATA lo_class TYPE REF TO cl_oo_class.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<h2>User Exits</h2>' ).
 
@@ -187,10 +191,16 @@ CLASS zcl_abapgit_gui_page_debuginfo IMPLEMENTATION.
       " Standalone version
       lt_source = zcl_abapgit_factory=>get_sap_report( )->read_report( c_exit_standalone ).
       IF sy-subrc = 0.
+        resolve_exit_include(
+          CHANGING
+            cv_clsname = ls_class_key-clsname
+            ct_source  = lt_source ).
         ri_html->add( |<div>User exits are active (include { get_jump_object(
           iv_obj_type = 'PROG'
           iv_obj_name = c_exit_standalone ) } found)</div><br>| ).
-        ri_html->add( render_exit_info_methods( lt_source ) ).
+        ri_html->add( render_exit_info_methods(
+                        it_source  = lt_source
+                        iv_clsname = to_upper( ls_class_key-clsname ) ) ).
       ELSE.
         ri_html->add( |<div>No user exits implemented (include { c_exit_standalone } not found)</div><br>| ).
       ENDIF.
@@ -199,7 +209,7 @@ CLASS zcl_abapgit_gui_page_debuginfo IMPLEMENTATION.
       TRY.
           ls_class_key-clsname = c_exit_class.
           DO.
-            CREATE OBJECT lo_oo_serializer.
+            lo_oo_serializer = NEW #( ).
             lt_source = lo_oo_serializer->serialize_abap_clif_source( ls_class_key ).
 
             ri_html->add( '<div>' ).
@@ -210,7 +220,7 @@ CLASS zcl_abapgit_gui_page_debuginfo IMPLEMENTATION.
                             iv_clsname = ls_class_key-clsname ) ).
 
             " Is there a super class of exit?
-            CREATE OBJECT lo_class EXPORTING clsname = ls_class_key-clsname.
+            lo_class = NEW #( clsname = ls_class_key-clsname ).
             ls_class_key-clsname = lo_class->get_superclass( ).
             IF ls_class_key-clsname IS INITIAL.
               EXIT.
@@ -237,7 +247,7 @@ CLASS zcl_abapgit_gui_page_debuginfo IMPLEMENTATION.
       lv_source  TYPE string,
       lv_rest    TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<table border="1px"><thead><tr>' ).
     ri_html->add( '<td>Exit</td><td class="center">Implemented?</td>' ).
@@ -285,7 +295,7 @@ CLASS zcl_abapgit_gui_page_debuginfo IMPLEMENTATION.
 
   METHOD render_scripts.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
     ri_html->add( 'debugOutput("<table><tr><td>Browser:</td><td>" + navigator.userAgent + ' &&
@@ -316,7 +326,7 @@ CLASS zcl_abapgit_gui_page_debuginfo IMPLEMENTATION.
 
     lt_types = zcl_abapgit_objects=>supported_list( ).
 
-    CREATE OBJECT li_html TYPE zcl_abapgit_html.
+    li_html = NEW zcl_abapgit_html( ).
 
     rv_html = '<h2>Object Types</h2>'.
 
@@ -360,7 +370,7 @@ CLASS zcl_abapgit_gui_page_debuginfo IMPLEMENTATION.
 
         CATCH cx_sy_create_object_error zcx_abapgit_exception.
           TRY. " 2nd step, try looking for plugins
-              CREATE OBJECT li_object TYPE zcl_abapgit_objects_bridge EXPORTING is_item = ls_item.
+              li_object = NEW zcl_abapgit_objects_bridge( is_item = ls_item ).
             CATCH cx_sy_create_object_error zcx_abapgit_exception.
               rv_html = rv_html && |<td class="error" colspan="5">{ lv_class } - error instantiating class</td>|.
               CONTINUE.
@@ -408,6 +418,32 @@ CLASS zcl_abapgit_gui_page_debuginfo IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD resolve_exit_include.
+
+    DATA lv_include TYPE progname.
+
+    cv_clsname = c_exit_class.
+
+    DO.
+      FIND REGEX 'CLASS\s+(.*)\s+DEFINITION' IN TABLE ct_source SUBMATCHES cv_clsname IGNORING CASE.
+      IF sy-subrc = 0.
+        RETURN.
+      ENDIF.
+      FIND REGEX 'INCLUDE\s+(.*)\s*\.' IN TABLE ct_source SUBMATCHES lv_include IGNORING CASE.
+      IF sy-subrc = 0.
+        TRY.
+            ct_source = zcl_abapgit_factory=>get_sap_report( )->read_report( lv_include ).
+          CATCH zcx_abapgit_exception.
+            RETURN. " rely on original include
+        ENDTRY.
+      ELSE.
+        RETURN.
+      ENDIF.
+    ENDDO.
+
+  ENDMETHOD.
+
+
   METHOD zif_abapgit_gui_event_handler~on_event.
 
     DATA:
@@ -446,7 +482,7 @@ CLASS zcl_abapgit_gui_page_debuginfo IMPLEMENTATION.
 
     register_handlers( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div id="debug_info" class="debug_container">' ).
     ri_html->add( render_debug_info( ) ).
