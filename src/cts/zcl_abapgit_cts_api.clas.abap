@@ -21,7 +21,7 @@ CLASS zcl_abapgit_cts_api DEFINITION
     "! @raising zcx_abapgit_exception | Object is not locked in a transport
     METHODS get_current_transport_for_obj
       IMPORTING
-        !iv_program_id      TYPE pgmid DEFAULT 'R3TR'
+        !iv_program_id      TYPE tadir-pgmid DEFAULT 'R3TR'
         !iv_object_type     TYPE trobjtype
         !iv_object_name     TYPE sobj_name
       RETURNING
@@ -36,7 +36,7 @@ CLASS zcl_abapgit_cts_api DEFINITION
     "! @raising zcx_abapgit_exception | Object is not locked in a transport
     METHODS get_current_transport_from_db
       IMPORTING
-        !iv_program_id      TYPE pgmid DEFAULT 'R3TR'
+        !iv_program_id      TYPE tadir-pgmid DEFAULT 'R3TR'
         !iv_object_type     TYPE trobjtype
         !iv_object_name     TYPE sobj_name
       RETURNING
@@ -51,7 +51,7 @@ CLASS zcl_abapgit_cts_api DEFINITION
     "! @raising zcx_abapgit_exception | Object type is not lockable
     METHODS is_object_locked_in_transport
       IMPORTING
-        !iv_program_id   TYPE pgmid DEFAULT 'R3TR'
+        !iv_program_id   TYPE tadir-pgmid DEFAULT 'R3TR'
         !iv_object_type  TYPE trobjtype
         !iv_object_name  TYPE sobj_name
       RETURNING
@@ -64,7 +64,7 @@ CLASS zcl_abapgit_cts_api DEFINITION
     "! @parameter rv_lockable | Lockable
     METHODS is_object_type_lockable
       IMPORTING
-        !iv_program_id     TYPE pgmid DEFAULT 'R3TR'
+        !iv_program_id     TYPE tadir-pgmid DEFAULT 'R3TR'
         !iv_object_type    TYPE trobjtype
       RETURNING
         VALUE(rv_lockable) TYPE abap_bool .
@@ -74,7 +74,7 @@ CLASS zcl_abapgit_cts_api DEFINITION
     "! @parameter rv_transportable | Transportable
     METHODS is_object_type_transportable
       IMPORTING
-        !iv_program_id          TYPE pgmid DEFAULT 'R3TR'
+        !iv_program_id          TYPE tadir-pgmid DEFAULT 'R3TR'
         !iv_object_type         TYPE trobjtype
       RETURNING
         VALUE(rv_transportable) TYPE abap_bool .
@@ -86,14 +86,12 @@ CLASS zcl_abapgit_cts_api IMPLEMENTATION.
 
 
   METHOD get_current_transport_for_obj.
-    TYPES temp1 TYPE STANDARD TABLE OF tlock WITH DEFAULT KEY.
-TYPES temp2 TYPE STANDARD TABLE OF trkorr WITH DEFAULT KEY.
-DATA: lv_object_lockable   TYPE abap_bool,
+    DATA: lv_object_lockable   TYPE abap_bool,
           lv_locked            TYPE abap_bool,
           lv_transport_request TYPE trkorr,
           ls_tlock             TYPE tlock,
-          lt_tlock             TYPE temp1,
-          lt_transports        TYPE temp2,
+          lt_tlock             TYPE STANDARD TABLE OF tlock WITH DEFAULT KEY,
+          lt_transports        TYPE STANDARD TABLE OF trkorr WITH DEFAULT KEY,
           lv_task              TYPE trkorr,
           lv_tr_object_name    TYPE trobj_name.
 
@@ -188,9 +186,7 @@ DATA: lv_object_lockable   TYPE abap_bool,
       zcx_abapgit_exception=>raise_t100( ).
     ENDIF.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( lv_lock_flag <> space ).
-    rv_locked = temp1.
+    rv_locked = xsdbool( lv_lock_flag <> space ).
   ENDMETHOD.
 
 
@@ -208,9 +204,7 @@ DATA: lv_object_lockable   TYPE abap_bool,
       IMPORTING
         pe_result = lv_type_check_result.
 
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( lv_type_check_result = 'L' ).
-    rv_lockable = temp2.
+    rv_lockable = xsdbool( lv_type_check_result = 'L' ).
   ENDMETHOD.
 
 
@@ -228,9 +222,7 @@ DATA: lv_object_lockable   TYPE abap_bool,
       IMPORTING
         pe_result = lv_type_check_result.
 
-    DATA temp3 TYPE xsdboolean.
-    temp3 = boolc( lv_type_check_result CA 'RTL' OR iv_object_type = 'TABU' ).
-    rv_transportable = temp3.
+    rv_transportable = xsdbool( lv_type_check_result CA 'RTL' OR iv_object_type = 'TABU' ).
   ENDMETHOD.
 
 
@@ -363,8 +355,7 @@ DATA: lv_object_lockable   TYPE abap_bool,
   METHOD zif_abapgit_cts_api~create_transport_entries.
 
     DATA lt_tables      TYPE tredt_objects.
-    TYPES temp3 TYPE STANDARD TABLE OF e071k.
-DATA lt_table_keys  TYPE temp3.
+    DATA lt_table_keys  TYPE STANDARD TABLE OF e071k.
     DATA lv_with_dialog TYPE abap_bool.
 
     FIELD-SYMBOLS <ls_table> LIKE LINE OF lt_tables.
@@ -454,8 +445,7 @@ DATA lt_table_keys  TYPE temp3.
   METHOD zif_abapgit_cts_api~get_transports_for_list.
 
     DATA lv_request TYPE trkorr.
-    TYPES temp4 TYPE SORTED TABLE OF tlock WITH NON-UNIQUE KEY object hikey.
-DATA lt_tlock TYPE temp4.
+    DATA lt_tlock TYPE SORTED TABLE OF tlock WITH NON-UNIQUE KEY object hikey.
     DATA ls_object_key TYPE e071.
     DATA lv_type_check_result TYPE c LENGTH 1.
     DATA ls_lock_key TYPE tlock_int.
@@ -581,8 +571,7 @@ DATA lt_tlock TYPE temp4.
              trfunction TYPE e070-trfunction,
              strkorr    TYPE e070-strkorr,
            END OF ty_e070.
-    TYPES temp5 TYPE STANDARD TABLE OF ty_e070 WITH DEFAULT KEY.
-DATA lt_e070 TYPE temp5.
+    DATA lt_e070 TYPE STANDARD TABLE OF ty_e070 WITH DEFAULT KEY.
 
 * find all tasks first
     SELECT trkorr trfunction strkorr
@@ -613,10 +602,8 @@ DATA lt_e070 TYPE temp5.
              obj_name TYPE e071-obj_name,
            END OF ty_contents.
 
-    TYPES temp6 TYPE STANDARD TABLE OF trkorr WITH DEFAULT KEY.
-DATA lt_tasks    TYPE temp6.
-    TYPES temp7 TYPE STANDARD TABLE OF ty_contents WITH DEFAULT KEY.
-DATA lt_contents TYPE temp7.
+    DATA lt_tasks    TYPE STANDARD TABLE OF trkorr WITH DEFAULT KEY.
+    DATA lt_contents TYPE STANDARD TABLE OF ty_contents WITH DEFAULT KEY.
     DATA ls_contents LIKE LINE OF lt_contents.
     DATA ls_list     LIKE LINE OF rt_list.
 
