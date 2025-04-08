@@ -334,7 +334,7 @@ CLASS zcl_abapgit_flow_logic IMPLEMENTATION.
       <ls_filter>-obj_name = <ls_transport>-obj_name.
     ENDLOOP.
 
-    lo_filter = NEW #( it_filter = lt_filter ).
+    CREATE OBJECT lo_filter EXPORTING it_filter = lt_filter.
     lt_local = ii_repo->get_files_local_filtered( lo_filter ).
     LOOP AT lt_local ASSIGNING <ls_local> WHERE file-filename <> zif_abapgit_definitions=>c_dot_abapgit.
       ls_changed_file-path       = <ls_local>-file-path.
@@ -419,7 +419,7 @@ CLASS zcl_abapgit_flow_logic IMPLEMENTATION.
       iv_url  = iv_url
       it_sha1 = lt_sha1 ).
 
-    lo_visit = NEW #( ).
+    CREATE OBJECT lo_visit.
     lo_visit->clear( )->push( ls_main-sha1 ).
     WHILE lo_visit->size( ) > 0.
       lv_current = lo_visit->pop( ).
@@ -539,7 +539,7 @@ CLASS zcl_abapgit_flow_logic IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    lo_filter = NEW #( it_filter = lt_filter ).
+    CREATE OBJECT lo_filter EXPORTING it_filter = lt_filter.
     lt_local = io_online->get_files_local_filtered( lo_filter ).
 
     LOOP AT ct_features ASSIGNING <ls_branch>.
