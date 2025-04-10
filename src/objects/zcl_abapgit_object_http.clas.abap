@@ -7,6 +7,14 @@ CLASS zcl_abapgit_object_http DEFINITION
   PUBLIC SECTION.
 
     INTERFACES zif_abapgit_object.
+    METHODS constructor
+      IMPORTING
+        is_item        TYPE zif_abapgit_definitions=>ty_item
+        iv_language    TYPE spras
+        io_files       TYPE REF TO zcl_abapgit_objects_files OPTIONAL
+        io_i18n_params TYPE REF TO zcl_abapgit_i18n_params OPTIONAL
+      RAISING
+        zcx_abapgit_exception.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -45,6 +53,24 @@ ENDCLASS.
 
 CLASS zcl_abapgit_object_http IMPLEMENTATION.
 
+  METHOD constructor.
+
+    DATA: lr_dummy TYPE REF TO data.
+
+    super->constructor(
+        is_item        = is_item
+        iv_language    = iv_language
+        io_files       = io_files
+        io_i18n_params = io_i18n_params ).
+
+    TRY.
+        CREATE DATA lr_dummy TYPE ('UCONHTTPSERVHEAD').
+      CATCH cx_root.
+        zcx_abapgit_exception=>raise( 'HTTP not supported' ).
+    ENDTRY.
+
+  ENDMETHOD.
+
 
   METHOD zif_abapgit_object~changed_by.
 
@@ -79,9 +105,8 @@ CLASS zcl_abapgit_object_http IMPLEMENTATION.
 
   METHOD zif_abapgit_object~deserialize.
 
-    TYPES temp1 TYPE TABLE OF ty_handler.
-DATA: lv_http_servid       TYPE c LENGTH 30,
-          lt_handler           TYPE temp1,
+    DATA: lv_http_servid       TYPE c LENGTH 30,
+          lt_handler           TYPE TABLE OF ty_handler,
           ls_handler           LIKE LINE OF lt_handler,
           ls_description       TYPE ty_uconhttpservtext,
           lv_check_object_name TYPE c LENGTH 40,
@@ -188,9 +213,7 @@ DATA: lv_http_servid       TYPE c LENGTH 30,
 
     TRY.
         SELECT SINGLE id FROM ('UCONHTTPSERVHEAD') INTO lv_id WHERE id = ms_item-obj_name AND version = 'A'.
-        DATA temp1 TYPE xsdboolean.
-        temp1 = boolc( sy-subrc = 0 ).
-        rv_bool = temp1.
+        rv_bool = xsdbool( sy-subrc = 0 ).
       CATCH cx_root.
         zcx_abapgit_exception=>raise( 'HTTP not supported' ).
     ENDTRY.
@@ -244,10 +267,9 @@ DATA: lv_http_servid       TYPE c LENGTH 30,
 
   METHOD zif_abapgit_object~serialize.
 
-    TYPES temp2 TYPE TABLE OF ty_uconservhttphandler.
-DATA: lv_http_srv_id TYPE c LENGTH 30,
+    DATA: lv_http_srv_id TYPE c LENGTH 30,
           lo_serv        TYPE REF TO object, "if_ucon_api_http_service
-          lt_handler     TYPE temp2,
+          lt_handler     TYPE TABLE OF ty_uconservhttphandler,
           ls_description TYPE ty_uconhttpservtext,
           lx_root        TYPE REF TO cx_root,
           lv_icfnode     TYPE ty_icf_node,
