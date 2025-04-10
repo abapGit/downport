@@ -23,7 +23,7 @@ CLASS zcl_abapgit_gui_page_pull DEFINITION
 
     CLASS-METHODS create
       IMPORTING
-        io_repo        TYPE REF TO zcl_abapgit_repo
+        ii_repo        TYPE REF TO zif_abapgit_repo
         iv_trkorr      TYPE trkorr OPTIONAL
         ii_obj_filter  TYPE REF TO zif_abapgit_object_filter OPTIONAL
       RETURNING
@@ -33,7 +33,7 @@ CLASS zcl_abapgit_gui_page_pull DEFINITION
 
     METHODS constructor
       IMPORTING
-        io_repo       TYPE REF TO zcl_abapgit_repo
+        ii_repo       TYPE REF TO zif_abapgit_repo
         iv_trkorr     TYPE trkorr
         ii_obj_filter TYPE REF TO zif_abapgit_object_filter OPTIONAL
       RAISING
@@ -43,7 +43,7 @@ CLASS zcl_abapgit_gui_page_pull DEFINITION
 
   PRIVATE SECTION.
 
-    DATA mo_repo TYPE REF TO zcl_abapgit_repo .
+    DATA mi_repo TYPE REF TO zif_abapgit_repo .
     DATA mi_obj_filter TYPE REF TO zif_abapgit_object_filter .
     DATA mo_form_data TYPE REF TO zcl_abapgit_string_map .
     DATA ms_checks TYPE zif_abapgit_definitions=>ty_deserialize_checks .
@@ -85,10 +85,10 @@ CLASS zcl_abapgit_gui_page_pull IMPLEMENTATION.
 
     super->constructor( ).
 
-    mo_repo       = io_repo.
+    mi_repo       = ii_repo.
     mi_obj_filter = ii_obj_filter.
 
-    CREATE OBJECT mo_form_data.
+    mo_form_data = NEW #( ).
     mo_form_data->set(
       iv_key = c_id-transport_request
       iv_val = iv_trkorr ).
@@ -100,9 +100,9 @@ CLASS zcl_abapgit_gui_page_pull IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_pull.
 
-    CREATE OBJECT lo_component EXPORTING io_repo = io_repo
-                                         iv_trkorr = iv_trkorr
-                                         ii_obj_filter = ii_obj_filter.
+    lo_component = NEW #( ii_repo = ii_repo
+                          iv_trkorr = iv_trkorr
+                          ii_obj_filter = ii_obj_filter ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title         = 'Pull'
@@ -192,7 +192,7 @@ CLASS zcl_abapgit_gui_page_pull IMPLEMENTATION.
 * todo, show log?
     zcl_abapgit_services_repo=>real_deserialize(
       is_checks = ms_checks
-      io_repo   = mo_repo ).
+      ii_repo   = mi_repo ).
 
   ENDMETHOD.
 
@@ -203,7 +203,7 @@ CLASS zcl_abapgit_gui_page_pull IMPLEMENTATION.
 
     CASE ii_event->mv_action.
       WHEN c_action-refresh.
-        mo_repo->refresh( ).
+        mi_repo->refresh( ).
         rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
       WHEN c_action-choose_tr.
         choose_transport_request( ).
@@ -235,10 +235,10 @@ CLASS zcl_abapgit_gui_page_pull IMPLEMENTATION.
 
     register_handlers( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
     ri_html->add( '<div class="repo-overview">' ).
 
-    ms_checks = mo_repo->deserialize_checks( ).
+    ms_checks = mi_repo->deserialize_checks( ).
 
     IF lines( ms_checks-overwrite ) = 0.
       zcx_abapgit_exception=>raise(

@@ -21,7 +21,7 @@ CLASS ltcl_find_remote_dot_abapgit DEFINITION FINAL FOR TESTING
           iv_number_of_files TYPE i.
 
     DATA:
-      mo_repo        TYPE REF TO zcl_abapgit_repo,
+      mi_repo        TYPE REF TO zif_abapgit_repo,
       mx_error       TYPE REF TO zcx_abapgit_exception,
       mo_dot_abapgit TYPE REF TO zcl_abapgit_dot_abapgit.
 
@@ -63,7 +63,7 @@ CLASS ltcl_find_remote_dot_abapgit IMPLEMENTATION.
     ls_data-key = c_dummy_repo_key.
 
     " online/offline doesn't matter...
-    CREATE OBJECT mo_repo TYPE zcl_abapgit_repo_offline EXPORTING is_data = ls_data.
+    mi_repo = NEW zcl_abapgit_repo_offline( is_data = ls_data ).
 
   ENDMETHOD.
 
@@ -96,7 +96,7 @@ CLASS ltcl_find_remote_dot_abapgit IMPLEMENTATION.
                       && |</asx:abap>| ).
     INSERT ls_file INTO TABLE lt_files.
 
-    mo_repo->set_files_remote( lt_files ).
+    mi_repo->set_files_remote( lt_files ).
 
   ENDMETHOD.
 
@@ -109,7 +109,7 @@ CLASS ltcl_find_remote_dot_abapgit IMPLEMENTATION.
   METHOD when_find_remote_dot_abapgit.
 
     TRY.
-        mo_dot_abapgit = mo_repo->find_remote_dot_abapgit( ).
+        mo_dot_abapgit = mi_repo->find_remote_dot_abapgit( ).
       CATCH zcx_abapgit_exception INTO mx_error.
     ENDTRY.
 
@@ -143,7 +143,7 @@ CLASS ltcl_find_remote_dot_abapgit IMPLEMENTATION.
       INSERT ls_file INTO TABLE lt_files.
     ENDDO.
 
-    mo_repo->set_files_remote( lt_files ).
+    mi_repo->set_files_remote( lt_files ).
 
   ENDMETHOD.
 

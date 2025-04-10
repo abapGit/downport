@@ -83,7 +83,6 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
   METHOD add.
 
     DATA li_repo LIKE LINE OF mt_list.
-    DATA lo_repo TYPE REF TO zcl_abapgit_repo.
 
     LOOP AT mt_list INTO li_repo.
       IF li_repo->ms_data-key = ii_repo->ms_data-key.
@@ -94,8 +93,7 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
       ENDIF.
     ENDLOOP.
 
-    lo_repo ?= ii_repo. " TODO, refactor later
-    lo_repo->bind_listener( me ).
+    ii_repo->bind_listener( me ).
     APPEND ii_repo TO mt_list.
 
   ENDMETHOD.
@@ -122,7 +120,7 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
 
   METHOD get_instance.
     IF gi_ref IS INITIAL.
-      CREATE OBJECT gi_ref TYPE zcl_abapgit_repo_srv.
+      gi_ref = NEW zcl_abapgit_repo_srv( ).
     ENDIF.
     ri_srv = gi_ref.
   ENDMETHOD.
@@ -136,9 +134,9 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
   METHOD instantiate_and_add.
 
     IF is_repo_meta-offline = abap_false.
-      CREATE OBJECT ri_repo TYPE zcl_abapgit_repo_online EXPORTING is_data = is_repo_meta.
+      ri_repo = NEW zcl_abapgit_repo_online( is_data = is_repo_meta ).
     ELSE.
-      CREATE OBJECT ri_repo TYPE zcl_abapgit_repo_offline EXPORTING is_data = is_repo_meta.
+      ri_repo = NEW zcl_abapgit_repo_offline( is_data = is_repo_meta ).
     ENDIF.
     add( ri_repo ).
 
@@ -480,17 +478,17 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
           li_repo        TYPE REF TO zif_abapgit_repo,
           lv_url         TYPE string,
           lv_package     TYPE devclass,
-          lo_repo_online TYPE REF TO zcl_abapgit_repo_online,
+          li_repo_online TYPE REF TO zif_abapgit_repo_online,
           lv_err         TYPE string.
 
     lt_repo = zif_abapgit_repo_srv~list( ).
 
     LOOP AT lt_repo INTO li_repo.
       CHECK li_repo->is_offline( ) = abap_false.
-      lo_repo_online ?= li_repo.
+      li_repo_online ?= li_repo.
 
-      lv_url     = lo_repo_online->get_url( ).
-      lv_package = lo_repo_online->get_package( ).
+      lv_url     = li_repo_online->get_url( ).
+      lv_package = li_repo->get_package( ).
       CHECK to_upper( lv_url ) = to_upper( iv_url ).
 
       " Validate bindings
@@ -553,7 +551,6 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
 
     DATA: ls_repo        TYPE zif_abapgit_persistence=>ty_repo,
           lv_key         TYPE zif_abapgit_persistence=>ty_repo-key,
-          lo_repo        TYPE REF TO zcl_abapgit_repo_offline,
           lo_dot_abapgit TYPE REF TO zcl_abapgit_dot_abapgit.
 
 
@@ -586,7 +583,7 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
         zcx_abapgit_exception=>raise( 'new_offline not found' ).
     ENDTRY.
 
-    lo_repo ?= instantiate_and_add( ls_repo ).
+    ri_repo = instantiate_and_add( ls_repo ).
 
     " Local Settings
     IF ls_repo-local_settings-ignore_subpackages <> iv_ign_subpkg.
@@ -595,9 +592,7 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
     ls_repo-local_settings-main_language_only = iv_main_lang_only.
     ls_repo-local_settings-labels = iv_labels.
 
-    lo_repo->set_local_settings( ls_repo-local_settings ).
-
-    ri_repo = lo_repo.
+    ri_repo->set_local_settings( ls_repo-local_settings ).
 
   ENDMETHOD.
 
@@ -605,7 +600,6 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
   METHOD zif_abapgit_repo_srv~new_online.
 
     DATA: ls_repo        TYPE zif_abapgit_persistence=>ty_repo,
-          lo_repo        TYPE REF TO zcl_abapgit_repo_online,
           lv_branch_name LIKE iv_branch_name,
           lv_key         TYPE zif_abapgit_persistence=>ty_repo-key,
           lo_dot_abapgit TYPE REF TO zcl_abapgit_dot_abapgit,
@@ -651,7 +645,7 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
         zcx_abapgit_exception=>raise( 'new_online not found' ).
     ENDTRY.
 
-    lo_repo ?= instantiate_and_add( ls_repo ).
+    ri_repo = instantiate_and_add( ls_repo ).
 
     " Local Settings
     IF ls_repo-local_settings-ignore_subpackages <> iv_ign_subpkg.
@@ -660,12 +654,10 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
     ls_repo-local_settings-main_language_only = iv_main_lang_only.
     ls_repo-local_settings-labels = iv_labels.
 
-    lo_repo->set_local_settings( ls_repo-local_settings ).
+    ri_repo->set_local_settings( ls_repo-local_settings ).
 
-    lo_repo->refresh( ).
-    lo_repo->find_remote_dot_abapgit( ).
-
-    ri_repo = lo_repo.
+    ri_repo->refresh( ).
+    ri_repo->find_remote_dot_abapgit( ).
 
   ENDMETHOD.
 
@@ -678,10 +670,8 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
 
     DATA: lt_tadir TYPE zif_abapgit_definitions=>ty_tadir_tt.
     DATA: lx_error TYPE REF TO zcx_abapgit_exception.
-    DATA lo_repo TYPE REF TO zcl_abapgit_repo.
 
-    lo_repo ?= ii_repo. " TODO, remove later
-    ri_log = lo_repo->create_new_log( 'Uninstall Log' ).
+    ri_log = ii_repo->create_new_log( 'Uninstall Log' ).
 
     IF ii_repo->get_local_settings( )-write_protected = abap_true.
       zcx_abapgit_exception=>raise( 'Cannot purge. Local code is write-protected by repo config' ).
@@ -689,7 +679,7 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
       zcx_abapgit_exception=>raise( 'Not authorized' ).
     ENDIF.
 
-    lt_tadir = lo_repo->get_tadir_objects( ).
+    lt_tadir = ii_repo->get_tadir_objects( ).
 
     TRY.
         zcl_abapgit_objects=>delete( it_tadir  = lt_tadir

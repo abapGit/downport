@@ -8,7 +8,7 @@ CLASS zcl_abapgit_merge DEFINITION
 
     METHODS constructor
       IMPORTING
-        !io_repo          TYPE REF TO zcl_abapgit_repo_online
+        !ii_repo_online   TYPE REF TO zif_abapgit_repo_online
         !iv_source_branch TYPE string
       RAISING
         zcx_abapgit_exception .
@@ -20,7 +20,7 @@ CLASS zcl_abapgit_merge DEFINITION
     TYPES:
       ty_visit_tt TYPE STANDARD TABLE OF zif_abapgit_git_definitions=>ty_sha1 WITH DEFAULT KEY .
 
-    DATA mo_repo TYPE REF TO zcl_abapgit_repo_online .
+    DATA mi_repo_online TYPE REF TO zif_abapgit_repo_online .
     DATA ms_merge TYPE zif_abapgit_merge=>ty_merge .
     DATA mt_conflicts TYPE zif_abapgit_merge=>ty_merge_conflict_tt .
     DATA mt_objects TYPE zif_abapgit_definitions=>ty_objects_tt .
@@ -92,7 +92,7 @@ CLASS zcl_abapgit_merge IMPLEMENTATION.
 
     lt_files = all_files( ).
 
-    CREATE OBJECT ms_merge-stage EXPORTING iv_merge_source = ms_merge-source-sha1.
+    ms_merge-stage = NEW #( iv_merge_source = ms_merge-source-sha1 ).
 
     LOOP AT lt_files ASSIGNING <ls_file>.
 
@@ -110,15 +110,9 @@ CLASS zcl_abapgit_merge IMPLEMENTATION.
         WITH KEY path_name
         COMPONENTS path = <ls_file>-path name = <ls_file>-name. "#EC CI_SUBRC
 
-      DATA temp1 TYPE xsdboolean.
-      temp1 = boolc( <ls_source> IS ASSIGNED ).
-      lv_found_source = temp1.
-      DATA temp2 TYPE xsdboolean.
-      temp2 = boolc( <ls_target> IS ASSIGNED ).
-      lv_found_target = temp2.
-      DATA temp3 TYPE xsdboolean.
-      temp3 = boolc( <ls_common> IS ASSIGNED ).
-      lv_found_common = temp3.
+      lv_found_source = xsdbool( <ls_source> IS ASSIGNED ).
+      lv_found_target = xsdbool( <ls_target> IS ASSIGNED ).
+      lv_found_common = xsdbool( <ls_common> IS ASSIGNED ).
 
       IF lv_found_source = abap_false
           AND lv_found_target = abap_false.
@@ -241,11 +235,11 @@ CLASS zcl_abapgit_merge IMPLEMENTATION.
 
   METHOD constructor.
 
-    IF iv_source_branch = io_repo->get_selected_branch( ).
+    IF iv_source_branch = ii_repo_online->get_selected_branch( ).
       zcx_abapgit_exception=>raise( 'source = target' ).
     ENDIF.
 
-    mo_repo = io_repo.
+    mi_repo_online = ii_repo_online.
     mv_source_branch = iv_source_branch.
 
   ENDMETHOD.
@@ -256,21 +250,21 @@ CLASS zcl_abapgit_merge IMPLEMENTATION.
     DATA: lo_branch_list TYPE REF TO zcl_abapgit_git_branch_list,
           lt_upload      TYPE zif_abapgit_git_definitions=>ty_git_branch_list_tt.
 
-    lo_branch_list = zcl_abapgit_git_factory=>get_git_transport( )->branches( ms_merge-repo->get_url( ) ).
+    lo_branch_list = zcl_abapgit_git_factory=>get_git_transport( )->branches( ms_merge-repo_online->get_url( ) ).
 
     ms_merge-source = lo_branch_list->find_by_name(
       zcl_abapgit_git_branch_list=>complete_heads_branch_name( mv_source_branch ) ).
 
     ms_merge-target = lo_branch_list->find_by_name(
-      zcl_abapgit_git_branch_list=>complete_heads_branch_name( mo_repo->get_selected_branch( ) ) ).
+      zcl_abapgit_git_branch_list=>complete_heads_branch_name( mi_repo_online->get_selected_branch( ) ) ).
 
     APPEND ms_merge-source TO lt_upload.
     APPEND ms_merge-target TO lt_upload.
 
     zcl_abapgit_git_transport=>upload_pack_by_branch(
       EXPORTING
-        iv_url          = ms_merge-repo->get_url( )
-        iv_branch_name  = ms_merge-repo->get_selected_branch( )
+        iv_url          = ms_merge-repo_online->get_url( )
+        iv_branch_name  = ms_merge-repo_online->get_selected_branch( )
         iv_deepen_level = 0
         it_branches     = lt_upload
       IMPORTING
@@ -375,9 +369,7 @@ CLASS zcl_abapgit_merge IMPLEMENTATION.
 
   METHOD zif_abapgit_merge~has_conflicts.
 
-    DATA temp4 TYPE xsdboolean.
-    temp4 = boolc( lines( mt_conflicts ) > 0 ).
-    rv_conflicts_exists = temp4.
+    rv_conflicts_exists = xsdbool( lines( mt_conflicts ) > 0 ).
 
   ENDMETHOD.
 
@@ -425,7 +417,7 @@ CLASS zcl_abapgit_merge IMPLEMENTATION.
 
     CLEAR: ms_merge, mt_objects, mt_conflicts.
 
-    ms_merge-repo = mo_repo.
+    ms_merge-repo_online = mi_repo_online.
     mt_objects = fetch_git( ).
 
     lt_asource = find_ancestors( ms_merge-source-sha1 ).

@@ -103,15 +103,14 @@ CLASS lcl_startup IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD set_start_repo_from_package.
-    TYPES temp1 TYPE RANGE OF devclass.
-DATA: lo_repo          TYPE REF TO zcl_abapgit_repo,
-          lt_r_package     TYPE temp1,
+    DATA: li_repo          TYPE REF TO zif_abapgit_repo,
+          lt_r_package     TYPE RANGE OF devclass,
           ls_r_package     LIKE LINE OF lt_r_package,
           lt_superpackages TYPE zif_abapgit_sap_package=>ty_devclass_tt,
           li_package       TYPE REF TO zif_abapgit_sap_package,
           lt_repo_list     TYPE zif_abapgit_repo_srv=>ty_repo_list.
 
-    FIELD-SYMBOLS: <lo_repo>         TYPE LINE OF zif_abapgit_repo_srv=>ty_repo_list,
+    FIELD-SYMBOLS: <li_repo>         TYPE LINE OF zif_abapgit_repo_srv=>ty_repo_list,
                    <lv_superpackage> LIKE LINE OF lt_superpackages.
 
     li_package = zcl_abapgit_factory=>get_sap_package( iv_package ).
@@ -135,17 +134,17 @@ DATA: lo_repo          TYPE REF TO zcl_abapgit_repo,
 
     lt_repo_list = zcl_abapgit_repo_srv=>get_instance( )->list( ).
 
-    LOOP AT lt_repo_list ASSIGNING <lo_repo>.
+    LOOP AT lt_repo_list ASSIGNING <li_repo>.
 
-      IF <lo_repo>->get_package( ) IN lt_r_package.
-        lo_repo ?= <lo_repo>.
+      IF <li_repo>->get_package( ) IN lt_r_package.
+        li_repo = <li_repo>.
         EXIT.
       ENDIF.
 
     ENDLOOP.
 
-    IF lo_repo IS BOUND.
-      zcl_abapgit_persistence_user=>get_instance( )->set_repo_show( lo_repo->get_key( ) ).
+    IF li_repo IS BOUND.
+      zcl_abapgit_persistence_user=>get_instance( )->set_repo_show( li_repo->get_key( ) ).
     ENDIF.
   ENDMETHOD.
 
@@ -247,9 +246,7 @@ FORM open_gui RAISING zcx_abapgit_exception.
         lv_action = zif_abapgit_definitions=>c_action-go_home.
     ENDCASE.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( lv_mode = 'HREF' ).
-    zcl_abapgit_html=>set_debug_mode( temp1 ).
+    zcl_abapgit_html=>set_debug_mode( xsdbool( lv_mode = 'HREF' ) ).
 
     lcl_startup=>prepare_gui_startup( ).
     zcl_abapgit_ui_factory=>get_gui( )->go_home( lv_action ).
@@ -261,9 +258,8 @@ ENDFORM.
 
 FORM output.
 
-  TYPES temp2 TYPE TABLE OF sy-ucomm.
-DATA: lx_error TYPE REF TO zcx_abapgit_exception,
-        lt_ucomm TYPE temp2.
+  DATA: lx_error TYPE REF TO zcx_abapgit_exception,
+        lt_ucomm TYPE TABLE OF sy-ucomm.
 
   PERFORM set_pf_status IN PROGRAM rsdbrunt IF FOUND.
 
@@ -343,9 +339,8 @@ FORM adjust_toolbar USING pv_dynnr TYPE sy-dynnr.
 
   " Remove toolbar on html screen but re-insert toolbar for variant maintenance.
   " Because otherwise important buttons are missing and variant maintenance is not possible.
-  DATA temp2 TYPE xsdboolean.
-  temp2 = boolc( zcl_abapgit_factory=>get_environment( )->is_variant_maintenance( ) = abap_false ).
-  lv_no_toolbar = temp2.
+  lv_no_toolbar = xsdbool( zcl_abapgit_factory=>get_environment(
+                                           )->is_variant_maintenance( ) = abap_false ).
 
   IF ls_header-no_toolbar = lv_no_toolbar.
     RETURN. " No change required
