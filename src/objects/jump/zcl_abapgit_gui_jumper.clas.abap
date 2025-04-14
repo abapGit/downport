@@ -116,9 +116,7 @@ CLASS zcl_abapgit_gui_jumper IMPLEMENTATION.
         jump_not_possible = 1
         OTHERS            = 2.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_exit = temp1.
+    rv_exit = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -137,9 +135,7 @@ CLASS zcl_abapgit_gui_jumper IMPLEMENTATION.
         invalid_object_type = 2
         OTHERS              = 3.
 
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( sy-subrc = 0 ).
-    rv_exit = temp2.
+    rv_exit = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -164,9 +160,7 @@ CLASS zcl_abapgit_gui_jumper IMPLEMENTATION.
           invalid_object_type = 2
           OTHERS              = 3.
 
-      DATA temp3 TYPE xsdboolean.
-      temp3 = boolc( sy-subrc = 0 ).
-      rv_exit = temp3.
+      rv_exit = xsdbool( sy-subrc = 0 ).
 
     ENDIF.
 
@@ -230,13 +224,11 @@ CLASS zcl_abapgit_gui_jumper IMPLEMENTATION.
 
   METHOD zif_abapgit_gui_jumper~jump_abapgit.
 
-    TYPES temp1 TYPE STANDARD TABLE OF rfc_spagpa.
-DATA lt_spagpa        TYPE temp1.
+    DATA lt_spagpa        TYPE STANDARD TABLE OF rfc_spagpa.
     DATA ls_spagpa        LIKE LINE OF lt_spagpa.
     DATA lv_save_sy_langu TYPE sy-langu.
     DATA lv_subrc         TYPE syst-subrc.
     DATA lv_tcode         TYPE tcode.
-    DATA lv_langu_text    TYPE string.
     DATA lv_msg           TYPE c LENGTH 200.
 
     " https://blogs.sap.com/2017/01/13/logon-language-sy-langu-and-rfc/
@@ -271,11 +263,7 @@ DATA lt_spagpa        TYPE temp1.
       WHEN 1.
         lv_msg = |Communication error { lv_msg }|.
       WHEN 2.
-        SELECT SINGLE sptxt FROM t002t INTO lv_langu_text WHERE spras = sy-langu AND sprsl = iv_language.
-        IF sy-subrc <> 0.
-          lv_langu_text = iv_language.
-        ENDIF.
-        lv_msg = |Language { lv_langu_text } ({ zcl_abapgit_convert=>language_sap1_to_sap2( iv_language ) })|
+        lv_msg = |Language { iv_language } ({ zcl_abapgit_convert=>language_sap1_to_text( iv_language ) })|
               && | is not installed|.
       WHEN 3.
         lv_msg = |{ lv_subrc }|.
