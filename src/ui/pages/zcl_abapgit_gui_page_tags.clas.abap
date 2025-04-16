@@ -117,8 +117,8 @@ CLASS zcl_abapgit_gui_page_tags IMPLEMENTATION.
   METHOD constructor.
 
     super->constructor( ).
-    CREATE OBJECT mo_form_data.
-    CREATE OBJECT mo_validation_log.
+    mo_form_data = NEW #( ).
+    mo_validation_log = NEW #( ).
     mi_repo_online ?= ii_repo.
 
     " Get settings from DB
@@ -135,7 +135,7 @@ CLASS zcl_abapgit_gui_page_tags IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_tags.
 
-    CREATE OBJECT lo_component EXPORTING ii_repo = ii_repo.
+    lo_component = NEW #( ii_repo = ii_repo ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Create Tag'
@@ -235,7 +235,7 @@ CLASS zcl_abapgit_gui_page_tags IMPLEMENTATION.
     ENDIF.
     IF rv_email IS INITIAL.
       " get default from user record
-      rv_email = zcl_abapgit_user_record=>get_instance( sy-uname )->get_email( ).
+      rv_email = zcl_abapgit_user_record=>get_instance( )->get_email( sy-uname ).
     ENDIF.
 
   ENDMETHOD.
@@ -253,7 +253,7 @@ CLASS zcl_abapgit_gui_page_tags IMPLEMENTATION.
     ENDIF.
     IF rv_user IS INITIAL.
       " get default from user record
-      rv_user = zcl_abapgit_user_record=>get_instance( sy-uname )->get_name( ).
+      rv_user = zcl_abapgit_user_record=>get_instance( )->get_name( sy-uname ).
     ENDIF.
 
   ENDMETHOD.
@@ -386,7 +386,7 @@ CLASS zcl_abapgit_gui_page_tags IMPLEMENTATION.
 
     register_handlers( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( `<div class="repo">` ).
 
