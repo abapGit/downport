@@ -10,7 +10,7 @@ CLASS zcl_abapgit_object_srvb DEFINITION PUBLIC INHERITING FROM zcl_abapgit_obje
         !io_files       TYPE REF TO zcl_abapgit_objects_files OPTIONAL
         !io_i18n_params TYPE REF TO zcl_abapgit_i18n_params OPTIONAL
       RAISING
-        zcx_abapgit_exception.
+        zcx_abapgit_type_not_supported.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -159,7 +159,7 @@ CLASS zcl_abapgit_object_srvb IMPLEMENTATION.
         CREATE OBJECT mi_persistence TYPE ('CL_SRVB_OBJECT_PERSIST').
 
       CATCH cx_sy_create_error.
-        zcx_abapgit_exception=>raise( |SRVB not supported by your NW release| ).
+        RAISE EXCEPTION TYPE zcx_abapgit_type_not_supported EXPORTING obj_type = is_item-obj_type.
     ENDTRY.
 
     mv_is_inactive_supported = is_ai_supported( ).
@@ -435,9 +435,7 @@ CLASS zcl_abapgit_object_srvb IMPLEMENTATION.
               p_object_data    = lo_object_data ).
 
         ENDIF.
-        DATA temp1 TYPE xsdboolean.
-        temp1 = boolc( lo_object_data IS NOT INITIAL AND lo_object_data->get_object_key( ) IS NOT INITIAL ).
-        rv_bool = temp1.
+        rv_bool = xsdbool( lo_object_data IS NOT INITIAL AND lo_object_data->get_object_key( ) IS NOT INITIAL ).
       CATCH cx_root.
         rv_bool = abap_false.
     ENDTRY.

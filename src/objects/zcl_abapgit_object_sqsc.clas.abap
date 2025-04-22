@@ -14,7 +14,7 @@ CLASS zcl_abapgit_object_sqsc DEFINITION
         !io_files       TYPE REF TO zcl_abapgit_objects_files OPTIONAL
         !io_i18n_params TYPE REF TO zcl_abapgit_i18n_params OPTIONAL
       RAISING
-        zcx_abapgit_exception.
+        zcx_abapgit_type_not_supported.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -134,7 +134,7 @@ CLASS zcl_abapgit_object_sqsc IMPLEMENTATION.
         ASSERT sy-subrc = 0.
 
       CATCH cx_root.
-        zcx_abapgit_exception=>raise( |SQSC not supported| ).
+        RAISE EXCEPTION TYPE zcx_abapgit_type_not_supported EXPORTING obj_type = is_item-obj_type.
     ENDTRY.
 
     <lv_dbproxyname> = ms_item-obj_name.
@@ -156,10 +156,10 @@ CLASS zcl_abapgit_object_sqsc IMPLEMENTATION.
 
     IF zcl_abapgit_objects=>exists( ls_item ) = abap_true.
 
-      CREATE OBJECT lo_interface EXPORTING is_item = ls_item
-                                           iv_language = mv_language
-                                           io_files = mo_files
-                                           io_i18n_params = mo_i18n_params.
+      lo_interface = NEW #( is_item = ls_item
+                            iv_language = mv_language
+                            io_files = mo_files
+                            io_i18n_params = mo_i18n_params ).
 
       lo_interface->zif_abapgit_object~delete( iv_package   = iv_package
                                                iv_transport = iv_transport ).
