@@ -139,9 +139,7 @@ CLASS zcl_abapgit_object_devc IMPLEMENTATION.
            WHERE pgmid = 'R3TR'
            AND NOT ( ( object = 'DEVC' OR object = 'SOTR' ) AND obj_name = iv_package_name )
            AND devclass = iv_package_name.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc <> 0 ).
-    rv_is_empty = temp1.
+    rv_is_empty = xsdbool( sy-subrc <> 0 ).
 
   ENDMETHOD.
 
@@ -185,10 +183,9 @@ CLASS zcl_abapgit_object_devc IMPLEMENTATION.
 
   METHOD remove_obsolete_tadir.
 
-    TYPES temp1 TYPE STANDARD TABLE OF devclass.
-DATA:
+    DATA:
       lv_pack  TYPE devclass,
-      lt_pack  TYPE temp1,
+      lt_pack  TYPE STANDARD TABLE OF devclass,
       ls_tadir TYPE zif_abapgit_definitions=>ty_tadir,
       lt_tadir TYPE zif_abapgit_definitions=>ty_tadir_tt,
       ls_item  TYPE zif_abapgit_definitions=>ty_item.
@@ -340,12 +337,11 @@ DATA:
 
 
   METHOD update_pinf_usages.
-    TYPES temp2 TYPE SORTED TABLE OF i WITH UNIQUE KEY table_line.
-DATA: lt_current_permissions TYPE tpak_permission_to_use_list,
+    DATA: lt_current_permissions TYPE tpak_permission_to_use_list,
           li_usage               TYPE REF TO if_package_permission_to_use,
           ls_data_sign           TYPE scomppsign,
           ls_add_permission_data TYPE pkgpermdat,
-          lt_handled             TYPE temp2.
+          lt_handled             TYPE SORTED TABLE OF i WITH UNIQUE KEY table_line.
     FIELD-SYMBOLS: <ls_usage_data> LIKE LINE OF it_usage_data.
 
     " Get the current permissions
@@ -469,7 +465,7 @@ DATA: lt_current_permissions TYPE tpak_permission_to_use_list,
       ENDIF.
 
       IF lv_package(1) = '$'.
-        zcl_abapgit_persist_packages=>get_instance( )->modify( lv_package ).
+        zcl_abapgit_persist_factory=>get_packages( )->modify( lv_package ).
       ENDIF.
 
       set_lock( ii_package = li_package
@@ -575,7 +571,7 @@ DATA: lt_current_permissions TYPE tpak_permission_to_use_list,
 
     " For local packages store application component
     IF ls_package_data-devclass(1) = '$'.
-      zcl_abapgit_persist_packages=>get_instance( )->modify(
+      zcl_abapgit_persist_factory=>get_packages( )->modify(
         iv_package    = ls_package_data-devclass
         iv_component  = ls_package_data-component
         iv_comp_posid = ls_package_data-comp_posid ).
@@ -822,7 +818,7 @@ DATA: lt_current_permissions TYPE tpak_permission_to_use_list,
 
   METHOD zif_abapgit_object~serialize.
     DATA: ls_package_data TYPE scompkdtln,
-          ls_package_comp TYPE zcl_abapgit_persist_packages=>ty_package,
+          ls_package_comp TYPE zif_abapgit_persist_packages=>ty_package,
           li_package      TYPE REF TO if_package,
           lt_intf_usages  TYPE tpak_permission_to_use_list,
           lt_usage_data   TYPE scomppdata,
@@ -851,7 +847,7 @@ DATA: lt_current_permissions TYPE tpak_permission_to_use_list,
 
     " For local packages get application component
     IF is_local( ls_package_data-devclass ) = abap_true.
-      ls_package_comp = zcl_abapgit_persist_packages=>get_instance( )->read( ls_package_data-devclass ).
+      ls_package_comp = zcl_abapgit_persist_factory=>get_packages( )->read( ls_package_data-devclass ).
       ls_package_data-component  = ls_package_comp-component.
       ls_package_data-comp_posid = ls_package_comp-comp_posid.
     ENDIF.

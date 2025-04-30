@@ -56,7 +56,7 @@ CLASS zcl_abapgit_gui_page_sett_bckg DEFINITION
         zcx_abapgit_exception .
     METHODS read_persist
       RETURNING
-        VALUE(rs_persist) TYPE zcl_abapgit_persist_background=>ty_background
+        VALUE(rs_persist) TYPE zif_abapgit_persist_background=>ty_background
       RAISING
         zcx_abapgit_exception .
     METHODS save_settings
@@ -72,7 +72,7 @@ CLASS zcl_abapgit_gui_page_sett_bckg IMPLEMENTATION.
   METHOD constructor.
 
     super->constructor( ).
-    CREATE OBJECT mo_form_data.
+    mo_form_data = NEW #( ).
     mi_repo = ii_repo.
     mo_form = get_form_schema( ).
     mo_form_data = read_settings( ).
@@ -84,7 +84,7 @@ CLASS zcl_abapgit_gui_page_sett_bckg IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_sett_bckg.
 
-    CREATE OBJECT lo_component EXPORTING ii_repo = ii_repo.
+    lo_component = NEW #( ii_repo = ii_repo ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Background Mode'
@@ -171,12 +171,8 @@ CLASS zcl_abapgit_gui_page_sett_bckg IMPLEMENTATION.
 
   METHOD read_persist.
 
-    DATA lo_per TYPE REF TO zcl_abapgit_persist_background.
-
-    CREATE OBJECT lo_per.
-
     TRY.
-        rs_persist = lo_per->get_by_key( mi_repo->get_key( ) ).
+        zcl_abapgit_persist_factory=>get_background( )->get_by_key( mi_repo->get_key( ) ).
       CATCH zcx_abapgit_not_found.
         CLEAR rs_persist.
     ENDTRY.
@@ -187,14 +183,14 @@ CLASS zcl_abapgit_gui_page_sett_bckg IMPLEMENTATION.
   METHOD read_settings.
 
     DATA:
-      ls_per      TYPE zcl_abapgit_persist_background=>ty_background,
+      ls_per      TYPE zif_abapgit_persist_background=>ty_background,
       lv_row      TYPE i,
       lv_val      TYPE string,
       lt_settings LIKE ls_per-settings,
       ls_settings LIKE LINE OF ls_per-settings.
 
     ls_per = read_persist( ).
-    CREATE OBJECT ro_form_data.
+    ro_form_data = NEW #( ).
 
     " Mode Selection
     ro_form_data->set(
@@ -254,8 +250,7 @@ CLASS zcl_abapgit_gui_page_sett_bckg IMPLEMENTATION.
   METHOD save_settings.
 
     DATA:
-      lo_persistence TYPE REF TO zcl_abapgit_persist_background,
-      ls_per         TYPE zcl_abapgit_persist_background=>ty_background,
+      ls_per         TYPE zif_abapgit_persist_background=>ty_background,
       lt_settings    LIKE ls_per-settings.
 
     FIELD-SYMBOLS:
@@ -290,12 +285,10 @@ CLASS zcl_abapgit_gui_page_sett_bckg IMPLEMENTATION.
     ls_per-username = mo_form_data->get( c_id-username ).
     ls_per-password = mo_form_data->get( c_id-password ).
 
-    CREATE OBJECT lo_persistence.
-
     IF ls_per-method IS INITIAL.
-      lo_persistence->delete( ls_per-key ).
+      zcl_abapgit_persist_factory=>get_background( )->delete( ls_per-key ).
     ELSE.
-      lo_persistence->modify( ls_per ).
+      zcl_abapgit_persist_factory=>get_background( )->modify( ls_per ).
     ENDIF.
 
     COMMIT WORK AND WAIT.
@@ -330,7 +323,7 @@ CLASS zcl_abapgit_gui_page_sett_bckg IMPLEMENTATION.
 
     register_handlers( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( `<div class="repo">` ).
 
