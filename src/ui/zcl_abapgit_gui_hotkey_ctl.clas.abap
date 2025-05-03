@@ -36,14 +36,14 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_GUI_HOTKEY_CTL IMPLEMENTATION.
+CLASS zcl_abapgit_gui_hotkey_ctl IMPLEMENTATION.
 
 
   METHOD constructor.
 
     super->constructor( ).
 
-    ms_user_settings = zcl_abapgit_persistence_user=>get_instance( )->get_settings( ).
+    ms_user_settings = zcl_abapgit_persist_factory=>get_user( )->get_settings( ).
 
   ENDMETHOD.
 
@@ -68,7 +68,7 @@ CLASS ZCL_ABAPGIT_GUI_HOTKEY_CTL IMPLEMENTATION.
 
     lv_json = lv_json && `}`.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
     ri_html->set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
     ri_html->add( |setKeyBindings({ lv_json });| ).
 
@@ -148,7 +148,7 @@ CLASS ZCL_ABAPGIT_GUI_HOTKEY_CTL IMPLEMENTATION.
 
     register_handlers( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     lt_registered_hotkeys = zif_abapgit_gui_hotkey_ctl~get_registered_hotkeys( ).
     SORT lt_registered_hotkeys BY ui_component description.
@@ -165,7 +165,7 @@ CLASS ZCL_ABAPGIT_GUI_HOTKEY_CTL IMPLEMENTATION.
     ENDLOOP.
 
     " render link hints activation key
-    ls_user_settings = zcl_abapgit_persistence_user=>get_instance( )->get_settings( ).
+    ls_user_settings = zcl_abapgit_persist_factory=>get_user( )->get_settings( ).
     IF ls_user_settings-link_hints_enabled = abap_true.
       ri_html->add( |<li>|
          && |<span class="key-id">{ ls_user_settings-link_hint_key }</span>|

@@ -146,7 +146,7 @@ CLASS zcl_abapgit_repo_news IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    lv_last_seen = zcl_abapgit_persistence_user=>get_instance( )->get_repo_last_change_seen( lv_url ).
+    lv_last_seen = zcl_abapgit_persist_factory=>get_user( )->get_repo_last_change_seen( lv_url ).
 
     TRY. " Find changelog
         lt_remote = ii_repo->get_files_remote( ).
@@ -159,16 +159,16 @@ CLASS zcl_abapgit_repo_news IMPLEMENTATION.
                       WHERE path = lc_log_path
                       AND ( filename CP lc_log_filename OR filename CP lc_log_filename_up ) ##PRIMKEY[FILE_PATH].
 
-      CREATE OBJECT ro_instance EXPORTING iv_rawdata = <ls_file>-data
-                                          iv_current_version = lv_version
-                                          iv_lastseen_version = zcl_abapgit_version=>normalize( lv_last_seen ).
+      ro_instance = NEW #( iv_rawdata = <ls_file>-data
+                           iv_current_version = lv_version
+                           iv_lastseen_version = zcl_abapgit_version=>normalize( lv_last_seen ) ).
 
       EXIT.
 
     ENDLOOP.
 
     IF ro_instance IS BOUND AND lv_last_seen <> ro_instance->latest_version( ).
-      zcl_abapgit_persistence_user=>get_instance( )->set_repo_last_change_seen(
+      zcl_abapgit_persist_factory=>get_user( )->set_repo_last_change_seen(
         iv_url     = lv_url
         iv_version = ro_instance->latest_version( ) ).
     ENDIF.
@@ -183,32 +183,26 @@ CLASS zcl_abapgit_repo_news IMPLEMENTATION.
 
   METHOD has_important.
     READ TABLE mt_log WITH KEY is_important = abap_true TRANSPORTING NO FIELDS.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc IS INITIAL ).
-    rv_boolean = temp1.
+    rv_boolean = xsdbool( sy-subrc IS INITIAL ).
   ENDMETHOD.
 
 
   METHOD has_news.
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( lines( mt_log ) > 0 ).
-    rv_boolean = temp2.
+    rv_boolean = xsdbool( lines( mt_log ) > 0 ).
   ENDMETHOD.
 
 
   METHOD has_unseen.
-    DATA temp3 TYPE xsdboolean.
-    temp3 = boolc( zcl_abapgit_version=>compare( iv_a = mv_latest_version
-                                                 iv_b = mv_lastseen_version ) > 0 ).
-    rv_boolean = temp3.
+    rv_boolean = xsdbool( zcl_abapgit_version=>compare(
+      iv_a = mv_latest_version
+      iv_b = mv_lastseen_version ) > 0 ).
   ENDMETHOD.
 
 
   METHOD has_updates.
-    DATA temp4 TYPE xsdboolean.
-    temp4 = boolc( zcl_abapgit_version=>compare( iv_a = mv_latest_version
-                                                 iv_b = mv_current_version ) > 0 ).
-    rv_boolean = temp4.
+    rv_boolean = xsdbool( zcl_abapgit_version=>compare(
+      iv_a = mv_latest_version
+      iv_b = mv_current_version ) > 0 ).
   ENDMETHOD.
 
 
@@ -285,9 +279,7 @@ CLASS zcl_abapgit_repo_news IMPLEMENTATION.
                                                         iv_b = iv_current_version ).
     ELSE.
       FIND FIRST OCCURRENCE OF REGEX '^\s*!' IN iv_line.
-      DATA temp5 TYPE xsdboolean.
-      temp5 = boolc( sy-subrc IS INITIAL ).
-      rs_log-is_important = temp5. " Change is important
+      rs_log-is_important = xsdbool( sy-subrc IS INITIAL ). " Change is important
     ENDIF.
 
     rs_log-text = iv_line.

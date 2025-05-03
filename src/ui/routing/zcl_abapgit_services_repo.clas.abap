@@ -151,7 +151,7 @@ CLASS zcl_abapgit_services_repo IMPLEMENTATION.
 
     li_repo = zcl_abapgit_repo_srv=>get_instance( )->get( iv_key ).
 
-    CREATE OBJECT lo_browser EXPORTING ii_repo = li_repo.
+    lo_browser = NEW #( ii_repo = li_repo ).
 
     lt_repo_items = lo_browser->list( '/' ).
 
@@ -395,7 +395,7 @@ CLASS zcl_abapgit_services_repo IMPLEMENTATION.
     toggle_favorite( ri_repo->get_key( ) ).
 
     " Set default repo for user
-    zcl_abapgit_persistence_user=>get_instance( )->set_repo_show( ri_repo->get_key( ) ).
+    zcl_abapgit_persist_factory=>get_user( )->set_repo_show( ri_repo->get_key( ) ).
 
     COMMIT WORK AND WAIT.
 
@@ -437,7 +437,7 @@ CLASS zcl_abapgit_services_repo IMPLEMENTATION.
     toggle_favorite( li_repo->get_key( ) ).
 
     " Set default repo for user
-    zcl_abapgit_persistence_user=>get_instance( )->set_repo_show( li_repo->get_key( ) ).
+    zcl_abapgit_persist_factory=>get_user( )->set_repo_show( li_repo->get_key( ) ).
 
     COMMIT WORK AND WAIT.
 
@@ -906,7 +906,7 @@ CLASS zcl_abapgit_services_repo IMPLEMENTATION.
 
   METHOD toggle_favorite.
 
-    zcl_abapgit_persistence_user=>get_instance( )->toggle_favorite( iv_key ).
+    zcl_abapgit_persist_factory=>get_user( )->toggle_favorite( iv_key ).
 
   ENDMETHOD.
 
@@ -938,7 +938,7 @@ CLASS zcl_abapgit_services_repo IMPLEMENTATION.
 
     ls_transport_to_branch = zcl_abapgit_ui_factory=>get_popups( )->popup_to_create_transp_branch( lv_trkorr ).
 
-    CREATE OBJECT lo_transport_to_branch.
+    lo_transport_to_branch = NEW #( ).
     lo_transport_to_branch->create(
       ii_repo_online         = li_repo_online
       is_transport_to_branch = ls_transport_to_branch

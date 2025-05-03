@@ -120,7 +120,7 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
 
   METHOD get_instance.
     IF gi_ref IS INITIAL.
-      CREATE OBJECT gi_ref TYPE zcl_abapgit_repo_srv.
+      gi_ref = NEW zcl_abapgit_repo_srv( ).
     ENDIF.
     ri_srv = gi_ref.
   ENDMETHOD.
@@ -134,9 +134,9 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
   METHOD instantiate_and_add.
 
     IF is_repo_meta-offline = abap_false.
-      CREATE OBJECT ri_repo TYPE zcl_abapgit_repo_online EXPORTING is_data = is_repo_meta.
+      ri_repo = NEW zcl_abapgit_repo_online( is_data = is_repo_meta ).
     ELSE.
-      CREATE OBJECT ri_repo TYPE zcl_abapgit_repo_offline EXPORTING is_data = is_repo_meta.
+      ri_repo = NEW zcl_abapgit_repo_offline( is_data = is_repo_meta ).
     ENDIF.
     add( ri_repo ).
 
@@ -174,7 +174,7 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
     FIELD-SYMBOLS: <ls_repo_record> LIKE LINE OF lt_list.
 
     lo_repo_db        = zcl_abapgit_persist_factory=>get_repo( ).
-    lt_user_favorites = zcl_abapgit_persistence_user=>get_instance( )->get_favorites( ).
+    lt_user_favorites = zcl_abapgit_persist_factory=>get_user( )->get_favorites( ).
     lt_list           = lo_repo_db->list_by_keys( lt_user_favorites ).
 
     SORT lt_list BY package.
@@ -326,8 +326,8 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
     zcl_abapgit_persist_factory=>get_repo_cs( )->delete( ii_repo->get_key( ) ).
 
     " If favorite, remove it
-    IF zcl_abapgit_persistence_user=>get_instance( )->is_favorite_repo( ii_repo->get_key( ) ) = abap_true.
-      zcl_abapgit_persistence_user=>get_instance( )->toggle_favorite( ii_repo->get_key( ) ).
+    IF zcl_abapgit_persist_factory=>get_user( )->is_favorite_repo( ii_repo->get_key( ) ) = abap_true.
+      zcl_abapgit_persist_factory=>get_user( )->toggle_favorite( ii_repo->get_key( ) ).
     ENDIF.
 
     DELETE TABLE mt_list FROM ii_repo.
@@ -528,7 +528,7 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
     DATA lt_user_favorites TYPE zif_abapgit_persist_user=>ty_favorites.
     DATA li_repo TYPE REF TO zif_abapgit_repo.
 
-    lt_user_favorites = zcl_abapgit_persistence_user=>get_instance( )->get_favorites( ).
+    lt_user_favorites = zcl_abapgit_persist_factory=>get_user( )->get_favorites( ).
     SORT lt_user_favorites BY table_line.
 
     IF mv_init = abap_false OR mv_only_favorites = abap_false.

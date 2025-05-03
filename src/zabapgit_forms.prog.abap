@@ -35,7 +35,7 @@ CLASS lcl_startup IMPLEMENTATION.
       ls_settings         TYPE zif_abapgit_definitions=>ty_s_user_settings,
       li_user_persistence TYPE REF TO zif_abapgit_persist_user.
 
-    li_user_persistence = zcl_abapgit_persistence_user=>get_instance( ).
+    li_user_persistence = zcl_abapgit_persist_factory=>get_user( ).
 
     ls_settings = li_user_persistence->get_settings( ).
 
@@ -72,7 +72,7 @@ CLASS lcl_startup IMPLEMENTATION.
 
     IF zcl_abapgit_persist_factory=>get_settings( )->read( )->get_show_default_repo( ) = abap_false.
       " Don't show the last seen repo at startup
-      zcl_abapgit_persistence_user=>get_instance( )->set_repo_show( || ).
+      zcl_abapgit_persist_factory=>get_user( )->set_repo_show( || ).
     ENDIF.
 
     " We have three special cases for gui startup
@@ -88,7 +88,7 @@ CLASS lcl_startup IMPLEMENTATION.
     IF lv_repo_key IS NOT INITIAL.
 
       SET PARAMETER ID zif_abapgit_definitions=>c_spagpa_param_repo_key FIELD '' ##EXISTS.
-      zcl_abapgit_persistence_user=>get_instance( )->set_repo_show( lv_repo_key ).
+      zcl_abapgit_persist_factory=>get_user( )->set_repo_show( lv_repo_key ).
 
     ELSEIF lv_package IS NOT INITIAL.
 
@@ -103,9 +103,8 @@ CLASS lcl_startup IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD set_start_repo_from_package.
-    TYPES temp1 TYPE RANGE OF devclass.
-DATA: li_repo          TYPE REF TO zif_abapgit_repo,
-          lt_r_package     TYPE temp1,
+    DATA: li_repo          TYPE REF TO zif_abapgit_repo,
+          lt_r_package     TYPE RANGE OF devclass,
           ls_r_package     LIKE LINE OF lt_r_package,
           lt_superpackages TYPE zif_abapgit_sap_package=>ty_devclass_tt,
           li_package       TYPE REF TO zif_abapgit_sap_package,
@@ -145,7 +144,7 @@ DATA: li_repo          TYPE REF TO zif_abapgit_repo,
     ENDLOOP.
 
     IF li_repo IS BOUND.
-      zcl_abapgit_persistence_user=>get_instance( )->set_repo_show( li_repo->get_key( ) ).
+      zcl_abapgit_persist_factory=>get_user( )->set_repo_show( li_repo->get_key( ) ).
     ENDIF.
   ENDMETHOD.
 
@@ -247,9 +246,7 @@ FORM open_gui RAISING zcx_abapgit_exception.
         lv_action = zif_abapgit_definitions=>c_action-go_home.
     ENDCASE.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( lv_mode = 'HREF' ).
-    zcl_abapgit_html=>set_debug_mode( temp1 ).
+    zcl_abapgit_html=>set_debug_mode( xsdbool( lv_mode = 'HREF' ) ).
 
     lcl_startup=>prepare_gui_startup( ).
     zcl_abapgit_ui_factory=>get_gui( )->go_home( lv_action ).
@@ -261,9 +258,8 @@ ENDFORM.
 
 FORM output.
 
-  TYPES temp2 TYPE TABLE OF sy-ucomm.
-DATA: lx_error TYPE REF TO zcx_abapgit_exception,
-        lt_ucomm TYPE temp2.
+  DATA: lx_error TYPE REF TO zcx_abapgit_exception,
+        lt_ucomm TYPE TABLE OF sy-ucomm.
 
   PERFORM set_pf_status IN PROGRAM rsdbrunt IF FOUND.
 
@@ -343,9 +339,8 @@ FORM adjust_toolbar USING pv_dynnr TYPE sy-dynnr.
 
   " Remove toolbar on html screen but re-insert toolbar for variant maintenance.
   " Because otherwise important buttons are missing and variant maintenance is not possible.
-  DATA temp2 TYPE xsdboolean.
-  temp2 = boolc( zcl_abapgit_factory=>get_environment( )->is_variant_maintenance( ) = abap_false ).
-  lv_no_toolbar = temp2.
+  lv_no_toolbar = xsdbool( zcl_abapgit_factory=>get_environment(
+                                           )->is_variant_maintenance( ) = abap_false ).
 
   IF ls_header-no_toolbar = lv_no_toolbar.
     RETURN. " No change required

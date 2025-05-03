@@ -257,7 +257,7 @@ CLASS zcl_abapgit_gui_page_repo_over IMPLEMENTATION.
 
     DATA lo_tab_scheme TYPE REF TO lcl_table_scheme.
 
-    CREATE OBJECT lo_tab_scheme.
+    lo_tab_scheme = NEW #( ).
 
     lo_tab_scheme->add_column(
       iv_tech_name      = 'FAVORITE'
@@ -347,7 +347,7 @@ CLASS zcl_abapgit_gui_page_repo_over IMPLEMENTATION.
 
     super->constructor( ).
 
-    ms_list_settings = zcl_abapgit_persistence_user=>get_instance( )->get_list_settings( ).
+    ms_list_settings = zcl_abapgit_persist_factory=>get_user( )->get_list_settings( ).
 
     " Overwrite setting
     IF iv_only_favorites = abap_true.
@@ -361,7 +361,7 @@ CLASS zcl_abapgit_gui_page_repo_over IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_repo_over.
 
-    CREATE OBJECT lo_component EXPORTING iv_only_favorites = iv_only_favorites.
+    lo_component = NEW #( iv_only_favorites = iv_only_favorites ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title         = 'Repository List'
@@ -380,7 +380,7 @@ CLASS zcl_abapgit_gui_page_repo_over IMPLEMENTATION.
 
       CLEAR ls_overview.
 
-      ls_overview-favorite        = zcl_abapgit_persistence_user=>get_instance(
+      ls_overview-favorite        = zcl_abapgit_persist_factory=>get_user(
         )->is_favorite_repo( <ls_repo>->ms_data-key ).
       ls_overview-offline         = <ls_repo>->ms_data-offline.
       ls_overview-key             = <ls_repo>->ms_data-key.
@@ -494,7 +494,7 @@ CLASS zcl_abapgit_gui_page_repo_over IMPLEMENTATION.
       iv_class    = |{ lc_action_class }|
       iv_li_class = |{ lc_action_class }| ).
 
-    CREATE OBJECT lo_toolbar_more_sub EXPORTING iv_id = 'toolbar-ovp-more_sub'.
+    lo_toolbar_more_sub = NEW #( iv_id = 'toolbar-ovp-more_sub' ).
 
     lo_toolbar_more_sub->add(
       iv_txt      = |Stage by Transport|
@@ -559,7 +559,7 @@ CLASS zcl_abapgit_gui_page_repo_over IMPLEMENTATION.
 
     DATA lv_icon_class TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( |<form class="inline" method="post" action="sapevent:{ c_action-apply_filter }">| ).
     ri_html->add( zcl_abapgit_gui_chunk_lib=>render_text_input(
@@ -650,7 +650,7 @@ CLASS zcl_abapgit_gui_page_repo_over IMPLEMENTATION.
 
   METHOD render_scripts.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
     ri_html->add( 'var gHelper = new RepoOverViewHelper({ focusFilterKey: "f" });' ).
@@ -710,9 +710,7 @@ CLASS zcl_abapgit_gui_page_repo_over IMPLEMENTATION.
       lv_lock           TYPE string,
       lv_flow           TYPE string.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( is_repo-offline = abap_false ).
-    lv_is_online_repo = temp1.
+    lv_is_online_repo = xsdbool( is_repo-offline = abap_false ).
 
     " Start of row
     IF is_repo-favorite = abap_true.
@@ -840,7 +838,7 @@ CLASS zcl_abapgit_gui_page_repo_over IMPLEMENTATION.
 
 
   METHOD save_settings.
-    zcl_abapgit_persistence_user=>get_instance( )->set_list_settings( ms_list_settings ).
+    zcl_abapgit_persist_factory=>get_user( )->set_list_settings( ms_list_settings ).
   ENDMETHOD.
 
 
@@ -885,7 +883,7 @@ CLASS zcl_abapgit_gui_page_repo_over IMPLEMENTATION.
     CASE ii_event->mv_action.
       WHEN c_action-select.
 
-        zcl_abapgit_persistence_user=>get_instance( )->set_repo_show( lv_key ).
+        zcl_abapgit_persist_factory=>get_user( )->set_repo_show( lv_key ).
 
         TRY.
             zcl_abapgit_repo_srv=>get_instance( )->get( lv_key )->refresh( ).
@@ -905,18 +903,14 @@ CLASS zcl_abapgit_gui_page_repo_over IMPLEMENTATION.
         IF ii_event->query( )->has( 'FORCE_STATE' ) = abap_true.
           ms_list_settings-only_favorites = ii_event->query( )->get( 'FORCE_STATE' ).
         ELSE.
-          DATA temp2 TYPE xsdboolean.
-          temp2 = boolc( ms_list_settings-only_favorites = abap_false ).
-          ms_list_settings-only_favorites = temp2.
+          ms_list_settings-only_favorites = xsdbool( ms_list_settings-only_favorites = abap_false ).
         ENDIF.
         save_settings( ).
         rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
 
       WHEN zif_abapgit_definitions=>c_action-direction.
 
-        DATA temp3 TYPE xsdboolean.
-        temp3 = boolc( ii_event->query( )->get( 'DIRECTION' ) = 'DESCENDING' ).
-        set_order_direction( temp3 ).
+        set_order_direction( xsdbool( ii_event->query( )->get( 'DIRECTION' ) = 'DESCENDING' ) ).
         rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
 
       WHEN c_action-apply_filter.
@@ -1061,7 +1055,7 @@ CLASS zcl_abapgit_gui_page_repo_over IMPLEMENTATION.
 
     lt_overview = prepare_overviews( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     zcl_abapgit_exit=>get_instance( )->wall_message_list( ri_html ).
 

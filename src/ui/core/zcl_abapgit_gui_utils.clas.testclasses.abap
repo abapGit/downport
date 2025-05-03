@@ -35,8 +35,8 @@ CLASS ltcl_gui_utils IMPLEMENTATION.
     DATA lo_handler TYPE REF TO lcl_handler.
     DATA lo_renderable TYPE REF TO lcl_renderable.
 
-    CREATE OBJECT lo_handler.
-    CREATE OBJECT lo_renderable.
+    lo_handler = NEW #( ).
+    lo_renderable = NEW #( ).
 
     cl_abap_unit_assert=>assert_equals( exp = abap_true
                                         act = zcl_abapgit_gui_utils=>is_renderable( lo_renderable ) ).
@@ -50,8 +50,8 @@ CLASS ltcl_gui_utils IMPLEMENTATION.
     DATA lo_handler TYPE REF TO lcl_handler.
     DATA lo_renderable TYPE REF TO lcl_renderable.
 
-    CREATE OBJECT lo_handler.
-    CREATE OBJECT lo_renderable.
+    lo_handler = NEW #( ).
+    lo_renderable = NEW #( ).
 
     cl_abap_unit_assert=>assert_equals( exp = abap_false
                                         act = zcl_abapgit_gui_utils=>is_event_handler( lo_renderable ) ).

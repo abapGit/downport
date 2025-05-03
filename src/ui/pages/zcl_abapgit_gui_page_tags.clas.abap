@@ -117,8 +117,8 @@ CLASS zcl_abapgit_gui_page_tags IMPLEMENTATION.
   METHOD constructor.
 
     super->constructor( ).
-    CREATE OBJECT mo_form_data.
-    CREATE OBJECT mo_validation_log.
+    mo_form_data = NEW #( ).
+    mo_validation_log = NEW #( ).
     mi_repo_online ?= ii_repo.
 
     " Get settings from DB
@@ -135,7 +135,7 @@ CLASS zcl_abapgit_gui_page_tags IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_tags.
 
-    CREATE OBJECT lo_component EXPORTING ii_repo = ii_repo.
+    lo_component = NEW #( ii_repo = ii_repo ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Create Tag'
@@ -227,7 +227,7 @@ CLASS zcl_abapgit_gui_page_tags IMPLEMENTATION.
 
     DATA li_user TYPE REF TO zif_abapgit_persist_user.
 
-    li_user = zcl_abapgit_persistence_user=>get_instance( ).
+    li_user = zcl_abapgit_persist_factory=>get_user( ).
 
     rv_email = li_user->get_repo_git_user_email( mi_repo_online->get_url( ) ).
     IF rv_email IS INITIAL.
@@ -245,7 +245,7 @@ CLASS zcl_abapgit_gui_page_tags IMPLEMENTATION.
 
     DATA li_user TYPE REF TO zif_abapgit_persist_user.
 
-    li_user = zcl_abapgit_persistence_user=>get_instance( ).
+    li_user = zcl_abapgit_persist_factory=>get_user( ).
 
     rv_user  = li_user->get_repo_git_user_name( mi_repo_online->get_url( ) ).
     IF rv_user IS INITIAL.
@@ -386,7 +386,7 @@ CLASS zcl_abapgit_gui_page_tags IMPLEMENTATION.
 
     register_handlers( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( `<div class="repo">` ).
 
