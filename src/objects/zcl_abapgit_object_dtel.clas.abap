@@ -17,6 +17,12 @@ CLASS zcl_abapgit_object_dtel DEFINITION PUBLIC INHERITING FROM zcl_abapgit_obje
     TYPES:
       ty_dd04_texts TYPE STANDARD TABLE OF ty_dd04_text .
 
+    " Fields that are not part of dd04v
+    TYPES:
+      BEGIN OF ty_extra,
+        abap_language_version TYPE uccheck,
+      END OF ty_extra.
+
     CONSTANTS c_longtext_id_dtel TYPE dokil-id VALUE 'DE' ##NO_TEXT.
     CONSTANTS c_longtext_id_dtel_suppl TYPE dokil-id VALUE 'DZ' ##NO_TEXT.
 
@@ -40,10 +46,9 @@ CLASS zcl_abapgit_object_dtel IMPLEMENTATION.
 
   METHOD deserialize_texts.
 
-    TYPES temp1 TYPE TABLE OF langu.
-DATA: lv_name       TYPE ddobjname,
+    DATA: lv_name       TYPE ddobjname,
           ls_dd04v_tmp  TYPE dd04v,
-          lt_i18n_langs TYPE temp1,
+          lt_i18n_langs TYPE TABLE OF langu,
           lt_dd04_texts TYPE ty_dd04_texts.
 
     FIELD-SYMBOLS: <lv_lang>      LIKE LINE OF lt_i18n_langs,
@@ -93,12 +98,11 @@ DATA: lv_name       TYPE ddobjname,
 
   METHOD serialize_texts.
 
-    TYPES temp2 TYPE TABLE OF langu.
-DATA: lv_name            TYPE ddobjname,
+    DATA: lv_name            TYPE ddobjname,
           lv_index           TYPE i,
           ls_dd04v           TYPE dd04v,
           lt_dd04_texts      TYPE ty_dd04_texts,
-          lt_i18n_langs      TYPE temp2,
+          lt_i18n_langs      TYPE TABLE OF langu,
           lt_language_filter TYPE zif_abapgit_environment=>ty_system_language_filter.
 
     FIELD-SYMBOLS: <lv_lang>      LIKE LINE OF lt_i18n_langs,
@@ -184,8 +188,8 @@ DATA: lv_name            TYPE ddobjname,
   METHOD zif_abapgit_object~deserialize.
 
     DATA: ls_dd04v TYPE dd04v,
+          ls_extra TYPE ty_extra,
           lv_name  TYPE ddobjname.
-
 
     io_xml->read( EXPORTING iv_name = 'DD04V'
                   CHANGING cg_data = ls_dd04v ).
@@ -209,6 +213,17 @@ DATA: lv_name            TYPE ddobjname,
     IF sy-subrc <> 0.
       zcx_abapgit_exception=>raise_t100( ).
     ENDIF.
+
+    " Fields that are not part of dd04v
+    io_xml->read( EXPORTING iv_name = 'DD04L_EXTRA'
+                  CHANGING  cg_data = ls_extra ).
+
+    TRY.
+        set_abap_language_version( CHANGING cv_abap_language_version = ls_extra-abap_language_version ).
+
+        UPDATE ('DD04L') SET abap_language_version = ls_extra-abap_language_version WHERE rollname = lv_name.
+      CATCH cx_sy_dynamic_osql_semantics ##NO_HANDLER.
+    ENDTRY.
 
     IF mo_i18n_params->is_lxe_applicable( ) = abap_false.
       deserialize_texts(
@@ -246,9 +261,7 @@ DATA: lv_name            TYPE ddobjname,
       SELECT SINGLE rollname FROM dd04l INTO lv_rollname
         WHERE rollname = lv_rollname.
     ENDIF.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -304,6 +317,7 @@ DATA: lv_name            TYPE ddobjname,
 * done directly from here
 
     DATA: lv_name  TYPE ddobjname,
+          ls_extra TYPE ty_extra,
           ls_dd04v TYPE dd04v.
 
     lv_name = ms_item-obj_name.
@@ -351,6 +365,11 @@ DATA: lv_name            TYPE ddobjname,
 
     io_xml->add( iv_name = 'DD04V'
                  ig_data = ls_dd04v ).
+
+    ls_extra-abap_language_version = get_abap_language_version( ).
+
+    io_xml->add( iv_name = 'DD04L_EXTRA'
+                 ig_data = ls_extra ).
 
     IF mo_i18n_params->is_lxe_applicable( ) = abap_false.
       serialize_texts( io_xml ).

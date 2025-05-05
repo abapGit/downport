@@ -10,6 +10,13 @@ CLASS zcl_abapgit_object_enqu DEFINITION
   PROTECTED SECTION.
   PRIVATE SECTION.
     TYPES: ty_dd27p TYPE STANDARD TABLE OF dd27p WITH DEFAULT KEY.
+
+    " Fields that are not part of dd25v
+    TYPES:
+      BEGIN OF ty_extra,
+        abap_language_version TYPE uccheck,
+      END OF ty_extra.
+
     METHODS _clear_dd27p_fields CHANGING ct_dd27p TYPE ty_dd27p.
 
 ENDCLASS.
@@ -46,12 +53,11 @@ CLASS zcl_abapgit_object_enqu IMPLEMENTATION.
 
   METHOD zif_abapgit_object~deserialize.
 
-    TYPES temp1 TYPE TABLE OF dd26e.
-DATA: lv_name  TYPE ddobjname,
+    DATA: lv_name  TYPE ddobjname,
           ls_dd25v TYPE dd25v,
-          lt_dd26e TYPE temp1,
+          ls_extra TYPE ty_extra,
+          lt_dd26e TYPE TABLE OF dd26e,
           lt_dd27p TYPE ty_dd27p.
-
 
     io_xml->read( EXPORTING iv_name = 'DD25V'
                   CHANGING cg_data = ls_dd25v ).
@@ -83,6 +89,17 @@ DATA: lv_name  TYPE ddobjname,
       zcx_abapgit_exception=>raise_t100( ).
     ENDIF.
 
+    " Fields that are not part of dd25v
+    io_xml->read( EXPORTING iv_name = 'DD25L_EXTRA'
+                  CHANGING  cg_data = ls_extra ).
+
+    TRY.
+        set_abap_language_version( CHANGING cv_abap_language_version = ls_extra-abap_language_version ).
+
+        UPDATE ('DD25L') SET abap_language_version = ls_extra-abap_language_version WHERE viewname = lv_name.
+      CATCH cx_sy_dynamic_osql_semantics ##NO_HANDLER.
+    ENDTRY.
+
     zcl_abapgit_objects_activation=>add_item( ms_item ).
 
   ENDMETHOD.
@@ -94,9 +111,7 @@ DATA: lv_name  TYPE ddobjname,
 
     SELECT SINGLE viewname FROM dd25l INTO lv_viewname
       WHERE viewname = ms_item-obj_name.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -150,11 +165,11 @@ DATA: lv_name  TYPE ddobjname,
 
   METHOD zif_abapgit_object~serialize.
 
-    TYPES temp2 TYPE TABLE OF dd26e.
-DATA: lv_name  TYPE ddobjname,
+    DATA: lv_name  TYPE ddobjname,
           lv_state TYPE ddgotstate,
           ls_dd25v TYPE dd25v,
-          lt_dd26e TYPE temp2,
+          ls_extra TYPE ty_extra,
+          lt_dd26e TYPE TABLE OF dd26e,
           lt_dd27p TYPE ty_dd27p.
 
     lv_name = ms_item-obj_name.
@@ -195,6 +210,11 @@ DATA: lv_name  TYPE ddobjname,
                  iv_name = 'DD26E_TABLE' ).
     io_xml->add( ig_data = lt_dd27p
                  iv_name = 'DD27P_TABLE' ).
+
+    ls_extra-abap_language_version = get_abap_language_version( ).
+
+    io_xml->add( iv_name = 'DD25L_EXTRA'
+                 ig_data = ls_extra ).
 
   ENDMETHOD.
 
