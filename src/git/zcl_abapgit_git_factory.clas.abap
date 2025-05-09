@@ -25,14 +25,14 @@ ENDCLASS.
 CLASS zcl_abapgit_git_factory IMPLEMENTATION.
 
   METHOD get_v2_porcelain.
-    ri_v2 = NEW zcl_abapgit_gitv2_porcelain( ).
+    CREATE OBJECT ri_v2 TYPE zcl_abapgit_gitv2_porcelain.
   ENDMETHOD.
 
 
   METHOD get_git_transport.
 
     IF gi_git_transport IS INITIAL.
-      gi_git_transport = NEW zcl_abapgit_git_transport( ).
+      CREATE OBJECT gi_git_transport TYPE zcl_abapgit_git_transport.
     ENDIF.
 
     ri_git_transport = gi_git_transport.
