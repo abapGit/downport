@@ -389,9 +389,7 @@ CLASS zcl_abapgit_object_scp1 IMPLEMENTATION.
         profid = lv_profid
       IMPORTING
         rc     = lv_rc.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( lv_rc = 0 ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( lv_rc = 0 ).
 
   ENDMETHOD.
 
@@ -408,6 +406,7 @@ CLASS zcl_abapgit_object_scp1 IMPLEMENTATION.
 
   METHOD zif_abapgit_object~get_deserialize_steps.
     APPEND zif_abapgit_object=>gc_step_id-late TO rt_steps.
+    APPEND zif_abapgit_object=>gc_step_id-lxe TO rt_steps.
   ENDMETHOD.
 
 

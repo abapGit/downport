@@ -135,8 +135,8 @@ CLASS zcl_abapgit_gui_page_commit IMPLEMENTATION.
     " Get settings from DB
     mo_settings = zcl_abapgit_persist_factory=>get_settings( )->read( ).
 
-    CREATE OBJECT mo_validation_log.
-    CREATE OBJECT mo_form_data.
+    mo_validation_log = NEW #( ).
+    mo_form_data = NEW #( ).
     mo_form = get_form_schema( ).
     mo_form_util = zcl_abapgit_html_form_utils=>create( mo_form ).
 
@@ -147,9 +147,9 @@ CLASS zcl_abapgit_gui_page_commit IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_commit.
 
-    CREATE OBJECT lo_component EXPORTING ii_repo_online = ii_repo_online
-                                         io_stage = io_stage
-                                         iv_sci_result = iv_sci_result.
+    lo_component = NEW #( ii_repo_online = ii_repo_online
+                          io_stage = io_stage
+                          iv_sci_result = iv_sci_result ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Commit'
@@ -251,9 +251,9 @@ CLASS zcl_abapgit_gui_page_commit IMPLEMENTATION.
 
     li_user = zcl_abapgit_persist_factory=>get_user( ).
 
-    rv_user  = li_user->get_repo_git_user_name( mi_repo_online->get_url( ) ).
+    rv_user = li_user->get_repo_git_user_name( mi_repo_online->get_url( ) ).
     IF rv_user IS INITIAL.
-      rv_user  = li_user->get_default_git_user_name( ).
+      rv_user = li_user->get_default_git_user_name( ).
     ENDIF.
     IF rv_user IS INITIAL.
       " get default from user record
@@ -265,9 +265,19 @@ CLASS zcl_abapgit_gui_page_commit IMPLEMENTATION.
 
   METHOD get_defaults.
 
+    DATA li_exit TYPE REF TO zif_abapgit_exit.
+
     ms_commit-committer_name  = get_committer_name( ).
     ms_commit-committer_email = get_committer_email( ).
     ms_commit-comment         = get_comment_default( ).
+
+    li_exit = zcl_abapgit_exit=>get_instance( ).
+    li_exit->change_committer_info(
+      EXPORTING
+        iv_repo_url = mi_repo_online->get_url( )
+      CHANGING
+        cv_name     = ms_commit-committer_name
+        cv_email    = ms_commit-committer_email ).
 
     " Committer
     mo_form_data->set(
@@ -351,7 +361,7 @@ CLASS zcl_abapgit_gui_page_commit IMPLEMENTATION.
 
     FIELD-SYMBOLS <ls_stage> LIKE LINE OF mt_stage.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<table class="stage_tab">' ).
     ri_html->add( '<thead>' ).
@@ -394,7 +404,7 @@ CLASS zcl_abapgit_gui_page_commit IMPLEMENTATION.
 
     FIELD-SYMBOLS <ls_stage> LIKE LINE OF mt_stage.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     LOOP AT mt_stage ASSIGNING <ls_stage>.
       ls_sum-method = <ls_stage>-method.
@@ -522,7 +532,7 @@ CLASS zcl_abapgit_gui_page_commit IMPLEMENTATION.
       get_defaults( ).
     ENDIF.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div class="repo">' ).
     ri_html->add( '<div id="top" class="paddings">' ).
