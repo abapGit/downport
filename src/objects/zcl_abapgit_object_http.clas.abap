@@ -98,14 +98,12 @@ CLASS zcl_abapgit_object_http IMPLEMENTATION.
 
   METHOD zif_abapgit_object~deserialize.
 
-    TYPES temp1 TYPE TABLE OF ty_handler.
-DATA: lv_http_servid       TYPE c LENGTH 30,
-          lt_handler           TYPE temp1,
+    DATA: lv_http_servid       TYPE c LENGTH 30,
+          lt_handler           TYPE TABLE OF ty_handler,
           ls_handler           LIKE LINE OF lt_handler,
           ls_description       TYPE ty_uconhttpservtext,
           lv_check_object_name TYPE c LENGTH 40,
           lx_root              TYPE REF TO cx_root,
-          lv_id                TYPE c LENGTH 30,
           lo_http              TYPE REF TO object,
           ls_abap_lang         TYPE ty_gs_object_version,
           lo_instance          TYPE REF TO object,
@@ -130,8 +128,8 @@ DATA: lv_http_servid       TYPE c LENGTH 30,
           CATCH cx_root.
         ENDTRY.
 
-        SELECT SINGLE id FROM ('UCONHTTPSERVHEAD') INTO lv_id WHERE id = lv_http_servid AND version = 'A'.
-        IF sy-subrc = 0.
+        SELECT COUNT(*) FROM ('UCONHTTPSERVHEAD') WHERE id = lv_http_servid.
+        IF sy-dbcnt > 0.
           "update
           CALL METHOD ('CL_UCON_API_FACTORY')=>('GET_HTTP_SERVICE')
             EXPORTING
@@ -187,6 +185,7 @@ DATA: lv_http_servid       TYPE c LENGTH 30,
         CALL METHOD lo_http->('IF_UCON_API_HTTP_SERVICE~SET_ICF_SERVICE')
           EXPORTING
             iv_icfservice = lv_icfnode.
+        CALL METHOD lo_http->('IF_UCON_API_HTTP_SERVICE~ACTIVATE').
         CALL METHOD lo_http->('IF_UCON_API_HTTP_SERVICE~SAVE')
           EXPORTING
             run_dark  = abap_true
@@ -203,12 +202,8 @@ DATA: lv_http_servid       TYPE c LENGTH 30,
 
   METHOD zif_abapgit_object~exists.
 
-    DATA lv_id TYPE c LENGTH 30.
-
-    SELECT SINGLE id FROM ('UCONHTTPSERVHEAD') INTO lv_id WHERE id = ms_item-obj_name AND version = 'A'.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_bool = temp1.
+    SELECT COUNT(*) FROM ('UCONHTTPSERVHEAD') WHERE id = ms_item-obj_name.
+    rv_bool = xsdbool( sy-dbcnt > 0 ).
 
   ENDMETHOD.
 
@@ -259,10 +254,9 @@ DATA: lv_http_servid       TYPE c LENGTH 30,
 
   METHOD zif_abapgit_object~serialize.
 
-    TYPES temp2 TYPE TABLE OF ty_uconservhttphandler.
-DATA: lv_http_srv_id TYPE c LENGTH 30,
+    DATA: lv_http_srv_id TYPE c LENGTH 30,
           lo_serv        TYPE REF TO object, "if_ucon_api_http_service
-          lt_handler     TYPE temp2,
+          lt_handler     TYPE TABLE OF ty_uconservhttphandler,
           ls_description TYPE ty_uconhttpservtext,
           lx_root        TYPE REF TO cx_root,
           lv_icfnode     TYPE ty_icf_node,
