@@ -85,12 +85,11 @@ CLASS zcl_abapgit_diff IMPLEMENTATION.
         len   TYPE i,
       END OF ty_diff_block.
 
-    TYPES temp1 TYPE STANDARD TABLE OF ty_diff_block WITH DEFAULT KEY.
-DATA:
+    DATA:
       lv_block_begin TYPE i,
       lv_block_end   TYPE i,
       ls_diff_block  TYPE ty_diff_block,
-      lt_diff_block  TYPE temp1.
+      lt_diff_block  TYPE STANDARD TABLE OF ty_diff_block WITH DEFAULT KEY.
 
     FIELD-SYMBOLS:
       <ls_diff>       LIKE LINE OF mt_diff,
@@ -173,11 +172,10 @@ DATA:
 
   METHOD compute_diff.
 
-    TYPES temp2 TYPE STANDARD TABLE OF rsedcresul WITH DEFAULT KEY.
-DATA:
+    DATA:
       lv_i     TYPE i,
       ls_diff  LIKE LINE OF rt_diff,
-      lt_delta TYPE temp2.
+      lt_delta TYPE STANDARD TABLE OF rsedcresul WITH DEFAULT KEY.
 
     FIELD-SYMBOLS:
       <ls_delta> LIKE LINE OF lt_delta.
@@ -316,8 +314,8 @@ DATA:
     APPEND '^\s*(DEFINE|ENHANCEMENT)\s' TO lt_regex.
 
     LOOP AT lt_regex INTO lv_regex.
-      CREATE OBJECT lo_regex EXPORTING pattern = lv_regex
-                                       ignore_case = abap_true.
+      lo_regex = NEW #( pattern = lv_regex
+                        ignore_case = abap_true ).
       APPEND lo_regex TO rt_regex_set.
     ENDLOOP.
 
@@ -542,9 +540,10 @@ DATA:
 
     " SAP function ignores lines that contain only whitespace so we compare directly
     " Also check if length differs and implicitly if one line has trailing space(s)
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( iv_old <> iv_new AND ( strlen( condense( iv_old ) ) = 0 OR strlen( condense( iv_new ) ) = 0 OR strlen( iv_old ) <> strlen( iv_new ) ) ).
-    rv_has_diff = temp1.
+    rv_has_diff = xsdbool( iv_old <> iv_new
+                   AND ( strlen( condense( iv_old ) ) = 0
+                      OR strlen( condense( iv_new ) ) = 0
+                      OR strlen( iv_old ) <> strlen( iv_new ) ) ).
 
   ENDMETHOD.
 
