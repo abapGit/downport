@@ -3,7 +3,8 @@ CLASS zcl_abapgit_diff DEFINITION
   CREATE PUBLIC.
 
   PUBLIC SECTION.
-    CONSTANTS c_starting_beacon TYPE i VALUE 1.
+
+    INTERFACES zif_abapgit_diff.
 
 * assumes data is UTF8 based with newlines
     METHODS constructor
@@ -15,42 +16,12 @@ CLASS zcl_abapgit_diff DEFINITION
         !iv_ignore_case        TYPE abap_bool DEFAULT abap_false
       RAISING
         zcx_abapgit_exception.
-    METHODS get
-      RETURNING
-        VALUE(rt_diff) TYPE zif_abapgit_definitions=>ty_diffs_tt.
-    METHODS stats
-      RETURNING
-        VALUE(rs_count) TYPE zif_abapgit_definitions=>ty_count.
-    METHODS set_patch_new
-      IMPORTING
-        !iv_line_new   TYPE i
-        !iv_patch_flag TYPE abap_bool
-      RAISING
-        zcx_abapgit_exception.
-    METHODS set_patch_old
-      IMPORTING
-        !iv_line_old   TYPE i
-        !iv_patch_flag TYPE abap_bool
-      RAISING
-        zcx_abapgit_exception.
-    METHODS get_beacons
-      RETURNING
-        VALUE(rt_beacons) TYPE zif_abapgit_definitions=>ty_string_tt.
-    METHODS is_line_patched
-      IMPORTING
-        iv_index          TYPE i
-      RETURNING
-        VALUE(rv_patched) TYPE abap_bool
-      RAISING
-        zcx_abapgit_exception.
-    METHODS set_patch_by_old_diff
-      IMPORTING
-        is_diff_old   TYPE zif_abapgit_definitions=>ty_diff
-        iv_patch_flag TYPE abap_bool.
 
   PROTECTED SECTION.
 
   PRIVATE SECTION.
+
+    CONSTANTS c_starting_beacon TYPE i VALUE 1.
 
     TYPES:
       ty_regexset_tt TYPE STANDARD TABLE OF REF TO cl_abap_regex WITH KEY table_line.
@@ -114,12 +85,11 @@ CLASS zcl_abapgit_diff IMPLEMENTATION.
         len   TYPE i,
       END OF ty_diff_block.
 
-    TYPES temp1 TYPE STANDARD TABLE OF ty_diff_block WITH DEFAULT KEY.
-DATA:
+    DATA:
       lv_block_begin TYPE i,
       lv_block_end   TYPE i,
       ls_diff_block  TYPE ty_diff_block,
-      lt_diff_block  TYPE temp1.
+      lt_diff_block  TYPE STANDARD TABLE OF ty_diff_block WITH DEFAULT KEY.
 
     FIELD-SYMBOLS:
       <ls_diff>       LIKE LINE OF mt_diff,
@@ -202,11 +172,10 @@ DATA:
 
   METHOD compute_diff.
 
-    TYPES temp2 TYPE STANDARD TABLE OF rsedcresul WITH DEFAULT KEY.
-DATA:
+    DATA:
       lv_i     TYPE i,
       ls_diff  LIKE LINE OF rt_diff,
-      lt_delta TYPE temp2.
+      lt_delta TYPE STANDARD TABLE OF rsedcresul WITH DEFAULT KEY.
 
     FIELD-SYMBOLS:
       <ls_delta> LIKE LINE OF lt_delta.
@@ -345,25 +314,25 @@ DATA:
     APPEND '^\s*(DEFINE|ENHANCEMENT)\s' TO lt_regex.
 
     LOOP AT lt_regex INTO lv_regex.
-      CREATE OBJECT lo_regex EXPORTING pattern = lv_regex
-                                       ignore_case = abap_true.
+      lo_regex = NEW #( pattern = lv_regex
+                        ignore_case = abap_true ).
       APPEND lo_regex TO rt_regex_set.
     ENDLOOP.
 
   ENDMETHOD.
 
 
-  METHOD get.
+  METHOD zif_abapgit_diff~get.
     rt_diff = mt_diff.
   ENDMETHOD.
 
 
-  METHOD get_beacons.
+  METHOD zif_abapgit_diff~get_beacons.
     rt_beacons = mt_beacons.
   ENDMETHOD.
 
 
-  METHOD is_line_patched.
+  METHOD zif_abapgit_diff~is_line_patched.
 
     FIELD-SYMBOLS: <ls_diff> TYPE zif_abapgit_definitions=>ty_diff.
 
@@ -436,7 +405,7 @@ DATA:
   ENDMETHOD.
 
 
-  METHOD set_patch_by_old_diff.
+  METHOD zif_abapgit_diff~set_patch_by_old_diff.
 
     FIELD-SYMBOLS: <ls_diff> TYPE zif_abapgit_definitions=>ty_diff.
 
@@ -455,7 +424,7 @@ DATA:
   ENDMETHOD.
 
 
-  METHOD set_patch_new.
+  METHOD zif_abapgit_diff~set_patch_new.
 
     FIELD-SYMBOLS: <ls_diff> TYPE zif_abapgit_definitions=>ty_diff.
 
@@ -471,7 +440,7 @@ DATA:
   ENDMETHOD.
 
 
-  METHOD set_patch_old.
+  METHOD zif_abapgit_diff~set_patch_old.
 
     FIELD-SYMBOLS: <ls_diff> TYPE zif_abapgit_definitions=>ty_diff.
 
@@ -525,7 +494,7 @@ DATA:
   ENDMETHOD.
 
 
-  METHOD stats.
+  METHOD zif_abapgit_diff~stats.
     rs_count = ms_stats.
   ENDMETHOD.
 
@@ -571,9 +540,10 @@ DATA:
 
     " SAP function ignores lines that contain only whitespace so we compare directly
     " Also check if length differs and implicitly if one line has trailing space(s)
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( iv_old <> iv_new AND ( strlen( condense( iv_old ) ) = 0 OR strlen( condense( iv_new ) ) = 0 OR strlen( iv_old ) <> strlen( iv_new ) ) ).
-    rv_has_diff = temp1.
+    rv_has_diff = xsdbool( iv_old <> iv_new
+                   AND ( strlen( condense( iv_old ) ) = 0
+                      OR strlen( condense( iv_new ) ) = 0
+                      OR strlen( iv_old ) <> strlen( iv_new ) ) ).
 
   ENDMETHOD.
 
