@@ -2,7 +2,7 @@ CLASS zcl_abapgit_flow_logic DEFINITION PUBLIC.
   PUBLIC SECTION.
     CLASS-METHODS get_information
       RETURNING
-        VALUE(rt_features) TYPE zif_abapgit_gui_page_flow=>ty_features
+        VALUE(rt_features) TYPE zif_abapgit_flow_logic=>ty_features
       RAISING
         zcx_abapgit_exception.
   PRIVATE SECTION.
@@ -22,11 +22,11 @@ CLASS zcl_abapgit_flow_logic DEFINITION PUBLIC.
       IMPORTING
         ii_repo        TYPE REF TO zif_abapgit_repo
       RETURNING
-        VALUE(rs_data) TYPE zif_abapgit_gui_page_flow=>ty_feature-repo.
+        VALUE(rs_data) TYPE zif_abapgit_flow_logic=>ty_feature-repo.
 
     CLASS-METHODS map_files_to_objects
       IMPORTING
-        it_files                  TYPE zif_abapgit_gui_page_flow=>ty_path_name_tt
+        it_files                  TYPE zif_abapgit_flow_logic=>ty_path_name_tt
         ii_repo                   TYPE REF TO zif_abapgit_repo
       RETURNING
         VALUE(rt_changed_objects) TYPE zif_abapgit_definitions=>ty_items_ts
@@ -40,7 +40,7 @@ CLASS zcl_abapgit_flow_logic DEFINITION PUBLIC.
       EXPORTING
         et_main_expanded TYPE zif_abapgit_git_definitions=>ty_expanded_tt
       CHANGING
-        ct_features      TYPE zif_abapgit_gui_page_flow=>ty_features
+        ct_features      TYPE zif_abapgit_flow_logic=>ty_features
       RAISING
         zcx_abapgit_exception.
 
@@ -49,7 +49,7 @@ CLASS zcl_abapgit_flow_logic DEFINITION PUBLIC.
         ii_repo          TYPE REF TO zif_abapgit_repo
         it_main_expanded TYPE zif_abapgit_git_definitions=>ty_expanded_tt
       CHANGING
-        ct_features      TYPE zif_abapgit_gui_page_flow=>ty_features
+        ct_features      TYPE zif_abapgit_flow_logic=>ty_features
         ct_transports    TYPE ty_transports_tt
       RAISING
         zcx_abapgit_exception.
@@ -61,7 +61,7 @@ CLASS zcl_abapgit_flow_logic DEFINITION PUBLIC.
         it_transports    TYPE ty_transports_tt
         it_main_expanded TYPE zif_abapgit_git_definitions=>ty_expanded_tt
       CHANGING
-        cs_feature       TYPE zif_abapgit_gui_page_flow=>ty_feature
+        cs_feature       TYPE zif_abapgit_flow_logic=>ty_feature
       RAISING
         zcx_abapgit_exception.
 
@@ -70,7 +70,7 @@ CLASS zcl_abapgit_flow_logic DEFINITION PUBLIC.
         iv_url      TYPE string
         it_branches TYPE zif_abapgit_git_definitions=>ty_git_branch_list_tt
       CHANGING
-        ct_features TYPE zif_abapgit_gui_page_flow=>ty_features
+        ct_features TYPE zif_abapgit_flow_logic=>ty_features
       RAISING
         zcx_abapgit_exception.
 
@@ -78,7 +78,7 @@ CLASS zcl_abapgit_flow_logic DEFINITION PUBLIC.
       IMPORTING
         iv_url      TYPE string
       CHANGING
-        ct_features TYPE zif_abapgit_gui_page_flow=>ty_features
+        ct_features TYPE zif_abapgit_flow_logic=>ty_features
       RAISING
         zcx_abapgit_exception.
 
@@ -86,7 +86,7 @@ CLASS zcl_abapgit_flow_logic DEFINITION PUBLIC.
       IMPORTING
         ii_repo     TYPE REF TO zif_abapgit_repo
       CHANGING
-        ct_features TYPE zif_abapgit_gui_page_flow=>ty_features
+        ct_features TYPE zif_abapgit_flow_logic=>ty_features
       RAISING
         zcx_abapgit_exception.
 
@@ -101,7 +101,7 @@ CLASS zcl_abapgit_flow_logic DEFINITION PUBLIC.
         it_expanded1    TYPE zif_abapgit_git_definitions=>ty_expanded_tt
         it_expanded2    TYPE zif_abapgit_git_definitions=>ty_expanded_tt
       RETURNING
-        VALUE(rt_files) TYPE zif_abapgit_gui_page_flow=>ty_path_name_tt.
+        VALUE(rt_files) TYPE zif_abapgit_flow_logic=>ty_path_name_tt.
 ENDCLASS.
 
 CLASS zcl_abapgit_flow_logic IMPLEMENTATION.
@@ -334,7 +334,7 @@ CLASS zcl_abapgit_flow_logic IMPLEMENTATION.
       <ls_filter>-obj_name = <ls_transport>-obj_name.
     ENDLOOP.
 
-    CREATE OBJECT lo_filter EXPORTING it_filter = lt_filter.
+    lo_filter = NEW #( it_filter = lt_filter ).
     lt_local = ii_repo->get_files_local_filtered( lo_filter ).
     LOOP AT lt_local ASSIGNING <ls_local> WHERE file-filename <> zif_abapgit_definitions=>c_dot_abapgit.
       ls_changed_file-path       = <ls_local>-file-path.
@@ -419,7 +419,7 @@ CLASS zcl_abapgit_flow_logic IMPLEMENTATION.
       iv_url  = iv_url
       it_sha1 = lt_sha1 ).
 
-    CREATE OBJECT lo_visit.
+    lo_visit = NEW #( ).
     lo_visit->clear( )->push( ls_main-sha1 ).
     WHILE lo_visit->size( ) > 0.
       lv_current = lo_visit->pop( ).
@@ -523,7 +523,7 @@ CLASS zcl_abapgit_flow_logic IMPLEMENTATION.
 
     FIELD-SYMBOLS <ls_branch>       LIKE LINE OF ct_features.
     FIELD-SYMBOLS <ls_local>        LIKE LINE OF lt_local.
-    FIELD-SYMBOLS <ls_changed_file> TYPE zif_abapgit_gui_page_flow=>ty_path_name.
+    FIELD-SYMBOLS <ls_changed_file> TYPE zif_abapgit_flow_logic=>ty_path_name.
     FIELD-SYMBOLS <ls_filter>       LIKE LINE OF lt_filter.
     FIELD-SYMBOLS <ls_object>       LIKE LINE OF <ls_branch>-changed_objects.
 
@@ -542,7 +542,7 @@ CLASS zcl_abapgit_flow_logic IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    CREATE OBJECT lo_filter EXPORTING it_filter = lt_filter.
+    lo_filter = NEW #( it_filter = lt_filter ).
     lt_local = ii_repo->get_files_local_filtered( lo_filter ).
 
     LOOP AT ct_features ASSIGNING <ls_branch>.

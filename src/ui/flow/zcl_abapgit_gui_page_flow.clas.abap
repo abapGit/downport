@@ -27,7 +27,7 @@ CLASS zcl_abapgit_gui_page_flow DEFINITION
         pull    TYPE string VALUE 'pull',
         stage   TYPE string VALUE 'stage',
       END OF c_action .
-    DATA mt_features TYPE zif_abapgit_gui_page_flow=>ty_features .
+    DATA mt_features TYPE zif_abapgit_flow_logic=>ty_features .
 
     METHODS refresh
       RAISING
@@ -40,13 +40,13 @@ CLASS zcl_abapgit_gui_page_flow DEFINITION
         zcx_abapgit_exception .
     METHODS render_table
       IMPORTING
-        !is_feature    TYPE zif_abapgit_gui_page_flow=>ty_feature
+        !is_feature    TYPE zif_abapgit_flow_logic=>ty_feature
       RETURNING
         VALUE(ri_html) TYPE REF TO zif_abapgit_html .
     METHODS render_toolbar
       IMPORTING
         !iv_index      TYPE i
-        !is_feature    TYPE zif_abapgit_gui_page_flow=>ty_feature
+        !is_feature    TYPE zif_abapgit_flow_logic=>ty_feature
       RETURNING
         VALUE(ri_html) TYPE REF TO zif_abapgit_html .
 ENDCLASS.
@@ -66,7 +66,7 @@ CLASS zcl_abapgit_gui_page_flow IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_flow.
 
-    CREATE OBJECT lo_component.
+    lo_component = NEW #( ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title         = 'Flow'
@@ -100,7 +100,7 @@ CLASS zcl_abapgit_gui_page_flow IMPLEMENTATION.
     DATA lv_param     TYPE string.
 
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( |<table>| ).
     ri_html->add( |<tr><td><u>Filename</u></td><td><u>Remote</u></td><td><u>Local</u></td><td></td></tr>| ).
@@ -140,8 +140,8 @@ CLASS zcl_abapgit_gui_page_flow IMPLEMENTATION.
 
 * todo: crossout pull if write protected
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
-    CREATE OBJECT lo_toolbar EXPORTING iv_id = 'toolbar-flow'.
+    ri_html = NEW zcl_abapgit_html( ).
+    lo_toolbar = NEW #( iv_id = 'toolbar-flow' ).
 
     IF is_feature-full_match = abap_false.
       lv_extra = |?index={ iv_index }&key={ is_feature-repo-key }&branch={ is_feature-branch-display_name }|.
@@ -219,7 +219,7 @@ CLASS zcl_abapgit_gui_page_flow IMPLEMENTATION.
           <ls_filter>-object = <ls_object>-obj_type.
           <ls_filter>-obj_name = <ls_object>-obj_name.
         ENDLOOP.
-        CREATE OBJECT lo_filter EXPORTING it_filter = lt_filter.
+        lo_filter = NEW #( it_filter = lt_filter ).
 
         set_branch(
           iv_branch = lv_branch
@@ -247,7 +247,7 @@ CLASS zcl_abapgit_gui_page_flow IMPLEMENTATION.
           <ls_filter>-object = <ls_object>-obj_type.
           <ls_filter>-obj_name = <ls_object>-obj_name.
         ENDLOOP.
-        CREATE OBJECT lo_filter EXPORTING it_filter = lt_filter.
+        lo_filter = NEW #( it_filter = lt_filter ).
 
         set_branch(
           iv_branch = lv_branch
@@ -303,7 +303,7 @@ CLASS zcl_abapgit_gui_page_flow IMPLEMENTATION.
 
 
     register_handlers( ).
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
     ri_html->add( '<div class="repo-overview">' ).
 
     IF mt_features IS INITIAL.
