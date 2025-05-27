@@ -36,12 +36,16 @@ CLASS zcl_abapgit_feature IMPLEMENTATION.
     lv_features = zcl_abapgit_persist_factory=>get_settings( )->read( )->get_experimental_features( ).
     CONDENSE lv_features NO-GAPS.
 
-    rv_run = xsdbool( lv_features = abap_true ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( lv_features = abap_true ).
+    rv_run = temp1.
 
     IF iv_feature IS NOT INITIAL.
       SPLIT lv_features AT ',' INTO TABLE lt_features.
       READ TABLE lt_features TRANSPORTING NO FIELDS WITH TABLE KEY table_line = iv_feature.
-      rv_run = xsdbool( rv_run = abap_true OR sy-subrc = 0 ).
+      DATA temp2 TYPE xsdboolean.
+      temp2 = boolc( rv_run = abap_true OR sy-subrc = 0 ).
+      rv_run = temp2.
     ENDIF.
 
   ENDMETHOD.
