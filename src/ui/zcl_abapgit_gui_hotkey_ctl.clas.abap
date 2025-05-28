@@ -23,7 +23,7 @@ CLASS zcl_abapgit_gui_hotkey_ctl DEFINITION
 
     DATA:
       mt_hotkeys       TYPE zif_abapgit_gui_hotkeys=>ty_hotkeys_with_descr,
-      ms_user_settings TYPE zif_abapgit_definitions=>ty_s_user_settings,
+      ms_user_settings TYPE zif_abapgit_persist_user=>ty_s_user_settings,
       mv_visible       TYPE abap_bool.
     CLASS-DATA gv_hint_was_shown TYPE abap_bool .
 
@@ -68,7 +68,7 @@ CLASS zcl_abapgit_gui_hotkey_ctl IMPLEMENTATION.
 
     lv_json = lv_json && `}`.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
     ri_html->set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
     ri_html->add( |setKeyBindings({ lv_json });| ).
 
@@ -142,13 +142,13 @@ CLASS zcl_abapgit_gui_hotkey_ctl IMPLEMENTATION.
       lv_hint               TYPE string,
       lt_registered_hotkeys TYPE zif_abapgit_gui_hotkeys=>ty_hotkeys_with_descr,
       lv_hotkey             TYPE string,
-      ls_user_settings      TYPE zif_abapgit_definitions=>ty_s_user_settings.
+      ls_user_settings      TYPE zif_abapgit_persist_user=>ty_s_user_settings.
 
     FIELD-SYMBOLS <ls_hotkey> LIKE LINE OF lt_registered_hotkeys.
 
     register_handlers( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     lt_registered_hotkeys = zif_abapgit_gui_hotkey_ctl~get_registered_hotkeys( ).
     SORT lt_registered_hotkeys BY ui_component description.
