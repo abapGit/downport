@@ -481,7 +481,6 @@ CLASS zcl_abapgit_git_pack IMPLEMENTATION.
       lv_string = zcl_abapgit_convert=>xstring_to_string_utf8( lv_xstring ).
       SPLIT lv_string AT space INTO lv_chmod lv_name.
 
-      CLEAR ls_node.
       ls_node-chmod = lv_chmod.
       IF ls_node-chmod <> zif_abapgit_git_definitions=>c_chmod-dir
           AND ls_node-chmod <> zif_abapgit_git_definitions=>c_chmod-file
@@ -527,7 +526,7 @@ CLASS zcl_abapgit_git_pack IMPLEMENTATION.
     FIELD-SYMBOLS: <ls_object> LIKE LINE OF ct_objects.
 
 
-    CREATE OBJECT lo_stream EXPORTING iv_data = is_object-data.
+    lo_stream = NEW #( iv_data = is_object-data ).
 
 * find base
     READ TABLE ct_objects ASSIGNING <ls_object>
