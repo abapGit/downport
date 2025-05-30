@@ -95,6 +95,10 @@ CLASS ltcl_sap_package IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD zif_abapgit_sap_package~get_default_transport_layer. "##needed
+
+  ENDMETHOD.
+
 ENDCLASS.
 
 CLASS ltcl_resolve_packages DEFINITION FOR TESTING
@@ -181,7 +185,7 @@ CLASS ltcl_resolve_packages IMPLEMENTATION.
 
     DATA: lo_mock_sap_package TYPE REF TO ltcl_sap_package.
 
-    CREATE OBJECT lo_mock_sap_package EXPORTING iv_package = 'Z_MAIN'.
+    lo_mock_sap_package = NEW #( iv_package = 'Z_MAIN' ).
 
     lo_mock_sap_package->set_sub_packages( mt_sub_packages ).
 
