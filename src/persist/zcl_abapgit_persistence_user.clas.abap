@@ -37,6 +37,7 @@ CLASS zcl_abapgit_persistence_user DEFINITION
         settings         TYPE zif_abapgit_persist_user=>ty_s_user_settings,
         show_folders     TYPE abap_bool,
         list_settings    TYPE zif_abapgit_persist_user=>ty_list_settings,
+        flow_settings    TYPE zif_abapgit_persist_user=>ty_flow_settings,
       END OF ty_user .
 
     DATA mv_user TYPE sy-uname .
@@ -228,6 +229,10 @@ CLASS zcl_abapgit_persistence_user IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD zif_abapgit_persist_user~get_flow_settings.
+    rs_flow_settings = ms_user-flow_settings.
+  ENDMETHOD.
+
 
   METHOD zif_abapgit_persist_user~get_order_by.
     rv_order_by = ms_user-order_by.
@@ -308,9 +313,7 @@ CLASS zcl_abapgit_persistence_user IMPLEMENTATION.
     READ TABLE ms_user-favorites TRANSPORTING NO FIELDS
       WITH KEY table_line = iv_repo_key.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_yes = temp1.
+    rv_yes = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -340,6 +343,11 @@ CLASS zcl_abapgit_persistence_user IMPLEMENTATION.
 
   METHOD zif_abapgit_persist_user~set_list_settings.
     ms_user-list_settings = is_list_settings.
+    update( ).
+  ENDMETHOD.
+
+  METHOD zif_abapgit_persist_user~set_flow_settings.
+    ms_user-flow_settings = is_flow_settings.
     update( ).
   ENDMETHOD.
 
@@ -424,9 +432,7 @@ CLASS zcl_abapgit_persistence_user IMPLEMENTATION.
 
   METHOD zif_abapgit_persist_user~toggle_changes_only.
 
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( ms_user-changes_only = abap_false ).
-    ms_user-changes_only = temp2.
+    ms_user-changes_only = xsdbool( ms_user-changes_only = abap_false ).
     update( ).
 
     rv_changes_only = ms_user-changes_only.
@@ -436,9 +442,7 @@ CLASS zcl_abapgit_persistence_user IMPLEMENTATION.
 
   METHOD zif_abapgit_persist_user~toggle_diff_unified.
 
-    DATA temp3 TYPE xsdboolean.
-    temp3 = boolc( ms_user-diff_unified = abap_false ).
-    ms_user-diff_unified = temp3.
+    ms_user-diff_unified = xsdbool( ms_user-diff_unified = abap_false ).
     update( ).
 
     rv_diff_unified = ms_user-diff_unified.
@@ -464,9 +468,7 @@ CLASS zcl_abapgit_persistence_user IMPLEMENTATION.
 
   METHOD zif_abapgit_persist_user~toggle_hide_files.
 
-    DATA temp4 TYPE xsdboolean.
-    temp4 = boolc( ms_user-hide_files = abap_false ).
-    ms_user-hide_files = temp4.
+    ms_user-hide_files = xsdbool( ms_user-hide_files = abap_false ).
     update( ).
 
     rv_hide = ms_user-hide_files.
@@ -475,9 +477,7 @@ CLASS zcl_abapgit_persistence_user IMPLEMENTATION.
 
 
   METHOD zif_abapgit_persist_user~toggle_show_folders.
-    DATA temp5 TYPE xsdboolean.
-    temp5 = boolc( ms_user-show_folders = abap_false ).
-    ms_user-show_folders = temp5.
+    ms_user-show_folders = xsdbool( ms_user-show_folders = abap_false ).
     update( ).
 
     rv_folders = ms_user-show_folders.
