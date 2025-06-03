@@ -7,18 +7,10 @@ CLASS ltd_git_transport DEFINITION FINAL FOR TESTING.
 ENDCLASS.
 
 
-CLASS ltd_branch_list DEFINITION FINAL FOR TESTING INHERITING FROM zcl_abapgit_git_branch_list.
+CLASS ltd_branch_list DEFINITION FINAL FOR TESTING.
 
   PUBLIC SECTION.
-    METHODS:
-      constructor
-        IMPORTING
-          iv_data TYPE string
-        RAISING
-          zcx_abapgit_exception,
-
-      find_by_name REDEFINITION.
-
+    INTERFACES zif_abapgit_git_branch_list.
 ENDCLASS.
 
 
@@ -86,9 +78,7 @@ CLASS ltd_git_transport IMPLEMENTATION.
 
   METHOD zif_abapgit_git_transport~branches.
 
-    CONSTANTS: lc_dummy_data TYPE string VALUE '0000'.
-
-    CREATE OBJECT ro_branch_list TYPE ltd_branch_list EXPORTING iv_data = lc_dummy_data.
+    ri_branch_list = NEW ltd_branch_list( ).
 
   ENDMETHOD.
 
@@ -97,14 +87,7 @@ ENDCLASS.
 
 CLASS ltd_branch_list IMPLEMENTATION.
 
-  METHOD constructor.
-
-    super->constructor( iv_data ).
-
-  ENDMETHOD.
-
-
-  METHOD find_by_name.
+  METHOD zif_abapgit_git_branch_list~find_by_name.
 
     IF iv_branch_name CS 'feature'
     OR iv_branch_name CS 'inv_tag'
@@ -113,6 +96,19 @@ CLASS ltd_branch_list IMPLEMENTATION.
       RAISE EXCEPTION TYPE zcx_abapgit_exception.
     ENDIF.
 
+  ENDMETHOD.
+
+  METHOD zif_abapgit_git_branch_list~get_head_symref.
+    RETURN.
+  ENDMETHOD.
+  METHOD zif_abapgit_git_branch_list~get_all.
+    RETURN.
+  ENDMETHOD.
+  METHOD zif_abapgit_git_branch_list~get_branches_only.
+    RETURN.
+  ENDMETHOD.
+  METHOD zif_abapgit_git_branch_list~get_tags_only.
+    RETURN.
   ENDMETHOD.
 
 ENDCLASS.
@@ -256,7 +252,7 @@ CLASS ltcl_validate_form IMPLEMENTATION.
     DATA: ls_data TYPE zif_abapgit_persistence=>ty_repo.
     DATA: li_repo_online TYPE REF TO zif_abapgit_repo_online.
 
-    CREATE OBJECT mo_git_transport_mock TYPE ltd_git_transport.
+    mo_git_transport_mock = NEW ltd_git_transport( ).
     zcl_abapgit_git_injector=>set_git_transport( mo_git_transport_mock ).
 
     " Disable GUI
@@ -265,14 +261,14 @@ CLASS ltcl_validate_form IMPLEMENTATION.
     ls_data-key = 1.
     ls_data-branch_name = 'main'.
 
-    CREATE OBJECT li_repo_online TYPE ltd_repo_online.
+    li_repo_online = NEW ltd_repo_online( ).
 
-    CREATE OBJECT mo_given_form_data.
+    mo_given_form_data = NEW #( ).
     mo_given_form_data->set(
         iv_key = zcl_abapgit_gui_page_sett_remo=>c_id-branch
         iv_val = 'main' ).
 
-    CREATE OBJECT mo_cut EXPORTING ii_repo = li_repo_online.
+    mo_cut = NEW #( ii_repo = li_repo_online ).
 
   ENDMETHOD.
 

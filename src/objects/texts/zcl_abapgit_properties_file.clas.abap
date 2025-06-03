@@ -38,7 +38,7 @@ ENDCLASS.
 
 
 
-CLASS zcl_abapgit_properties_file IMPLEMENTATION.
+CLASS ZCL_ABAPGIT_PROPERTIES_FILE IMPLEMENTATION.
 
 
   METHOD constructor.
@@ -54,7 +54,7 @@ CLASS zcl_abapgit_properties_file IMPLEMENTATION.
       lo_json_path   TYPE REF TO zcl_abapgit_json_path,
       lx_exception   TYPE REF TO cx_static_check.
 
-    CREATE OBJECT lo_json_path.
+    lo_json_path = NEW #( ).
 
     TRY.
         lv_translation = lo_json_path->deserialize( mt_translation ).
@@ -94,6 +94,19 @@ CLASS zcl_abapgit_properties_file IMPLEMENTATION.
 
   METHOD zif_abapgit_i18n_file~lang.
     rv_lang = mv_lang.
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_i18n_file~lang_suffix.
+
+    DATA: lv_langu_sap1 TYPE sy-langu,
+          lv_langu_bcp47 TYPE string.
+
+    lv_langu_sap1 = zcl_abapgit_convert=>language_sap2_to_sap1( to_upper( mv_lang ) ).
+    lv_langu_bcp47 = zcl_abapgit_convert=>language_sap1_to_bcp47( lv_langu_sap1 ).
+
+    rv_lang_suffix = lv_langu_bcp47.
+
   ENDMETHOD.
 
 

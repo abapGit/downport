@@ -41,13 +41,13 @@ CLASS zcl_abapgit_popup_tag_list IMPLEMENTATION.
 
 
   METHOD create.
-    CREATE OBJECT ri_popup TYPE zcl_abapgit_popup_tag_list EXPORTING iv_url = iv_url.
+    ri_popup = NEW zcl_abapgit_popup_tag_list( iv_url = iv_url ).
   ENDMETHOD.
 
 
   METHOD fetch_tag_list.
 
-    DATA lo_branches  TYPE REF TO zcl_abapgit_git_branch_list.
+    DATA lo_branches  TYPE REF TO zif_abapgit_git_branch_list.
 
     lo_branches = zcl_abapgit_git_factory=>get_git_transport( )->branches( mv_repo_url ).
     rt_tags     = lo_branches->get_tags_only( ).
@@ -76,9 +76,9 @@ CLASS zcl_abapgit_popup_tag_list IMPLEMENTATION.
 
   METHOD zif_abapgit_html_popup~create_picklist.
 
-    CREATE OBJECT ro_picklist EXPORTING iv_title = 'Choose Tag'
-                                        it_list = fetch_tag_list( )
-                                        ii_item_renderer = me.
+    ro_picklist = NEW #( iv_title = 'Choose Tag'
+                         it_list = fetch_tag_list( )
+                         ii_item_renderer = me ).
 
   ENDMETHOD.
 ENDCLASS.

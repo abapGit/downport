@@ -167,7 +167,7 @@ CLASS zcl_abapgit_popups IMPLEMENTATION.
 
   METHOD zif_abapgit_popups~branch_list_popup.
 
-    DATA: lo_branches    TYPE REF TO zcl_abapgit_git_branch_list,
+    DATA: lo_branches    TYPE REF TO zif_abapgit_git_branch_list,
           lt_branches    TYPE zif_abapgit_git_definitions=>ty_git_branch_list_tt,
           lv_answer      TYPE c LENGTH 1,
           lv_default     TYPE i,
@@ -297,8 +297,8 @@ CLASS zcl_abapgit_popups IMPLEMENTATION.
       ENDIF.
       ASSERT <ls_branch> IS ASSIGNED.
       rs_branch = lo_branches->find_by_name( <ls_branch>-name ).
-      lv_text = |Branch switched from { zcl_abapgit_git_branch_list=>get_display_name( iv_default_branch ) } to {
-        zcl_abapgit_git_branch_list=>get_display_name( rs_branch-name ) } |.
+      lv_text = |Branch switched from { zcl_abapgit_git_branch_utils=>get_display_name( iv_default_branch ) } to {
+        zcl_abapgit_git_branch_utils=>get_display_name( rs_branch-name ) } |.
       MESSAGE lv_text TYPE 'S'.
     ENDIF.
 
@@ -412,12 +412,12 @@ CLASS zcl_abapgit_popups IMPLEMENTATION.
 
         _popup_3_get_values(
           EXPORTING iv_popup_title = |Create branch from {
-            zcl_abapgit_git_branch_list=>get_display_name( iv_source_branch_name ) }|
+            zcl_abapgit_git_branch_utils=>get_display_name( iv_source_branch_name ) }|
           IMPORTING ev_value_1     = lv_name
           CHANGING  ct_fields      = lt_fields ).
 
-        ev_name = zcl_abapgit_git_branch_list=>complete_heads_branch_name(
-              zcl_abapgit_git_branch_list=>normalize_branch_name( lv_name ) ).
+        ev_name = zcl_abapgit_git_branch_utils=>complete_heads_branch_name(
+              zcl_abapgit_git_branch_utils=>normalize_branch_name( lv_name ) ).
 
       CATCH zcx_abapgit_cancel.
         ev_cancel = abap_true.
@@ -652,16 +652,16 @@ CLASS zcl_abapgit_popups IMPLEMENTATION.
       iv_width  = iv_end_column - iv_start_column
       iv_height = iv_end_line - iv_start_line ).
 
-    CREATE OBJECT lo_popup EXPORTING it_list = it_list
-                                     iv_title = iv_title
-                                     iv_header_text = iv_header_text
-                                     is_position = ms_position
-                                     iv_striped_pattern = iv_striped_pattern
-                                     iv_optimize_col_width = iv_optimize_col_width
-                                     iv_selection_mode = iv_selection_mode
-                                     iv_select_column_text = iv_select_column_text
-                                     it_columns_to_display = it_columns_to_display
-                                     it_preselected_rows = it_preselected_rows.
+    lo_popup = NEW #( it_list = it_list
+                      iv_title = iv_title
+                      iv_header_text = iv_header_text
+                      is_position = ms_position
+                      iv_striped_pattern = iv_striped_pattern
+                      iv_optimize_col_width = iv_optimize_col_width
+                      iv_selection_mode = iv_selection_mode
+                      iv_select_column_text = iv_select_column_text
+                      it_columns_to_display = it_columns_to_display
+                      it_preselected_rows = it_preselected_rows ).
 
     lo_popup->display( ).
     lo_popup->get_selected( IMPORTING et_list = et_list ).
@@ -812,7 +812,7 @@ CLASS zcl_abapgit_popups IMPLEMENTATION.
 
   METHOD zif_abapgit_popups~tag_list_popup.
 
-    DATA: lo_branches  TYPE REF TO zcl_abapgit_git_branch_list,
+    DATA: lo_branches  TYPE REF TO zif_abapgit_git_branch_list,
           lt_tags      TYPE zif_abapgit_git_definitions=>ty_git_branch_list_tt,
           ls_branch    TYPE zif_abapgit_git_definitions=>ty_git_branch,
           lv_answer    TYPE c LENGTH 1,

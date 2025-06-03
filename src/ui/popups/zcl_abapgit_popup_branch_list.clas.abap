@@ -50,15 +50,15 @@ CLASS zcl_abapgit_popup_branch_list IMPLEMENTATION.
 
 
   METHOD create.
-    CREATE OBJECT ri_popup TYPE zcl_abapgit_popup_branch_list EXPORTING iv_url = iv_url
-                                                                        iv_default_branch = iv_default_branch
-                                                                        iv_show_new_option = iv_show_new_option.
+    ri_popup = NEW zcl_abapgit_popup_branch_list( iv_url = iv_url
+                                                  iv_default_branch = iv_default_branch
+                                                  iv_show_new_option = iv_show_new_option ).
   ENDMETHOD.
 
 
   METHOD fetch_branch_list.
 
-    DATA lo_branches    TYPE REF TO zcl_abapgit_git_branch_list.
+    DATA lo_branches    TYPE REF TO zif_abapgit_git_branch_list.
     DATA lv_head_symref TYPE string.
 
     FIELD-SYMBOLS <ls_branch> LIKE LINE OF rt_branches.
@@ -111,9 +111,9 @@ CLASS zcl_abapgit_popup_branch_list IMPLEMENTATION.
 
   METHOD zif_abapgit_html_popup~create_picklist.
 
-    CREATE OBJECT ro_picklist EXPORTING iv_title = 'Choose Branch'
-                                        it_list = fetch_branch_list( )
-                                        ii_item_renderer = me.
+    ro_picklist = NEW #( iv_title = 'Choose Branch'
+                         it_list = fetch_branch_list( )
+                         ii_item_renderer = me ).
 
   ENDMETHOD.
 ENDCLASS.

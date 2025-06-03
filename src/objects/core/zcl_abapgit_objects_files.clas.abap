@@ -133,7 +133,7 @@ ENDCLASS.
 
 
 
-CLASS zcl_abapgit_objects_files IMPLEMENTATION.
+CLASS ZCL_ABAPGIT_OBJECTS_FILES IMPLEMENTATION.
 
 
   METHOD add.
@@ -175,7 +175,7 @@ CLASS zcl_abapgit_objects_files IMPLEMENTATION.
     ls_file-path     = '/'.
     ls_file-filename = zcl_abapgit_filename_logic=>object_to_i18n_file(
       is_item  = ms_item
-      iv_lang  = ii_i18n_file->lang( )
+      iv_lang_suffix = ii_i18n_file->lang_suffix( )
       iv_ext   = ii_i18n_file->ext( ) ).
 
     APPEND ls_file TO mt_files.
@@ -325,8 +325,8 @@ CLASS zcl_abapgit_objects_files IMPLEMENTATION.
 
 
   METHOD new.
-    CREATE OBJECT ro_files EXPORTING is_item = is_item
-                                     iv_path = iv_path.
+    ro_files = NEW #( is_item = is_item
+                      iv_path = iv_path ).
   ENDMETHOD.
 
 
@@ -402,6 +402,9 @@ CLASS zcl_abapgit_objects_files IMPLEMENTATION.
 
     LOOP AT mt_files ASSIGNING <ls_file>.
 
+      CHECK find( val = <ls_file>-filename
+                  sub = '.i18n.' ) > 0. " Only i18n files are relevant
+
       zcl_abapgit_filename_logic=>i18n_file_to_object(
         EXPORTING
           iv_path     = <ls_file>-path
@@ -412,11 +415,11 @@ CLASS zcl_abapgit_objects_files IMPLEMENTATION.
 
       CASE lv_ext.
         WHEN 'po'.
-          CREATE OBJECT lo_po EXPORTING iv_lang = lv_lang.
+          lo_po = NEW #( iv_lang = lv_lang ).
           lo_po->parse( <ls_file>-data ).
           APPEND lo_po TO rt_i18n_files.
         WHEN 'properties'.
-          CREATE OBJECT lo_properties EXPORTING iv_lang = lv_lang.
+          lo_properties = NEW #( iv_lang = lv_lang ).
           lo_properties->parse( <ls_file>-data ).
           APPEND lo_properties TO rt_i18n_files.
         WHEN OTHERS.
@@ -479,8 +482,8 @@ CLASS zcl_abapgit_objects_files IMPLEMENTATION.
 
     lv_xml = zcl_abapgit_convert=>xstring_to_string_utf8( lv_data ).
 
-    CREATE OBJECT ri_xml TYPE zcl_abapgit_xml_input EXPORTING iv_xml = lv_xml
-                                                              iv_filename = lv_filename.
+    ri_xml = NEW zcl_abapgit_xml_input( iv_xml = lv_xml
+                                        iv_filename = lv_filename ).
 
   ENDMETHOD.
 

@@ -43,12 +43,12 @@ CLASS zcl_abapgit_transport_2_branch IMPLEMENTATION.
       ls_stage_objects   TYPE zif_abapgit_definitions=>ty_stage_files,
       lt_object_statuses TYPE zif_abapgit_definitions=>ty_results_tt.
 
-    lv_branch_name = zcl_abapgit_git_branch_list=>complete_heads_branch_name(
-        zcl_abapgit_git_branch_list=>normalize_branch_name( is_transport_to_branch-branch_name ) ).
+    lv_branch_name = zcl_abapgit_git_branch_utils=>complete_heads_branch_name(
+        zcl_abapgit_git_branch_utils=>normalize_branch_name( is_transport_to_branch-branch_name ) ).
 
     ii_repo_online->create_branch( lv_branch_name ).
 
-    CREATE OBJECT lo_stage.
+    lo_stage = NEW #( ).
 
     ls_stage_objects = zcl_abapgit_stage_logic=>get_stage_logic( )->get( ii_repo_online ).
 
@@ -76,7 +76,7 @@ CLASS zcl_abapgit_transport_2_branch IMPLEMENTATION.
 
   METHOD stage_transport_objects.
     DATA lo_transport_objects TYPE REF TO zcl_abapgit_transport_objects.
-    CREATE OBJECT lo_transport_objects EXPORTING it_transport_objects = it_transport_objects.
+    lo_transport_objects = NEW #( it_transport_objects = it_transport_objects ).
 
     lo_transport_objects->to_stage(
       io_stage           = io_stage

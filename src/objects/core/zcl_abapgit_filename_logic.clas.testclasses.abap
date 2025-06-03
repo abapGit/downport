@@ -12,7 +12,7 @@ CLASS lcl_memory_settings IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD zif_abapgit_persist_settings~read.
-    CREATE OBJECT ro_settings.
+    ro_settings = NEW #( ).
   ENDMETHOD.
 ENDCLASS.
 
@@ -46,7 +46,7 @@ CLASS ltcl_run_checks IMPLEMENTATION.
     " Assume for unit tests that starting folder is /src/ with prefix logic
     mo_dot = zcl_abapgit_dot_abapgit=>build_default( ).
 
-    CREATE OBJECT li_memory.
+    li_memory = NEW #( ).
     zcl_abapgit_persist_injector=>set_settings( li_memory ).
 
   ENDMETHOD.
@@ -471,7 +471,7 @@ CLASS ltcl_run_checks IMPLEMENTATION.
     " PO file
     lv_filename = zcl_abapgit_filename_logic=>object_to_i18n_file(
       is_item = ls_item
-      iv_lang = 'de'
+      iv_lang_suffix = 'de'
       iv_ext  = 'po' ).
 
     cl_abap_unit_assert=>assert_equals(
@@ -481,11 +481,11 @@ CLASS ltcl_run_checks IMPLEMENTATION.
     " Properties files
     lv_filename = zcl_abapgit_filename_logic=>object_to_i18n_file(
       is_item = ls_item
-      iv_lang = 'en'
+      iv_lang_suffix = 'en-GB'
       iv_ext  = 'properties' ).
 
     cl_abap_unit_assert=>assert_equals(
-      exp = 'zprogram.prog.i18n.en.properties'
+      exp = 'zprogram.prog.i18n.en-GB.properties'
       act = lv_filename ).
 
   ENDMETHOD.
@@ -501,7 +501,7 @@ CLASS ltcl_run_checks IMPLEMENTATION.
     " Properties files
     lv_filename = zcl_abapgit_filename_logic=>object_to_i18n_file(
       is_item = ls_item
-      iv_lang = '6N'
+      iv_lang_suffix = 'en-GB'
       iv_ext  = 'properties' ).
 
     cl_abap_unit_assert=>assert_equals(
