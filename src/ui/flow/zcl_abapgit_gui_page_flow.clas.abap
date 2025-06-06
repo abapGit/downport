@@ -158,7 +158,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_FLOW IMPLEMENTATION.
     APPEND INITIAL LINE TO lt_filter ASSIGNING <ls_filter>.
     <ls_filter>-object = ls_item-obj_type.
     <ls_filter>-obj_name = ls_item-obj_name.
-    lo_filter = NEW #( it_filter = lt_filter ).
+    CREATE OBJECT lo_filter EXPORTING it_filter = lt_filter.
 
     lt_files_item = li_repo_online->zif_abapgit_repo~get_files_local_filtered( lo_filter ).
     READ TABLE lt_files_item INTO ls_file_item WITH KEY file-path = ls_file-path
@@ -215,7 +215,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_FLOW IMPLEMENTATION.
       <ls_filter>-object = <ls_object>-obj_type.
       <ls_filter>-obj_name = <ls_object>-obj_name.
     ENDLOOP.
-    lo_filter = NEW #( it_filter = lt_filter ).
+    CREATE OBJECT lo_filter EXPORTING it_filter = lt_filter.
 
     set_branch(
           iv_branch = lv_branch
@@ -259,7 +259,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_FLOW IMPLEMENTATION.
       <ls_filter>-object = <ls_object>-obj_type.
       <ls_filter>-obj_name = <ls_object>-obj_name.
     ENDLOOP.
-    lo_filter = NEW #( it_filter = lt_filter ).
+    CREATE OBJECT lo_filter EXPORTING it_filter = lt_filter.
 
     set_branch(
       iv_branch = lv_branch
@@ -287,7 +287,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_FLOW IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_flow.
 
-    lo_component = NEW #( ).
+    CREATE OBJECT lo_component.
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title         = 'Flow'
@@ -321,7 +321,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_FLOW IMPLEMENTATION.
     DATA lv_param     TYPE string.
 
 
-    ri_html = NEW zcl_abapgit_html( ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
 
     ri_html->add( |<table>| ).
     ri_html->add( |<tr><td><u>Filename</u></td><td><u>Remote</u></td><td><u>Local</u></td><td></td></tr>| ).
@@ -368,8 +368,8 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_FLOW IMPLEMENTATION.
     DATA lv_opt     TYPE c LENGTH 1.
 
 
-    ri_html = NEW zcl_abapgit_html( ).
-    lo_toolbar = NEW #( iv_id = 'toolbar-flow' ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    CREATE OBJECT lo_toolbar EXPORTING iv_id = 'toolbar-flow'.
 
     li_repo ?= zcl_abapgit_repo_srv=>get_instance( )->get( is_feature-repo-key ).
     IF li_repo->get_local_settings( )-write_protected = abap_true.
@@ -421,15 +421,21 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_FLOW IMPLEMENTATION.
 
     CASE ii_event->mv_action.
       WHEN c_action-only_my_transports.
-        ms_user_settings-only_my_transports = xsdbool( ms_user_settings-only_my_transports <> abap_true ).
+        DATA temp1 TYPE xsdboolean.
+        temp1 = boolc( ms_user_settings-only_my_transports <> abap_true ).
+        ms_user_settings-only_my_transports = temp1.
         zcl_abapgit_persist_factory=>get_user( )->set_flow_settings( ms_user_settings ).
         rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
       WHEN c_action-hide_full_matches.
-        ms_user_settings-hide_full_matches = xsdbool( ms_user_settings-hide_full_matches <> abap_true ).
+        DATA temp2 TYPE xsdboolean.
+        temp2 = boolc( ms_user_settings-hide_full_matches <> abap_true ).
+        ms_user_settings-hide_full_matches = temp2.
         zcl_abapgit_persist_factory=>get_user( )->set_flow_settings( ms_user_settings ).
         rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
       WHEN c_action-hide_matching_files.
-        ms_user_settings-hide_matching_files = xsdbool( ms_user_settings-hide_matching_files <> abap_true ).
+        DATA temp3 TYPE xsdboolean.
+        temp3 = boolc( ms_user_settings-hide_matching_files <> abap_true ).
+        ms_user_settings-hide_matching_files = temp3.
         zcl_abapgit_persist_factory=>get_user( )->set_flow_settings( ms_user_settings ).
         rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
       WHEN c_action-refresh.
@@ -484,7 +490,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_FLOW IMPLEMENTATION.
 
     DATA lv_icon_class TYPE string.
 
-    ri_html = NEW zcl_abapgit_html( ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
     ri_html->add( '<span class="toolbar-light pad-sides">' ).
 
     IF ms_user_settings-only_my_transports = abap_true.
@@ -533,7 +539,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_FLOW IMPLEMENTATION.
     lo_timer = zcl_abapgit_timer=>create( )->start( ).
 
     register_handlers( ).
-    ri_html = NEW zcl_abapgit_html( ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
     ri_html->add( '<div class="repo-overview">' ).
 
     IF mt_features IS INITIAL.
