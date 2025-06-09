@@ -67,7 +67,7 @@ CLASS lcl_selected IMPLEMENTATION.
 
     check_selected( lo_files ).
 
-    CREATE OBJECT ro_stage.
+    ro_stage = NEW #( ).
 
     LOOP AT lo_files->mt_entries ASSIGNING <ls_item>
       "Ignore Files that we don't want to stage, so any errors don't stop the staging process
@@ -145,7 +145,7 @@ CLASS lcl_selected IMPLEMENTATION.
       ls_file-filename = to_lower( ls_file-filename ).
 
       " Skip packages since they all have identical filenames
-      IF ls_file-filename <> 'package.devc.xml'.
+      IF NOT ls_file-filename CP 'package.devc.*'.
         lv_pattern = '*/' && to_upper( ls_file-filename ).
         REPLACE ALL OCCURRENCES OF '#' IN lv_pattern WITH '##'. " for CP
 
@@ -166,7 +166,7 @@ CLASS lcl_selected IMPLEMENTATION.
   METHOD get_instance.
 
     IF gi_instance IS INITIAL.
-      CREATE OBJECT gi_instance TYPE lcl_selected.
+      gi_instance = NEW lcl_selected( ).
     ENDIF.
 
     ro_instance = gi_instance.
