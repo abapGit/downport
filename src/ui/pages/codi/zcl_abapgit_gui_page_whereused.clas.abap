@@ -36,6 +36,7 @@ CLASS zcl_abapgit_gui_page_whereused DEFINITION
       BEGIN OF c_action,
         refresh TYPE string VALUE 'refresh',
         show_used_obj TYPE string VALUE 'show_used_obj',
+        show_root_pkg TYPE string VALUE 'show_root_pkg',
       END OF c_action.
 
     CONSTANTS c_title TYPE string VALUE 'Where Used'.
@@ -43,6 +44,7 @@ CLASS zcl_abapgit_gui_page_whereused DEFINITION
     DATA mv_ignore_subpackages TYPE abap_bool.
     DATA mi_table TYPE REF TO zcl_abapgit_html_table.
     DATA mv_show_used_obj TYPE abap_bool.
+    DATA mv_show_root_pkg TYPE abap_bool.
     DATA mt_where_used TYPE zcl_abapgit_where_used_tools=>ty_dependency_tt.
 
     METHODS init_table_component
@@ -65,7 +67,7 @@ ENDCLASS.
 
 
 
-CLASS zcl_abapgit_gui_page_whereused IMPLEMENTATION.
+CLASS ZCL_ABAPGIT_GUI_PAGE_WHEREUSED IMPLEMENTATION.
 
 
   METHOD constructor.
@@ -90,8 +92,8 @@ CLASS zcl_abapgit_gui_page_whereused IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_whereused.
 
-    CREATE OBJECT lo_component EXPORTING ii_repo = ii_repo
-                                         iv_package = iv_package.
+    lo_component = NEW #( ii_repo = ii_repo
+                          iv_package = iv_package ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create( lo_component ).
 
@@ -101,13 +103,21 @@ CLASS zcl_abapgit_gui_page_whereused IMPLEMENTATION.
   METHOD init_table_component.
 
     DATA ls_sorting_state TYPE zif_abapgit_html_table=>ty_sorting_state.
+    DATA lv_package_col_id TYPE string.
+    DATA lv_package_col_title TYPE string.
 
     IF mi_table IS BOUND.
       RETURN.
     ENDIF.
 
-    IF ls_sorting_state-column_id IS INITIAL.
+    IF mv_show_root_pkg = abap_true.
+      ls_sorting_state-column_id = 'root_package'.
+      lv_package_col_id          = 'root_package'.
+      lv_package_col_title       = 'Root package'.
+    ELSE.
       ls_sorting_state-column_id = 'package'.
+      lv_package_col_id          = 'package'.
+      lv_package_col_title       = 'Package'.
     ENDIF.
 
     mi_table = zcl_abapgit_html_table=>create(
@@ -129,8 +139,8 @@ CLASS zcl_abapgit_gui_page_whereused IMPLEMENTATION.
         iv_group_title = 'Used in'
         iv_group_id    = 'where' " Needed for CSS
       )->define_column(
-        iv_column_id    = 'package'
-        iv_column_title = 'Package'
+        iv_column_id    = lv_package_col_id
+        iv_column_title = lv_package_col_title
       )->define_column(
         iv_column_id    = 'obj_type'
         iv_column_title = 'Type'
@@ -196,9 +206,11 @@ CLASS zcl_abapgit_gui_page_whereused IMPLEMENTATION.
         run_where_used( ).
         rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
       WHEN c_action-show_used_obj.
-        DATA temp1 TYPE xsdboolean.
-        temp1 = boolc( mv_show_used_obj = abap_false ).
-        mv_show_used_obj = temp1.
+        mv_show_used_obj = xsdbool( mv_show_used_obj = abap_false ).
+        rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
+      WHEN c_action-show_root_pkg.
+        mv_show_root_pkg = xsdbool( mv_show_root_pkg = abap_false ).
+        CLEAR mi_table. " To reinit structure
         rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
     ENDCASE.
 
@@ -213,6 +225,7 @@ CLASS zcl_abapgit_gui_page_whereused IMPLEMENTATION.
   METHOD zif_abapgit_gui_menu_provider~get_menu.
 
     DATA lv_show_used_txt TYPE string.
+    DATA lv_show_root_txt TYPE string.
 
     IF mv_show_used_obj = abap_true.
       lv_show_used_txt = 'Hide Used Type'.
@@ -220,7 +233,18 @@ CLASS zcl_abapgit_gui_page_whereused IMPLEMENTATION.
       lv_show_used_txt = 'Show Used Type'.
     ENDIF.
 
+    IF mv_show_root_pkg = abap_true.
+      lv_show_root_txt = 'Show parent package'.
+    ELSE.
+      lv_show_root_txt = 'Show root package'.
+    ENDIF.
+
     ro_toolbar = zcl_abapgit_html_toolbar=>create( 'toolbar-where-used'
+      )->add(
+        iv_txt    = lv_show_root_txt
+        iv_title  = 'Show root package or direct parent package'
+        iv_act    = c_action-show_root_pkg
+        iv_hotkey = 'p'
       )->add(
         iv_txt    = lv_show_used_txt
         iv_title  = 'Show/Hide used type or object (when available)'
