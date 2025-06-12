@@ -139,7 +139,9 @@ CLASS zcl_abapgit_services_repo IMPLEMENTATION.
 
     li_repo = zcl_abapgit_repo_srv=>get_instance( )->get( iv_key ).
 
-    CREATE OBJECT lo_browser EXPORTING ii_repo = li_repo.
+    CREATE OBJECT lo_browser
+      EXPORTING
+        ii_repo = li_repo.
 
     lt_repo_items = lo_browser->list( '/' ).
 

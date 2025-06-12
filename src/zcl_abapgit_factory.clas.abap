@@ -146,7 +146,9 @@ CLASS zcl_abapgit_factory IMPLEMENTATION.
     IF sy-subrc <> 0.
 
       ls_sap_package-package = iv_package.
-      CREATE OBJECT ls_sap_package-instance TYPE zcl_abapgit_sap_package EXPORTING iv_package = iv_package.
+      CREATE OBJECT ls_sap_package-instance TYPE zcl_abapgit_sap_package
+        EXPORTING
+          iv_package = iv_package.
 
       INSERT ls_sap_package
              INTO TABLE gt_sap_package

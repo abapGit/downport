@@ -411,7 +411,9 @@ CLASS lcl_repo IMPLEMENTATION.
   METHOD zif_abapgit_repo~get_dot_abapgit.
     DATA ls_data TYPE zif_abapgit_dot_abapgit=>ty_dot_abapgit.
     ls_data-starting_folder = '/'.
-    CREATE OBJECT ro_dot_abapgit EXPORTING is_data = ls_data.
+    CREATE OBJECT ro_dot_abapgit
+      EXPORTING
+        is_data = ls_data.
   ENDMETHOD.
   METHOD zif_abapgit_repo~set_dot_abapgit.
     RETURN.

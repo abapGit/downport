@@ -562,11 +562,9 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_REPO_VIEW IMPLEMENTATION.
       iv_chk = mv_changes_only
       iv_act = c_actions-toggle_changes ).
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( NOT mv_hide_files = abap_true ).
     ro_toolbar->add(
       iv_txt = 'File Paths'
-      iv_chk = temp1
+      iv_chk = boolc( NOT mv_hide_files = abap_true )
       iv_act = c_actions-toggle_hide_files ).
 
     ro_toolbar->add(
@@ -647,7 +645,9 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_REPO_VIEW IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_repo_view.
 
-    CREATE OBJECT lo_component EXPORTING iv_key = iv_key.
+    CREATE OBJECT lo_component
+      EXPORTING
+        iv_key = iv_key.
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title         = 'Repository'
@@ -672,8 +672,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_REPO_VIEW IMPLEMENTATION.
 
   METHOD get_item_class.
 
-    TYPES temp1 TYPE TABLE OF string.
-DATA lt_class TYPE temp1.
+    DATA lt_class TYPE TABLE OF string.
 
     IF iv_is_object_row = abap_true.
       APPEND 'object_row' TO lt_class.
@@ -698,9 +697,7 @@ DATA lt_class TYPE temp1.
 
 
   METHOD is_repo_lang_logon_lang.
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( mi_repo->get_dot_abapgit( )->get_main_language( ) = sy-langu ).
-    rv_repo_lang_is_logon_lang = temp2.
+    rv_repo_lang_is_logon_lang = boolc( mi_repo->get_dot_abapgit( )->get_main_language( ) = sy-langu ).
   ENDMETHOD.
 
 
@@ -1302,7 +1299,9 @@ DATA lt_class TYPE temp1.
           is_repo_meta = mi_repo->ms_data
           ii_html      = ri_html ).
 
-        CREATE OBJECT lo_browser EXPORTING ii_repo = mi_repo.
+        CREATE OBJECT lo_browser
+          EXPORTING
+            ii_repo = mi_repo.
 
         lt_repo_items = lo_browser->list( iv_path         = mv_cur_dir
                                           iv_by_folders   = mv_show_folders

@@ -72,8 +72,10 @@ CLASS zcl_abapgit_pr_enumerator IMPLEMENTATION.
         val = lv_repo
         regex = '\.git$'
         with = '' ).
-      CREATE OBJECT ri_provider TYPE zcl_abapgit_pr_enum_github EXPORTING iv_user_and_repo = |{ lv_user }/{ lv_repo }|
-                                                                          ii_http_agent = li_agent.
+      CREATE OBJECT ri_provider TYPE zcl_abapgit_pr_enum_github
+        EXPORTING
+          iv_user_and_repo = |{ lv_user }/{ lv_repo }|
+          ii_http_agent    = li_agent.
     ENDIF.
 
 * used in integration testing, see /test/ folder
@@ -81,8 +83,10 @@ CLASS zcl_abapgit_pr_enumerator IMPLEMENTATION.
       IN iv_repo_url
       SUBMATCHES lv_user lv_repo.
     IF sy-subrc = 0.
-      CREATE OBJECT ri_provider TYPE zcl_abapgit_pr_enum_gitea EXPORTING iv_user_and_repo = |{ lv_user }/{ lv_repo }|
-                                                                         ii_http_agent = li_agent.
+      CREATE OBJECT ri_provider TYPE zcl_abapgit_pr_enum_gitea
+        EXPORTING
+          iv_user_and_repo = |{ lv_user }/{ lv_repo }|
+          ii_http_agent    = li_agent.
     ENDIF.
 
     " TODO somewhen more providers

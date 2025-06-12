@@ -78,8 +78,10 @@ CLASS ltcl_po_file IMPLEMENTATION.
 
     FIELD-SYMBOLS <ls_p> LIKE LINE OF lt_lxe_pairs.
 
-    CREATE OBJECT lo_po EXPORTING iv_lang = 'xx'
-                                  iv_suppress_comments = abap_true.
+    CREATE OBJECT lo_po
+      EXPORTING
+        iv_lang = 'xx'
+        iv_suppress_comments = abap_true.
 
     APPEND INITIAL LINE TO lt_lxe_pairs ASSIGNING <ls_p>.
     <ls_p>-textkey = 'K1'.

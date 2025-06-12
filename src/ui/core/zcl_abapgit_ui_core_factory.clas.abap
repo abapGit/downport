@@ -25,8 +25,10 @@ CLASS zcl_abapgit_ui_core_factory IMPLEMENTATION.
   METHOD get_html_viewer.
 
     IF gi_html_viewer IS NOT BOUND.
-      CREATE OBJECT gi_html_viewer TYPE zcl_abapgit_html_viewer_gui EXPORTING io_container = io_container
-                                                                              iv_disable_query_table = iv_disable_query_table.
+      CREATE OBJECT gi_html_viewer TYPE zcl_abapgit_html_viewer_gui
+        EXPORTING
+          io_container           = io_container
+          iv_disable_query_table = iv_disable_query_table.
     ENDIF.
 
     ri_viewer = gi_html_viewer.

@@ -20,7 +20,9 @@ CLASS ltcl_test IMPLEMENTATION.
           lv_bytes     TYPE xstring.
 
 
-    CREATE OBJECT lo_stream EXPORTING iv_data = '112233445566'.
+    CREATE OBJECT lo_stream
+      EXPORTING
+        iv_data = '112233445566'.
 
     lv_bits = lo_stream->take_bits( 8 ).
 

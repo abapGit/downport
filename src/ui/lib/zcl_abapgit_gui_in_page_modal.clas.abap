@@ -49,9 +49,11 @@ CLASS zcl_abapgit_gui_in_page_modal IMPLEMENTATION.
 
 
   METHOD create.
-    CREATE OBJECT ro_wrap EXPORTING ii_child = ii_child
-                                    iv_width = iv_width
-                                    iv_height = iv_height.
+    CREATE OBJECT ro_wrap
+      EXPORTING
+        ii_child  = ii_child
+        iv_width  = iv_width
+        iv_height = iv_height.
   ENDMETHOD.
 
 

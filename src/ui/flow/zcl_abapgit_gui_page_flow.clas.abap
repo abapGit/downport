@@ -467,21 +467,15 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_FLOW IMPLEMENTATION.
 
     CASE ii_event->mv_action.
       WHEN c_action-only_my_transports.
-        DATA temp1 TYPE xsdboolean.
-        temp1 = boolc( ms_user_settings-only_my_transports <> abap_true ).
-        ms_user_settings-only_my_transports = temp1.
+        ms_user_settings-only_my_transports = boolc( ms_user_settings-only_my_transports <> abap_true ).
         zcl_abapgit_persist_factory=>get_user( )->set_flow_settings( ms_user_settings ).
         rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
       WHEN c_action-hide_full_matches.
-        DATA temp2 TYPE xsdboolean.
-        temp2 = boolc( ms_user_settings-hide_full_matches <> abap_true ).
-        ms_user_settings-hide_full_matches = temp2.
+        ms_user_settings-hide_full_matches = boolc( ms_user_settings-hide_full_matches <> abap_true ).
         zcl_abapgit_persist_factory=>get_user( )->set_flow_settings( ms_user_settings ).
         rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
       WHEN c_action-hide_matching_files.
-        DATA temp3 TYPE xsdboolean.
-        temp3 = boolc( ms_user_settings-hide_matching_files <> abap_true ).
-        ms_user_settings-hide_matching_files = temp3.
+        ms_user_settings-hide_matching_files = boolc( ms_user_settings-hide_matching_files <> abap_true ).
         zcl_abapgit_persist_factory=>get_user( )->set_flow_settings( ms_user_settings ).
         rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
       WHEN c_action-refresh.

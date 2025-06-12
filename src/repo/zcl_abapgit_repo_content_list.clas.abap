@@ -141,9 +141,7 @@ CLASS zcl_abapgit_repo_content_list IMPLEMENTATION.
 
       IF <ls_status>-filename IS NOT INITIAL.
         MOVE-CORRESPONDING <ls_status> TO ls_file.
-        DATA temp1 TYPE xsdboolean.
-        temp1 = boolc( <ls_status>-match = abap_false ).
-        ls_file-is_changed = temp1. " TODO refactor
+        ls_file-is_changed = boolc( <ls_status>-match = abap_false ). " TODO refactor
         APPEND ls_file TO <ls_repo_item>-files.
 
         IF <ls_status>-inactive = abap_true AND <ls_repo_item>-sortkey > c_sortkey-changed.
