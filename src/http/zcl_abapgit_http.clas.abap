@@ -118,11 +118,9 @@ CLASS zcl_abapgit_http IMPLEMENTATION.
       WHEN c_scheme-digest.
 * https://en.wikipedia.org/wiki/Digest_access_authentication
 * e.g. used by https://www.gerritcodereview.com/
-        CREATE OBJECT lo_digest
-          EXPORTING
-            ii_client   = ii_client
-            iv_username = lv_user
-            iv_password = lv_pass.
+        lo_digest = NEW #( ii_client = ii_client
+                           iv_username = lv_user
+                           iv_password = lv_pass ).
         lo_digest->run( ii_client ).
         io_client->set_digest( lo_digest ).
       WHEN OTHERS.
@@ -164,9 +162,7 @@ CLASS zcl_abapgit_http IMPLEMENTATION.
 
     li_client = get_http_client( iv_url ).
 
-    CREATE OBJECT ro_client
-      EXPORTING
-        ii_client = li_client.
+    ro_client = NEW #( ii_client = li_client ).
 
     IF is_local_system( iv_url ) = abap_true.
       li_client->send_sap_logon_ticket( ).
@@ -299,7 +295,7 @@ CLASS zcl_abapgit_http IMPLEMENTATION.
       lv_proxy_service       TYPE string,
       lo_proxy_configuration TYPE REF TO zcl_abapgit_proxy_config.
 
-    CREATE OBJECT lo_proxy_configuration.
+    lo_proxy_configuration = NEW #( ).
 
     ri_client = zcl_abapgit_exit=>get_instance( )->create_http_client( iv_url ).
 
@@ -372,7 +368,7 @@ CLASS zcl_abapgit_http IMPLEMENTATION.
     FIND REGEX 'https?://([^/^:]*)' IN iv_url SUBMATCHES lv_host.
 
     READ TABLE lt_list WITH KEY table_line = lv_host TRANSPORTING NO FIELDS.
-    rv_bool = boolc( sy-subrc = 0 ).
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 ENDCLASS.

@@ -82,7 +82,7 @@ CLASS zcl_abapgit_object_fdt0 IMPLEMENTATION.
         WHERE object_type = 'AP'
         AND id = lv_application_id
         AND deleted = ''.
-      ev_create = boolc( lv_count = 0 ).
+      ev_create = xsdbool( lv_count = 0 ).
     ENDIF.
 
     " Fill in user/time/system-specific fields
@@ -588,7 +588,7 @@ CLASS zcl_abapgit_object_fdt0 IMPLEMENTATION.
       AND name = ms_item-obj_name
       AND deleted = ''.
 
-    rv_bool = boolc( lv_count > 0 ).
+    rv_bool = xsdbool( lv_count > 0 ).
 
   ENDMETHOD.
 
@@ -640,7 +640,7 @@ CLASS zcl_abapgit_object_fdt0 IMPLEMENTATION.
     lv_index = lines( lt_version ).
     READ TABLE lt_version ASSIGNING <ls_version> INDEX lv_index.
 
-    rv_active = boolc( <ls_version>-state = 'A' ).
+    rv_active = xsdbool( <ls_version>-state = 'A' ).
 
   ENDMETHOD.
 

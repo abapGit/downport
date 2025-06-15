@@ -66,7 +66,7 @@ CLASS zcl_abapgit_object_sxsd IMPLEMENTATION.
 
 
   METHOD zif_abapgit_object~exists.
-    rv_bool = boolc( ms_badi_attr IS NOT INITIAL ).
+    rv_bool = xsdbool( ms_badi_attr IS NOT INITIAL ).
   ENDMETHOD.
 
 

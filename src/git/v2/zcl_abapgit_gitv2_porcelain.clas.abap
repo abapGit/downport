@@ -219,9 +219,7 @@ CLASS ZCL_ABAPGIT_GITV2_PORCELAIN IMPLEMENTATION.
     " add dummy packet so the v1 branch parsing can be reused
     lv_data = |0004\n{ zcl_abapgit_convert=>xstring_to_string_utf8( lv_xstring ) }|.
 
-    CREATE OBJECT ro_list TYPE zcl_abapgit_git_branch_list
-      EXPORTING
-        iv_data = lv_data.
+    ro_list = NEW zcl_abapgit_git_branch_list( iv_data = lv_data ).
 
   ENDMETHOD.
 

@@ -203,7 +203,7 @@ CLASS zcl_abapgit_object_http IMPLEMENTATION.
   METHOD zif_abapgit_object~exists.
 
     SELECT COUNT(*) FROM ('UCONHTTPSERVHEAD') WHERE id = ms_item-obj_name.
-    rv_bool = boolc( sy-dbcnt > 0 ).
+    rv_bool = xsdbool( sy-dbcnt > 0 ).
 
   ENDMETHOD.
 
