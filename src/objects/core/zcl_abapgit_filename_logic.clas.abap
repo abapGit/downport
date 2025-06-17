@@ -93,22 +93,22 @@ CLASS zcl_abapgit_filename_logic DEFINITION
 
     CLASS-METHODS map_filename_to_object
       IMPORTING
-        !iv_filename TYPE string
-        !iv_path     TYPE string
-        !iv_package  TYPE devclass
-        !io_dot      TYPE REF TO zcl_abapgit_dot_abapgit
+        !iv_item_part_of_filename TYPE string
+        !iv_path                  TYPE string
+        !iv_package               TYPE devclass
+        !io_dot                   TYPE REF TO zcl_abapgit_dot_abapgit
       CHANGING
-        cs_item      TYPE zif_abapgit_definitions=>ty_item
+        cs_item                   TYPE zif_abapgit_definitions=>ty_item
       RAISING
         zcx_abapgit_exception.
 
     CLASS-METHODS map_object_to_filename
       IMPORTING
-        !is_item    TYPE zif_abapgit_definitions=>ty_item
-        !iv_ext     TYPE string
-        !iv_extra   TYPE clike
+        !is_item                 TYPE zif_abapgit_definitions=>ty_item
+        !iv_ext                  TYPE string
+        !iv_extra                TYPE clike
       CHANGING
-        cv_filename TYPE string
+        cv_item_part_of_filename TYPE string
       RAISING
         zcx_abapgit_exception.
 
@@ -130,12 +130,8 @@ CLASS ZCL_ABAPGIT_FILENAME_LOGIC IMPLEMENTATION.
 
   METHOD detect_obj_definition.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( iv_ext = to_upper( c_package_file-extension ) AND strlen( iv_type ) = 4 ).
-    ev_is_xml  = temp1.
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( iv_ext = to_upper( c_json_file-extension ) AND strlen( iv_type ) = 4 ).
-    ev_is_json = temp2.
+    ev_is_xml  = xsdbool( iv_ext = to_upper( c_package_file-extension ) AND strlen( iv_type ) = 4 ).
+    ev_is_json = xsdbool( iv_ext = to_upper( c_json_file-extension ) AND strlen( iv_type ) = 4 ).
 
   ENDMETHOD.
 
@@ -148,7 +144,9 @@ CLASS ZCL_ABAPGIT_FILENAME_LOGIC IMPLEMENTATION.
       lv_ext  TYPE string.
 
     " Guess object type and name
-    SPLIT to_upper( iv_filename ) AT '.' INTO lv_name lv_type lv_ext.
+    SPLIT iv_filename AT '.' INTO lv_name lv_type lv_ext.
+    lv_type = to_upper( lv_type ).
+    lv_ext  = to_upper( lv_ext ).
 
     " Handle namespaces
     REPLACE ALL OCCURRENCES OF '#' IN lv_name WITH '/'.
@@ -157,7 +155,7 @@ CLASS ZCL_ABAPGIT_FILENAME_LOGIC IMPLEMENTATION.
 
     " Assume AFF namespace convention
     IF go_aff_registry IS INITIAL.
-      CREATE OBJECT go_aff_registry TYPE zcl_abapgit_aff_registry.
+      go_aff_registry = NEW zcl_abapgit_aff_registry( ).
     ENDIF.
 
     IF go_aff_registry->is_supported_object_type( |{ lv_type }| ) = abap_true.
@@ -170,12 +168,12 @@ CLASS ZCL_ABAPGIT_FILENAME_LOGIC IMPLEMENTATION.
 
     CLEAR es_item.
     es_item-obj_type = lv_type.
-    es_item-obj_name = lv_name.
+    es_item-obj_name = to_upper( lv_name ).
 
     " Get mapping specific to object type
     map_filename_to_object(
       EXPORTING
-        iv_filename = iv_filename
+        iv_item_part_of_filename = lv_name " original-cased object name part only
         iv_path     = iv_path
         io_dot      = io_dot
         iv_package  = iv_devclass
@@ -272,9 +270,7 @@ CLASS ZCL_ABAPGIT_FILENAME_LOGIC IMPLEMENTATION.
         ev_is_xml  = lv_xml
         ev_is_json = lv_json ).
 
-    DATA temp3 TYPE xsdboolean.
-    temp3 = boolc( lv_json = abap_true OR lv_xml = abap_true ).
-    rv_yes = temp3.
+    rv_yes = xsdbool( lv_json = abap_true OR lv_xml = abap_true ).
 
   ENDMETHOD.
 
@@ -293,7 +289,7 @@ CLASS ZCL_ABAPGIT_FILENAME_LOGIC IMPLEMENTATION.
 
         CALL METHOD (lv_class)=>('ZIF_ABAPGIT_OBJECT~MAP_FILENAME_TO_OBJECT')
           EXPORTING
-            iv_filename = iv_filename
+            iv_item_part_of_filename = iv_item_part_of_filename
             iv_path     = iv_path
             io_dot      = io_dot
             iv_package  = iv_package
@@ -331,7 +327,7 @@ CLASS ZCL_ABAPGIT_FILENAME_LOGIC IMPLEMENTATION.
             iv_ext      = iv_ext
             iv_extra    = iv_extra
           CHANGING
-            cv_filename = cv_filename.
+            cv_item_part_of_filename = cv_item_part_of_filename.
       CATCH cx_sy_dyn_call_illegal_class ##NO_HANDLER.
     ENDTRY.
 
@@ -381,7 +377,7 @@ CLASS ZCL_ABAPGIT_FILENAME_LOGIC IMPLEMENTATION.
             iv_ext      = iv_ext
             iv_extra    = iv_extra
           CHANGING
-            cv_filename = rv_filename ). " just the object name, not the full name with all the prefixes.
+            cv_item_part_of_filename = rv_filename ).
       CATCH zcx_abapgit_exception ##NO_HANDLER.
     ENDTRY.
 
@@ -396,7 +392,7 @@ CLASS ZCL_ABAPGIT_FILENAME_LOGIC IMPLEMENTATION.
     ENDIF.
 
     " Handle namespaces
-    CREATE OBJECT go_aff_registry TYPE zcl_abapgit_aff_registry.
+    go_aff_registry = NEW zcl_abapgit_aff_registry( ).
 
     IF go_aff_registry->is_supported_object_type( is_item-obj_type ) = abap_true.
       FIND ALL OCCURRENCES OF `/` IN rv_filename MATCH COUNT lv_nb_of_slash.
