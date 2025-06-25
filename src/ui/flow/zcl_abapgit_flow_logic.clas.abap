@@ -73,11 +73,11 @@ CLASS zcl_abapgit_flow_logic DEFINITION PUBLIC.
       RAISING
         zcx_abapgit_exception.
 
-    CLASS-METHODS warnings_from_transports
+    CLASS-METHODS errors_from_transports
       IMPORTING
-        it_transports TYPE ty_transports_tt
+        it_transports  TYPE ty_transports_tt
       CHANGING
-        ct_warnings   TYPE string_table.
+        cs_information TYPE zif_abapgit_flow_logic=>ty_information.
 
     CLASS-METHODS add_objects_and_files_from_tr
       IMPORTING
@@ -303,7 +303,7 @@ CLASS ZCL_ABAPGIT_FLOW_LOGIC IMPLEMENTATION.
       INSERT <ls_tadir> INTO TABLE lt_filter.
 
       IF lines( lt_filter ) >= 500.
-        CREATE OBJECT lo_filter EXPORTING it_filter = lt_filter.
+        lo_filter = NEW #( it_filter = lt_filter ).
         lt_local = li_repo->get_files_local_filtered( lo_filter ).
         CLEAR lt_filter.
         check_files(
@@ -320,7 +320,7 @@ CLASS ZCL_ABAPGIT_FLOW_LOGIC IMPLEMENTATION.
     ENDLOOP.
 
     IF lines( lt_filter ) > 0.
-      CREATE OBJECT lo_filter EXPORTING it_filter = lt_filter.
+      lo_filter = NEW #( it_filter = lt_filter ).
       lt_local = li_repo->get_files_local_filtered( lo_filter ).
       CLEAR lt_filter.
       check_files(
@@ -347,9 +347,7 @@ CLASS ZCL_ABAPGIT_FLOW_LOGIC IMPLEMENTATION.
 
     LOOP AT it_local ASSIGNING <ls_local> WHERE file-filename <> zif_abapgit_definitions=>c_dot_abapgit.
       READ TABLE it_main_expanded WITH KEY name = <ls_local>-file-filename ASSIGNING <ls_expanded>.
-      DATA temp1 TYPE xsdboolean.
-      temp1 = boolc( sy-subrc = 0 ).
-      lv_found_main = temp1.
+      lv_found_main = xsdbool( sy-subrc = 0 ).
 
       lv_found_branch = abap_false.
       LOOP AT it_features INTO ls_feature.
@@ -388,11 +386,18 @@ CLASS ZCL_ABAPGIT_FLOW_LOGIC IMPLEMENTATION.
     DATA ls_result   LIKE LINE OF rt_transports.
     DATA lt_objects  TYPE zif_abapgit_cts_api=>ty_transport_obj_tt.
     DATA lv_obj_name TYPE tadir-obj_name.
+    DATA lt_date     TYPE zif_abapgit_cts_api=>ty_date_range.
+    DATA ls_date     LIKE LINE OF lt_date.
 
     FIELD-SYMBOLS <ls_object> LIKE LINE OF lt_objects.
 
+* only look for transports that are created/changed in the last two years
+    ls_date-sign = 'I'.
+    ls_date-option = 'GE'.
+    ls_date-low = sy-datum - 730.
+    INSERT ls_date INTO TABLE lt_date.
 
-    lt_trkorr = zcl_abapgit_factory=>get_cts_api( )->list_open_requests( ).
+    lt_trkorr = zcl_abapgit_factory=>get_cts_api( )->list_open_requests( it_date = lt_date ).
 
     LOOP AT lt_trkorr INTO lv_trkorr.
       ls_result-trkorr = lv_trkorr.
@@ -458,8 +463,7 @@ CLASS ZCL_ABAPGIT_FLOW_LOGIC IMPLEMENTATION.
     DATA lo_visit   TYPE REF TO lcl_sha1_stack.
     DATA ls_raw     TYPE zcl_abapgit_git_pack=>ty_commit.
 
-    TYPES temp1 TYPE HASHED TABLE OF zif_abapgit_git_definitions=>ty_sha1 WITH UNIQUE KEY table_line.
-DATA lt_main_reachable TYPE temp1.
+    DATA lt_main_reachable TYPE HASHED TABLE OF zif_abapgit_git_definitions=>ty_sha1 WITH UNIQUE KEY table_line.
 
     FIELD-SYMBOLS <ls_branch> LIKE LINE OF ct_features.
     FIELD-SYMBOLS <ls_commit> LIKE LINE OF lt_commits.
@@ -481,7 +485,7 @@ DATA lt_main_reachable TYPE temp1.
       iv_url  = iv_url
       it_sha1 = lt_sha1 ).
 
-    CREATE OBJECT lo_visit.
+    lo_visit = NEW #( ).
     lo_visit->clear( )->push( ls_main-sha1 ).
     WHILE lo_visit->size( ) > 0.
       lv_current = lo_visit->pop( ).
@@ -541,10 +545,16 @@ DATA lt_main_reachable TYPE temp1.
     DATA lt_main_expanded       TYPE zif_abapgit_git_definitions=>ty_expanded_tt.
     DATA lt_local               TYPE zif_abapgit_definitions=>ty_files_item_tt.
 
-    FIELD-SYMBOLS <ls_feature> LIKE LINE OF lt_features.
+    FIELD-SYMBOLS <ls_feature>   LIKE LINE OF lt_features.
     FIELD-SYMBOLS <ls_path_name> LIKE LINE OF <ls_feature>-changed_files.
 
     lt_all_transports = find_open_transports( ).
+
+    errors_from_transports(
+      EXPORTING
+        it_transports  = lt_all_transports
+      CHANGING
+        cs_information = rs_information ).
 
 * list branches on favorite + flow enabled + transported repos
     lt_repos = list_repos( ).
@@ -580,12 +590,6 @@ DATA lt_main_reachable TYPE temp1.
         ii_repo                = li_repo_online
         it_features            = lt_features
         it_all_transports      = lt_all_transports ).
-
-      warnings_from_transports(
-        EXPORTING
-          it_transports = lt_all_transports
-        CHANGING
-          ct_warnings   = rs_information-warnings ).
 
       try_matching_transports(
         EXPORTING
@@ -732,7 +736,7 @@ DATA lt_main_reachable TYPE temp1.
     SORT lt_filter BY object obj_name.
     DELETE ADJACENT DUPLICATES FROM lt_filter COMPARING object obj_name.
 
-    CREATE OBJECT lo_filter EXPORTING it_filter = lt_filter.
+    lo_filter = NEW #( it_filter = lt_filter ).
     rt_local = ii_repo->get_files_local_filtered( lo_filter ).
 
   ENDMETHOD.
@@ -818,13 +822,14 @@ DATA lt_main_reachable TYPE temp1.
   ENDMETHOD.
 
 
-  METHOD warnings_from_transports.
+  METHOD errors_from_transports.
 
-    DATA lv_warning    TYPE string.
+    DATA lv_message    TYPE string.
     DATA lt_transports LIKE it_transports.
     DATA lv_index      TYPE i.
     DATA ls_next       LIKE LINE OF lt_transports.
     DATA ls_transport  LIKE LINE OF lt_transports.
+    DATA ls_duplicate  LIKE LINE OF cs_information-transport_duplicates.
 
     lt_transports = it_transports.
     SORT lt_transports BY object obj_name trkorr.
@@ -839,9 +844,14 @@ DATA lt_main_reachable TYPE temp1.
       IF ls_next-object = ls_transport-object
           AND ls_next-trkorr <> ls_transport-trkorr
           AND ls_next-obj_name = ls_transport-obj_name.
-        lv_warning = |Object <tt>{ ls_transport-object }</tt> <tt>{ ls_transport-obj_name
+        lv_message = |Object <tt>{ ls_transport-object }</tt> <tt>{ ls_transport-obj_name
           }</tt> is in multiple transports: <tt>{ ls_transport-trkorr }</tt> and <tt>{ ls_next-trkorr }</tt>|.
-        INSERT lv_warning INTO TABLE ct_warnings.
+        INSERT lv_message INTO TABLE cs_information-errors.
+
+        CLEAR ls_duplicate.
+        ls_duplicate-obj_type = ls_transport-object.
+        ls_duplicate-obj_name = ls_transport-obj_name.
+        INSERT ls_duplicate INTO TABLE cs_information-transport_duplicates.
       ENDIF.
     ENDLOOP.
 
