@@ -40,7 +40,7 @@ CLASS zcl_abapgit_repo_status IMPLEMENTATION.
         ii_obj_filter = ii_obj_filter ).
     ENDIF.
 
-    IF lines( lt_local ) <= 2.
+    IF lines( lt_local ) <= 2 AND ii_obj_filter IS INITIAL.
       " Less equal two means that we have only the .abapgit.xml and the package in
       " our local repository. In this case we have to update our local .abapgit.xml
       " from the remote one. Otherwise we get errors when e.g. the folder starting
@@ -70,8 +70,8 @@ CLASS zcl_abapgit_repo_status IMPLEMENTATION.
 
     IF ii_log IS BOUND.
       " This method just adds messages to the log. No log, nothing to do here
-      CREATE OBJECT lo_consistency_checks EXPORTING iv_root_package = ii_repo->get_package( )
-                                                    io_dot = ii_repo->get_dot_abapgit( ).
+      lo_consistency_checks = NEW #( iv_root_package = ii_repo->get_package( )
+                                     io_dot = ii_repo->get_dot_abapgit( ) ).
       ii_log->merge_with( lo_consistency_checks->run_checks( rt_results ) ).
     ENDIF.
 
