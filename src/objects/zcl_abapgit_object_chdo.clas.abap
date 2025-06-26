@@ -49,11 +49,9 @@ CLASS zcl_abapgit_object_chdo IMPLEMENTATION.
 
   METHOD after_import.
 
-    TYPES temp1 TYPE STANDARD TABLE OF e071 WITH DEFAULT KEY.
-TYPES temp2 TYPE STANDARD TABLE OF sprot_u WITH DEFAULT KEY.
-DATA: lt_cts_object_entry TYPE temp1,
+    DATA: lt_cts_object_entry TYPE STANDARD TABLE OF e071 WITH DEFAULT KEY,
           ls_cts_object_entry LIKE LINE OF lt_cts_object_entry,
-          lt_errormsg         TYPE temp2.
+          lt_errormsg         TYPE STANDARD TABLE OF sprot_u WITH DEFAULT KEY.
 
     ls_cts_object_entry-pgmid    = 'R3TR'.
     ls_cts_object_entry-object   = ms_item-obj_type.
@@ -94,91 +92,34 @@ DATA: lt_cts_object_entry TYPE temp1,
 
   METHOD delete_tadir_cdnames.
 
-    DATA: lv_obj_name TYPE sobj_name.
-
     IF is_cdnames-repnamec IS NOT INITIAL.
-      lv_obj_name = is_cdnames-repnamec.
-      CALL FUNCTION 'TR_TADIR_INTERFACE'
-        EXPORTING
-          wi_delete_tadir_entry    = abap_true
-          wi_tadir_pgmid           = 'R3TR'
-          wi_tadir_object          = 'PROG'
-          wi_tadir_obj_name        = lv_obj_name
-          wi_test_modus            = abap_false
-        EXCEPTIONS
-          tadir_entry_not_existing = 1
-          OTHERS                   = 2.
-      IF sy-subrc > 1.
-        zcx_abapgit_exception=>raise_t100( ).
-      ENDIF.
+      zcl_abapgit_factory=>get_tadir( )->delete_single(
+        iv_object    = 'PROG'
+        iv_obj_name  = is_cdnames-repnamec ).
     ENDIF.
 
     IF is_cdnames-repnamet IS NOT INITIAL.
-      lv_obj_name = is_cdnames-repnamet.
-      CALL FUNCTION 'TR_TADIR_INTERFACE'
-        EXPORTING
-          wi_delete_tadir_entry    = abap_true
-          wi_tadir_pgmid           = 'R3TR'
-          wi_tadir_object          = 'PROG'
-          wi_tadir_obj_name        = lv_obj_name
-          wi_test_modus            = abap_false
-        EXCEPTIONS
-          tadir_entry_not_existing = 1
-          OTHERS                   = 2.
-      IF sy-subrc > 1.
-        zcx_abapgit_exception=>raise_t100( ).
-      ENDIF.
+      zcl_abapgit_factory=>get_tadir( )->delete_single(
+        iv_object    = 'PROG'
+        iv_obj_name  = is_cdnames-repnamet ).
     ENDIF.
 
     IF is_cdnames-repnamefix IS NOT INITIAL.
-      lv_obj_name = is_cdnames-repnamefix.
-      CALL FUNCTION 'TR_TADIR_INTERFACE'
-        EXPORTING
-          wi_delete_tadir_entry    = abap_true
-          wi_tadir_pgmid           = 'R3TR'
-          wi_tadir_object          = 'PROG'
-          wi_tadir_obj_name        = lv_obj_name
-          wi_test_modus            = abap_false
-        EXCEPTIONS
-          tadir_entry_not_existing = 1
-          OTHERS                   = 2.
-      IF sy-subrc > 1.
-        zcx_abapgit_exception=>raise_t100( ).
-      ENDIF.
+      zcl_abapgit_factory=>get_tadir( )->delete_single(
+        iv_object    = 'PROG'
+        iv_obj_name  = is_cdnames-repnamefix ).
     ENDIF.
 
     IF is_cdnames-repnamevar IS NOT INITIAL.
-      lv_obj_name = is_cdnames-repnamevar.
-      CALL FUNCTION 'TR_TADIR_INTERFACE'
-        EXPORTING
-          wi_delete_tadir_entry    = abap_true
-          wi_tadir_pgmid           = 'R3TR'
-          wi_tadir_object          = 'PROG'
-          wi_tadir_obj_name        = lv_obj_name
-          wi_test_modus            = abap_false
-        EXCEPTIONS
-          tadir_entry_not_existing = 1
-          OTHERS                   = 2.
-      IF sy-subrc > 1.
-        zcx_abapgit_exception=>raise_t100( ).
-      ENDIF.
+      zcl_abapgit_factory=>get_tadir( )->delete_single(
+        iv_object    = 'PROG'
+        iv_obj_name  = is_cdnames-repnamevar ).
     ENDIF.
 
     IF is_cdnames-fgrp IS NOT INITIAL.
-      lv_obj_name = is_cdnames-fgrp.
-      CALL FUNCTION 'TR_TADIR_INTERFACE'
-        EXPORTING
-          wi_delete_tadir_entry    = abap_true
-          wi_tadir_pgmid           = 'R3TR'
-          wi_tadir_object          = 'FUGR'
-          wi_tadir_obj_name        = lv_obj_name
-          wi_test_modus            = abap_false
-        EXCEPTIONS
-          tadir_entry_not_existing = 1
-          OTHERS                   = 2.
-      IF sy-subrc > 1.
-        zcx_abapgit_exception=>raise_t100( ).
-      ENDIF.
+      zcl_abapgit_factory=>get_tadir( )->delete_single(
+        iv_object    = 'FUGR'
+        iv_obj_name  = is_cdnames-fgrp ).
     ENDIF.
 
   ENDMETHOD.
@@ -186,23 +127,10 @@ DATA: lt_cts_object_entry TYPE temp1,
 
   METHOD delete_tadir_tabl.
 
-    DATA: lv_obj_name TYPE sobj_name.
-
     IF is_tcdrs-tabname IS NOT INITIAL.
-      lv_obj_name = is_tcdrs-tabname.
-      CALL FUNCTION 'TR_TADIR_INTERFACE'
-        EXPORTING
-          wi_delete_tadir_entry    = abap_true
-          wi_tadir_pgmid           = 'R3TR'
-          wi_tadir_object          = 'TABL'
-          wi_tadir_obj_name        = lv_obj_name
-          wi_test_modus            = abap_false
-        EXCEPTIONS
-          tadir_entry_not_existing = 1
-          OTHERS                   = 2.
-      IF sy-subrc > 1.
-        zcx_abapgit_exception=>raise( |Error from TR_TADIR_INTERFACE (subrc={ sy-subrc } ).| ).
-      ENDIF.
+      zcl_abapgit_factory=>get_tadir( )->delete_single(
+        iv_object    = 'TABL'
+        iv_obj_name  = is_tcdrs-tabname ).
     ENDIF.
 
   ENDMETHOD.
@@ -222,11 +150,9 @@ DATA: lt_cts_object_entry TYPE temp1,
 
   METHOD zif_abapgit_object~delete.
 
-    TYPES temp3 TYPE STANDARD TABLE OF cdnames.
-TYPES temp4 TYPE STANDARD TABLE OF tcdrs.
-DATA: lt_cdnames TYPE temp3,
+    DATA: lt_cdnames TYPE STANDARD TABLE OF cdnames,
           ls_cdnames TYPE cdnames,
-          lt_tcdrs   TYPE temp4,
+          lt_tcdrs   TYPE STANDARD TABLE OF tcdrs,
           ls_tcdrs   TYPE tcdrs,
           lv_msg     TYPE symsgv.
 
@@ -308,9 +234,7 @@ DATA: lt_cdnames TYPE temp3,
       FROM tcdrp
       WHERE object = mv_object.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -348,8 +272,7 @@ DATA: lt_cdnames TYPE temp3,
 
   METHOD zif_abapgit_object~jump.
 
-    TYPES temp5 TYPE STANDARD TABLE OF bdcdata.
-DATA: lt_bdcdata TYPE temp5,
+    DATA: lt_bdcdata TYPE STANDARD TABLE OF bdcdata,
           ls_bdcdata LIKE LINE OF lt_bdcdata.
 
     CLEAR: ls_bdcdata.
@@ -389,13 +312,10 @@ DATA: lt_bdcdata TYPE temp5,
 
   METHOD zif_abapgit_object~serialize.
 
-    TYPES temp6 TYPE STANDARD TABLE OF tcdrp.
-TYPES temp5 TYPE STANDARD TABLE OF tcdob.
-TYPES temp1 TYPE STANDARD TABLE OF tcdobt.
-DATA: ls_change_object TYPE ty_change_document,
-          lt_tcdrp         TYPE temp6,
-          lt_tcdob         TYPE temp5,
-          lt_tcdobt        TYPE temp1,
+    DATA: ls_change_object TYPE ty_change_document,
+          lt_tcdrp         TYPE STANDARD TABLE OF tcdrp,
+          lt_tcdob         TYPE STANDARD TABLE OF tcdob,
+          lt_tcdobt        TYPE STANDARD TABLE OF tcdobt,
           BEGIN OF ls_nulldatetime, " hack ro reset fields when they exist without syntax errors when they don't
             udate TYPE sy-datum,
             utime TYPE sy-uzeit,

@@ -178,20 +178,11 @@ CLASS zcl_abapgit_gui_page_chg_pckg IMPLEMENTATION.
       READ TABLE it_mapping ASSIGNING <ls_map> WITH KEY old_package = ls_tadir-devclass.
       ASSERT sy-subrc = 0.
 
-      ls_tadir-devclass = <ls_map>-new_package.
-
-      CALL FUNCTION 'TR_TADIR_INTERFACE'
-        EXPORTING
-          wi_tadir_pgmid    = ls_tadir-pgmid
-          wi_tadir_object   = ls_tadir-object
-          wi_tadir_obj_name = ls_tadir-obj_name
-          wi_tadir_devclass = ls_tadir-devclass
-          wi_test_modus     = abap_false
-        EXCEPTIONS
-          OTHERS            = 1.
-      IF sy-subrc <> 0.
-        zcx_abapgit_exception=>raise_t100( ).
-      ENDIF.
+      zcl_abapgit_factory=>get_tadir( )->insert_single(
+        iv_pgmid    = ls_tadir-pgmid
+        iv_object   = ls_tadir-object
+        iv_obj_name = ls_tadir-obj_name
+        iv_package  = <ls_map>-new_package ).
     ENDLOOP.
 
   ENDMETHOD.
@@ -201,8 +192,8 @@ CLASS zcl_abapgit_gui_page_chg_pckg IMPLEMENTATION.
 
     super->constructor( ).
     mi_repo = ii_repo.
-    CREATE OBJECT mo_validation_log.
-    CREATE OBJECT mo_form_data.
+    mo_validation_log = NEW #( ).
+    mo_form_data = NEW #( ).
     mo_form = get_form_schema( ).
     mo_form_util = zcl_abapgit_html_form_utils=>create( mo_form ).
 
@@ -221,7 +212,7 @@ CLASS zcl_abapgit_gui_page_chg_pckg IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_chg_pckg.
 
-    CREATE OBJECT lo_component EXPORTING ii_repo = ii_repo.
+    lo_component = NEW #( ii_repo = ii_repo ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Change Repository Package'
@@ -365,7 +356,7 @@ CLASS zcl_abapgit_gui_page_chg_pckg IMPLEMENTATION.
 
     lv_key = mi_repo->get_key( ).
 
-    CREATE OBJECT lo_checksums EXPORTING iv_repo_key = lv_key.
+    lo_checksums = NEW #( iv_repo_key = lv_key ).
 
     lt_checksums = lo_checksums->zif_abapgit_repo_checksums~get( ).
 

@@ -96,21 +96,17 @@ CLASS zcl_abapgit_persist_migrate IMPLEMENTATION.
     ENDTRY.
 
     " New exists and differs from own - then it is really new, needs to be installed
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( lv_h_own = lv_h_new ).
-    rv_exists = temp1.
+    rv_exists = xsdbool( lv_h_own = lv_h_new ).
 
   ENDMETHOD.
 
 
   METHOD lock_create.
 
-    TYPES temp1 TYPE STANDARD TABLE OF dd26e WITH DEFAULT KEY.
-TYPES temp2 TYPE STANDARD TABLE OF dd27p WITH DEFAULT KEY.
-DATA: lv_obj_name TYPE tadir-obj_name,
-          ls_dd25v    TYPE dd25v,
-          lt_dd26e    TYPE temp1,
-          lt_dd27p    TYPE temp2.
+    DATA:
+      ls_dd25v TYPE dd25v,
+      lt_dd26e TYPE STANDARD TABLE OF dd26e WITH DEFAULT KEY,
+      lt_dd27p TYPE STANDARD TABLE OF dd27p WITH DEFAULT KEY.
 
     FIELD-SYMBOLS: <ls_dd26e> LIKE LINE OF lt_dd26e,
                    <ls_dd27p> LIKE LINE OF lt_dd27p.
@@ -163,20 +159,11 @@ DATA: lv_obj_name TYPE tadir-obj_name,
       zcx_abapgit_exception=>raise_t100( ).
     ENDIF.
 
-    lv_obj_name = zcl_abapgit_persistence_db=>c_lock.
-    CALL FUNCTION 'TR_TADIR_INTERFACE'
-      EXPORTING
-        wi_tadir_pgmid    = 'R3TR'
-        wi_tadir_object   = 'ENQU'
-        wi_tadir_obj_name = lv_obj_name
-        wi_set_genflag    = abap_true
-        wi_test_modus     = abap_false
-        wi_tadir_devclass = '$TMP'
-      EXCEPTIONS
-        OTHERS            = 1.
-    IF sy-subrc <> 0.
-      zcx_abapgit_exception=>raise_t100( ).
-    ENDIF.
+    zcl_abapgit_factory=>get_tadir( )->insert_single(
+      iv_object      = 'ENQU'
+      iv_obj_name    = zcl_abapgit_persistence_db=>c_lock
+      iv_package     = '$TMP'
+      iv_set_genflag = abap_true ).
 
     CALL FUNCTION 'DDIF_ENQU_ACTIVATE'
       EXPORTING
@@ -198,9 +185,7 @@ DATA: lv_obj_name TYPE tadir-obj_name,
 
     SELECT SINGLE viewname FROM dd25l INTO lv_viewname
       WHERE viewname = zcl_abapgit_persistence_db=>c_lock.
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( sy-subrc = 0 ).
-    rv_exists = temp2.
+    rv_exists = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -222,12 +207,10 @@ DATA: lv_obj_name TYPE tadir-obj_name,
 
   METHOD table_create.
 
-    TYPES temp3 TYPE STANDARD TABLE OF dd03p WITH DEFAULT KEY.
-DATA: lv_rc       LIKE sy-subrc,
-          lv_obj_name TYPE tadir-obj_name,
-          ls_dd02v    TYPE dd02v,
-          ls_dd09l    TYPE dd09l,
-          lt_dd03p    TYPE temp3.
+    DATA: lv_rc    LIKE sy-subrc,
+          ls_dd02v TYPE dd02v,
+          ls_dd09l TYPE dd09l,
+          lt_dd03p TYPE STANDARD TABLE OF dd03p WITH DEFAULT KEY.
 
     FIELD-SYMBOLS: <ls_dd03p> LIKE LINE OF lt_dd03p.
 
@@ -284,20 +267,11 @@ DATA: lv_rc       LIKE sy-subrc,
       zcx_abapgit_exception=>raise_t100( ).
     ENDIF.
 
-    lv_obj_name = zcl_abapgit_persistence_db=>c_tabname.
-    CALL FUNCTION 'TR_TADIR_INTERFACE'
-      EXPORTING
-        wi_tadir_pgmid    = 'R3TR'
-        wi_tadir_object   = 'TABL'
-        wi_tadir_obj_name = lv_obj_name
-        wi_set_genflag    = abap_true
-        wi_test_modus     = abap_false
-        wi_tadir_devclass = '$TMP'
-      EXCEPTIONS
-        OTHERS            = 1.
-    IF sy-subrc <> 0.
-      zcx_abapgit_exception=>raise_t100( ).
-    ENDIF.
+    zcl_abapgit_factory=>get_tadir( )->insert_single(
+      iv_object      = 'TABL'
+      iv_obj_name    = zcl_abapgit_persistence_db=>c_tabname
+      iv_package     = '$TMP'
+      iv_set_genflag = abap_true ).
 
     CALL FUNCTION 'DDIF_TABL_ACTIVATE'
       EXPORTING
@@ -322,9 +296,7 @@ DATA: lv_rc       LIKE sy-subrc,
 
     SELECT SINGLE tabname FROM dd02l INTO lv_tabname
       WHERE tabname = zcl_abapgit_persistence_db=>c_tabname. "#EC CI_NOORDER
-    DATA temp3 TYPE xsdboolean.
-    temp3 = boolc( sy-subrc = 0 ).
-    rv_exists = temp3.
+    rv_exists = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 ENDCLASS.

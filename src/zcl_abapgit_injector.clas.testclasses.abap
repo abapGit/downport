@@ -36,7 +36,10 @@ CLASS ltcl_abapgit_tadir_mock IMPLEMENTATION.
   METHOD zif_abapgit_tadir~read_single.
 
   ENDMETHOD.
-
+  METHOD zif_abapgit_tadir~delete_single.
+  ENDMETHOD.
+  METHOD zif_abapgit_tadir~insert_single.
+  ENDMETHOD.
 ENDCLASS.
 
 CLASS ltcl_no_dependency_injection IMPLEMENTATION.
@@ -64,7 +67,7 @@ CLASS ltcl_simple_dependency_inject IMPLEMENTATION.
 
     DATA lo_tadir_mock TYPE REF TO ltcl_abapgit_tadir_mock.
 
-    CREATE OBJECT lo_tadir_mock.
+    lo_tadir_mock = NEW #( ).
 
     zcl_abapgit_injector=>set_tadir( lo_tadir_mock ).
 
