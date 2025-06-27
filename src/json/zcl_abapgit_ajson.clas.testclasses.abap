@@ -101,8 +101,8 @@ ENDCLASS.
 CLASS ltcl_parser_test IMPLEMENTATION.
 
   METHOD setup.
-    CREATE OBJECT mo_cut.
-    CREATE OBJECT mo_nodes.
+    mo_cut = NEW #( ).
+    mo_nodes = NEW #( ).
   ENDMETHOD.
 
   METHOD parse_bare_values.
@@ -205,7 +205,7 @@ CLASS ltcl_parser_test IMPLEMENTATION.
     mo_nodes->add( '/                |float    |num    |123.45                  |  |0' ).
 
     DATA lt_act TYPE zif_abapgit_ajson_types=>ty_nodes_tt.
-    CREATE OBJECT mo_cut.
+    mo_cut = NEW #( ).
     lt_act = mo_cut->parse( '{"float": 123.45}' ).
     cl_abap_unit_assert=>assert_equals(
       act = lt_act
@@ -308,10 +308,9 @@ CLASS ltcl_parser_test IMPLEMENTATION.
     DATA lo_cut TYPE REF TO lcl_json_parser.
     DATA lx TYPE REF TO zcx_abapgit_ajson_error.
     DATA lv_numc TYPE n LENGTH 10.
-    TYPES temp1 TYPE HASHED TABLE OF string WITH UNIQUE DEFAULT KEY.
-DATA lt_hashed TYPE temp1.
+    DATA lt_hashed TYPE HASHED TABLE OF string WITH UNIQUE DEFAULT KEY.
 
-    CREATE OBJECT lo_cut.
+    lo_cut = NEW #( ).
 
     TRY.
         lo_cut->parse( lv_numc ).
@@ -380,7 +379,7 @@ DATA lt_hashed TYPE temp1.
     DATA lt_act TYPE zif_abapgit_ajson_types=>ty_nodes_tt.
     DATA lo_nodes TYPE REF TO lcl_nodes_helper.
 
-    CREATE OBJECT lo_nodes.
+    lo_nodes = NEW #( ).
     lo_nodes->add( '                 |         |object |                        |  |8' ).
     lo_nodes->add( '/                |string   |str    |abc                     |  |0' ).
     lo_nodes->add( '/                |number   |num    |123                     |  |0' ).
@@ -411,7 +410,7 @@ DATA lt_hashed TYPE temp1.
     lo_nodes->add( '/issues/2/end/   |col      |num    |22                      |  |0' ).
     lo_nodes->add( '/issues/2/       |filename |str    |./zxxx.prog.abap        |  |0' ).
 
-    CREATE OBJECT lo_cut.
+    lo_cut = NEW #( ).
     lt_act = lo_cut->parse( sample_json( ) ).
     cl_abap_unit_assert=>assert_equals(
       act = lt_act
@@ -435,7 +434,7 @@ DATA lt_hashed TYPE temp1.
     DATA lt_act TYPE zif_abapgit_ajson_types=>ty_nodes_tt.
     DATA lo_nodes TYPE REF TO lcl_nodes_helper.
 
-    CREATE OBJECT lo_nodes.
+    lo_nodes = NEW #( ).
     lo_nodes->add( '                 |         |object |                        |  |8 |0' ).
     lo_nodes->add( '/                |string   |str    |abc                     |  |0 |1' ).
     lo_nodes->add( '/                |number   |num    |123                     |  |0 |2' ).
@@ -466,7 +465,7 @@ DATA lt_hashed TYPE temp1.
     lo_nodes->add( '/issues/2/end/   |col      |num    |22                      |  |0 |2' ).
     lo_nodes->add( '/issues/2/       |filename |str    |./zxxx.prog.abap        |  |0 |5' ).
 
-    CREATE OBJECT lo_cut.
+    lo_cut = NEW #( ).
     lt_act = lo_cut->parse(
       iv_json = sample_json( )
       iv_keep_item_order = abap_true ).
@@ -496,7 +495,7 @@ DATA lt_hashed TYPE temp1.
     DATA lx TYPE REF TO zcx_abapgit_ajson_error.
 
     TRY.
-        CREATE OBJECT lo_cut.
+        lo_cut = NEW #( ).
         lo_cut->parse( '{ "a" = 1, "a" = 1 }' ).
         cl_abap_unit_assert=>fail( ).
       CATCH zcx_abapgit_ajson_error INTO lx.
@@ -511,7 +510,7 @@ DATA lt_hashed TYPE temp1.
     DATA lx TYPE REF TO zcx_abapgit_ajson_error.
 
     TRY.
-        CREATE OBJECT lo_cut.
+        lo_cut = NEW #( ).
         lo_cut->parse( '<html><head><title>X</title></head><body><h1>Y</h1></body></html>' ).
         cl_abap_unit_assert=>fail( ).
       CATCH zcx_abapgit_ajson_error INTO lx.
@@ -721,7 +720,7 @@ CLASS ltcl_serializer_test IMPLEMENTATION.
 
     DATA lo_nodes TYPE REF TO lcl_nodes_helper.
 
-    CREATE OBJECT lo_nodes.
+    lo_nodes = NEW #( ).
     lo_nodes->add( '                 |         |object |                        |  |8' ).
     lo_nodes->add( '/                |string   |str    |abc                     |  |0' ).
     lo_nodes->add( '/                |number   |num    |123                     |  |0' ).
@@ -830,7 +829,7 @@ CLASS ltcl_serializer_test IMPLEMENTATION.
     DATA lv_exp TYPE string.
     DATA lo_nodes TYPE REF TO lcl_nodes_helper.
 
-    CREATE OBJECT lo_nodes.
+    lo_nodes = NEW #( ).
     lo_nodes->add( '                |    |array  |                        |  |3' ).
     lo_nodes->add( '/               |1   |str    |abc                     |2 |0' ).
     lo_nodes->add( '/               |2   |num    |123                     |1 |0' ).
@@ -851,7 +850,7 @@ CLASS ltcl_serializer_test IMPLEMENTATION.
     DATA lv_exp TYPE string.
     DATA lo_nodes TYPE REF TO lcl_nodes_helper.
 
-    CREATE OBJECT lo_nodes.
+    lo_nodes = NEW #( ).
     lo_nodes->add( '                |       |object |                   |  |3 |0' ).
     lo_nodes->add( '/               |beta   |str    |b                  |  |0 |3' ).
     lo_nodes->add( '/               |zulu   |str    |z                  |  |0 |1' ).
@@ -881,7 +880,7 @@ CLASS ltcl_serializer_test IMPLEMENTATION.
     DATA lv_exp TYPE string.
     DATA lo_nodes TYPE REF TO lcl_nodes_helper.
 
-    CREATE OBJECT lo_nodes.
+    lo_nodes = NEW #( ).
     lo_nodes->add( '                |    |array  |                        |  |3' ).
     lo_nodes->add( '/               |1   |object |                        |2 |2' ).
     lo_nodes->add( '/1/             |a   |num    |1                       |  |0' ).
@@ -918,7 +917,7 @@ CLASS ltcl_serializer_test IMPLEMENTATION.
     DATA lv_exp TYPE string.
     DATA lo_nodes TYPE REF TO lcl_nodes_helper.
 
-    CREATE OBJECT lo_nodes.
+    lo_nodes = NEW #( ).
     lo_nodes->add( '                |    |array  |                        |  |0' ).
 
     lv_act = lcl_json_serializer=>stringify(
@@ -948,7 +947,7 @@ CLASS ltcl_serializer_test IMPLEMENTATION.
     DATA lv_val TYPE string.
     DATA lo_nodes TYPE REF TO lcl_nodes_helper.
 
-    CREATE OBJECT lo_nodes.
+    lo_nodes = NEW #( ).
     lv_val = 'a' && '"' && '\' && cl_abap_char_utilities=>horizontal_tab && cl_abap_char_utilities=>cr_lf.
     lo_nodes->add( | \| \|str \|{ lv_val }\| \|0| ).
 
@@ -967,7 +966,7 @@ CLASS ltcl_serializer_test IMPLEMENTATION.
     DATA lv_exp TYPE string.
     DATA lo_nodes TYPE REF TO lcl_nodes_helper.
 
-    CREATE OBJECT lo_nodes.
+    lo_nodes = NEW #( ).
 
     lv_act = lcl_json_serializer=>stringify( lo_nodes->sorted( ) ).
     lv_exp = ''.
@@ -1155,7 +1154,7 @@ CLASS ltcl_reader_test IMPLEMENTATION.
     DATA lo_cut TYPE REF TO zcl_abapgit_ajson.
     DATA lo_nodes TYPE REF TO lcl_nodes_helper.
 
-    CREATE OBJECT lo_nodes.
+    lo_nodes = NEW #( ).
     lo_nodes->add( '          |         |array  |                        |  |2' ).
     lo_nodes->add( '/         |1        |object |                        |1 |5' ).
     lo_nodes->add( '/1/       |message  |str    |Indentation problem ... |  |0' ).
@@ -1187,7 +1186,7 @@ CLASS ltcl_reader_test IMPLEMENTATION.
 
     " **********************************************************************
 
-    CREATE OBJECT lo_nodes.
+    lo_nodes = NEW #( ).
     lo_nodes->add( '                 |         |object |                        |  |8' ).
     lo_nodes->add( '/                |string   |str    |abc                     |  |0' ).
     lo_nodes->add( '/                |number   |num    |123                     |  |0' ).
@@ -1226,7 +1225,7 @@ CLASS ltcl_reader_test IMPLEMENTATION.
 
     " **********************************************************************
 
-    CREATE OBJECT lo_nodes.
+    lo_nodes = NEW #( ).
     lo_nodes->add( '  |         |object |                        | |2' ).
     lo_nodes->add( '/ |row      |num    |3                       | |0' ).
     lo_nodes->add( '/ |col      |num    |21                      | |0' ).
@@ -1303,10 +1302,10 @@ CLASS ltcl_reader_test IMPLEMENTATION.
     DATA lo_nodes TYPE REF TO lcl_nodes_helper.
     DATA lv_exp TYPE d.
 
-    CREATE OBJECT lo_cut.
+    lo_cut = NEW #( ).
     lv_exp = '20200728'.
 
-    CREATE OBJECT lo_nodes.
+    lo_nodes = NEW #( ).
     lo_nodes->add( '  |         |object |                        | |1' ).
     lo_nodes->add( '/ |date1    |str    |2020-07-28              | |0' ).
     lo_cut->mt_json_tree = lo_nodes->mt_nodes.
@@ -1315,7 +1314,7 @@ CLASS ltcl_reader_test IMPLEMENTATION.
       act = lo_cut->zif_abapgit_ajson~get_date( '/date1' )
       exp = lv_exp ).
 
-    CREATE OBJECT lo_nodes.
+    lo_nodes = NEW #( ).
     lo_nodes->add( '  |         |object |                        | |1' ).
     lo_nodes->add( '/ |date1    |str    |2020-07-28T01:00:00Z    | |0' ).
     lo_cut->mt_json_tree = lo_nodes->mt_nodes.
@@ -1324,7 +1323,7 @@ CLASS ltcl_reader_test IMPLEMENTATION.
       act = lo_cut->zif_abapgit_ajson~get_date( '/date1' )
       exp = lv_exp ).
 
-    CREATE OBJECT lo_nodes.
+    lo_nodes = NEW #( ).
     lo_nodes->add( '  |         |object |                        | |1' ).
     lo_nodes->add( '/ |date1    |str    |20200728                | |0' ).
     lo_cut->mt_json_tree = lo_nodes->mt_nodes.
@@ -1341,9 +1340,9 @@ CLASS ltcl_reader_test IMPLEMENTATION.
     DATA lo_nodes TYPE REF TO lcl_nodes_helper.
     DATA lv_exp TYPE timestamp VALUE `20200728000000`.
 
-    CREATE OBJECT lo_cut.
+    lo_cut = NEW #( ).
 
-    CREATE OBJECT lo_nodes.
+    lo_nodes = NEW #( ).
     lo_nodes->add( '  |         |object |                        | |1' ).
     lo_nodes->add( '/ |timestamp|str    |2020-07-28T00:00:00Z    | |0' ).
     lo_cut->mt_json_tree = lo_nodes->mt_nodes.
@@ -1491,7 +1490,7 @@ CLASS ltcl_reader_test IMPLEMENTATION.
     DATA lt_act TYPE string_table.
     DATA lt_exp TYPE string_table.
 
-    CREATE OBJECT lo_nodes.
+    lo_nodes = NEW #( ).
     lo_nodes->add( '  |         |array  |                        | |6' ).
     lo_nodes->add( '/ |1        |num    |123                     |1|0' ).
     lo_nodes->add( '/ |2        |num    |234                     |2|0' ).
@@ -1507,7 +1506,7 @@ CLASS ltcl_reader_test IMPLEMENTATION.
     APPEND '' TO lt_exp.
     APPEND '' TO lt_exp.
 
-    CREATE OBJECT lo_cut.
+    lo_cut = NEW #( ).
     lo_cut->mt_json_tree = lo_nodes->mt_nodes.
 
     lt_act = lo_cut->zif_abapgit_ajson~array_to_string_table( '/' ).
@@ -1518,7 +1517,7 @@ CLASS ltcl_reader_test IMPLEMENTATION.
     " negative
     DATA lx TYPE REF TO zcx_abapgit_ajson_error.
 
-    CREATE OBJECT lo_nodes.
+    lo_nodes = NEW #( ).
     lo_nodes->add( '  |         |object |                        | |1' ).
     lo_nodes->add( '/ |a        |str    |abc                     | |0' ).
     lo_cut->mt_json_tree = lo_nodes->mt_nodes.
@@ -1550,7 +1549,7 @@ CLASS ltcl_reader_test IMPLEMENTATION.
         exp = 'Array expected at: /a' ).
     ENDTRY.
 
-    CREATE OBJECT lo_nodes.
+    lo_nodes = NEW #( ).
     lo_nodes->add( '  |         |array  |                        | |1' ).
     lo_nodes->add( '/ |1        |object |                        |1|0' ).
     lo_cut->mt_json_tree = lo_nodes->mt_nodes.
@@ -1691,7 +1690,7 @@ CLASS ltcl_json_to_abap IMPLEMENTATION.
     DATA lv_exp_timestamp TYPE timestamp VALUE '20200728000000'.
     DATA lo_nodes TYPE REF TO lcl_nodes_helper.
 
-    CREATE OBJECT lo_nodes.
+    lo_nodes = NEW #( ).
     lo_nodes->add( '       |           |object |                          | ' ).
     lo_nodes->add( '/      |str        |str    |hello                     | ' ).
     lo_nodes->add( '/      |int        |num    |5                         | ' ).
@@ -1707,7 +1706,7 @@ CLASS ltcl_json_to_abap IMPLEMENTATION.
     lo_nodes->add( '/      |timestamp3 |str    |2020-07-28T01:00:00+01:00 | ' ).
     lo_nodes->add( '/      |timestamp4 |str    |2020-07-28T01:00:00+01:00 | ' ).
 
-    CREATE OBJECT lo_cut.
+    lo_cut = NEW #( ).
     lo_cut->to_abap(
       EXPORTING
         it_nodes    = lo_nodes->sorted( )
@@ -1738,10 +1737,10 @@ CLASS ltcl_json_to_abap IMPLEMENTATION.
     DATA lv_mock TYPE timestamp.
     DATA lo_nodes TYPE REF TO lcl_nodes_helper.
 
-    CREATE OBJECT lo_nodes.
+    lo_nodes = NEW #( ).
     lo_nodes->add( '       |           |str    |0000-00-00T00:00:00Z| ' ).
 
-    CREATE OBJECT lo_cut.
+    lo_cut = NEW #( ).
     lo_cut->to_abap(
       EXPORTING
         it_nodes    = lo_nodes->sorted( )
@@ -1760,10 +1759,10 @@ CLASS ltcl_json_to_abap IMPLEMENTATION.
     DATA lv_mock TYPE t.
     DATA lo_nodes TYPE REF TO lcl_nodes_helper.
 
-    CREATE OBJECT lo_nodes.
+    lo_nodes = NEW #( ).
     lo_nodes->add( '       |           |str    |11:11:11| ' ).
 
-    CREATE OBJECT lo_cut.
+    lo_cut = NEW #( ).
     lo_cut->to_abap(
       EXPORTING
         it_nodes    = lo_nodes->sorted( )
@@ -1776,10 +1775,10 @@ CLASS ltcl_json_to_abap IMPLEMENTATION.
 
     DATA lv_mock_init TYPE t.
 
-    CREATE OBJECT lo_nodes.
+    lo_nodes = NEW #( ).
     lo_nodes->add( '       |           |str    || ' ).
 
-    CREATE OBJECT lo_cut.
+    lo_cut = NEW #( ).
     lo_cut->to_abap(
       EXPORTING
         it_nodes    = lo_nodes->sorted( )
@@ -1798,10 +1797,10 @@ CLASS ltcl_json_to_abap IMPLEMENTATION.
     DATA lv_act TYPE p LENGTH 10 DECIMALS 3.
     DATA lo_nodes TYPE REF TO lcl_nodes_helper.
 
-    CREATE OBJECT lo_nodes.
+    lo_nodes = NEW #( ).
     lo_nodes->add( '       |           |str    |1.3333                    | ' ).
 
-    CREATE OBJECT lo_cut.
+    lo_cut = NEW #( ).
     lo_cut->to_abap(
       EXPORTING
         it_nodes    = lo_nodes->sorted( )
@@ -1820,10 +1819,10 @@ CLASS ltcl_json_to_abap IMPLEMENTATION.
     DATA lv_mock TYPE string.
     DATA lo_nodes TYPE REF TO lcl_nodes_helper.
 
-    CREATE OBJECT lo_nodes.
+    lo_nodes = NEW #( ).
     lo_nodes->add( '       |           |str    |hello                     | ' ).
 
-    CREATE OBJECT lo_cut.
+    lo_cut = NEW #( ).
     lo_cut->to_abap(
       EXPORTING
         it_nodes    = lo_nodes->sorted( )
@@ -1843,12 +1842,12 @@ CLASS ltcl_json_to_abap IMPLEMENTATION.
     DATA lt_exp TYPE string_table.
     DATA lo_nodes TYPE REF TO lcl_nodes_helper.
 
-    CREATE OBJECT lo_nodes.
+    lo_nodes = NEW #( ).
     lo_nodes->add( '       |           |array    |                     | ' ).
     lo_nodes->add( '/      |1          |str      |One                  |1' ).
     lo_nodes->add( '/      |2          |str      |Two                  |2' ).
 
-    CREATE OBJECT lo_cut.
+    lo_cut = NEW #( ).
     lo_cut->to_abap(
       EXPORTING
         it_nodes    = lo_nodes->sorted( )
@@ -1867,21 +1866,19 @@ CLASS ltcl_json_to_abap IMPLEMENTATION.
   METHOD to_abap_array_of_arrays_simple.
 
     DATA lo_cut   TYPE REF TO lcl_json_to_abap.
-    TYPES temp2 TYPE TABLE OF string_table.
-DATA lt_mock  TYPE temp2.
-    TYPES temp3 TYPE TABLE OF string_table.
-DATA lt_exp   TYPE temp3.
+    DATA lt_mock  TYPE TABLE OF string_table.
+    DATA lt_exp   TYPE TABLE OF string_table.
     DATA lt_tmp   TYPE string_table.
     DATA lo_nodes TYPE REF TO lcl_nodes_helper.
 
-    CREATE OBJECT lo_nodes.
+    lo_nodes = NEW #( ).
     lo_nodes->add( '       |           |array    |                    | ' ).
     lo_nodes->add( '/      |1          |array    |                    |1' ).
     lo_nodes->add( '/      |2          |array    |                    |2' ).
     lo_nodes->add( '/1/    |1          |str      |One                 |1' ).
     lo_nodes->add( '/2/    |1          |str      |Two                 |1' ).
 
-    CREATE OBJECT lo_cut.
+    lo_cut = NEW #( ).
     lo_cut->to_abap(
       EXPORTING
         it_nodes    = lo_nodes->sorted( )
@@ -1903,14 +1900,12 @@ DATA lt_exp   TYPE temp3.
   METHOD to_abap_array_of_arrays.
 
     DATA lo_cut   TYPE REF TO lcl_json_to_abap.
-    TYPES temp4 TYPE TABLE OF string_table.
-DATA lt_mock  TYPE temp4.
-    TYPES temp5 TYPE TABLE OF string_table.
-DATA lt_exp   TYPE temp5.
+    DATA lt_mock  TYPE TABLE OF string_table.
+    DATA lt_exp   TYPE TABLE OF string_table.
     DATA lt_tmp   TYPE string_table.
     DATA lo_nodes TYPE REF TO lcl_nodes_helper.
 
-    CREATE OBJECT lo_nodes.
+    lo_nodes = NEW #( ).
     lo_nodes->add( '       |           |array    |                    | ' ).
     lo_nodes->add( '/      |1          |array    |                    |1' ).
     lo_nodes->add( '/      |2          |array    |                    |2' ).
@@ -1919,7 +1914,7 @@ DATA lt_exp   TYPE temp5.
     lo_nodes->add( '/2/    |1          |str      |Three               |1' ).
     lo_nodes->add( '/2/    |2          |str      |Four                |2' ).
 
-    CREATE OBJECT lo_cut.
+    lo_cut = NEW #( ).
     lo_cut->to_abap(
       EXPORTING
         it_nodes    = lo_nodes->sorted( )
@@ -1947,7 +1942,7 @@ DATA lt_exp   TYPE temp5.
     DATA ls_exp  TYPE ty_complex.
     DATA lo_nodes TYPE REF TO lcl_nodes_helper.
 
-    CREATE OBJECT lo_nodes.
+    lo_nodes = NEW #( ).
     lo_nodes->add( '       |           |object |                          | ' ).
     lo_nodes->add( '/      |tab        |array  |                          | ' ).
     lo_nodes->add( '/tab/  |1          |object |                          |1' ).
@@ -1955,7 +1950,7 @@ DATA lt_exp   TYPE temp5.
     lo_nodes->add( '/tab/  |2          |object |                          |2' ).
     lo_nodes->add( '/tab/2/|a          |str    |Two                       | ' ).
 
-    CREATE OBJECT lo_cut.
+    lo_cut = NEW #( ).
     lo_cut->to_abap(
       EXPORTING
         it_nodes    = lo_nodes->sorted( )
@@ -1981,13 +1976,13 @@ DATA lt_exp   TYPE temp5.
     DATA ls_exp  TYPE ty_complex.
     DATA lo_nodes TYPE REF TO lcl_nodes_helper.
 
-    CREATE OBJECT lo_nodes.
+    lo_nodes = NEW #( ).
     lo_nodes->add( '             |           |object |                          | ' ).
     lo_nodes->add( '/            |tab_plain  |array  |                          | ' ).
     lo_nodes->add( '/tab_plain/  |1          |str    |One                       |1' ).
     lo_nodes->add( '/tab_plain/  |2          |str    |Two                       |2' ).
 
-    CREATE OBJECT lo_cut.
+    lo_cut = NEW #( ).
     lo_cut->to_abap(
       EXPORTING
         it_nodes    = lo_nodes->sorted( )
@@ -2006,18 +2001,16 @@ DATA lt_exp   TYPE temp5.
   METHOD to_abap_hashed_plain_tab.
 
     DATA lo_cut TYPE REF TO lcl_json_to_abap.
-    TYPES temp6 TYPE HASHED TABLE OF string WITH UNIQUE KEY table_line.
-DATA lt_mock TYPE temp6.
-    TYPES temp7 TYPE HASHED TABLE OF string WITH UNIQUE KEY table_line.
-DATA lt_exp  TYPE temp7.
+    DATA lt_mock TYPE HASHED TABLE OF string WITH UNIQUE KEY table_line.
+    DATA lt_exp  TYPE HASHED TABLE OF string WITH UNIQUE KEY table_line.
 
     DATA lo_nodes TYPE REF TO lcl_nodes_helper.
-    CREATE OBJECT lo_nodes.
+    lo_nodes = NEW #( ).
     lo_nodes->add( '            |           |array  |                          | ' ).
     lo_nodes->add( '/           |1          |str    |One                       |1' ).
     lo_nodes->add( '/           |2          |str    |Two                       |2' ).
 
-    CREATE OBJECT lo_cut.
+    lo_cut = NEW #( ).
     lo_cut->to_abap(
       EXPORTING
         it_nodes    = lo_nodes->sorted( )
@@ -2040,7 +2033,7 @@ DATA lt_exp  TYPE temp7.
     DATA lt_exp  TYPE tty_struc_hashed.
 
     DATA lo_nodes TYPE REF TO lcl_nodes_helper.
-    CREATE OBJECT lo_nodes.
+    lo_nodes = NEW #( ).
     lo_nodes->add( '              |           |array  |                          | ' ).
     lo_nodes->add( '/             |1          |object |                          |1' ).
     lo_nodes->add( '/             |2          |object |                          |2' ).
@@ -2049,7 +2042,7 @@ DATA lt_exp  TYPE temp7.
     lo_nodes->add( '/2/           |a          |str    |Two                       | ' ).
     lo_nodes->add( '/2/           |b          |num    |2                         | ' ).
 
-    CREATE OBJECT lo_cut.
+    lo_cut = NEW #( ).
     lo_cut->to_abap(
       EXPORTING
         it_nodes    = lo_nodes->sorted( )
@@ -2077,7 +2070,7 @@ DATA lt_exp  TYPE temp7.
     DATA lt_exp  TYPE tty_struc_sorted.
 
     DATA lo_nodes TYPE REF TO lcl_nodes_helper.
-    CREATE OBJECT lo_nodes.
+    lo_nodes = NEW #( ).
     lo_nodes->add( '              |           |array  |                          | ' ).
     lo_nodes->add( '/             |1          |object |                          |1' ).
     lo_nodes->add( '/             |2          |object |                          |2' ).
@@ -2086,7 +2079,7 @@ DATA lt_exp  TYPE temp7.
     lo_nodes->add( '/2/           |a          |str    |Two                       | ' ).
     lo_nodes->add( '/2/           |b          |num    |2                         | ' ).
 
-    CREATE OBJECT lo_cut.
+    lo_cut = NEW #( ).
     lo_cut->to_abap(
       EXPORTING
         it_nodes    = lo_nodes->sorted( )
@@ -2113,12 +2106,12 @@ DATA lt_exp  TYPE temp7.
     DATA lx TYPE REF TO zcx_abapgit_ajson_error.
     DATA ls_mock TYPE ty_complex.
 
-    CREATE OBJECT lo_cut.
+    lo_cut = NEW #( ).
 
     DATA lo_nodes TYPE REF TO lcl_nodes_helper.
 
     TRY.
-        CREATE OBJECT lo_nodes.
+        lo_nodes = NEW #( ).
         lo_nodes->add( '     |      |object | ' ).
         lo_nodes->add( '/    |str   |object | ' ).
 
@@ -2135,7 +2128,7 @@ DATA lt_exp  TYPE temp7.
     ENDTRY.
 
     TRY.
-        CREATE OBJECT lo_nodes.
+        lo_nodes = NEW #( ).
         lo_nodes->add( '     |      |object | ' ).
         lo_nodes->add( '/    |str   |array  | ' ).
 
@@ -2152,7 +2145,7 @@ DATA lt_exp  TYPE temp7.
     ENDTRY.
 
     TRY.
-        CREATE OBJECT lo_nodes.
+        lo_nodes = NEW #( ).
         lo_nodes->add( '     |      |object |      ' ).
         lo_nodes->add( '/    |int   |str    |hello ' ).
 
@@ -2169,7 +2162,7 @@ DATA lt_exp  TYPE temp7.
     ENDTRY.
 
     TRY.
-        CREATE OBJECT lo_nodes.
+        lo_nodes = NEW #( ).
         lo_nodes->add( '     |      |object |        ' ).
         lo_nodes->add( '/    |date1 |str    |baddate ' ).
 
@@ -2186,7 +2179,7 @@ DATA lt_exp  TYPE temp7.
     ENDTRY.
 
     TRY.
-        CREATE OBJECT lo_nodes.
+        lo_nodes = NEW #( ).
         lo_nodes->add( '    |        |object |        ' ).
         lo_nodes->add( '/   |missing |str    |123     ' ).
 
@@ -2204,7 +2197,7 @@ DATA lt_exp  TYPE temp7.
 
     TRY.
         DATA lt_str TYPE string_table.
-        CREATE OBJECT lo_nodes.
+        lo_nodes = NEW #( ).
         lo_nodes->add( '      |     |array  |      | ' ).
         lo_nodes->add( '/     |a    |str    |hello |1' ).
 
@@ -2222,7 +2215,7 @@ DATA lt_exp  TYPE temp7.
 
     TRY.
         DATA lr_obj TYPE REF TO object.
-        CREATE OBJECT lo_nodes.
+        lo_nodes = NEW #( ).
         lo_nodes->add( '      |     |str  |hello      | ' ).
 
         lo_cut->to_abap(
@@ -2239,7 +2232,7 @@ DATA lt_exp  TYPE temp7.
 
     TRY.
         DATA lr_data TYPE REF TO data.
-        CREATE OBJECT lo_nodes.
+        lo_nodes = NEW #( ).
         lo_nodes->add( '      |     |str  |hello      | ' ).
 
         lo_cut->to_abap(
@@ -2255,9 +2248,8 @@ DATA lt_exp  TYPE temp7.
     ENDTRY.
 
     TRY.
-        TYPES temp8 TYPE HASHED TABLE OF string WITH UNIQUE KEY table_line.
-DATA lt_hashed TYPE temp8.
-        CREATE OBJECT lo_nodes.
+        DATA lt_hashed TYPE HASHED TABLE OF string WITH UNIQUE KEY table_line.
+        lo_nodes = NEW #( ).
         lo_nodes->add( '            |           |array  |                          | ' ).
         lo_nodes->add( '/           |1          |str    |One                       |1' ).
         lo_nodes->add( '/           |2          |str    |One                       |2' ).
@@ -2283,14 +2275,14 @@ DATA lt_hashed TYPE temp8.
     DATA ls_exp  TYPE ty_struc.
     DATA lo_nodes TYPE REF TO lcl_nodes_helper.
 
-    CREATE OBJECT lo_nodes.
+    lo_nodes = NEW #( ).
     lo_nodes->add( '       |           |object |                          | ' ).
     lo_nodes->add( '/      |a          |str    |test                      | ' ).
     lo_nodes->add( '/      |c          |num    |24022022                  | ' ).
 
     ls_exp-a  = 'test'.
 
-    CREATE OBJECT lo_cut EXPORTING iv_corresponding = abap_true.
+    lo_cut = NEW #( iv_corresponding = abap_true ).
 
     lo_cut->to_abap(
       EXPORTING
@@ -2312,7 +2304,7 @@ DATA lt_hashed TYPE temp8.
     DATA lo_nodes TYPE REF TO lcl_nodes_helper.
     DATA lx TYPE REF TO zcx_abapgit_ajson_error.
 
-    CREATE OBJECT lo_nodes.
+    lo_nodes = NEW #( ).
     lo_nodes->add( '       |           |object |                          | ' ).
     lo_nodes->add( '/      |a          |str    |test                      | ' ).
     lo_nodes->add( '/      |c          |num    |24022022                  | ' ).
@@ -2321,7 +2313,7 @@ DATA lt_hashed TYPE temp8.
     ls_exp-b  = 24022022.
 
     TRY.
-        CREATE OBJECT lo_cut.
+        lo_cut = NEW #( ).
         lo_cut->to_abap(
         EXPORTING
           it_nodes    = lo_nodes->sorted( )
@@ -2344,14 +2336,14 @@ DATA lt_hashed TYPE temp8.
     DATA li_json TYPE REF TO zif_abapgit_ajson.
     DATA lo_nodes TYPE REF TO lcl_nodes_helper.
 
-    CREATE OBJECT lo_nodes.
+    lo_nodes = NEW #( ).
     lo_nodes->add( '       |           |object |                          | ' ).
     lo_nodes->add( '/      |a          |str    |test                      | ' ).
     lo_nodes->add( '/      |c          |num    |24022022                  | ' ).
 
     ls_exp-a  = 'test'.
 
-    CREATE OBJECT lo_cut.
+    lo_cut = NEW #( ).
     lo_cut->mt_json_tree = lo_nodes->mt_nodes.
 
     lo_cut->to_abap(
@@ -2382,14 +2374,14 @@ DATA lt_hashed TYPE temp8.
     DATA lo_nodes TYPE REF TO lcl_nodes_helper.
     DATA lx TYPE REF TO zcx_abapgit_ajson_error.
 
-    CREATE OBJECT lo_nodes.
+    lo_nodes = NEW #( ).
     lo_nodes->add( '       |           |object |                          | ' ).
     lo_nodes->add( '/      |a          |str    |test                      | ' ).
     lo_nodes->add( '/      |c          |num    |24022022                  | ' ).
 
     ls_exp-a  = 'test'.
 
-    CREATE OBJECT lo_cut.
+    lo_cut = NEW #( ).
     lo_cut->mt_json_tree = lo_nodes->mt_nodes.
 
     TRY.
@@ -2411,8 +2403,7 @@ DATA lt_hashed TYPE temp8.
              bar TYPE string,
            END OF ty_foo_bar.
 
-    TYPES temp9 TYPE STANDARD TABLE OF ty_foo_bar.
-DATA lt_foo_bar TYPE temp9.
+    DATA lt_foo_bar TYPE STANDARD TABLE OF ty_foo_bar.
     DATA ls_foo_bar LIKE LINE OF lt_foo_bar.
     DATA lo_ajson TYPE REF TO zcl_abapgit_ajson.
     DATA lv_json TYPE string.
@@ -2445,8 +2436,7 @@ DATA lt_foo_bar TYPE temp9.
              bar TYPE string,
            END OF ty_foo_bar.
 
-    TYPES temp10 TYPE STANDARD TABLE OF ty_foo_bar WITH NON-UNIQUE KEY foo.
-DATA lt_foo_bar TYPE temp10.
+    DATA lt_foo_bar TYPE STANDARD TABLE OF ty_foo_bar WITH NON-UNIQUE KEY foo.
     DATA ls_foo_bar LIKE LINE OF lt_foo_bar.
     DATA lo_ajson TYPE REF TO zcl_abapgit_ajson.
     DATA lv_json TYPE string.
@@ -2479,8 +2469,7 @@ DATA lt_foo_bar TYPE temp10.
              bar TYPE string,
            END OF ty_foo_bar.
 
-    TYPES temp11 TYPE SORTED TABLE OF ty_foo_bar WITH NON-UNIQUE KEY foo.
-DATA lt_foo_bar TYPE temp11.
+    DATA lt_foo_bar TYPE SORTED TABLE OF ty_foo_bar WITH NON-UNIQUE KEY foo.
     DATA ls_foo_bar LIKE LINE OF lt_foo_bar.
     DATA lo_ajson TYPE REF TO zcl_abapgit_ajson.
     DATA lv_json TYPE string.
@@ -2513,8 +2502,7 @@ DATA lt_foo_bar TYPE temp11.
              bar TYPE string,
            END OF ty_foo_bar.
 
-    TYPES temp12 TYPE SORTED TABLE OF ty_foo_bar WITH UNIQUE KEY foo.
-DATA lt_foo_bar TYPE temp12.
+    DATA lt_foo_bar TYPE SORTED TABLE OF ty_foo_bar WITH UNIQUE KEY foo.
     DATA ls_foo_bar LIKE LINE OF lt_foo_bar.
     DATA lo_ajson TYPE REF TO zcl_abapgit_ajson.
     DATA lv_json TYPE string.
@@ -2547,8 +2535,7 @@ DATA lt_foo_bar TYPE temp12.
              bar TYPE string,
            END OF ty_foo_bar.
 
-    TYPES temp13 TYPE HASHED TABLE OF ty_foo_bar WITH UNIQUE KEY foo.
-DATA lt_foo_bar TYPE temp13.
+    DATA lt_foo_bar TYPE HASHED TABLE OF ty_foo_bar WITH UNIQUE KEY foo.
     DATA ls_foo_bar LIKE LINE OF lt_foo_bar.
     DATA lo_ajson TYPE REF TO zcl_abapgit_ajson.
     DATA lv_json TYPE string.
@@ -2641,7 +2628,7 @@ CLASS ltcl_writer_test IMPLEMENTATION.
 
     lo_cut = zcl_abapgit_ajson=>create_empty( ).
 
-    CREATE OBJECT lo_nodes_exp.
+    lo_nodes_exp = NEW #( ).
     lo_nodes_exp->add( '        |      |object |     ||1' ).
     lo_nodes_exp->add( '/       |a     |object |     ||1' ).
     lo_nodes_exp->add( '/a/     |b     |object |     ||1' ).
@@ -2653,7 +2640,7 @@ CLASS ltcl_writer_test IMPLEMENTATION.
       act = lo_cut->mt_json_tree
       exp = lo_nodes_exp->sorted( ) ).
 
-    CREATE OBJECT lo_nodes_exp.
+    lo_nodes_exp = NEW #( ).
     lo_nodes_exp->add( '         |      |object |     ||1' ).
     lo_nodes_exp->add( '/        |a     |object |     ||1' ).
     lo_nodes_exp->add( '/a/      |b     |object |     ||1' ).
@@ -2671,7 +2658,7 @@ CLASS ltcl_writer_test IMPLEMENTATION.
 
     lo_cut = zcl_abapgit_ajson=>create_empty( ).
 
-    CREATE OBJECT lo_nodes_exp.
+    lo_nodes_exp = NEW #( ).
     lo_nodes_exp->add( '        |      |object |     ||1' ).
     lo_nodes_exp->add( '/       |a     |object |     ||1' ).
     lo_nodes_exp->add( '/a/     |b     |object |     ||1' ).
@@ -2680,7 +2667,7 @@ CLASS ltcl_writer_test IMPLEMENTATION.
 
     lo_cut->mt_json_tree = lo_nodes_exp->mt_nodes.
 
-    CREATE OBJECT lo_nodes_exp.
+    lo_nodes_exp = NEW #( ).
     lo_nodes_exp->add( '        |      |object |     ||1' ).
     lo_nodes_exp->add( '/       |a     |object |     ||0' ).
 
@@ -2701,7 +2688,7 @@ CLASS ltcl_writer_test IMPLEMENTATION.
 
     lo_cut = zcl_abapgit_ajson=>create_empty( ).
 
-    CREATE OBJECT lo_nodes_exp.
+    lo_nodes_exp = NEW #( ).
     lo_nodes_exp->add( '        |      |object |     ||1' ).
     lo_nodes_exp->add( '/       |a     |object |     ||1' ).
     lo_nodes_exp->add( '/a/     |b     |object |     ||1' ).
@@ -2710,7 +2697,7 @@ CLASS ltcl_writer_test IMPLEMENTATION.
 
     lo_cut->mt_json_tree = lo_nodes_exp->mt_nodes.
 
-    CREATE OBJECT lo_nodes_exp.
+    lo_nodes_exp = NEW #( ).
     lo_nodes_exp->add( '        |      |object |     ||1' ).
     lo_nodes_exp->add( '/       |a     |object |     ||0' ).
 
@@ -2720,7 +2707,7 @@ CLASS ltcl_writer_test IMPLEMENTATION.
       act = lo_cut->mt_json_tree
       exp = lo_nodes_exp->sorted( ) ).
 
-    CREATE OBJECT lo_nodes_exp.
+    lo_nodes_exp = NEW #( ).
     lo_nodes_exp->add( '        |      |object |     ||1' ).
     lo_nodes_exp->add( '/       |a     |object |     ||1' ).
     lo_nodes_exp->add( '/a/     |b     |object |     ||1' ).
@@ -2729,7 +2716,7 @@ CLASS ltcl_writer_test IMPLEMENTATION.
 
     lo_cut->mt_json_tree = lo_nodes_exp->mt_nodes.
 
-    CREATE OBJECT lo_nodes_exp.
+    lo_nodes_exp = NEW #( ).
     lo_nodes_exp->add( '        |      |object |     ||1' ).
     lo_nodes_exp->add( '/       |a     |object |     ||0' ).
 
@@ -2753,7 +2740,7 @@ CLASS ltcl_writer_test IMPLEMENTATION.
     li_writer = lo_cut.
 
     " Prepare source
-    CREATE OBJECT lo_nodes.
+    lo_nodes = NEW #( ).
     lo_nodes->add( '        |      |object |     ||1' ).
     lo_nodes->add( '/       |x     |object |     ||2' ).
     lo_nodes->add( '/x/     |b     |str    |abc  ||0' ).
@@ -2776,7 +2763,7 @@ CLASS ltcl_writer_test IMPLEMENTATION.
       exp = lo_nodes->sorted( ) ).
 
     " Test 2 - assign deep
-    CREATE OBJECT lo_nodes.
+    lo_nodes = NEW #( ).
     lo_nodes->add( '        |      |object |     ||1' ).
     lo_nodes->add( '/       |a     |object |     ||1' ).
     lo_nodes->add( '/a/     |b     |object |     ||1' ).
@@ -2794,7 +2781,7 @@ CLASS ltcl_writer_test IMPLEMENTATION.
       exp = lo_nodes->sorted( ) ).
 
     " Test 3 - assign rewrite
-    CREATE OBJECT lo_nodes.
+    lo_nodes = NEW #( ).
     lo_nodes->add( '        |      |object |     ||1' ).
     lo_nodes->add( '/       |a     |object |     ||1' ).
     lo_nodes->add( '/a/       |b     |object |     ||1' ).
@@ -2821,7 +2808,7 @@ CLASS ltcl_writer_test IMPLEMENTATION.
     li_writer = lo_cut.
 
     " Prepare source
-    CREATE OBJECT lo_nodes.
+    lo_nodes = NEW #( ).
     lo_nodes->add( '        |      |object |     ||1' ).
     lo_nodes->add( '/       |x     |object |     ||2' ).
     lo_nodes->add( '/x/     |b     |str    |abc  ||0' ).
@@ -2849,7 +2836,7 @@ CLASS ltcl_writer_test IMPLEMENTATION.
 
     li_cut = zcl_abapgit_ajson=>create_empty( ).
 
-    CREATE OBJECT lo_nodes.
+    lo_nodes = NEW #( ).
     lo_nodes->add( '        |      |object |     ||1' ).
     lo_nodes->add( '/       |a     |num    |1    ||0' ).
 
@@ -2863,7 +2850,7 @@ CLASS ltcl_writer_test IMPLEMENTATION.
       act = li_cut->mt_json_tree
       exp = lo_nodes->sorted( ) ).
 
-    CREATE OBJECT lo_nodes.
+    lo_nodes = NEW #( ).
     lo_nodes->add( '        |      |object |     ||2' ).
     lo_nodes->add( '/       |a     |num    |1    ||0' ).
     lo_nodes->add( '/       |b     |num    |0    ||0' ).
@@ -2895,7 +2882,7 @@ CLASS ltcl_writer_test IMPLEMENTATION.
     li_writer = lo_cut.
 
     " Prepare source
-    CREATE OBJECT lo_nodes.
+    lo_nodes = NEW #( ).
     lo_nodes->add( '        |      |object |           ||1' ).
     lo_nodes->add( '/       |x     |object |           ||3' ).
     lo_nodes->add( '/x/     |b     |str    |abc        ||0' ).
@@ -2931,7 +2918,7 @@ CLASS ltcl_writer_test IMPLEMENTATION.
     li_writer = lo_cut.
 
     " Prepare source
-    CREATE OBJECT lo_nodes.
+    lo_nodes = NEW #( ).
     lo_nodes->add( '      |        |object |           ||6' ).
     lo_nodes->add( '/     |d       |str    |2022-04-01 ||0' ).
     lo_nodes->add( '/     |d_empty |str    |           ||0' ).
@@ -2963,7 +2950,7 @@ CLASS ltcl_writer_test IMPLEMENTATION.
     APPEND 'world' TO lt_tab.
 
     " Prepare source
-    CREATE OBJECT lo_nodes.
+    lo_nodes = NEW #( ).
     lo_nodes->add( '        |      |object |     | |1' ).
     lo_nodes->add( '/       |x     |array  |     | |2' ).
     lo_nodes->add( '/x/     |1     |str    |hello|1|0' ).
@@ -2983,8 +2970,7 @@ CLASS ltcl_writer_test IMPLEMENTATION.
     DATA lo_nodes TYPE REF TO lcl_nodes_helper.
     DATA lo_cut TYPE REF TO zcl_abapgit_ajson.
     DATA li_writer TYPE REF TO zif_abapgit_ajson.
-    TYPES temp14 TYPE HASHED TABLE OF string WITH UNIQUE KEY table_line.
-DATA lt_tab TYPE temp14.
+    DATA lt_tab TYPE HASHED TABLE OF string WITH UNIQUE KEY table_line.
 
     lo_cut = zcl_abapgit_ajson=>create_empty( ).
     li_writer = lo_cut.
@@ -2993,7 +2979,7 @@ DATA lt_tab TYPE temp14.
     INSERT `world` INTO TABLE lt_tab.
 
     " Prepare source
-    CREATE OBJECT lo_nodes.
+    lo_nodes = NEW #( ).
     lo_nodes->add( '        |      |object |     | |1' ).
     lo_nodes->add( '/       |x     |array  |     | |2' ).
     lo_nodes->add( '/x/     |1     |str    |hello|1|0' ).
@@ -3038,7 +3024,7 @@ DATA lt_tab TYPE temp14.
     INSERT ls_tab INTO TABLE lt_tab.
 
     " prepare source
-    CREATE OBJECT lo_nodes.
+    lo_nodes = NEW #( ).
     lo_nodes->add( '        |      |array  |     |0|2' ).
     lo_nodes->add( '/       |1     |object |     |1|3' ).
     lo_nodes->add( '/       |2     |object |     |2|3' ).
@@ -3068,7 +3054,7 @@ DATA lt_tab TYPE temp14.
     li_writer = lo_cut.
 
     " touch
-    CREATE OBJECT lo_nodes_exp.
+    lo_nodes_exp = NEW #( ).
     lo_nodes_exp->add( '        |      |object |     | |1' ).
     lo_nodes_exp->add( '/       |a     |array  |     | |0' ).
 
@@ -3079,7 +3065,7 @@ DATA lt_tab TYPE temp14.
       exp = lo_nodes_exp->sorted( ) ).
 
     " add string
-    CREATE OBJECT lo_nodes_exp.
+    lo_nodes_exp = NEW #( ).
     lo_nodes_exp->add( '        |      |object |     | |1' ).
     lo_nodes_exp->add( '/       |a     |array  |     | |1' ).
     lo_nodes_exp->add( '/a/     |1     |str    |hello|1|0' ).
@@ -3093,7 +3079,7 @@ DATA lt_tab TYPE temp14.
       exp = lo_nodes_exp->sorted( ) ).
 
     " add obj
-    CREATE OBJECT lo_nodes_exp.
+    lo_nodes_exp = NEW #( ).
     lo_nodes_exp->add( '        |      |object |     | |1' ).
     lo_nodes_exp->add( '/       |a     |array  |     | |2' ).
     lo_nodes_exp->add( '/a/     |1     |str    |hello|1|0' ).
@@ -3121,7 +3107,7 @@ DATA lt_tab TYPE temp14.
       exp = lo_nodes_exp->sorted( ) ).
 
     " re-touch with clear
-    CREATE OBJECT lo_nodes_exp.
+    lo_nodes_exp = NEW #( ).
     lo_nodes_exp->add( '        |      |object |     | |1' ).
     lo_nodes_exp->add( '/       |a     |array  |     | |0' ).
 
@@ -3134,7 +3120,7 @@ DATA lt_tab TYPE temp14.
       exp = lo_nodes_exp->sorted( ) ).
 
     " free-add array item (index must be updated)
-    CREATE OBJECT lo_nodes_exp.
+    lo_nodes_exp = NEW #( ).
     lo_nodes_exp->add( '        |      |object |     | |1' ).
     lo_nodes_exp->add( '/       |a     |array  |     | |2' ).
     lo_nodes_exp->add( '/a/     |1     |object |     |1|1' ).
@@ -3254,7 +3240,7 @@ DATA lt_tab TYPE temp14.
     li_writer = lo_cut.
 
     " object
-    CREATE OBJECT lo_nodes_exp.
+    lo_nodes_exp = NEW #( ).
     lo_nodes_exp->add( '        |      |object |     ||1' ).
     lo_nodes_exp->add( '/       |x     |str    |hello||0' ).
 
@@ -3267,7 +3253,7 @@ DATA lt_tab TYPE temp14.
       exp = lo_nodes_exp->sorted( ) ).
 
     " object empty path
-    CREATE OBJECT lo_nodes_exp.
+    lo_nodes_exp = NEW #( ).
     lo_nodes_exp->add( '        |      |object |     ||1' ).
     lo_nodes_exp->add( '/       |x     |str    |hello||0' ).
 
@@ -3281,7 +3267,7 @@ DATA lt_tab TYPE temp14.
       exp = lo_nodes_exp->sorted( ) ).
 
     " array
-    CREATE OBJECT lo_nodes_exp.
+    lo_nodes_exp = NEW #( ).
     lo_nodes_exp->add( '        |      |array  |     | |1' ).
     lo_nodes_exp->add( '/       |1     |str    |hello|1|0' ).
 
@@ -3296,7 +3282,7 @@ DATA lt_tab TYPE temp14.
       exp = lo_nodes_exp->sorted( ) ).
 
     " value
-    CREATE OBJECT lo_nodes_exp.
+    lo_nodes_exp = NEW #( ).
     lo_nodes_exp->add( '        |      |str    |hello||0' ).
 
     li_writer->clear( ).
@@ -3319,7 +3305,7 @@ DATA lt_tab TYPE temp14.
     " abap_bool
     lo_cut = zcl_abapgit_ajson=>create_empty( ).
     li_writer = lo_cut.
-    CREATE OBJECT lo_nodes_exp.
+    lo_nodes_exp = NEW #( ).
     lo_nodes_exp->add( '        |      |object |      ||2' ).
     lo_nodes_exp->add( '/       |a     |bool   |true  ||0' ).
     lo_nodes_exp->add( '/       |b     |bool   |false ||0' ).
@@ -3346,7 +3332,7 @@ DATA lt_tab TYPE temp14.
     " int
     lo_cut = zcl_abapgit_ajson=>create_empty( ).
     li_writer = lo_cut.
-    CREATE OBJECT lo_nodes_exp.
+    lo_nodes_exp = NEW #( ).
     lo_nodes_exp->add( '        |      |object |      ||2' ).
     lo_nodes_exp->add( '/       |a     |bool   |true  ||0' ).
     lo_nodes_exp->add( '/       |b     |bool   |false ||0' ).
@@ -3374,7 +3360,7 @@ DATA lt_tab TYPE temp14.
     " tab
     lo_cut = zcl_abapgit_ajson=>create_empty( ).
     li_writer = lo_cut.
-    CREATE OBJECT lo_nodes_exp.
+    lo_nodes_exp = NEW #( ).
     lo_nodes_exp->add( '        |      |object |      ||2' ).
     lo_nodes_exp->add( '/       |a     |bool   |true  ||0' ).
     lo_nodes_exp->add( '/       |b     |bool   |false ||0' ).
@@ -3403,7 +3389,7 @@ DATA lt_tab TYPE temp14.
 
     lo_cut = zcl_abapgit_ajson=>create_empty( ).
     li_writer = lo_cut.
-    CREATE OBJECT lo_nodes_exp.
+    lo_nodes_exp = NEW #( ).
     lo_nodes_exp->add( '        |      |object |         ||3' ).
     lo_nodes_exp->add( '/       |a     |str    |123      ||0' ).
     lo_nodes_exp->add( '/       |b     |str    |X        ||0' ).
@@ -3434,7 +3420,7 @@ DATA lt_tab TYPE temp14.
 
     lo_cut = zcl_abapgit_ajson=>create_empty( ).
     li_writer = lo_cut.
-    CREATE OBJECT lo_nodes_exp.
+    lo_nodes_exp = NEW #( ).
     lo_nodes_exp->add( '        |      |object |         ||1' ).
     lo_nodes_exp->add( '/       |a     |num    |123      ||0' ).
 
@@ -3455,7 +3441,7 @@ DATA lt_tab TYPE temp14.
     DATA lv_p TYPE p LENGTH 5 DECIMALS 2 VALUE '123.45'.
 
     li_json = zcl_abapgit_ajson=>create_empty( ).
-    CREATE OBJECT lo_nodes_exp.
+    lo_nodes_exp = NEW #( ).
     lo_nodes_exp->add( '        |      |object |         ||1' ).
     lo_nodes_exp->add( '/       |a     |num    |123.45   ||0' ).
 
@@ -3478,7 +3464,7 @@ DATA lt_tab TYPE temp14.
 
     lo_cut = zcl_abapgit_ajson=>create_empty( ).
     li_writer = lo_cut.
-    CREATE OBJECT lo_nodes_exp.
+    lo_nodes_exp = NEW #( ).
     lo_nodes_exp->add( '        |      |object |           ||2' ).
     lo_nodes_exp->add( '/       |a     |str    |2020-07-05 ||0' ).
     lo_nodes_exp->add( '/       |b     |str    |           ||0' ).
@@ -3508,7 +3494,7 @@ DATA lt_tab TYPE temp14.
 
     lo_cut = zcl_abapgit_ajson=>create_empty( ).
     li_writer = lo_cut.
-    CREATE OBJECT lo_nodes_exp.
+    lo_nodes_exp = NEW #( ).
     lo_nodes_exp->add( '        |      |object |                     ||1' ).
     lo_nodes_exp->add( '/       |a     |str    |2021-05-05T12:00:00Z ||0' ).
 
@@ -3584,7 +3570,7 @@ DATA lt_tab TYPE temp14.
     DATA lo_nodes_exp TYPE REF TO lcl_nodes_helper.
     DATA li_writer TYPE REF TO zif_abapgit_ajson.
 
-    CREATE OBJECT lo_nodes_exp.
+    lo_nodes_exp = NEW #( ).
     lo_nodes_exp->add( '                 |         |object |                        |  |1' ).
     lo_nodes_exp->add( '/                |issues   |array  |                        |  |2' ).
     lo_nodes_exp->add( '/issues/         |1        |object |                        |1 |1' ).
@@ -4013,10 +3999,8 @@ CLASS ltcl_integrated IMPLEMENTATION.
 
   METHOD array_index.
 
-    TYPES temp15 TYPE TABLE OF ty_loc.
-DATA lt_act TYPE temp15.
-    TYPES temp16 TYPE TABLE OF ty_loc.
-DATA lt_exp TYPE temp16.
+    DATA lt_act TYPE TABLE OF ty_loc.
+    DATA lt_exp TYPE TABLE OF ty_loc.
     DATA ls_exp TYPE ty_loc.
 
     DATA lv_src TYPE string.
@@ -4369,7 +4353,7 @@ CLASS ltcl_abap_to_json IMPLEMENTATION.
     DATA lo_src TYPE REF TO zcl_abapgit_ajson.
     lo_src = zcl_abapgit_ajson=>create_empty( ).
 
-    CREATE OBJECT lo_nodes.
+    lo_nodes = NEW #( ).
     lo_nodes->add( '        |      |object |     ||1' ).
     lo_nodes->add( '/       |a     |object |     ||1' ).
     lo_nodes->add( '/a/     |b     |object |     ||1' ).
@@ -4391,7 +4375,7 @@ CLASS ltcl_abap_to_json IMPLEMENTATION.
     DATA lt_nodes TYPE zif_abapgit_ajson_types=>ty_nodes_tt.
 
     " number
-    CREATE OBJECT lo_nodes_exp.
+    lo_nodes_exp = NEW #( ).
     lo_nodes_exp->add( '        |      |num |1     ||' ).
 
     lt_nodes = lcl_abap_to_json=>convert( iv_data = 1 ).
@@ -4408,7 +4392,7 @@ CLASS ltcl_abap_to_json IMPLEMENTATION.
     DATA lt_nodes TYPE zif_abapgit_ajson_types=>ty_nodes_tt.
 
     " string
-    CREATE OBJECT lo_nodes_exp.
+    lo_nodes_exp = NEW #( ).
     lo_nodes_exp->add( '        |      |str |abc     ||' ).
 
     lt_nodes = lcl_abap_to_json=>convert( iv_data = 'abc' ).
@@ -4425,7 +4409,7 @@ CLASS ltcl_abap_to_json IMPLEMENTATION.
     DATA lt_nodes TYPE zif_abapgit_ajson_types=>ty_nodes_tt.
 
     " true
-    CREATE OBJECT lo_nodes_exp.
+    lo_nodes_exp = NEW #( ).
     lo_nodes_exp->add( '        |      |bool |true     ||' ).
 
     lt_nodes = lcl_abap_to_json=>convert( iv_data = abap_true ).
@@ -4442,7 +4426,7 @@ CLASS ltcl_abap_to_json IMPLEMENTATION.
     DATA lt_nodes TYPE zif_abapgit_ajson_types=>ty_nodes_tt.
 
     " false
-    CREATE OBJECT lo_nodes_exp.
+    lo_nodes_exp = NEW #( ).
     lo_nodes_exp->add( '        |      |bool |false    ||' ).
 
     lt_nodes = lcl_abap_to_json=>convert( iv_data = abap_false ).
@@ -4459,7 +4443,7 @@ CLASS ltcl_abap_to_json IMPLEMENTATION.
     DATA lt_nodes TYPE zif_abapgit_ajson_types=>ty_nodes_tt.
 
     DATA lv_xsdboolean TYPE xsdboolean.
-    CREATE OBJECT lo_nodes_exp.
+    lo_nodes_exp = NEW #( ).
     lo_nodes_exp->add( '        |      |bool |true     ||' ).
 
     lv_xsdboolean = 'X'.
@@ -4478,7 +4462,7 @@ CLASS ltcl_abap_to_json IMPLEMENTATION.
     DATA lv_null_ref TYPE REF TO data.
 
     " null
-    CREATE OBJECT lo_nodes_exp.
+    lo_nodes_exp = NEW #( ).
     lo_nodes_exp->add( '       |      |null |null ||' ).
 
     lt_nodes = lcl_abap_to_json=>convert( iv_data = lv_null_ref ).
@@ -4496,7 +4480,7 @@ CLASS ltcl_abap_to_json IMPLEMENTATION.
     DATA lv_timezone TYPE timezone VALUE ''.
 
     DATA lv_timestamp TYPE timestamp.
-    CREATE OBJECT lo_nodes_exp.
+    lo_nodes_exp = NEW #( ).
     lo_nodes_exp->add( '        |      |str |2022-08-31T00:00:00Z||' ).
 
     CONVERT DATE '20220831' TIME '000000'
@@ -4515,7 +4499,7 @@ CLASS ltcl_abap_to_json IMPLEMENTATION.
     DATA lt_nodes TYPE zif_abapgit_ajson_types=>ty_nodes_tt.
 
     DATA lv_timestamp TYPE timestamp.
-    CREATE OBJECT lo_nodes_exp.
+    lo_nodes_exp = NEW #( ).
     lo_nodes_exp->add( '        |      |str |0000-00-00T00:00:00Z||' ).
 
     lv_timestamp = 0.
@@ -4535,7 +4519,7 @@ CLASS ltcl_abap_to_json IMPLEMENTATION.
 
     ls_prefix-path = '/a/'.
     ls_prefix-name = 'b'.
-    CREATE OBJECT lo_nodes_exp.
+    lo_nodes_exp = NEW #( ).
     lo_nodes_exp->add( '/a/       |b     |num |1     ||' ).
 
     lt_nodes = lcl_abap_to_json=>convert(
@@ -4559,7 +4543,7 @@ CLASS ltcl_abap_to_json IMPLEMENTATION.
     ls_struc-c = abap_true.
     ls_struc-d = 'X'.
 
-    CREATE OBJECT lo_nodes_exp.
+    lo_nodes_exp = NEW #( ).
     lo_nodes_exp->add( '       |      |object |     ||4' ).
     lo_nodes_exp->add( '/      |a     |str    |abc  ||0' ).
     lo_nodes_exp->add( '/      |b     |num    |10   ||0' ).
@@ -4598,7 +4582,7 @@ CLASS ltcl_abap_to_json IMPLEMENTATION.
     APPEND INITIAL LINE TO ls_struc-tab ASSIGNING <i>.
     <i>-a = 'bcd'.
 
-    CREATE OBJECT lo_nodes_exp.
+    lo_nodes_exp = NEW #( ).
     lo_nodes_exp->add( '       |      |object |     ||8' ).
     lo_nodes_exp->add( '/      |a     |str    |abc  ||0' ).
     lo_nodes_exp->add( '/      |b     |num    |10   ||0' ).
@@ -4647,7 +4631,7 @@ CLASS ltcl_abap_to_json IMPLEMENTATION.
     ls_struc-d_suf = 'X'.
     ls_struc-el    = 'elem'.
 
-    CREATE OBJECT lo_nodes_exp.
+    lo_nodes_exp = NEW #( ).
     lo_nodes_exp->add( '       |      |object |     ||5' ).
     lo_nodes_exp->add( '/      |a_suf |str    |abc  ||0' ).
     lo_nodes_exp->add( '/      |b_suf |num    |10   ||0' ).
@@ -4668,8 +4652,7 @@ CLASS ltcl_abap_to_json IMPLEMENTATION.
     DATA lo_nodes_exp TYPE REF TO lcl_nodes_helper.
     DATA lt_nodes TYPE zif_abapgit_ajson_types=>ty_nodes_tt.
 
-    TYPES temp17 TYPE TABLE OF ty_struc.
-DATA lt_tab TYPE temp17.
+    DATA lt_tab TYPE TABLE OF ty_struc.
     FIELD-SYMBOLS <s> LIKE LINE OF lt_tab.
 
     APPEND INITIAL LINE TO lt_tab ASSIGNING <s>.
@@ -4679,7 +4662,7 @@ DATA lt_tab TYPE temp17.
     <s>-a = 'bcd'.
     <s>-b = 20.
 
-    CREATE OBJECT lo_nodes_exp.
+    lo_nodes_exp = NEW #( ).
     lo_nodes_exp->add( '       |      |array  |     | |2' ).
     lo_nodes_exp->add( '/      |1     |object |     |1|4' ).
     lo_nodes_exp->add( '/1/    |a     |str    |abc  | |0' ).
@@ -4702,7 +4685,7 @@ DATA lt_tab TYPE temp17.
     APPEND 'abc' TO lt_strtab.
     APPEND 'bcd' TO lt_strtab.
 
-    CREATE OBJECT lo_nodes_exp.
+    lo_nodes_exp = NEW #( ).
     lo_nodes_exp->add( '       |      |array  |     | |2' ).
     lo_nodes_exp->add( '/      |1     |str    |abc  |1|0' ).
     lo_nodes_exp->add( '/      |2     |str    |bcd  |2|0' ).
@@ -4737,8 +4720,7 @@ CLASS ltcl_filter_test DEFINITION FINAL
         type TYPE zif_abapgit_ajson_filter=>ty_visit_type,
       END OF ty_visit_history.
 
-    TYPES temp18_9418cd8b8d TYPE TABLE OF ty_visit_history.
-DATA mt_visit_history TYPE temp18_9418cd8b8d.
+    DATA mt_visit_history TYPE TABLE OF ty_visit_history.
 
     METHODS simple_test FOR TESTING RAISING zcx_abapgit_ajson_error.
     METHODS array_test FOR TESTING RAISING zcx_abapgit_ajson_error.
@@ -4759,9 +4741,7 @@ CLASS ltcl_filter_test IMPLEMENTATION.
       APPEND ls_visit_history TO mt_visit_history.
     ENDIF.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( NOT is_node-name CA 'xX' AND NOT is_node-value CA 'xX' ).
-    rv_keep = temp1.
+    rv_keep = xsdbool( NOT is_node-name CA 'xX' AND NOT is_node-value CA 'xX' ).
 
   ENDMETHOD.
 
@@ -4792,7 +4772,7 @@ CLASS ltcl_filter_test IMPLEMENTATION.
       ii_source_json = lo_json
       ii_filter      = me ).
 
-    CREATE OBJECT lo_nodes_exp.
+    lo_nodes_exp = NEW #( ).
     lo_nodes_exp->add( '       |      |object |     | |3' ).
     lo_nodes_exp->add( '/      |a     |num    |1    | |0' ).
     lo_nodes_exp->add( '/      |b     |num    |1    | |0' ).
@@ -4851,7 +4831,7 @@ CLASS ltcl_filter_test IMPLEMENTATION.
       ii_source_json = lo_json
       ii_filter      = me ).
 
-    CREATE OBJECT lo_nodes_exp.
+    lo_nodes_exp = NEW #( ).
     lo_nodes_exp->add( '       |      |array  |     | |10' ).
     lo_nodes_exp->add( '/      |1     |str    |a    |1|0' ).
     lo_nodes_exp->add( '/      |2     |str    |b    |2|0' ).
@@ -4996,7 +4976,7 @@ CLASS ltcl_mapper_test IMPLEMENTATION.
       ii_source_json = lo_json
       ii_mapper      = me ).
 
-    CREATE OBJECT lo_nodes_exp.
+    lo_nodes_exp = NEW #( ).
     lo_nodes_exp->add( '       |      |object |     | |4' ).
     lo_nodes_exp->add( '/      |AB    |num    |1    | |0' ).
     lo_nodes_exp->add( '/      |bc    |num    |2    | |0' ).
@@ -5038,7 +5018,7 @@ CLASS ltcl_mapper_test IMPLEMENTATION.
       ii_source_json = lo_json
       ii_mapper      = me ).
 
-    CREATE OBJECT lo_nodes_exp.
+    lo_nodes_exp = NEW #( ).
     lo_nodes_exp->add( '       |      |array  |     | |2' ).
     lo_nodes_exp->add( '/      |1     |object |     |1|2' ).
     lo_nodes_exp->add( '/      |2     |object |     |2|2' ).
@@ -5097,7 +5077,7 @@ CLASS ltcl_mapper_test IMPLEMENTATION.
       ii_source_json = lo_json
       ii_mapper      = me ).
 
-    CREATE OBJECT lo_nodes_exp.
+    lo_nodes_exp = NEW #( ).
     lo_nodes_exp->add( '       |      |num    |1    | |0' ).
     cl_abap_unit_assert=>assert_equals(
       act = lo_json_filtered->mt_json_tree
@@ -5171,7 +5151,7 @@ CLASS ltcl_cloning_test IMPLEMENTATION.
 
     li_json_new = li_json->clone( ).
 
-    CREATE OBJECT lo_nodes_exp.
+    lo_nodes_exp = NEW #( ).
     lo_nodes_exp->add( '       |      |object |     | |2' ).
     lo_nodes_exp->add( '/      |ab    |num    |1    | |0' ).
     lo_nodes_exp->add( '/      |xy    |num    |2    | |0' ).
@@ -5212,7 +5192,7 @@ CLASS ltcl_cloning_test IMPLEMENTATION.
 
     li_json_new = li_json->filter( me ).
 
-    CREATE OBJECT lo_nodes_exp.
+    lo_nodes_exp = NEW #( ).
     lo_nodes_exp->add( '       |      |object |     | |1' ).
     lo_nodes_exp->add( '/      |ab    |num    |1    | |0' ).
 
@@ -5238,7 +5218,7 @@ CLASS ltcl_cloning_test IMPLEMENTATION.
 
     li_json_new = li_json->map( me ).
 
-    CREATE OBJECT lo_nodes_exp.
+    lo_nodes_exp = NEW #( ).
     lo_nodes_exp->add( '       |      |object |     | |2' ).
     lo_nodes_exp->add( '/      |AB    |num    |1    | |0' ).
     lo_nodes_exp->add( '/      |xy    |num    |2    | |0' ).
@@ -5264,9 +5244,7 @@ CLASS ltcl_cloning_test IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD zif_abapgit_ajson_filter~keep_node.
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( is_node-name IS INITIAL OR is_node-name+0(1) <> 'x' ).
-    rv_keep = temp2.
+    rv_keep = xsdbool( is_node-name IS INITIAL OR is_node-name+0(1) <> 'x' ).
   ENDMETHOD.
 
   METHOD mapper_and_filter.
@@ -5291,7 +5269,7 @@ CLASS ltcl_cloning_test IMPLEMENTATION.
       ii_filter = me
       ii_mapper = me ).
 
-    CREATE OBJECT lo_nodes_exp.
+    lo_nodes_exp = NEW #( ).
     lo_nodes_exp->add( '       |      |object |     | |2' ).
     lo_nodes_exp->add( '/      |AB    |num    |1    | |0' ).
     lo_nodes_exp->add( '/      |bc    |num    |2    | |0' ).
