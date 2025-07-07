@@ -46,10 +46,9 @@ CLASS zcl_abapgit_object_dtel IMPLEMENTATION.
 
   METHOD deserialize_texts.
 
-    TYPES temp1 TYPE TABLE OF langu.
-DATA: lv_name       TYPE ddobjname,
+    DATA: lv_name       TYPE ddobjname,
           ls_dd04v_tmp  TYPE dd04v,
-          lt_i18n_langs TYPE temp1,
+          lt_i18n_langs TYPE TABLE OF langu,
           lt_dd04_texts TYPE ty_dd04_texts.
 
     FIELD-SYMBOLS: <lv_lang>      LIKE LINE OF lt_i18n_langs,
@@ -99,12 +98,11 @@ DATA: lv_name       TYPE ddobjname,
 
   METHOD serialize_texts.
 
-    TYPES temp2 TYPE TABLE OF langu.
-DATA: lv_name            TYPE ddobjname,
+    DATA: lv_name            TYPE ddobjname,
           lv_index           TYPE i,
           ls_dd04v           TYPE dd04v,
           lt_dd04_texts      TYPE ty_dd04_texts,
-          lt_i18n_langs      TYPE temp2,
+          lt_i18n_langs      TYPE TABLE OF langu,
           lt_language_filter TYPE zif_abapgit_environment=>ty_system_language_filter.
 
     FIELD-SYMBOLS: <lv_lang>      LIKE LINE OF lt_i18n_langs,
@@ -263,9 +261,7 @@ DATA: lv_name            TYPE ddobjname,
       SELECT SINGLE rollname FROM dd04l INTO lv_rollname
         WHERE rollname = lv_rollname.
     ENDIF.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -325,6 +321,8 @@ DATA: lv_name            TYPE ddobjname,
           ls_extra TYPE ty_extra,
           ls_dd04v TYPE dd04v.
 
+    FIELD-SYMBOLS <lg_field> TYPE any.
+
     lv_name = ms_item-obj_name.
 
     SELECT SINGLE * FROM dd04l
@@ -358,6 +356,15 @@ DATA: lv_name            TYPE ddobjname,
              ls_dd04v-signflag,
              ls_dd04v-convexit,
              ls_dd04v-entitytab.
+    ENDIF.
+
+    ASSIGN COMPONENT 'ACTFLAG' OF STRUCTURE ls_dd04v TO <lg_field>.
+    IF sy-subrc = 0.
+      CLEAR <lg_field>.
+    ENDIF.
+    ASSIGN COMPONENT 'RESERVEDTE' OF STRUCTURE ls_dd04v TO <lg_field>.
+    IF sy-subrc = 0.
+      CLEAR <lg_field>.
     ENDIF.
 
     IF ls_dd04v-routputlen = ''.
