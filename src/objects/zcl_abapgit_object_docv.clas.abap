@@ -55,7 +55,7 @@ CLASS zcl_abapgit_object_docv IMPLEMENTATION.
       io_files       = io_files
       io_i18n_params = io_i18n_params ).
 
-    IF ms_item-obj_name(2) <> 'DT'. " IN, MO, UO, UP
+    IF ms_item-obj_name(2) <> 'DT' AND ms_item-obj_name NP '/*/DT*'. " IN, MO, UO, UP
       mv_id         = ms_item-obj_name(2).
       mv_doc_object = ms_item-obj_name+2.
     ELSE. " DT
@@ -155,9 +155,7 @@ CLASS zcl_abapgit_object_docv IMPLEMENTATION.
        WHERE id     = mv_id
          AND object = mv_doc_object.    "#EC CI_GENBUFF "#EC CI_NOORDER
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
