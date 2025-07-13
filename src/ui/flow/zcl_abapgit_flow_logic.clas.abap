@@ -49,9 +49,9 @@ CLASS zcl_abapgit_flow_logic DEFINITION PUBLIC.
     CLASS-METHODS check_files
       IMPORTING
         it_local          TYPE zif_abapgit_definitions=>ty_files_item_tt
-        it_main_expanded  TYPE zif_abapgit_git_definitions=>ty_expanded_tt
         it_features       TYPE zif_abapgit_flow_logic=>ty_features
       CHANGING
+        ct_main_expanded  TYPE zif_abapgit_git_definitions=>ty_expanded_tt
         ct_missing_remote TYPE zif_abapgit_flow_logic=>ty_consolidate-missing_remote
       RAISING
         zcx_abapgit_exception.
@@ -265,7 +265,9 @@ CLASS ZCL_ABAPGIT_FLOW_LOGIC IMPLEMENTATION.
     DATA lt_features TYPE zif_abapgit_flow_logic=>ty_features.
     DATA li_repo     TYPE REF TO zif_abapgit_repo.
     DATA lt_main_expanded TYPE zif_abapgit_git_definitions=>ty_expanded_tt.
+    DATA ls_expanded LIKE LINE OF lt_main_expanded.
     DATA ls_branch   LIKE LINE OF lt_branches.
+    DATA ls_only_remote TYPE zif_abapgit_flow_logic=>ty_path_name.
     DATA ls_result   LIKE LINE OF lt_features.
 
     FIELD-SYMBOLS <ls_tadir> LIKE LINE OF lt_tadir.
@@ -303,15 +305,15 @@ CLASS ZCL_ABAPGIT_FLOW_LOGIC IMPLEMENTATION.
       INSERT <ls_tadir> INTO TABLE lt_filter.
 
       IF lines( lt_filter ) >= 500.
-        CREATE OBJECT lo_filter EXPORTING it_filter = lt_filter.
+        lo_filter = NEW #( it_filter = lt_filter ).
         lt_local = li_repo->get_files_local_filtered( lo_filter ).
         CLEAR lt_filter.
         check_files(
           EXPORTING
             it_local          = lt_local
             it_features       = lt_features
-            it_main_expanded  = lt_main_expanded
           CHANGING
+            ct_main_expanded  = lt_main_expanded
             ct_missing_remote = cs_information-missing_remote ).
         IF lines( cs_information-missing_remote ) > 1000.
           INSERT `Only first 1000 missing files shown` INTO TABLE cs_information-warnings.
@@ -320,17 +322,29 @@ CLASS ZCL_ABAPGIT_FLOW_LOGIC IMPLEMENTATION.
     ENDLOOP.
 
     IF lines( lt_filter ) > 0.
-      CREATE OBJECT lo_filter EXPORTING it_filter = lt_filter.
+      lo_filter = NEW #( it_filter = lt_filter ).
       lt_local = li_repo->get_files_local_filtered( lo_filter ).
       CLEAR lt_filter.
       check_files(
         EXPORTING
           it_local          = lt_local
           it_features       = lt_features
-          it_main_expanded  = lt_main_expanded
         CHANGING
+          ct_main_expanded  = lt_main_expanded
           ct_missing_remote = cs_information-missing_remote ).
     ENDIF.
+
+* todo: double check, there might have been changes while consolidation is running
+* or do smaller batches?
+
+* those left in lt_main_expanded are only in remote, not local
+    LOOP AT lt_main_expanded INTO ls_expanded.
+      CLEAR ls_only_remote.
+      ls_only_remote-path = ls_expanded-path.
+      ls_only_remote-filename = ls_expanded-name.
+      ls_only_remote-remote_sha1 = ls_expanded-sha1.
+      INSERT ls_only_remote INTO TABLE cs_information-only_remote.
+    ENDLOOP.
 
   ENDMETHOD.
 
@@ -343,13 +357,11 @@ CLASS ZCL_ABAPGIT_FLOW_LOGIC IMPLEMENTATION.
     DATA lv_found_branch TYPE abap_bool.
 
     FIELD-SYMBOLS <ls_local> LIKE LINE OF it_local.
-    FIELD-SYMBOLS <ls_expanded> LIKE LINE OF it_main_expanded.
+    FIELD-SYMBOLS <ls_expanded> LIKE LINE OF ct_main_expanded.
 
     LOOP AT it_local ASSIGNING <ls_local> WHERE file-filename <> zif_abapgit_definitions=>c_dot_abapgit.
-      READ TABLE it_main_expanded WITH KEY name = <ls_local>-file-filename ASSIGNING <ls_expanded>.
-      DATA temp1 TYPE xsdboolean.
-      temp1 = boolc( sy-subrc = 0 ).
-      lv_found_main = temp1.
+      READ TABLE ct_main_expanded WITH KEY name = <ls_local>-file-filename ASSIGNING <ls_expanded>.
+      lv_found_main = xsdbool( sy-subrc = 0 ).
 
       lv_found_branch = abap_false.
       LOOP AT it_features INTO ls_feature.
@@ -376,6 +388,10 @@ CLASS ZCL_ABAPGIT_FLOW_LOGIC IMPLEMENTATION.
         ls_missing-local_sha1 = <ls_local>-file-sha1.
         ls_missing-remote_sha1 = <ls_expanded>-sha1.
         INSERT ls_missing INTO TABLE ct_missing_remote.
+      ENDIF.
+
+      IF lv_found_main = abap_true.
+        DELETE ct_main_expanded WHERE name = <ls_local>-file-filename.
       ENDIF.
     ENDLOOP.
 
@@ -465,8 +481,7 @@ CLASS ZCL_ABAPGIT_FLOW_LOGIC IMPLEMENTATION.
     DATA lo_visit   TYPE REF TO lcl_sha1_stack.
     DATA ls_raw     TYPE zcl_abapgit_git_pack=>ty_commit.
 
-    TYPES temp1 TYPE HASHED TABLE OF zif_abapgit_git_definitions=>ty_sha1 WITH UNIQUE KEY table_line.
-DATA lt_main_reachable TYPE temp1.
+    DATA lt_main_reachable TYPE HASHED TABLE OF zif_abapgit_git_definitions=>ty_sha1 WITH UNIQUE KEY table_line.
 
     FIELD-SYMBOLS <ls_branch> LIKE LINE OF ct_features.
     FIELD-SYMBOLS <ls_commit> LIKE LINE OF lt_commits.
@@ -488,7 +503,7 @@ DATA lt_main_reachable TYPE temp1.
       iv_url  = iv_url
       it_sha1 = lt_sha1 ).
 
-    CREATE OBJECT lo_visit.
+    lo_visit = NEW #( ).
     lo_visit->clear( )->push( ls_main-sha1 ).
     WHILE lo_visit->size( ) > 0.
       lv_current = lo_visit->pop( ).
@@ -739,7 +754,7 @@ DATA lt_main_reachable TYPE temp1.
     SORT lt_filter BY object obj_name.
     DELETE ADJACENT DUPLICATES FROM lt_filter COMPARING object obj_name.
 
-    CREATE OBJECT lo_filter EXPORTING it_filter = lt_filter.
+    lo_filter = NEW #( it_filter = lt_filter ).
     rt_local = ii_repo->get_files_local_filtered( lo_filter ).
 
   ENDMETHOD.
