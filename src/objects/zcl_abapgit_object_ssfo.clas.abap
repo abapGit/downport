@@ -5,7 +5,6 @@ CLASS zcl_abapgit_object_ssfo DEFINITION
   CREATE PUBLIC.
 
   PUBLIC SECTION.
-
     INTERFACES zif_abapgit_object.
 
   PROTECTED SECTION.
@@ -20,7 +19,7 @@ CLASS zcl_abapgit_object_ssfo DEFINITION
     METHODS fix_ids
       IMPORTING
         !ii_xml_doc TYPE REF TO if_ixml_document .
-    METHODS sort_texts
+    CLASS-METHODS sort_texts
       IMPORTING
         !ii_xml_doc TYPE REF TO if_ixml_document
       RAISING
@@ -246,8 +245,7 @@ CLASS zcl_abapgit_object_ssfo IMPLEMENTATION.
 
   METHOD sort_texts.
 
-    TYPES temp1 TYPE STANDARD TABLE OF stxfobjt.
-DATA: li_node      TYPE REF TO if_ixml_node,
+    DATA: li_node      TYPE REF TO if_ixml_node,
           li_item      TYPE REF TO if_ixml_node,
           li_field     TYPE REF TO if_ixml_node,
           li_item_list TYPE REF TO if_ixml_node_list,
@@ -256,7 +254,7 @@ DATA: li_node      TYPE REF TO if_ixml_node,
           lv_index     TYPE i,
           lv_field     TYPE fieldname,
           ls_item      TYPE stxfobjt,
-          lt_items     TYPE temp1.
+          lt_items     TYPE STANDARD TABLE OF stxfobjt.
 
     FIELD-SYMBOLS <lv_field> TYPE any.
 
@@ -305,6 +303,15 @@ DATA: li_node      TYPE REF TO if_ixml_node,
             li_field->set_value( |{ <lv_field> }| ).
             li_field = li_field->get_next( ).
           ENDWHILE.
+
+* guess this can only happen for CAPTION field, as other are key fields
+          IF lv_field <> 'CAPTION' AND ls_item-caption IS NOT INITIAL.
+            ii_xml_doc->create_simple_element(
+              name   = 'CAPTION'
+              value  = |{ ls_item-caption }|
+              parent = li_item ).
+          ENDIF.
+
           lv_index = lv_index + 1.
         ENDDO.
 
@@ -360,7 +367,7 @@ DATA: li_node      TYPE REF TO if_ixml_node,
       lx_error    TYPE REF TO cx_ssf_fb,
       lv_text     TYPE string.
 
-    CREATE OBJECT lo_sf.
+    lo_sf = NEW #( ).
 
 * set "created by" and "changed by" to current user
     li_iterator = io_xml->get_raw( )->get_root_element( )->create_iterator( ).
@@ -419,9 +426,7 @@ DATA: li_node      TYPE REF TO if_ixml_node,
 
     SELECT SINGLE formname FROM stxfadm INTO lv_formname
       WHERE formname = ms_item-obj_name.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -459,9 +464,7 @@ DATA: li_node      TYPE REF TO if_ixml_node,
       IMPORTING
         o_inactive = lv_inactive.
 
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( lv_inactive = abap_false ).
-    rv_active = temp2.
+    rv_active = xsdbool( lv_inactive = abap_false ).
 
   ENDMETHOD.
 
@@ -476,8 +479,7 @@ DATA: li_node      TYPE REF TO if_ixml_node,
 
   METHOD zif_abapgit_object~jump.
 
-    TYPES temp2 TYPE TABLE OF bdcdata.
-DATA: lt_bdcdata  TYPE temp2,
+    DATA: lt_bdcdata  TYPE TABLE OF bdcdata,
           lv_formtype TYPE stxfadm-formtype.
 
     FIELD-SYMBOLS: <ls_bdcdata> LIKE LINE OF lt_bdcdata.
@@ -555,7 +557,7 @@ DATA: lt_bdcdata  TYPE temp2,
     li_ixml = cl_ixml=>create( ).
     li_xml_doc = li_ixml->create_document( ).
 
-    CREATE OBJECT lo_sf.
+    lo_sf = NEW #( ).
     lv_formname = ms_item-obj_name. " convert type
     TRY.
         lo_sf->load( im_formname = lv_formname
