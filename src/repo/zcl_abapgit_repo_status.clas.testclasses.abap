@@ -126,7 +126,9 @@ CLASS ltcl_run_checks IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD zif_abapgit_sap_namespace~exists.
-    rv_yes = xsdbool( iv_namespace <> 'NOTEXIST' ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( iv_namespace <> 'NOTEXIST' ).
+    rv_yes = temp1.
   ENDMETHOD.
 
   METHOD zif_abapgit_sap_namespace~is_editable.
@@ -157,7 +159,7 @@ CLASS ltcl_run_checks IMPLEMENTATION.
 
   METHOD setup.
 
-    mi_log = NEW zcl_abapgit_log( ).
+    CREATE OBJECT mi_log TYPE zcl_abapgit_log.
 
     mo_dot = zcl_abapgit_dot_abapgit=>build_default( ).
     mo_dot->set_starting_folder( '/' ).  " assumed by unit tests
@@ -170,8 +172,8 @@ CLASS ltcl_run_checks IMPLEMENTATION.
 
     zcl_abapgit_injector=>set_sap_namespace( me ).
 
-    mo_instance = NEW #( iv_root_package = '$Z$'
-                         io_dot = mo_dot ).
+    CREATE OBJECT mo_instance EXPORTING iv_root_package = '$Z$'
+                                        io_dot = mo_dot.
 
   ENDMETHOD.
 
@@ -511,8 +513,8 @@ CLASS ltcl_run_checks IMPLEMENTATION.
                    iv_path     = '/'
                    iv_filename = '#notexist#zclass1.clas.xml' ).
 
-    mo_instance = NEW #( iv_root_package = '/NOTEXIST/Z'
-                         io_dot = mo_dot ).
+    CREATE OBJECT mo_instance EXPORTING iv_root_package = '/NOTEXIST/Z'
+                                        io_dot = mo_dot.
 
     mi_log = mo_instance->run_checks( mt_results ).
 
@@ -538,8 +540,8 @@ CLASS ltcl_run_checks IMPLEMENTATION.
                    iv_path     = '/'
                    iv_filename = '(notexist)zclass1.clas.json' ).
 
-    mo_instance = NEW #( iv_root_package = '/NOTEXIST/Z'
-                         io_dot = mo_dot ).
+    CREATE OBJECT mo_instance EXPORTING iv_root_package = '/NOTEXIST/Z'
+                                        io_dot = mo_dot.
 
     mi_log = mo_instance->run_checks( mt_results ).
 
@@ -573,8 +575,8 @@ CLASS ltcl_run_checks IMPLEMENTATION.
                    iv_path     = ''
                    iv_filename = 'package.devc.xml' ).
 
-    mo_instance = NEW #( iv_root_package = '$MAIN'
-                         io_dot = mo_dot ).
+    CREATE OBJECT mo_instance EXPORTING iv_root_package = '$MAIN'
+                                        io_dot = mo_dot.
 
     mi_log = mo_instance->run_checks( mt_results ).
 
