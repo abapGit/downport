@@ -320,7 +320,8 @@ CLASS ZCL_ABAPGIT_LXE_TEXTS IMPLEMENTATION.
             cv_changed    = lv_changed
             ct_text_pairs = lt_text_pairs_tmp ).
 
-        IF lv_changed = abap_true.
+        IF lv_changed = abap_true AND lines( lt_text_pairs_tmp ) > 0.
+          " If lt_text_pairs_tmp is empty it raises error, while this is a practical case
           write_lxe_object_text_pair(
             iv_s_lang  = lv_main_lang
             iv_t_lang  = lv_target_lang
@@ -634,8 +635,8 @@ CLASS ZCL_ABAPGIT_LXE_TEXTS IMPLEMENTATION.
 
     LOOP AT mo_i18n_params->ms_params-translation_languages INTO lv_lang.
       lv_lang = to_lower( lv_lang ).
-      CREATE OBJECT lo_po_file EXPORTING iv_suppress_comments = mo_i18n_params->ms_params-suppress_po_comments
-                                         iv_lang = lv_lang.
+      lo_po_file = NEW #( iv_suppress_comments = mo_i18n_params->ms_params-suppress_po_comments
+                          iv_lang = lv_lang ).
       LOOP AT lt_lxe_texts ASSIGNING <ls_translation>.
         IF iso4_to_iso2( <ls_translation>-target_lang ) = lv_lang.
           lo_po_file->push_text_pairs(
