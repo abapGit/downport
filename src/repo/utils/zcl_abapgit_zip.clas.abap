@@ -27,6 +27,8 @@ CLASS zcl_abapgit_zip DEFINITION
         !iv_object_type        TYPE trobjtype
         !iv_object_name        TYPE sobj_name
         !iv_main_language_only TYPE abap_bool DEFAULT abap_false
+        !it_translation_langs  TYPE zif_abapgit_definitions=>ty_languages OPTIONAL
+        !iv_use_lxe            TYPE abap_bool DEFAULT abap_false
       RAISING
         zcx_abapgit_exception .
     CLASS-METHODS export_package
@@ -77,7 +79,7 @@ ENDCLASS.
 
 
 
-CLASS zcl_abapgit_zip IMPLEMENTATION.
+CLASS ZCL_ABAPGIT_ZIP IMPLEMENTATION.
 
 
   METHOD encode_files.
@@ -88,7 +90,7 @@ CLASS zcl_abapgit_zip IMPLEMENTATION.
     FIELD-SYMBOLS: <ls_file> LIKE LINE OF it_files.
 
 
-    CREATE OBJECT lo_zip.
+    lo_zip = NEW #( ).
 
     LOOP AT it_files ASSIGNING <ls_file>.
       CONCATENATE <ls_file>-file-path+1 <ls_file>-file-filename INTO lv_filename.
@@ -107,15 +109,15 @@ CLASS zcl_abapgit_zip IMPLEMENTATION.
     DATA lt_zip       TYPE zif_abapgit_definitions=>ty_files_item_tt.
     DATA lo_serialize TYPE REF TO zcl_abapgit_serialize.
 
-    CREATE OBJECT li_log TYPE zcl_abapgit_log.
+    li_log = NEW zcl_abapgit_log( ).
     li_log->set_title( 'Zip Export Log' ).
 
     IF zcl_abapgit_factory=>get_sap_package( iv_package )->exists( ) = abap_false.
       zcx_abapgit_exception=>raise( |Package { iv_package } doesn't exist| ).
     ENDIF.
 
-    CREATE OBJECT lo_serialize EXPORTING io_dot_abapgit = io_dot_abapgit
-                                         is_local_settings = is_local_settings.
+    lo_serialize = NEW #( io_dot_abapgit = io_dot_abapgit
+                          is_local_settings = is_local_settings ).
 
     lt_zip = lo_serialize->files_local(
       iv_package = iv_package
@@ -159,6 +161,8 @@ CLASS zcl_abapgit_zip IMPLEMENTATION.
     ls_files_item = zcl_abapgit_objects=>serialize(
       is_item        = ls_files_item-item
       io_i18n_params = zcl_abapgit_i18n_params=>new(
+        iv_use_lxe            = iv_use_lxe
+        it_translation_langs  = it_translation_langs
         iv_main_language_only = iv_main_language_only
         iv_main_language      = sy-langu ) ).
 
@@ -313,7 +317,7 @@ CLASS zcl_abapgit_zip IMPLEMENTATION.
                    <ls_file>    LIKE LINE OF rt_files.
 
 
-    CREATE OBJECT lo_zip.
+    lo_zip = NEW #( ).
     lo_zip->load( EXPORTING
                     zip             = iv_xstr
                   EXCEPTIONS

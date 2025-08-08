@@ -126,6 +126,11 @@ CLASS zcl_abapgit_lxe_texts DEFINITION
         iv_object_name     TYPE sobj_name
       RETURNING
         VALUE(rt_obj_list) TYPE lxe_tt_colob .
+    METHODS remove_irrelevant
+      IMPORTING
+        iv_objtype        TYPE trobjtype
+      CHANGING
+        ct_text_pairs_tmp TYPE ty_lxe_translation-text_pairs.
     METHODS read_lxe_object_text_pair
       IMPORTING
         iv_s_lang                TYPE lxeisolang
@@ -568,6 +573,12 @@ CLASS ZCL_ABAPGIT_LXE_TEXTS IMPLEMENTATION.
 
     ENDTRY.
 
+    remove_irrelevant(
+      EXPORTING
+        iv_objtype        = iv_objtype
+      CHANGING
+        ct_text_pairs_tmp = rt_text_pairs_tmp ).
+
   ENDMETHOD.
 
 
@@ -622,6 +633,16 @@ CLASS ZCL_ABAPGIT_LXE_TEXTS IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD remove_irrelevant.
+
+    IF iv_objtype = 'RPT4'.
+      DELETE ct_text_pairs_tmp WHERE textkey = 'DUMMY KEY FOR DDIC FLAG COPY'. " see #7314
+    ENDIF.
+    " Add more when identified ...
+
+  ENDMETHOD.
+
+
   METHOD serialize_as_po.
 
     DATA lt_lxe_texts TYPE ty_lxe_translations.
@@ -635,8 +656,8 @@ CLASS ZCL_ABAPGIT_LXE_TEXTS IMPLEMENTATION.
 
     LOOP AT mo_i18n_params->ms_params-translation_languages INTO lv_lang.
       lv_lang = to_lower( lv_lang ).
-      CREATE OBJECT lo_po_file EXPORTING iv_suppress_comments = mo_i18n_params->ms_params-suppress_po_comments
-                                         iv_lang = lv_lang.
+      lo_po_file = NEW #( iv_suppress_comments = mo_i18n_params->ms_params-suppress_po_comments
+                          iv_lang = lv_lang ).
       LOOP AT lt_lxe_texts ASSIGNING <ls_translation>.
         IF iso4_to_iso2( <ls_translation>-target_lang ) = lv_lang.
           lo_po_file->push_text_pairs(
