@@ -192,8 +192,8 @@ CLASS zcl_abapgit_gui_page_chg_pckg IMPLEMENTATION.
 
     super->constructor( ).
     mi_repo = ii_repo.
-    mo_validation_log = NEW #( ).
-    mo_form_data = NEW #( ).
+    CREATE OBJECT mo_validation_log.
+    CREATE OBJECT mo_form_data.
     mo_form = get_form_schema( ).
     mo_form_util = zcl_abapgit_html_form_utils=>create( mo_form ).
 
@@ -212,7 +212,7 @@ CLASS zcl_abapgit_gui_page_chg_pckg IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_chg_pckg.
 
-    lo_component = NEW #( ii_repo = ii_repo ).
+    CREATE OBJECT lo_component EXPORTING ii_repo = ii_repo.
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Change Repository Package'
@@ -356,7 +356,7 @@ CLASS zcl_abapgit_gui_page_chg_pckg IMPLEMENTATION.
 
     lv_key = mi_repo->get_key( ).
 
-    lo_checksums = NEW #( iv_repo_key = lv_key ).
+    CREATE OBJECT lo_checksums EXPORTING iv_repo_key = lv_key.
 
     lt_checksums = lo_checksums->zif_abapgit_repo_checksums~get( ).
 
