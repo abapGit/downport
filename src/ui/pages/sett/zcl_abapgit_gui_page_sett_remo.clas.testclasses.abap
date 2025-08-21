@@ -78,7 +78,7 @@ CLASS ltd_git_transport IMPLEMENTATION.
 
   METHOD zif_abapgit_git_transport~branches.
 
-    CREATE OBJECT ri_branch_list TYPE ltd_branch_list.
+    ri_branch_list = NEW ltd_branch_list( ).
 
   ENDMETHOD.
 
@@ -242,6 +242,9 @@ CLASS ltd_repo_online IMPLEMENTATION.
   METHOD zif_abapgit_repo~switch_repo_type.
   ENDMETHOD.
 
+  METHOD zif_abapgit_repo_online~get_remote_settings.
+  ENDMETHOD.
+
 ENDCLASS.
 
 
@@ -252,7 +255,7 @@ CLASS ltcl_validate_form IMPLEMENTATION.
     DATA: ls_data TYPE zif_abapgit_persistence=>ty_repo.
     DATA: li_repo_online TYPE REF TO zif_abapgit_repo_online.
 
-    CREATE OBJECT mo_git_transport_mock TYPE ltd_git_transport.
+    mo_git_transport_mock = NEW ltd_git_transport( ).
     zcl_abapgit_git_injector=>set_git_transport( mo_git_transport_mock ).
 
     " Disable GUI
@@ -261,14 +264,14 @@ CLASS ltcl_validate_form IMPLEMENTATION.
     ls_data-key = 1.
     ls_data-branch_name = 'main'.
 
-    CREATE OBJECT li_repo_online TYPE ltd_repo_online.
+    li_repo_online = NEW ltd_repo_online( ).
 
-    CREATE OBJECT mo_given_form_data.
+    mo_given_form_data = NEW #( ).
     mo_given_form_data->set(
         iv_key = zcl_abapgit_gui_page_sett_remo=>c_id-branch
         iv_val = 'main' ).
 
-    CREATE OBJECT mo_cut EXPORTING ii_repo = li_repo_online.
+    mo_cut = NEW #( ii_repo = li_repo_online ).
 
   ENDMETHOD.
 
@@ -350,7 +353,7 @@ CLASS ltcl_validate_form IMPLEMENTATION.
         iv_val = c_git_repo_url
       )->set(
         iv_key = zcl_abapgit_gui_page_sett_remo=>c_id-head_type
-        iv_val = zcl_abapgit_gui_page_sett_remo=>c_head_types-branch
+        iv_val = zif_abapgit_git_definitions=>c_head_types-branch
       )->set(
         iv_key = zcl_abapgit_gui_page_sett_remo=>c_id-branch
         iv_val = 'feature' ).
@@ -371,7 +374,7 @@ CLASS ltcl_validate_form IMPLEMENTATION.
         iv_val = c_git_repo_url
       )->set(
         iv_key = zcl_abapgit_gui_page_sett_remo=>c_id-head_type
-        iv_val = zcl_abapgit_gui_page_sett_remo=>c_head_types-branch
+        iv_val = zif_abapgit_git_definitions=>c_head_types-branch
       )->set(
         iv_key = zcl_abapgit_gui_page_sett_remo=>c_id-branch
         iv_val = 'main' ).
@@ -392,7 +395,7 @@ CLASS ltcl_validate_form IMPLEMENTATION.
         iv_val = c_git_repo_url
       )->set(
         iv_key = zcl_abapgit_gui_page_sett_remo=>c_id-head_type
-        iv_val = zcl_abapgit_gui_page_sett_remo=>c_head_types-tag
+        iv_val = zif_abapgit_git_definitions=>c_head_types-tag
       )->set(
         iv_key = zcl_abapgit_gui_page_sett_remo=>c_id-tag
         iv_val = 'inv_tag' ).
@@ -413,7 +416,7 @@ CLASS ltcl_validate_form IMPLEMENTATION.
         iv_val = c_git_repo_url
       )->set(
         iv_key = zcl_abapgit_gui_page_sett_remo=>c_id-head_type
-        iv_val = zcl_abapgit_gui_page_sett_remo=>c_head_types-tag
+        iv_val = zif_abapgit_git_definitions=>c_head_types-tag
       )->set(
         iv_key = zcl_abapgit_gui_page_sett_remo=>c_id-tag
         iv_val = 'v1.1.3' ).
@@ -434,7 +437,7 @@ CLASS ltcl_validate_form IMPLEMENTATION.
         iv_val = c_git_repo_url
       )->set(
         iv_key = zcl_abapgit_gui_page_sett_remo=>c_id-head_type
-        iv_val = zcl_abapgit_gui_page_sett_remo=>c_head_types-pull_request
+        iv_val = zif_abapgit_git_definitions=>c_head_types-pull_request
       )->set(
         iv_key = zcl_abapgit_gui_page_sett_remo=>c_id-pull_request
         iv_val = 'x@inv_pr' ).
@@ -455,7 +458,7 @@ CLASS ltcl_validate_form IMPLEMENTATION.
         iv_val = c_git_repo_url
       )->set(
         iv_key = zcl_abapgit_gui_page_sett_remo=>c_id-head_type
-        iv_val = zcl_abapgit_gui_page_sett_remo=>c_head_types-pull_request
+        iv_val = zif_abapgit_git_definitions=>c_head_types-pull_request
       )->set(
         iv_key = zcl_abapgit_gui_page_sett_remo=>c_id-pull_request
         iv_val = 'x@pr' ).
@@ -476,7 +479,7 @@ CLASS ltcl_validate_form IMPLEMENTATION.
         iv_val = c_git_repo_url
       )->set(
         iv_key = zcl_abapgit_gui_page_sett_remo=>c_id-head_type
-        iv_val = zcl_abapgit_gui_page_sett_remo=>c_head_types-commit
+        iv_val = zif_abapgit_git_definitions=>c_head_types-commit
       )->set(
         iv_key = zcl_abapgit_gui_page_sett_remo=>c_id-commit
         iv_val = 'ABCD1234' ).
@@ -497,7 +500,7 @@ CLASS ltcl_validate_form IMPLEMENTATION.
         iv_val = c_git_repo_url
       )->set(
         iv_key = zcl_abapgit_gui_page_sett_remo=>c_id-head_type
-        iv_val = zcl_abapgit_gui_page_sett_remo=>c_head_types-commit
+        iv_val = zif_abapgit_git_definitions=>c_head_types-commit
       )->set(
         iv_key = zcl_abapgit_gui_page_sett_remo=>c_id-commit
         iv_val = '1d4abf5342a939202ae24ab4a5ad78da3cad24fb' ).
