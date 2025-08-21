@@ -111,8 +111,8 @@ CLASS zcl_abapgit_gui_picklist IMPLEMENTATION.
       zcx_abapgit_exception=>raise( 'Renderer or attr name required' ).
     ENDIF.
 
-    CREATE OBJECT mo_form_data.
-    CREATE OBJECT mo_validation_log.
+    mo_form_data = NEW #( ).
+    mo_validation_log = NEW #( ).
     mo_form = get_form_schema( ).
     mo_form_util = zcl_abapgit_html_form_utils=>create( mo_form ).
 
@@ -259,10 +259,11 @@ CLASS zcl_abapgit_gui_picklist IMPLEMENTATION.
 
   METHOD zif_abapgit_gui_renderable~render.
 
+    register_handlers( ).
+
     ri_html = zcl_abapgit_html=>create( mo_form->render(
       io_values         = mo_form_data
       io_validation_log = mo_validation_log ) ).
-    register_handlers( ).
 
   ENDMETHOD.
 ENDCLASS.
