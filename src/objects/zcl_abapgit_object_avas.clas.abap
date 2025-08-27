@@ -41,8 +41,7 @@ CLASS zcl_abapgit_object_avas IMPLEMENTATION.
 
   METHOD insert_assignments.
 
-    TYPES temp1 TYPE STANDARD TABLE OF cls_assignment.
-DATA: lt_assignment TYPE temp1,
+    DATA: lt_assignment TYPE STANDARD TABLE OF cls_assignment,
           ls_assignment LIKE LINE OF lt_assignment,
           ls_value      LIKE LINE OF is_avas-values.
 
@@ -80,7 +79,7 @@ DATA: lt_assignment TYPE temp1,
     lv_id = ms_item-obj_name.
 
     TRY.
-        CREATE OBJECT ro_avas EXPORTING im_assignment_id = lv_id.
+        ro_avas = NEW #( im_assignment_id = lv_id ).
       CATCH cx_pak_wb_object_locked INTO lx_err.
         zcx_abapgit_exception=>raise( |AVAS { lv_id }: locked: { lx_err->get_longtext( ) }| ).
       CATCH cx_pak_not_authorized INTO lx_err.
@@ -165,9 +164,7 @@ DATA: lt_assignment TYPE temp1,
 
     SELECT SINGLE guid FROM cls_assignment INTO lv_guid
       WHERE guid = ms_item-obj_name.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
