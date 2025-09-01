@@ -16,6 +16,7 @@ INTERFACE lif_kind.
     struct_deep TYPE ty_kind VALUE cl_abap_typedescr=>typekind_struct2,
     data_ref    TYPE ty_kind VALUE cl_abap_typedescr=>typekind_dref,
     object_ref  TYPE ty_kind VALUE cl_abap_typedescr=>typekind_oref,
+    utclong     TYPE ty_kind VALUE 'p', " cl_abap_typedescr=>typekind_utclong not in lower releases
     enum        TYPE ty_kind VALUE 'k'. " cl_abap_typedescr=>typekind_enum not in lower releases
 
   CONSTANTS:
@@ -387,8 +388,7 @@ CLASS lcl_json_parser IMPLEMENTATION.
 
     DATA lv_json TYPE string.
     DATA lv_offset TYPE i.
-    TYPES temp1 TYPE TABLE OF string.
-DATA lt_text TYPE temp1.
+    DATA lt_text TYPE TABLE OF string.
     DATA lv_text TYPE string.
     DATA lv_line TYPE i.
     DATA lv_pos TYPE i.
@@ -595,7 +595,7 @@ CLASS lcl_json_serializer IMPLEMENTATION.
   METHOD stringify.
 
     DATA lo TYPE REF TO lcl_json_serializer.
-    CREATE OBJECT lo.
+    lo = NEW #( ).
     lo->mt_json_tree = it_json_tree.
     lo->mv_indent_step = iv_indent.
     lo->mv_keep_item_order = iv_keep_item_order.
@@ -832,8 +832,7 @@ CLASS lcl_json_to_abap DEFINITION FINAL.
         type_kind         LIKE lif_kind=>any,
         tab_item_buf      TYPE REF TO data,
       END OF ty_type_cache.
-    TYPES temp2_e16272e46b TYPE HASHED TABLE OF ty_type_cache WITH UNIQUE KEY type_path.
-DATA mt_node_type_cache TYPE temp2_e16272e46b.
+    DATA mt_node_type_cache TYPE HASHED TABLE OF ty_type_cache WITH UNIQUE KEY type_path.
 
     DATA mr_nodes TYPE REF TO zif_abapgit_ajson_types=>ty_nodes_ts.
     DATA mi_custom_mapping TYPE REF TO zif_abapgit_ajson_mapping.
@@ -1166,9 +1165,7 @@ CLASS lcl_json_to_abap IMPLEMENTATION.
         " Do nothing
       WHEN zif_abapgit_ajson_types=>node_type-boolean.
         " TODO: check type ?
-        DATA temp1 TYPE xsdboolean.
-        temp1 = boolc( is_node-value = 'true' ).
-        <container> = temp1.
+        <container> = xsdbool( is_node-value = 'true' ).
       WHEN zif_abapgit_ajson_types=>node_type-number.
         " TODO: check type ?
         <container> = is_node-value.
@@ -1506,7 +1503,7 @@ CLASS lcl_abap_to_json IMPLEMENTATION.
 
     lo_type = cl_abap_typedescr=>describe_by_data( iv_data ).
 
-    CREATE OBJECT lo_converter.
+    lo_converter = NEW #( ).
     lo_converter->mi_custom_mapping  = ii_custom_mapping.
     lo_converter->mv_keep_item_order = is_opts-keep_item_order.
     lo_converter->mv_format_datetime = is_opts-format_datetime.
@@ -1661,6 +1658,9 @@ CLASS lcl_abap_to_json IMPLEMENTATION.
     SPLIT |{ iv_ts }| AT '.' INTO lv_int lv_frac.
     SHIFT lv_frac RIGHT DELETING TRAILING '0'.
     SHIFT lv_frac LEFT DELETING LEADING space.
+    IF lv_frac IS INITIAL.
+      lv_frac = '0'.
+    ENDIF.
 
     rv_str =
       lv_date+0(4) && '-' && lv_date+4(2) && '-' && lv_date+6(2) &&
@@ -1674,6 +1674,7 @@ CLASS lcl_abap_to_json IMPLEMENTATION.
   METHOD convert_value.
 
     DATA ls_node LIKE LINE OF ct_nodes.
+    DATA lv_timestamp TYPE string.
 
     ls_node-path  = is_prefix-path.
     ls_node-name  = is_prefix-name.
@@ -1703,6 +1704,21 @@ CLASS lcl_abap_to_json IMPLEMENTATION.
         ls_node-type  = zif_abapgit_ajson_types=>node_type-number.
         ls_node-value = |{ iv_data }|.
       ENDIF.
+    ELSEIF io_type->absolute_name = '\TYPE=TIMESTAMPL'.
+      IF mv_format_datetime = abap_true.
+        ls_node-type  = zif_abapgit_ajson_types=>node_type-string.
+        ls_node-value = format_timestampl( iv_data ).
+      ELSE.
+        ls_node-type  = zif_abapgit_ajson_types=>node_type-number.
+        ls_node-value = |{ iv_data }|.
+      ENDIF.
+    ELSEIF io_type->type_kind = lif_kind=>utclong.
+      lv_timestamp  = replace(
+        val  = iv_data
+        sub  = ` `
+        with = `T` ) && 'Z'.
+      ls_node-type  = zif_abapgit_ajson_types=>node_type-string.
+      ls_node-value = lv_timestamp.
     ELSEIF io_type->type_kind CO lif_kind=>texts OR
            io_type->type_kind CO lif_kind=>binary OR
            io_type->type_kind CO lif_kind=>enum.
@@ -1923,7 +1939,7 @@ CLASS lcl_abap_to_json IMPLEMENTATION.
 
     lo_type = cl_abap_typedescr=>describe_by_data( iv_data ).
 
-    CREATE OBJECT lo_converter.
+    lo_converter = NEW #( ).
     lo_converter->mi_custom_mapping  = ii_custom_mapping.
     lo_converter->mv_keep_item_order = is_opts-keep_item_order.
     lo_converter->mv_format_datetime = is_opts-format_datetime.
@@ -2039,7 +2055,7 @@ ENDCLASS.
 CLASS lcl_filter_runner IMPLEMENTATION.
 
   METHOD new.
-    CREATE OBJECT ro_instance EXPORTING ii_filter = ii_filter.
+    ro_instance = NEW #( ii_filter = ii_filter ).
   ENDMETHOD.
 
   METHOD constructor.
@@ -2151,7 +2167,7 @@ ENDCLASS.
 CLASS lcl_mapper_runner IMPLEMENTATION.
 
   METHOD new.
-    CREATE OBJECT ro_instance EXPORTING ii_mapper = ii_mapper.
+    ro_instance = NEW #( ii_mapper = ii_mapper ).
   ENDMETHOD.
 
   METHOD constructor.
@@ -2245,8 +2261,7 @@ CLASS lcl_mutator_queue DEFINITION FINAL.
         VALUE(ro_self) TYPE REF TO lcl_mutator_queue.
 
   PRIVATE SECTION.
-    TYPES temp3_493fc4808e TYPE STANDARD TABLE OF REF TO lif_mutator_runner.
-DATA mt_queue TYPE temp3_493fc4808e.
+    DATA mt_queue TYPE STANDARD TABLE OF REF TO lif_mutator_runner.
 
 ENDCLASS.
 
@@ -2260,7 +2275,7 @@ CLASS lcl_mutator_queue IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD new.
-    CREATE OBJECT ro_instance.
+    ro_instance = NEW #( ).
   ENDMETHOD.
 
   METHOD lif_mutator_runner~run.
