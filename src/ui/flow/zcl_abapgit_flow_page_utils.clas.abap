@@ -35,7 +35,7 @@ CLASS zcl_abapgit_flow_page_utils IMPLEMENTATION.
     ASSERT iv_repo_key IS NOT INITIAL.
     li_repo = zcl_abapgit_repo_srv=>get_instance( )->get( iv_repo_key ).
 
-    ri_html = NEW zcl_abapgit_html( ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
 
     ri_html->add( |<table>| ).
     ri_html->add( |<tr><td><u>Filename</u></td><td><u>Remote</u></td><td><u>Local</u></td><td></td><td></td></tr>| ).
@@ -71,7 +71,9 @@ CLASS zcl_abapgit_flow_page_utils IMPLEMENTATION.
         TRANSPORTING NO FIELDS
         WITH KEY obj_type = ls_item-obj_type
                  obj_name = ls_item-obj_name.
-      lv_duplicate = xsdbool( sy-subrc = 0 ).
+      DATA temp1 TYPE xsdboolean.
+      temp1 = boolc( sy-subrc = 0 ).
+      lv_duplicate = temp1.
 
       ri_html->add( |<tr><td><tt>{ ls_path_name-path }{ ls_path_name-filename }</tt></td><td>{
         ls_path_name-remote_sha1(7) }</td><td>{
@@ -125,7 +127,7 @@ CLASS zcl_abapgit_flow_page_utils IMPLEMENTATION.
     APPEND INITIAL LINE TO lt_filter ASSIGNING <ls_filter>.
     <ls_filter>-object = ls_item-obj_type.
     <ls_filter>-obj_name = ls_item-obj_name.
-    lo_filter = NEW #( it_filter = lt_filter ).
+    CREATE OBJECT lo_filter EXPORTING it_filter = lt_filter.
 
     lt_files_item = li_repo_online->zif_abapgit_repo~get_files_local_filtered( lo_filter ).
     READ TABLE lt_files_item INTO ls_file_item WITH KEY file-path = ls_file-path
