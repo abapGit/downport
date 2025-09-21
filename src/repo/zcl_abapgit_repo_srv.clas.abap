@@ -18,10 +18,22 @@ CLASS zcl_abapgit_repo_srv DEFINITION
   PROTECTED SECTION.
   PRIVATE SECTION.
 
+    CONSTANTS c_main_branch TYPE string VALUE 'main'.
+
     CLASS-DATA gi_ref TYPE REF TO zif_abapgit_repo_srv .
     DATA mv_init TYPE abap_bool.
     DATA mv_only_favorites TYPE abap_bool.
     DATA mt_list TYPE zif_abapgit_repo_srv=>ty_repo_list .
+
+    METHODS create_initial_branch
+      IMPORTING
+        !iv_url         TYPE string
+        !iv_readme      TYPE string OPTIONAL
+        !iv_branch_name TYPE string DEFAULT c_main_branch
+      RETURNING
+        VALUE(rv_name)  TYPE string
+      RAISING
+        zcx_abapgit_exception.
 
     METHODS determine_branch_name
       IMPORTING
@@ -99,6 +111,15 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD create_initial_branch.
+
+    rv_name = zcl_abapgit_pr_enumerator=>new( iv_url )->create_initial_branch(
+      iv_readme      = iv_readme
+      iv_branch_name = iv_branch_name ).
+
+  ENDMETHOD.
+
+
   METHOD determine_branch_name.
 
     DATA lo_branch_list TYPE REF TO zif_abapgit_git_branch_list.
@@ -120,7 +141,7 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
 
   METHOD get_instance.
     IF gi_ref IS INITIAL.
-      CREATE OBJECT gi_ref TYPE zcl_abapgit_repo_srv.
+      gi_ref = NEW zcl_abapgit_repo_srv( ).
     ENDIF.
     ri_srv = gi_ref.
   ENDMETHOD.
@@ -134,9 +155,9 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
   METHOD instantiate_and_add.
 
     IF is_repo_meta-offline = abap_false.
-      CREATE OBJECT ri_repo TYPE zcl_abapgit_repo_online EXPORTING is_data = is_repo_meta.
+      ri_repo = NEW zcl_abapgit_repo_online( is_data = is_repo_meta ).
     ELSE.
-      CREATE OBJECT ri_repo TYPE zcl_abapgit_repo_offline EXPORTING is_data = is_repo_meta.
+      ri_repo = NEW zcl_abapgit_repo_offline( is_data = is_repo_meta ).
     ENDIF.
     add( ri_repo ).
 
@@ -624,6 +645,15 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
     lv_branch_name = determine_branch_name(
       iv_name = iv_branch_name
       iv_url  = lv_url ).
+
+    " New repos without any commits do not have a branch yet
+    IF lv_branch_name IS INITIAL.
+      lv_branch_name = create_initial_branch( lv_url ).
+
+      lv_branch_name = determine_branch_name(
+        iv_name = lv_branch_name
+        iv_url  = lv_url ).
+    ENDIF.
 
     " Repo Settings
     lo_dot_abapgit = zcl_abapgit_dot_abapgit=>build_default( ).

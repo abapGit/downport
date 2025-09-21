@@ -17,6 +17,15 @@ CLASS zcl_abapgit_pr_enumerator DEFINITION
       RAISING
         zcx_abapgit_exception.
 
+    METHODS create_initial_branch
+      IMPORTING
+        iv_readme             TYPE string OPTIONAL
+        iv_branch_name        TYPE string DEFAULT 'main'
+      RETURNING
+        VALUE(rv_branch_name) TYPE string
+      RAISING
+        zcx_abapgit_exception.
+
     CLASS-METHODS new
       IMPORTING
         iv_url             TYPE string
@@ -56,6 +65,19 @@ CLASS zcl_abapgit_pr_enumerator IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD create_initial_branch.
+
+    IF mi_enum_provider IS NOT BOUND.
+      RETURN.
+    ENDIF.
+
+    rv_branch_name = mi_enum_provider->create_initial_branch(
+      iv_readme      = iv_readme
+      iv_branch_name = iv_branch_name ).
+
+  ENDMETHOD.
+
+
   METHOD create_provider.
 
     DATA li_agent TYPE REF TO zif_abapgit_http_agent.
@@ -72,8 +94,8 @@ CLASS zcl_abapgit_pr_enumerator IMPLEMENTATION.
         val = lv_repo
         regex = '\.git$'
         with = '' ).
-      CREATE OBJECT ri_provider TYPE zcl_abapgit_pr_enum_github EXPORTING iv_user_and_repo = |{ lv_user }/{ lv_repo }|
-                                                                          ii_http_agent = li_agent.
+      ri_provider = NEW zcl_abapgit_pr_enum_github( iv_user_and_repo = |{ lv_user }/{ lv_repo }|
+                                                    ii_http_agent = li_agent ).
     ENDIF.
 
 * used in integration testing, see /test/ folder
@@ -81,8 +103,8 @@ CLASS zcl_abapgit_pr_enumerator IMPLEMENTATION.
       IN iv_repo_url
       SUBMATCHES lv_user lv_repo.
     IF sy-subrc = 0.
-      CREATE OBJECT ri_provider TYPE zcl_abapgit_pr_enum_gitea EXPORTING iv_user_and_repo = |{ lv_user }/{ lv_repo }|
-                                                                         ii_http_agent = li_agent.
+      ri_provider = NEW zcl_abapgit_pr_enum_gitea( iv_user_and_repo = |{ lv_user }/{ lv_repo }|
+                                                   ii_http_agent = li_agent ).
     ENDIF.
 
     " TODO somewhen more providers
@@ -106,6 +128,6 @@ CLASS zcl_abapgit_pr_enumerator IMPLEMENTATION.
 
 
   METHOD new.
-    CREATE OBJECT ro_instance EXPORTING iv_url = iv_url.
+    ro_instance = NEW #( iv_url = iv_url ).
   ENDMETHOD.
 ENDCLASS.
