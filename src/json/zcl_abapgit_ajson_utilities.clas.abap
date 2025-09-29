@@ -1,6 +1,6 @@
 CLASS zcl_abapgit_ajson_utilities DEFINITION
   PUBLIC
-  CREATE PUBLIC .
+  CREATE PUBLIC.
 
   PUBLIC SECTION.
 
@@ -19,7 +19,7 @@ CLASS zcl_abapgit_ajson_utilities DEFINITION
         !eo_delete            TYPE REF TO zif_abapgit_ajson
         !eo_change            TYPE REF TO zif_abapgit_ajson
       RAISING
-        zcx_abapgit_ajson_error .
+        zcx_abapgit_ajson_error.
     METHODS merge
       IMPORTING
         !iv_json_a            TYPE string OPTIONAL
@@ -30,7 +30,7 @@ CLASS zcl_abapgit_ajson_utilities DEFINITION
       RETURNING
         VALUE(ro_json)        TYPE REF TO zif_abapgit_ajson
       RAISING
-        zcx_abapgit_ajson_error .
+        zcx_abapgit_ajson_error.
     METHODS sort
       IMPORTING
         !iv_json         TYPE string OPTIONAL
@@ -38,7 +38,7 @@ CLASS zcl_abapgit_ajson_utilities DEFINITION
       RETURNING
         VALUE(rv_sorted) TYPE string
       RAISING
-        zcx_abapgit_ajson_error .
+        zcx_abapgit_ajson_error.
     METHODS is_equal
       IMPORTING
         !iv_json_a    TYPE string OPTIONAL
@@ -48,17 +48,33 @@ CLASS zcl_abapgit_ajson_utilities DEFINITION
       RETURNING
         VALUE(rv_yes) TYPE abap_bool
       RAISING
-        zcx_abapgit_ajson_error .
+        zcx_abapgit_ajson_error.
+    CLASS-METHODS iterate_array
+      IMPORTING
+        ii_json            TYPE REF TO zif_abapgit_ajson
+        iv_path            TYPE string
+      RETURNING
+        VALUE(ri_iterator) TYPE REF TO zif_abapgit_ajson_iterator
+      RAISING
+        zcx_abapgit_ajson_error.
+    CLASS-METHODS iterate_object
+      IMPORTING
+        ii_json            TYPE REF TO zif_abapgit_ajson
+        iv_path            TYPE string
+      RETURNING
+        VALUE(ri_iterator) TYPE REF TO zif_abapgit_ajson_iterator
+      RAISING
+        zcx_abapgit_ajson_error.
 
   PROTECTED SECTION.
 
   PRIVATE SECTION.
 
-    DATA mo_json_a TYPE REF TO zif_abapgit_ajson .
-    DATA mo_json_b TYPE REF TO zif_abapgit_ajson .
-    DATA mo_insert TYPE REF TO zif_abapgit_ajson .
-    DATA mo_delete TYPE REF TO zif_abapgit_ajson .
-    DATA mo_change TYPE REF TO zif_abapgit_ajson .
+    DATA mo_json_a TYPE REF TO zif_abapgit_ajson.
+    DATA mo_json_b TYPE REF TO zif_abapgit_ajson.
+    DATA mo_insert TYPE REF TO zif_abapgit_ajson.
+    DATA mo_delete TYPE REF TO zif_abapgit_ajson.
+    DATA mo_change TYPE REF TO zif_abapgit_ajson.
 
     METHODS normalize_input
       IMPORTING
@@ -67,24 +83,25 @@ CLASS zcl_abapgit_ajson_utilities DEFINITION
       RETURNING
         VALUE(ro_json) TYPE REF TO zif_abapgit_ajson
       RAISING
-        zcx_abapgit_ajson_error .
+        zcx_abapgit_ajson_error.
     METHODS diff_a_b
       IMPORTING
         !iv_path TYPE string
       RAISING
-        zcx_abapgit_ajson_error .
+        zcx_abapgit_ajson_error.
     METHODS diff_b_a
       IMPORTING
         !iv_path  TYPE string
         !iv_array TYPE abap_bool DEFAULT abap_false
       RAISING
-        zcx_abapgit_ajson_error .
+        zcx_abapgit_ajson_error.
     METHODS delete_empty_nodes
       IMPORTING
         !io_json              TYPE REF TO zif_abapgit_ajson
         !iv_keep_empty_arrays TYPE abap_bool
       RAISING
-        zcx_abapgit_ajson_error .
+        zcx_abapgit_ajson_error.
+
 ENDCLASS.
 
 
@@ -308,9 +325,28 @@ CLASS zcl_abapgit_ajson_utilities IMPLEMENTATION.
         eo_delete = li_del
         eo_change = li_mod ).
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( li_ins->is_empty( ) = abap_true AND li_del->is_empty( ) = abap_true AND li_mod->is_empty( ) = abap_true ).
-    rv_yes = temp1.
+    rv_yes = xsdbool(
+      li_ins->is_empty( ) = abap_true AND
+      li_del->is_empty( ) = abap_true AND
+      li_mod->is_empty( ) = abap_true ).
+
+  ENDMETHOD.
+
+
+  METHOD iterate_array.
+
+    ri_iterator = NEW lcl_node_iterator( iv_node_type = zif_abapgit_ajson_types=>node_type-array
+                                         ii_json = ii_json
+                                         iv_path = iv_path ).
+
+  ENDMETHOD.
+
+
+  METHOD iterate_object.
+
+    ri_iterator = NEW lcl_node_iterator( iv_node_type = zif_abapgit_ajson_types=>node_type-object
+                                         ii_json = ii_json
+                                         iv_path = iv_path ).
 
   ENDMETHOD.
 
@@ -341,17 +377,13 @@ CLASS zcl_abapgit_ajson_utilities IMPLEMENTATION.
 
 
   METHOD new.
-    CREATE OBJECT ro_instance.
+    ro_instance = NEW #( ).
   ENDMETHOD.
 
 
   METHOD normalize_input.
 
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( iv_json IS INITIAL ).
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( io_json IS INITIAL ).
-    IF temp2 = temp1.
+    IF xsdbool( iv_json IS INITIAL ) = xsdbool( io_json IS INITIAL ).
       zcx_abapgit_ajson_error=>raise( 'Either supply JSON string or instance, but not both' ).
     ENDIF.
 

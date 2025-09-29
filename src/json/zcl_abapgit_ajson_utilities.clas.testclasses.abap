@@ -133,6 +133,9 @@ CLASS ltcl_json_utils DEFINITION
     METHODS json_sort FOR TESTING RAISING zcx_abapgit_ajson_error.
     METHODS is_equal FOR TESTING RAISING zcx_abapgit_ajson_error.
 
+    METHODS iterate_array FOR TESTING RAISING zcx_abapgit_ajson_error.
+    METHODS iterate_object FOR TESTING RAISING zcx_abapgit_ajson_error.
+
 ENDCLASS.
 
 CLASS ltcl_json_utils IMPLEMENTATION.
@@ -192,7 +195,7 @@ CLASS ltcl_json_utils IMPLEMENTATION.
 
     REPLACE ALL OCCURRENCES OF '\n' IN lv_json WITH cl_abap_char_utilities=>newline.
 
-    CREATE OBJECT lo_insert_exp.
+    lo_insert_exp = NEW #( ).
     lo_insert_exp->add( '                |        |object |        |0|3' ).
     lo_insert_exp->add( '/               |boolean |str    |true    |0|0' ). " changed type (insert new)
     lo_insert_exp->add( '/               |issues  |array  |        |0|1' ).
@@ -201,7 +204,7 @@ CLASS ltcl_json_utils IMPLEMENTATION.
     lo_insert_exp->add( '/issues/1/      |end     |object |        |0|1' ).
     lo_insert_exp->add( '/issues/1/end/  |new     |num    |1       |0|0' ). " array insert
 
-    CREATE OBJECT lo_delete_exp.
+    lo_delete_exp = NEW #( ).
     lo_delete_exp->add( '                |        |object |        |0|3' ).
     lo_delete_exp->add( '/               |boolean |bool   |true    |0|0' ). " changed type (delete old)
     lo_delete_exp->add( '/               |false   |bool   |false   |0|0' ). " delete
@@ -210,7 +213,7 @@ CLASS ltcl_json_utils IMPLEMENTATION.
     lo_delete_exp->add( '/issues/1/      |end     |object |        |0|1' ).
     lo_delete_exp->add( '/issues/1/end/  |row     |num    |4       |0|0' ). " array delete
 
-    CREATE OBJECT lo_change_exp.
+    lo_change_exp = NEW #( ).
     lo_change_exp->add( '                |        |object |        |0|2' ).
     lo_change_exp->add( '/               |issues  |array  |        |0|1' ).
     lo_change_exp->add( '/               |number  |num    |789     |0|0' ). " changed value
@@ -218,7 +221,7 @@ CLASS ltcl_json_utils IMPLEMENTATION.
     lo_change_exp->add( '/issues/1/      |start   |object |        |0|1' ).
     lo_change_exp->add( '/issues/1/start/|row     |num    |5       |0|0' ). " array change
 
-    CREATE OBJECT lo_util.
+    lo_util = NEW #( ).
 
     lo_util->diff(
       EXPORTING
@@ -275,18 +278,18 @@ CLASS ltcl_json_utils IMPLEMENTATION.
     REPLACE ALL OCCURRENCES OF '\n' IN lv_json_a WITH cl_abap_char_utilities=>newline.
     REPLACE ALL OCCURRENCES OF '\n' IN lv_json_b WITH cl_abap_char_utilities=>newline.
 
-    CREATE OBJECT lo_insert_exp.
+    lo_insert_exp = NEW #( ).
     lo_insert_exp->add( '                |        |object |        |0|1' ).
     lo_insert_exp->add( '/               |string  |array  |        |0|3' ).
     lo_insert_exp->add( '/string/        |1       |str    |a       |1|0' ).
     lo_insert_exp->add( '/string/        |2       |str    |b       |2|0' ).
     lo_insert_exp->add( '/string/        |3       |str    |c       |3|0' ).
 
-    CREATE OBJECT lo_delete_exp.
+    lo_delete_exp = NEW #( ).
     lo_delete_exp->add( '                |        |object |        |0|1' ).
     lo_delete_exp->add( '/               |string  |str    |abc     |0|0' ).
 
-    CREATE OBJECT lo_util.
+    lo_util = NEW #( ).
 
     lo_util->diff(
       EXPORTING
@@ -359,7 +362,7 @@ CLASS ltcl_json_utils IMPLEMENTATION.
     REPLACE ALL OCCURRENCES OF '\n' IN lv_json_a WITH cl_abap_char_utilities=>newline.
     REPLACE ALL OCCURRENCES OF '\n' IN lv_json_b WITH cl_abap_char_utilities=>newline.
 
-    CREATE OBJECT lo_util.
+    lo_util = NEW #( ).
 
     " Empty arrays are ignored by default
     lo_util->diff(
@@ -394,7 +397,7 @@ CLASS ltcl_json_utils IMPLEMENTATION.
         eo_delete = lo_delete
         eo_change = lo_change ).
 
-    CREATE OBJECT lo_insert_exp.
+    lo_insert_exp = NEW #( ).
     lo_insert_exp->add( '                |        |object |        |0|1' ).
     lo_insert_exp->add( '/               |names   |array  |        |0|0' ).
 
@@ -444,7 +447,7 @@ CLASS ltcl_json_utils IMPLEMENTATION.
     REPLACE ALL OCCURRENCES OF '\n' IN lv_json_a WITH cl_abap_char_utilities=>newline.
     REPLACE ALL OCCURRENCES OF '\n' IN lv_json_b WITH cl_abap_char_utilities=>newline.
 
-    CREATE OBJECT lo_merge_exp.
+    lo_merge_exp = NEW #( ).
     lo_merge_exp->add( '                |        |object |        |0|3' ).
     lo_merge_exp->add( '/               |float   |num    |123.45  |0|0' ).
     lo_merge_exp->add( '/               |number  |num    |123     |0|0' ).
@@ -453,7 +456,7 @@ CLASS ltcl_json_utils IMPLEMENTATION.
     lo_merge_exp->add( '/string/        |2       |str    |c       |2|0' ).
     lo_merge_exp->add( '/string/        |3       |str    |b       |3|0' ).
 
-    CREATE OBJECT lo_util.
+    lo_util = NEW #( ).
 
     lo_merge = lo_util->merge(
       iv_json_a = lv_json_a
@@ -501,7 +504,7 @@ CLASS ltcl_json_utils IMPLEMENTATION.
 
     REPLACE ALL OCCURRENCES OF '\n' IN lv_sorted_exp WITH cl_abap_char_utilities=>newline.
 
-    CREATE OBJECT lo_util.
+    lo_util = NEW #( ).
 
     lv_sorted = lo_util->sort( iv_json = lv_json ).
 
@@ -544,5 +547,151 @@ CLASS ltcl_json_utils IMPLEMENTATION.
       exp = abap_false ).
 
   ENDMETHOD.
+
+
+  METHOD iterate_array.
+
+    DATA li_cut TYPE REF TO zif_abapgit_ajson.
+    DATA li_iterator TYPE REF TO zif_abapgit_ajson_iterator.
+    DATA lx TYPE REF TO zcx_abapgit_ajson_error.
+
+    li_cut = zcl_abapgit_ajson=>create_empty( ).
+    li_cut->touch_array( '/a' ).
+    li_cut->touch_array( '/b' ).
+    li_cut->touch_array( '/c' ).
+    li_cut->touch_array( '/empty' ).
+    li_cut->push(
+      iv_path = '/a'
+      iv_val  = 1 ).
+    li_cut->push(
+      iv_path = '/a'
+      iv_val  = 2 ).
+    li_cut->push(
+      iv_path = '/b'
+      iv_val  = 3 ).
+    li_cut->push(
+      iv_path = '/b'
+      iv_val  = 4 ).
+    li_cut->push(
+      iv_path = '/c'
+      iv_val  = 5 ).
+    li_cut->push(
+      iv_path = '/c'
+      iv_val  = 6 ).
+
+    DATA lt_data TYPE TABLE OF string.
+    DATA li_json_item TYPE REF TO zif_abapgit_ajson.
+
+    li_iterator = zcl_abapgit_ajson_utilities=>iterate_array(
+      ii_json = li_cut
+      iv_path = '/b' ).
+    WHILE li_iterator->has_next( ) = abap_true.
+      li_json_item = li_iterator->next( ).
+      APPEND li_json_item->get( '/' ) TO lt_data.
+    ENDWHILE.
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lines( lt_data )
+      exp = 2 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = concat_lines_of( table = lt_data sep = ',' )
+      exp = '3,4' ).
+
+    CLEAR lt_data.
+    li_iterator = zcl_abapgit_ajson_utilities=>iterate_array(
+      ii_json = li_cut
+      iv_path = '/empty' ).
+    WHILE li_iterator->has_next( ) = abap_true.
+      li_json_item = li_iterator->next( ).
+      APPEND li_json_item->get( '/' ) TO lt_data.
+    ENDWHILE.
+    cl_abap_unit_assert=>assert_equals(
+      act = lines( lt_data )
+      exp = 0 ).
+
+    TRY.
+        zcl_abapgit_ajson_utilities=>iterate_array(
+        ii_json = li_cut
+        iv_path = '/notexisting' ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH zcx_abapgit_ajson_error INTO lx.
+        cl_abap_unit_assert=>assert_char_cp(
+        act = lx->get_text( )
+        exp = 'Path not found*' ).
+    ENDTRY.
+
+    TRY.
+        zcl_abapgit_ajson_utilities=>iterate_array(
+        ii_json = li_cut
+        iv_path = '/' ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH zcx_abapgit_ajson_error INTO lx.
+        cl_abap_unit_assert=>assert_char_cp(
+        act = lx->get_text( )
+        exp = 'Array expected*' ).
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD iterate_object.
+
+    DATA li_cut TYPE REF TO zif_abapgit_ajson.
+    DATA li_iterator TYPE REF TO zif_abapgit_ajson_iterator.
+    DATA lx TYPE REF TO zcx_abapgit_ajson_error.
+
+    li_cut = zcl_abapgit_ajson=>create_empty( ).
+    li_cut->touch_array( '/array' ).
+    li_cut->set(
+      iv_path = '/b/b'
+      iv_val  = 1 ).
+    li_cut->set(
+      iv_path = '/b/c'
+      iv_val  = 2 ).
+    li_cut->set(
+      iv_path = '/x/y'
+      iv_val  = 3 ).
+
+    DATA lt_data TYPE TABLE OF string.
+    DATA li_json_item TYPE REF TO zif_abapgit_ajson.
+
+    li_iterator = zcl_abapgit_ajson_utilities=>iterate_object(
+      ii_json = li_cut
+      iv_path = '/b' ).
+    WHILE li_iterator->has_next( ) = abap_true.
+      li_json_item = li_iterator->next( ).
+      APPEND li_json_item->get( '/' ) TO lt_data.
+    ENDWHILE.
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lines( lt_data )
+      exp = 2 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = concat_lines_of( table = lt_data sep = ',' )
+      exp = '1,2' ).
+
+    TRY.
+        zcl_abapgit_ajson_utilities=>iterate_object(
+        ii_json = li_cut
+        iv_path = '/notexisting' ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH zcx_abapgit_ajson_error INTO lx.
+        cl_abap_unit_assert=>assert_char_cp(
+        act = lx->get_text( )
+        exp = 'Path not found*' ).
+    ENDTRY.
+
+    TRY.
+        zcl_abapgit_ajson_utilities=>iterate_object(
+        ii_json = li_cut
+        iv_path = '/array' ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH zcx_abapgit_ajson_error INTO lx.
+        cl_abap_unit_assert=>assert_char_cp(
+        act = lx->get_text( )
+        exp = 'Object expected*' ).
+    ENDTRY.
+
+  ENDMETHOD.
+
 
 ENDCLASS.
