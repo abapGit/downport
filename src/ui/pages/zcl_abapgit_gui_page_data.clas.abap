@@ -90,6 +90,13 @@ CLASS zcl_abapgit_gui_page_data DEFINITION
         !ii_event TYPE REF TO zif_abapgit_gui_event
       RAISING
         zcx_abapgit_exception .
+    METHODS validate_table_name
+      IMPORTING
+        iv_table_name     TYPE string
+      CHANGING
+        co_validation_log TYPE REF TO zcl_abapgit_string_map
+      RAISING
+        zcx_abapgit_exception .
 ENDCLASS.
 
 
@@ -195,8 +202,8 @@ CLASS zcl_abapgit_gui_page_data IMPLEMENTATION.
 
     super->constructor( ).
 
-    CREATE OBJECT mo_validation_log.
-    CREATE OBJECT mo_form_data.
+    mo_validation_log = NEW #( ).
+    mo_form_data = NEW #( ).
 
     mo_form = get_form_schema( ).
     mo_form_util = zcl_abapgit_html_form_utils=>create( mo_form ).
@@ -211,7 +218,7 @@ CLASS zcl_abapgit_gui_page_data IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_data.
 
-    CREATE OBJECT lo_component EXPORTING iv_key = iv_key.
+    lo_component = NEW #( iv_key = iv_key ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title         = 'Data Config'
@@ -302,14 +309,14 @@ CLASS zcl_abapgit_gui_page_data IMPLEMENTATION.
     DATA lt_configs TYPE zif_abapgit_data_config=>ty_config_tt.
     DATA ls_config LIKE LINE OF lt_configs.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
-    CREATE OBJECT lo_form_data.
+    ri_html = NEW zcl_abapgit_html( ).
+    lo_form_data = NEW #( ).
 
     lt_configs = mi_config->get_configs( ).
 
     LOOP AT lt_configs INTO ls_config.
       lo_form = zcl_abapgit_html_form=>create( ).
-      CREATE OBJECT lo_form_data.
+      lo_form_data = NEW #( ).
 
       lo_form_data->set(
         iv_key = c_id-table
@@ -354,6 +361,11 @@ CLASS zcl_abapgit_gui_page_data IMPLEMENTATION.
     CASE ii_event->mv_action.
       WHEN c_event-add.
         mo_validation_log = mo_form_util->validate( mo_form_data ).
+        validate_table_name(
+            EXPORTING
+                iv_table_name = mo_form_data->get( c_id-table )
+            CHANGING
+                co_validation_log = mo_validation_log ).
         IF mo_validation_log->is_empty( ) = abap_false.
           rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
         ELSE.
@@ -394,7 +406,7 @@ CLASS zcl_abapgit_gui_page_data IMPLEMENTATION.
 
     register_handlers( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
     ri_html->add( '<div class="repo">' ).
     ri_html->add( render_existing( ) ).
     mo_form_data->delete( 'table' ).
@@ -406,4 +418,26 @@ CLASS zcl_abapgit_gui_page_data IMPLEMENTATION.
     ri_html->add( '</div>' ).
 
   ENDMETHOD.
+
+
+  METHOD validate_table_name.
+    DATA: ls_item TYPE zif_abapgit_definitions=>ty_item,
+          lv_exists TYPE abap_bool,
+          lv_table_name TYPE sobj_name.
+
+    lv_table_name = to_upper( condense( iv_table_name ) ).
+
+    CLEAR ls_item.
+    ls_item-obj_name = lv_table_name.
+    ls_item-obj_type = 'TABL'.
+    lv_exists = zcl_abapgit_objects=>exists( ls_item ).
+
+    IF lv_exists = abap_false.
+      co_validation_log->set(
+          iv_key = c_id-table
+          iv_val = |Table { lv_table_name } does not exists | ).
+    ENDIF.
+
+  ENDMETHOD.
+
 ENDCLASS.
