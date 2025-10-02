@@ -158,7 +158,7 @@ CLASS zcl_abapgit_background IMPLEMENTATION.
     WRITE: / 'Background mode'.
 
     LOOP AT lt_list ASSIGNING <ls_list>.
-      CREATE OBJECT li_log TYPE zcl_abapgit_log.
+      li_log = NEW zcl_abapgit_log( ).
 
       TRY.
           li_repo = zcl_abapgit_repo_srv=>get_instance( )->get( <ls_list>-key ).
@@ -166,7 +166,7 @@ CLASS zcl_abapgit_background IMPLEMENTATION.
           lv_repo_name = li_repo->get_name( ).
           WRITE: / <ls_list>-method, lv_repo_name.
 
-          zcl_abapgit_login_manager=>set(
+          zcl_abapgit_login_manager=>set_basic(
             iv_uri      = li_repo_online->get_url( )
             iv_username = <ls_list>-username
             iv_password = <ls_list>-password ).
