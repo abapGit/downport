@@ -155,14 +155,11 @@ CLASS zcl_abapgit_objects_activation IMPLEMENTATION.
 
   METHOD activate_ddic.
 
-    TYPES temp1 TYPE STANDARD TABLE OF dcgentb.
-TYPES temp2 TYPE STANDARD TABLE OF dcdeltb.
-TYPES temp3 TYPE STANDARD TABLE OF dctablres.
-DATA: lt_gentab     TYPE temp1,
+    DATA: lt_gentab     TYPE STANDARD TABLE OF dcgentb,
           lv_rc         TYPE sy-subrc,
           ls_gentab     LIKE LINE OF lt_gentab,
-          lt_deltab     TYPE temp2,
-          lt_action_tab TYPE temp3,
+          lt_deltab     TYPE STANDARD TABLE OF dcdeltb,
+          lt_action_tab TYPE STANDARD TABLE OF dctablres,
           lv_logname    TYPE ddmass-logname.
 
     FIELD-SYMBOLS: <ls_object> LIKE LINE OF gt_objects.
@@ -288,9 +285,7 @@ DATA: lt_gentab     TYPE temp1,
         lv_popup = abap_false.
       ENDIF.
 
-      DATA temp1 TYPE xsdboolean.
-      temp1 = boolc( lv_popup = abap_false ).
-      lv_no_ui = temp1.
+      lv_no_ui = xsdbool( lv_popup = abap_false ).
 
       IF iv_ddic = abap_true.
         lv_msg = |(with DDIC)|.
@@ -423,8 +418,7 @@ DATA: lt_gentab     TYPE temp1,
 
   METHOD add_errors_and_warnings_to_log.
 
-    TYPES temp4 TYPE STANDARD TABLE OF trlog.
-DATA: lt_lines      TYPE temp4,
+    DATA: lt_lines      TYPE STANDARD TABLE OF trlog,
           lv_logname_db TYPE ddprh-protname.
 
     FIELD-SYMBOLS: <ls_line> LIKE LINE OF lt_lines.
@@ -557,9 +551,7 @@ DATA: lt_lines      TYPE temp4,
         illegal_input = 1
         OTHERS        = 2.
 
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( sy-subrc = 0 AND ( lv_state = '' OR lv_state = 'A' ) ).
-    rv_active = temp2.
+    rv_active = xsdbool( sy-subrc = 0 AND ( lv_state = '' OR lv_state = 'A' ) ).
 
   ENDMETHOD.
 
@@ -585,12 +577,10 @@ DATA: lt_lines      TYPE temp4,
 
   METHOD is_non_ddic_active.
 
-    TYPES temp5 TYPE STANDARD TABLE OF sprot_u WITH DEFAULT KEY.
-TYPES temp4 TYPE STANDARD TABLE OF e071 WITH DEFAULT KEY.
-DATA:
-      lt_messages TYPE temp5,
+    DATA:
+      lt_messages TYPE STANDARD TABLE OF sprot_u WITH DEFAULT KEY,
       ls_e071     TYPE e071,
-      lt_e071     TYPE temp4.
+      lt_e071     TYPE STANDARD TABLE OF e071 WITH DEFAULT KEY.
 
     ls_e071-object   = is_item-obj_type.
     ls_e071-obj_name = is_item-obj_name.
@@ -605,9 +595,7 @@ DATA:
         p_e071                    = lt_e071
         p_xmsg                    = lt_messages.
 
-    DATA temp3 TYPE xsdboolean.
-    temp3 = boolc( lt_messages IS INITIAL ).
-    rv_active = temp3.
+    rv_active = xsdbool( lt_messages IS INITIAL ).
 
   ENDMETHOD.
 
@@ -629,8 +617,8 @@ DATA:
           lv_include = cl_oo_classname_service=>get_interfacepool_name( ls_class-clsname ).
       ENDCASE.
 
-      CREATE OBJECT lo_cross EXPORTING p_name = lv_include
-                                       p_include = lv_include.
+      lo_cross = NEW #( p_name = lv_include
+                        p_include = lv_include ).
 
       lo_cross->index_actualize( IMPORTING p_error = lv_error ).
 
