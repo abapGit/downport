@@ -75,9 +75,9 @@ CLASS zcl_abapgit_flow_logic DEFINITION PUBLIC.
 
     CLASS-METHODS errors_from_transports
       IMPORTING
-        it_transports  TYPE ty_transports_tt
+        it_all_transports TYPE ty_transports_tt
       CHANGING
-        cs_information TYPE zif_abapgit_flow_logic=>ty_information.
+        cs_information    TYPE zif_abapgit_flow_logic=>ty_information.
 
     CLASS-METHODS add_objects_and_files_from_tr
       IMPORTING
@@ -270,9 +270,7 @@ CLASS ZCL_ABAPGIT_FLOW_LOGIC IMPLEMENTATION.
 
     LOOP AT it_local ASSIGNING <ls_local> WHERE file-filename <> zif_abapgit_definitions=>c_dot_abapgit.
       READ TABLE ct_main_expanded WITH KEY name = <ls_local>-file-filename ASSIGNING <ls_expanded>.
-      DATA temp1 TYPE xsdboolean.
-      temp1 = boolc( sy-subrc = 0 ).
-      lv_found_main = temp1.
+      lv_found_main = xsdbool( sy-subrc = 0 ).
 
       lv_found_branch = abap_false.
       LOOP AT it_features INTO ls_feature.
@@ -404,7 +402,7 @@ CLASS ZCL_ABAPGIT_FLOW_LOGIC IMPLEMENTATION.
       INSERT <ls_tadir> INTO TABLE lt_filter.
 
       IF lines( lt_filter ) >= 500.
-        CREATE OBJECT lo_filter EXPORTING it_filter = lt_filter.
+        lo_filter = NEW #( it_filter = lt_filter ).
         lt_local = li_repo->get_files_local_filtered( lo_filter ).
         CLEAR lt_filter.
         check_files(
@@ -421,7 +419,7 @@ CLASS ZCL_ABAPGIT_FLOW_LOGIC IMPLEMENTATION.
     ENDLOOP.
 
     IF lines( lt_filter ) > 0.
-      CREATE OBJECT lo_filter EXPORTING it_filter = lt_filter.
+      lo_filter = NEW #( it_filter = lt_filter ).
       lt_local = li_repo->get_files_local_filtered( lo_filter ).
       CLEAR lt_filter.
       check_files(
@@ -451,13 +449,15 @@ CLASS ZCL_ABAPGIT_FLOW_LOGIC IMPLEMENTATION.
   METHOD errors_from_transports.
 
     DATA lv_message    TYPE string.
-    DATA lt_transports LIKE it_transports.
+    DATA lt_transports LIKE it_all_transports.
     DATA lv_index      TYPE i.
     DATA ls_next       LIKE LINE OF lt_transports.
     DATA ls_transport  LIKE LINE OF lt_transports.
     DATA ls_duplicate  LIKE LINE OF cs_information-transport_duplicates.
+    DATA lv_found1     TYPE abap_bool.
+    DATA lv_found2     TYPE abap_bool.
 
-    lt_transports = it_transports.
+    lt_transports = it_all_transports.
     SORT lt_transports BY object obj_name trkorr.
 
     LOOP AT lt_transports INTO ls_transport.
@@ -470,6 +470,16 @@ CLASS ZCL_ABAPGIT_FLOW_LOGIC IMPLEMENTATION.
       IF ls_next-object = ls_transport-object
           AND ls_next-trkorr <> ls_transport-trkorr
           AND ls_next-obj_name = ls_transport-obj_name.
+
+        READ TABLE cs_information-features WITH KEY transport-trkorr = ls_transport-trkorr TRANSPORTING NO FIELDS.
+        lv_found1 = xsdbool( sy-subrc = 0 ).
+        READ TABLE cs_information-features WITH KEY transport-trkorr = ls_next-trkorr TRANSPORTING NO FIELDS.
+        lv_found2 = xsdbool( sy-subrc = 0 ).
+        IF lv_found1 = abap_false AND lv_found2 = abap_false.
+          " not in any favorite flow enabled repo
+          CONTINUE.
+        ENDIF.
+
         lv_message = |Object <tt>{ ls_transport-object }</tt> <tt>{ ls_transport-obj_name
           }</tt> is in multiple transports: <tt>{ ls_transport-trkorr }</tt> and <tt>{ ls_next-trkorr }</tt>|.
         INSERT lv_message INTO TABLE cs_information-errors.
@@ -568,8 +578,7 @@ CLASS ZCL_ABAPGIT_FLOW_LOGIC IMPLEMENTATION.
     DATA lo_visit   TYPE REF TO lcl_sha1_stack.
     DATA ls_raw     TYPE zcl_abapgit_git_pack=>ty_commit.
 
-    TYPES temp1 TYPE HASHED TABLE OF zif_abapgit_git_definitions=>ty_sha1 WITH UNIQUE KEY table_line.
-DATA lt_main_reachable TYPE temp1.
+    DATA lt_main_reachable TYPE HASHED TABLE OF zif_abapgit_git_definitions=>ty_sha1 WITH UNIQUE KEY table_line.
 
     FIELD-SYMBOLS <ls_branch> LIKE LINE OF ct_features.
     FIELD-SYMBOLS <ls_commit> LIKE LINE OF lt_commits.
@@ -591,7 +600,7 @@ DATA lt_main_reachable TYPE temp1.
       iv_url  = iv_url
       it_sha1 = lt_sha1 ).
 
-    CREATE OBJECT lo_visit.
+    lo_visit = NEW #( ).
     lo_visit->clear( )->push( ls_main-sha1 ).
     WHILE lo_visit->size( ) > 0.
       lv_current = lo_visit->pop( ).
@@ -655,12 +664,6 @@ DATA lt_main_reachable TYPE temp1.
     FIELD-SYMBOLS <ls_path_name> LIKE LINE OF <ls_feature>-changed_files.
 
     lt_all_transports = find_open_transports( ).
-
-    errors_from_transports(
-      EXPORTING
-        it_transports  = lt_all_transports
-      CHANGING
-        cs_information = rs_information ).
 
 * list branches on favorite + flow enabled + transported repos
     lt_repos = list_repos( ).
@@ -738,6 +741,12 @@ DATA lt_main_reachable TYPE temp1.
 
       INSERT LINES OF lt_features INTO TABLE rs_information-features.
     ENDLOOP.
+
+    errors_from_transports(
+      EXPORTING
+        it_all_transports  = lt_all_transports
+      CHANGING
+        cs_information     = rs_information ).
 
     SORT rs_information-features BY full_match transport-trkorr DESCENDING.
 
@@ -842,7 +851,7 @@ DATA lt_main_reachable TYPE temp1.
     SORT lt_filter BY object obj_name.
     DELETE ADJACENT DUPLICATES FROM lt_filter COMPARING object obj_name.
 
-    CREATE OBJECT lo_filter EXPORTING it_filter = lt_filter.
+    lo_filter = NEW #( it_filter = lt_filter ).
     rt_local = ii_repo->get_files_local_filtered( lo_filter ).
 
   ENDMETHOD.
