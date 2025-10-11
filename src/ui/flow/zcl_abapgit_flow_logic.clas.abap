@@ -270,7 +270,9 @@ CLASS ZCL_ABAPGIT_FLOW_LOGIC IMPLEMENTATION.
 
     LOOP AT it_local ASSIGNING <ls_local> WHERE file-filename <> zif_abapgit_definitions=>c_dot_abapgit.
       READ TABLE ct_main_expanded WITH KEY name = <ls_local>-file-filename ASSIGNING <ls_expanded>.
-      lv_found_main = xsdbool( sy-subrc = 0 ).
+      DATA temp1 TYPE xsdboolean.
+      temp1 = boolc( sy-subrc = 0 ).
+      lv_found_main = temp1.
 
       lv_found_branch = abap_false.
       LOOP AT it_features INTO ls_feature.
@@ -402,7 +404,7 @@ CLASS ZCL_ABAPGIT_FLOW_LOGIC IMPLEMENTATION.
       INSERT <ls_tadir> INTO TABLE lt_filter.
 
       IF lines( lt_filter ) >= 500.
-        lo_filter = NEW #( it_filter = lt_filter ).
+        CREATE OBJECT lo_filter EXPORTING it_filter = lt_filter.
         lt_local = li_repo->get_files_local_filtered( lo_filter ).
         CLEAR lt_filter.
         check_files(
@@ -419,7 +421,7 @@ CLASS ZCL_ABAPGIT_FLOW_LOGIC IMPLEMENTATION.
     ENDLOOP.
 
     IF lines( lt_filter ) > 0.
-      lo_filter = NEW #( it_filter = lt_filter ).
+      CREATE OBJECT lo_filter EXPORTING it_filter = lt_filter.
       lt_local = li_repo->get_files_local_filtered( lo_filter ).
       CLEAR lt_filter.
       check_files(
@@ -566,7 +568,8 @@ CLASS ZCL_ABAPGIT_FLOW_LOGIC IMPLEMENTATION.
     DATA lo_visit   TYPE REF TO lcl_sha1_stack.
     DATA ls_raw     TYPE zcl_abapgit_git_pack=>ty_commit.
 
-    DATA lt_main_reachable TYPE HASHED TABLE OF zif_abapgit_git_definitions=>ty_sha1 WITH UNIQUE KEY table_line.
+    TYPES temp1 TYPE HASHED TABLE OF zif_abapgit_git_definitions=>ty_sha1 WITH UNIQUE KEY table_line.
+DATA lt_main_reachable TYPE temp1.
 
     FIELD-SYMBOLS <ls_branch> LIKE LINE OF ct_features.
     FIELD-SYMBOLS <ls_commit> LIKE LINE OF lt_commits.
@@ -588,7 +591,7 @@ CLASS ZCL_ABAPGIT_FLOW_LOGIC IMPLEMENTATION.
       iv_url  = iv_url
       it_sha1 = lt_sha1 ).
 
-    lo_visit = NEW #( ).
+    CREATE OBJECT lo_visit.
     lo_visit->clear( )->push( ls_main-sha1 ).
     WHILE lo_visit->size( ) > 0.
       lv_current = lo_visit->pop( ).
@@ -839,7 +842,7 @@ CLASS ZCL_ABAPGIT_FLOW_LOGIC IMPLEMENTATION.
     SORT lt_filter BY object obj_name.
     DELETE ADJACENT DUPLICATES FROM lt_filter COMPARING object obj_name.
 
-    lo_filter = NEW #( it_filter = lt_filter ).
+    CREATE OBJECT lo_filter EXPORTING it_filter = lt_filter.
     rt_local = ii_repo->get_files_local_filtered( lo_filter ).
 
   ENDMETHOD.
