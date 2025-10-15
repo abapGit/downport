@@ -6,9 +6,6 @@ CLASS zcl_abapgit_properties_file DEFINITION
   PUBLIC SECTION.
     INTERFACES zif_abapgit_i18n_file.
 
-    CONSTANTS:
-      c_properties_feature TYPE string VALUE 'TRANSL'.
-
     METHODS constructor
       IMPORTING
         iv_lang TYPE laiso.
@@ -54,7 +51,7 @@ CLASS ZCL_ABAPGIT_PROPERTIES_FILE IMPLEMENTATION.
       lo_json_path   TYPE REF TO zcl_abapgit_json_path,
       lx_exception   TYPE REF TO cx_static_check.
 
-    CREATE OBJECT lo_json_path.
+    lo_json_path = NEW #( ).
 
     TRY.
         lv_translation = lo_json_path->deserialize( mt_translation ).

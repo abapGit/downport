@@ -1,4 +1,5 @@
-CLASS zcl_abapgit_aff_factory DEFINITION PUBLIC.
+CLASS zcl_abapgit_aff_factory DEFINITION PUBLIC
+  GLOBAL FRIENDS zcl_abapgit_aff_injector.
   PUBLIC SECTION.
     CLASS-METHODS get_registry
       RETURNING
@@ -11,7 +12,7 @@ CLASS zcl_abapgit_aff_factory IMPLEMENTATION.
 
   METHOD get_registry.
     IF gi_registry IS NOT BOUND.
-      CREATE OBJECT gi_registry TYPE zcl_abapgit_aff_registry.
+      gi_registry = NEW zcl_abapgit_aff_registry( ).
     ENDIF.
     ri_registry = gi_registry.
   ENDMETHOD.
