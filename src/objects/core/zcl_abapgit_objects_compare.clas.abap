@@ -76,8 +76,8 @@ CLASS zcl_abapgit_objects_compare IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    li_remote_version = NEW zcl_abapgit_xml_input( iv_xml = zcl_abapgit_convert=>xstring_to_string_utf8( ls_remote_file-data )
-                                                   iv_filename = iv_filename ).
+    CREATE OBJECT li_remote_version TYPE zcl_abapgit_xml_input EXPORTING iv_xml = zcl_abapgit_convert=>xstring_to_string_utf8( ls_remote_file-data )
+                                                                         iv_filename = iv_filename.
 
     " LOCAL
     " if file does not exist locally, we don't need to validate
@@ -86,11 +86,11 @@ CLASS zcl_abapgit_objects_compare IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    li_local_version = NEW zcl_abapgit_xml_input( iv_xml = zcl_abapgit_convert=>xstring_to_string_utf8( ls_local_file-file-data )
-                                                  iv_filename = iv_filename ).
+    CREATE OBJECT li_local_version TYPE zcl_abapgit_xml_input EXPORTING iv_xml = zcl_abapgit_convert=>xstring_to_string_utf8( ls_local_file-file-data )
+                                                                        iv_filename = iv_filename.
 
     " COMPARE
-    li_log = NEW zcl_abapgit_log( ).
+    CREATE OBJECT li_log TYPE zcl_abapgit_log.
 
     ls_result = ii_comparator->compare(
       ii_local  = li_local_version
