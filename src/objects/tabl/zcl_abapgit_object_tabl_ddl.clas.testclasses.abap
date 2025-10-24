@@ -31,7 +31,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lv_result TYPE string.
 
     lv_text = |hello ' world|.
-    CREATE OBJECT lo_cut.
+    lo_cut = NEW #( ).
     lv_result = lo_cut->escape_string( lv_text ).
 
     cl_abap_unit_assert=>assert_equals(
@@ -53,7 +53,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lv_xml          TYPE string.
 
 
-    CREATE OBJECT lo_format.
+    lo_format = NEW #( ).
 
     CALL TRANSFORMATION id
       OPTIONS value_handling = 'accept_data_loss'
