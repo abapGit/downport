@@ -112,16 +112,13 @@ CLASS ZCL_ABAPGIT_OBJECT_SHI3 IMPLEMENTATION.
 
   METHOD insert_transport.
 
-    TYPES temp1 TYPE TABLE OF e071.
-TYPES temp2 TYPE TABLE OF e071k.
-TYPES temp3 TYPE TABLE OF ko200.
-DATA:
+    DATA:
       ls_msg     TYPE hier_mess,
       ls_object  TYPE e071,
-      lt_objects TYPE temp1,
-      lt_keys    TYPE temp2,
+      lt_objects TYPE TABLE OF e071,
+      lt_keys    TYPE TABLE OF e071k,
       ls_ko200   TYPE ko200,
-      lt_ko200   TYPE temp3.
+      lt_ko200   TYPE TABLE OF ko200.
 
     " This function shows a popup so get objects and keys and insert
     " them into transport below
@@ -162,8 +159,7 @@ DATA:
 
   METHOD is_used.
 
-    TYPES temp4 TYPE STANDARD TABLE OF ttree WITH DEFAULT KEY.
-DATA: lt_used_in_structures TYPE temp4.
+    DATA: lt_used_in_structures TYPE STANDARD TABLE OF ttree WITH DEFAULT KEY.
 
     CALL FUNCTION 'STREE_GET_STRUCTURE_USAGE'
       EXPORTING
@@ -207,8 +203,7 @@ DATA: lt_used_in_structures TYPE temp4.
 
   METHOD jump_se43.
 
-    TYPES temp5 TYPE TABLE OF bdcdata.
-DATA: lt_bdcdata TYPE temp5.
+    DATA: lt_bdcdata TYPE TABLE OF bdcdata.
 
     FIELD-SYMBOLS: <ls_bdcdata> LIKE LINE OF lt_bdcdata.
 
@@ -272,17 +267,13 @@ DATA: lt_bdcdata TYPE temp5.
 
   METHOD zif_abapgit_object~deserialize.
 
-    TYPES temp6 TYPE TABLE OF ttreet.
-TYPES temp4 TYPE TABLE OF hier_iface.
-TYPES temp5 TYPE TABLE OF hier_texts.
-TYPES temp1 TYPE TABLE OF hier_ref.
-DATA: ls_msg    TYPE hier_mess,
+    DATA: ls_msg    TYPE hier_mess,
           ls_head   TYPE ttree,
           ls_ttree  TYPE ttree,
-          lt_titles TYPE temp6,
-          lt_nodes  TYPE temp4,
-          lt_texts  TYPE temp5,
-          lt_refs   TYPE temp1.
+          lt_titles TYPE TABLE OF ttreet,
+          lt_nodes  TYPE TABLE OF hier_iface,
+          lt_texts  TYPE TABLE OF hier_texts,
+          lt_refs   TYPE TABLE OF hier_ref.
 
     io_xml->read( EXPORTING iv_name = 'TREE_HEAD'
                   CHANGING  cg_data = ls_head ).
@@ -373,9 +364,7 @@ DATA: ls_msg    TYPE hier_mess,
         structure_header     = ls_header
         structure_tadir      = ls_tadir.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( ls_header-id IS NOT INITIAL ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( ls_header-id IS NOT INITIAL ).
 
   ENDMETHOD.
 
@@ -445,16 +434,12 @@ DATA: ls_msg    TYPE hier_mess,
 
   METHOD zif_abapgit_object~serialize.
 
-    TYPES temp10 TYPE TABLE OF ttreet.
-TYPES temp8 TYPE TABLE OF hier_iface.
-TYPES temp9 TYPE TABLE OF hier_texts.
-TYPES temp2 TYPE TABLE OF hier_ref.
-DATA: ls_msg           TYPE hier_mess,
+    DATA: ls_msg           TYPE hier_mess,
           ls_head          TYPE ttree,
-          lt_titles        TYPE temp10,
-          lt_nodes         TYPE temp8,
-          lt_texts         TYPE temp9,
-          lt_refs          TYPE temp2,
+          lt_titles        TYPE TABLE OF ttreet,
+          lt_nodes         TYPE TABLE OF hier_iface,
+          lt_texts         TYPE TABLE OF hier_texts,
+          lt_refs          TYPE TABLE OF hier_ref,
           lv_all_languages TYPE abap_bool.
 
 
