@@ -68,6 +68,10 @@ CLASS ltcl_folder_logic_package IMPLEMENTATION.
     INSERT lv_devclass INTO TABLE rt_list.
   ENDMETHOD.
 
+  METHOD zif_abapgit_sap_package~check_object_type.
+    RETURN.
+  ENDMETHOD.
+
   METHOD zif_abapgit_sap_package~validate_name.
     RETURN.
   ENDMETHOD.
@@ -152,6 +156,10 @@ CLASS ltcl_folder_logic IMPLEMENTATION.
     RETURN. " todo, implement method
   ENDMETHOD.
 
+  METHOD zif_abapgit_sap_package~check_object_type.
+    RETURN.
+  ENDMETHOD.
+
   " Test packages:
   "
   " $TOP
@@ -222,7 +230,7 @@ CLASS ltcl_folder_logic IMPLEMENTATION.
 
     DATA lo_top_foo TYPE REF TO ltcl_folder_logic_package.
 
-    CREATE OBJECT lo_top_foo.
+    lo_top_foo = NEW #( ).
 
     zcl_abapgit_injector=>set_sap_package( iv_package     = c_top
                                            ii_sap_package = me ).
@@ -376,6 +384,10 @@ ENDCLASS.
 CLASS ltcl_folder_logic_namespaces IMPLEMENTATION.
   METHOD zif_abapgit_sap_package~get_default_transport_layer.
     RETURN. " todo, implement method
+  ENDMETHOD.
+
+  METHOD zif_abapgit_sap_package~check_object_type.
+    RETURN.
   ENDMETHOD.
 
   " Test packages:
@@ -534,6 +546,10 @@ CLASS ltcl_folder_logic_no_parent IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD zif_abapgit_sap_package~validate_name.
+    RETURN.
+  ENDMETHOD.
+
+  METHOD zif_abapgit_sap_package~check_object_type.
     RETURN.
   ENDMETHOD.
 
