@@ -90,15 +90,6 @@ CLASS zcl_abapgit_flow_logic DEFINITION PUBLIC.
       RAISING
         zcx_abapgit_exception.
 
-    CLASS-METHODS find_up_to_date
-      IMPORTING
-        iv_url      TYPE string
-        it_branches TYPE zif_abapgit_git_definitions=>ty_git_branch_list_tt
-      CHANGING
-        ct_features TYPE zif_abapgit_flow_logic=>ty_features
-      RAISING
-        zcx_abapgit_exception.
-
     CLASS-METHODS find_prs
       IMPORTING
         iv_url      TYPE string
@@ -270,9 +261,7 @@ CLASS ZCL_ABAPGIT_FLOW_LOGIC IMPLEMENTATION.
 
     LOOP AT it_local ASSIGNING <ls_local> WHERE file-filename <> zif_abapgit_definitions=>c_dot_abapgit.
       READ TABLE ct_main_expanded WITH KEY name = <ls_local>-file-filename ASSIGNING <ls_expanded>.
-      DATA temp1 TYPE xsdboolean.
-      temp1 = boolc( sy-subrc = 0 ).
-      lv_found_main = temp1.
+      lv_found_main = xsdbool( sy-subrc = 0 ).
 
       lv_found_branch = abap_false.
       LOOP AT it_features INTO ls_feature.
@@ -391,7 +380,9 @@ CLASS ZCL_ABAPGIT_FLOW_LOGIC IMPLEMENTATION.
 
     zcl_abapgit_flow_git=>find_changes_in_git(
       EXPORTING
-        ii_repo_online   = ii_online
+        iv_url           = ii_online->get_url( )
+        io_dot           = li_repo->get_dot_abapgit( )
+        iv_package       = li_repo->get_package( )
         it_branches      = lt_branches
       IMPORTING
         et_main_expanded = lt_main_expanded
@@ -418,7 +409,7 @@ CLASS ZCL_ABAPGIT_FLOW_LOGIC IMPLEMENTATION.
       INSERT <ls_tadir> INTO TABLE lt_filter.
 
       IF lines( lt_filter ) >= 500.
-        CREATE OBJECT lo_filter EXPORTING it_filter = lt_filter.
+        lo_filter = NEW #( it_filter = lt_filter ).
         lt_local = li_repo->get_files_local_filtered( lo_filter ).
         CLEAR lt_filter.
         check_files(
@@ -435,7 +426,7 @@ CLASS ZCL_ABAPGIT_FLOW_LOGIC IMPLEMENTATION.
     ENDLOOP.
 
     IF lines( lt_filter ) > 0.
-      CREATE OBJECT lo_filter EXPORTING it_filter = lt_filter.
+      lo_filter = NEW #( it_filter = lt_filter ).
       lt_local = li_repo->get_files_local_filtered( lo_filter ).
       CLEAR lt_filter.
       check_files(
@@ -488,13 +479,9 @@ CLASS ZCL_ABAPGIT_FLOW_LOGIC IMPLEMENTATION.
           AND ls_next-obj_name = ls_transport-obj_name.
 
         READ TABLE cs_information-features WITH KEY transport-trkorr = ls_transport-trkorr TRANSPORTING NO FIELDS.
-        DATA temp2 TYPE xsdboolean.
-        temp2 = boolc( sy-subrc = 0 ).
-        lv_found1 = temp2.
+        lv_found1 = xsdbool( sy-subrc = 0 ).
         READ TABLE cs_information-features WITH KEY transport-trkorr = ls_next-trkorr TRANSPORTING NO FIELDS.
-        DATA temp3 TYPE xsdboolean.
-        temp3 = boolc( sy-subrc = 0 ).
-        lv_found2 = temp3.
+        lv_found2 = xsdbool( sy-subrc = 0 ).
         IF lv_found1 = abap_false AND lv_found2 = abap_false.
           " not in any favorite flow enabled repo
           CONTINUE.
@@ -588,103 +575,25 @@ CLASS ZCL_ABAPGIT_FLOW_LOGIC IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD find_up_to_date.
-
-    DATA ls_branch  LIKE LINE OF it_branches.
-    DATA lt_commits TYPE zif_abapgit_definitions=>ty_objects_tt.
-    DATA ls_main    LIKE LINE OF it_branches.
-    DATA lv_current TYPE zif_abapgit_git_definitions=>ty_sha1.
-    DATA lt_sha1    TYPE zif_abapgit_git_definitions=>ty_sha1_tt.
-    DATA lo_visit   TYPE REF TO lcl_sha1_stack.
-    DATA ls_raw     TYPE zcl_abapgit_git_pack=>ty_commit.
-
-    TYPES temp1 TYPE HASHED TABLE OF zif_abapgit_git_definitions=>ty_sha1 WITH UNIQUE KEY table_line.
-DATA lt_main_reachable TYPE temp1.
-
-    FIELD-SYMBOLS <ls_branch> LIKE LINE OF ct_features.
-    FIELD-SYMBOLS <ls_commit> LIKE LINE OF lt_commits.
-
-
-    IF lines( it_branches ) = 1.
-      " only main branch
-      RETURN.
-    ENDIF.
-
-    READ TABLE it_branches INTO ls_main WITH KEY display_name = zif_abapgit_flow_logic=>c_main.
-    ASSERT sy-subrc = 0.
-
-    LOOP AT it_branches INTO ls_branch WHERE is_head = abap_false.
-      APPEND ls_branch-sha1 TO lt_sha1.
-    ENDLOOP.
-
-    lt_commits = zcl_abapgit_git_factory=>get_v2_porcelain( )->commits_last_year(
-      iv_url  = iv_url
-      it_sha1 = lt_sha1 ).
-
-    CREATE OBJECT lo_visit.
-    lo_visit->clear( )->push( ls_main-sha1 ).
-    WHILE lo_visit->size( ) > 0.
-      lv_current = lo_visit->pop( ).
-      INSERT lv_current INTO TABLE lt_main_reachable.
-      READ TABLE lt_commits ASSIGNING <ls_commit> WITH TABLE KEY sha COMPONENTS sha1 = lv_current.
-      IF sy-subrc = 0.
-        ls_raw = zcl_abapgit_git_pack=>decode_commit( <ls_commit>-data ).
-        lo_visit->push( ls_raw-parent ).
-        IF ls_raw-parent2 IS NOT INITIAL.
-          lo_visit->push( ls_raw-parent2 ).
-        ENDIF.
-      ENDIF.
-    ENDWHILE.
-
-    LOOP AT ct_features ASSIGNING <ls_branch>.
-      <ls_branch>-branch-up_to_date = abap_undefined.
-      lo_visit->clear( )->push( <ls_branch>-branch-sha1 ).
-
-      WHILE lo_visit->size( ) > 0.
-        lv_current = lo_visit->pop( ).
-        IF lv_current = ls_main-sha1.
-          <ls_branch>-branch-up_to_date = abap_true.
-          EXIT.
-        ENDIF.
-
-        READ TABLE lt_main_reachable WITH KEY table_line = lv_current TRANSPORTING NO FIELDS.
-        IF sy-subrc = 0.
-          <ls_branch>-branch-up_to_date = abap_false.
-          EXIT.
-        ENDIF.
-
-        READ TABLE lt_commits ASSIGNING <ls_commit> WITH TABLE KEY sha COMPONENTS sha1 = lv_current.
-        IF sy-subrc = 0.
-          ls_raw = zcl_abapgit_git_pack=>decode_commit( <ls_commit>-data ).
-          lo_visit->push( ls_raw-parent ).
-          IF ls_raw-parent2 IS NOT INITIAL.
-            lo_visit->push( ls_raw-parent2 ).
-          ENDIF.
-        ENDIF.
-      ENDWHILE.
-
-    ENDLOOP.
-
-  ENDMETHOD.
-
-
   METHOD get.
 
-    DATA lt_branches            TYPE zif_abapgit_git_definitions=>ty_git_branch_list_tt.
-    DATA ls_branch              LIKE LINE OF lt_branches.
-    DATA ls_result              LIKE LINE OF rs_information-features.
-    DATA li_repo_online         TYPE REF TO zif_abapgit_repo_online.
-    DATA lt_features            LIKE rs_information-features.
-    DATA lt_all_transports      TYPE ty_transports_tt.
+    DATA lt_branches TYPE zif_abapgit_git_definitions=>ty_git_branch_list_tt.
+    DATA ls_branch LIKE LINE OF lt_branches.
+    DATA ls_result LIKE LINE OF rs_information-features.
+    DATA li_repo_online TYPE REF TO zif_abapgit_repo_online.
+    DATA lt_features LIKE rs_information-features.
+    DATA lt_all_transports TYPE ty_transports_tt.
     DATA lt_relevant_transports TYPE ty_trkorr_tt.
-    DATA lt_repos               TYPE ty_repos_tt.
-    DATA lt_main_expanded       TYPE zif_abapgit_git_definitions=>ty_expanded_tt.
-    DATA lt_local               TYPE zif_abapgit_definitions=>ty_files_item_tt.
+    DATA lt_repos TYPE ty_repos_tt.
+    DATA lt_main_expanded TYPE zif_abapgit_git_definitions=>ty_expanded_tt.
+    DATA lt_local TYPE zif_abapgit_definitions=>ty_files_item_tt.
+    DATA lt_real_transports LIKE lt_all_transports.
 
-    FIELD-SYMBOLS <ls_feature>   LIKE LINE OF lt_features.
+    FIELD-SYMBOLS <ls_feature> LIKE LINE OF lt_features.
     FIELD-SYMBOLS <ls_path_name> LIKE LINE OF <ls_feature>-changed_files.
 
     lt_all_transports = find_open_transports( ).
+    lt_real_transports = lt_all_transports.
 
 * list branches on favorite + flow enabled + transported repos
     lt_repos = list_repos( ).
@@ -704,7 +613,9 @@ DATA lt_main_reachable TYPE temp1.
 
       zcl_abapgit_flow_git=>find_changes_in_git(
         EXPORTING
-          ii_repo_online   = li_repo_online
+          iv_url           = li_repo_online->get_url( )
+          io_dot           = li_repo_online->zif_abapgit_repo~get_dot_abapgit( )
+          iv_package       = li_repo_online->zif_abapgit_repo~get_package( )
           it_branches      = lt_branches
         IMPORTING
           et_main_expanded = lt_main_expanded
@@ -742,15 +653,6 @@ DATA lt_main_reachable TYPE temp1.
         CHANGING
           ct_features = lt_features ).
 
-*********************
-
-      find_up_to_date(
-        EXPORTING
-          iv_url      = li_repo_online->get_url( )
-          it_branches = lt_branches
-        CHANGING
-          ct_features = lt_features ).
-
       LOOP AT lt_features ASSIGNING <ls_feature>.
         <ls_feature>-full_match = abap_true.
         LOOP AT <ls_feature>-changed_files ASSIGNING <ls_path_name>.
@@ -765,7 +667,7 @@ DATA lt_main_reachable TYPE temp1.
 
     errors_from_transports(
       EXPORTING
-        it_all_transports  = lt_all_transports
+        it_all_transports  = lt_real_transports
       CHANGING
         cs_information     = rs_information ).
 
@@ -872,7 +774,7 @@ DATA lt_main_reachable TYPE temp1.
     SORT lt_filter BY object obj_name.
     DELETE ADJACENT DUPLICATES FROM lt_filter COMPARING object obj_name.
 
-    CREATE OBJECT lo_filter EXPORTING it_filter = lt_filter.
+    lo_filter = NEW #( it_filter = lt_filter ).
     rt_local = ii_repo->get_files_local_filtered( lo_filter ).
 
   ENDMETHOD.

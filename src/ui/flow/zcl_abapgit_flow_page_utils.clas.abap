@@ -1,23 +1,26 @@
-CLASS zcl_abapgit_flow_page_utils DEFINITION PUBLIC.
+CLASS zcl_abapgit_flow_page_utils DEFINITION
+  PUBLIC
+  CREATE PUBLIC .
+
   PUBLIC SECTION.
+
     CLASS-METHODS render_table
       IMPORTING
-        it_files                TYPE zif_abapgit_flow_logic=>ty_path_name_tt
-        it_transport_duplicates TYPE zif_abapgit_flow_logic=>ty_transport_duplicates_tt OPTIONAL
-        is_user_settings        TYPE zif_abapgit_persist_user=>ty_flow_settings OPTIONAL
-        iv_repo_key             TYPE zif_abapgit_persistence=>ty_repo-key
+        !it_files                TYPE zif_abapgit_flow_logic=>ty_path_name_tt
+        !it_transport_duplicates TYPE zif_abapgit_flow_logic=>ty_transport_duplicates_tt OPTIONAL
+        !is_user_settings        TYPE zif_abapgit_persist_user=>ty_flow_settings OPTIONAL
+        !iv_repo_key             TYPE zif_abapgit_persistence=>ty_repo-key
       RETURNING
-        VALUE(ri_html)          TYPE REF TO zif_abapgit_html
+        VALUE(ri_html)           TYPE REF TO zif_abapgit_html
       RAISING
-        zcx_abapgit_exception.
-
+        zcx_abapgit_exception .
     CLASS-METHODS call_diff
       IMPORTING
         !ii_event         TYPE REF TO zif_abapgit_gui_event
       RETURNING
         VALUE(rs_handled) TYPE zif_abapgit_gui_event_handler=>ty_handling_result
       RAISING
-        zcx_abapgit_exception.
+        zcx_abapgit_exception .
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
@@ -66,7 +69,7 @@ CLASS ZCL_ABAPGIT_FLOW_PAGE_UTILS IMPLEMENTATION.
     APPEND INITIAL LINE TO lt_filter ASSIGNING <ls_filter>.
     <ls_filter>-object = ls_item-obj_type.
     <ls_filter>-obj_name = ls_item-obj_name.
-    CREATE OBJECT lo_filter EXPORTING it_filter = lt_filter.
+    lo_filter = NEW #( it_filter = lt_filter ).
 
     lt_files_item = li_repo_online->zif_abapgit_repo~get_files_local_filtered( lo_filter ).
     READ TABLE lt_files_item INTO ls_file_item WITH KEY file-path = ls_file-path
@@ -100,17 +103,17 @@ CLASS ZCL_ABAPGIT_FLOW_PAGE_UTILS IMPLEMENTATION.
   METHOD render_table.
 
     DATA ls_path_name LIKE LINE OF it_files.
-    DATA lv_status    TYPE string.
-    DATA lv_param     TYPE string.
-    DATA li_repo      TYPE REF TO zif_abapgit_repo.
-    DATA ls_item      TYPE zif_abapgit_definitions=>ty_item.
+    DATA lv_status TYPE string.
+    DATA lv_param TYPE string.
+    DATA li_repo TYPE REF TO zif_abapgit_repo.
+    DATA ls_item TYPE zif_abapgit_definitions=>ty_item.
     DATA lv_duplicate TYPE abap_bool.
 
 
     ASSERT iv_repo_key IS NOT INITIAL.
     li_repo = zcl_abapgit_repo_srv=>get_instance( )->get( iv_repo_key ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( |<table>| ).
     ri_html->add( |<tr><td><u>Filename</u></td><td><u>Remote</u></td><td><u>Local</u></td><td></td><td></td></tr>| ).
@@ -130,9 +133,7 @@ CLASS ZCL_ABAPGIT_FLOW_PAGE_UTILS IMPLEMENTATION.
         TRANSPORTING NO FIELDS
         WITH KEY obj_type = ls_item-obj_type
                  obj_name = ls_item-obj_name.
-      DATA temp1 TYPE xsdboolean.
-      temp1 = boolc( sy-subrc = 0 ).
-      lv_duplicate = temp1.
+      lv_duplicate = xsdbool( sy-subrc = 0 ).
 
       IF ls_path_name-remote_sha1 = ls_path_name-local_sha1.
         IF is_user_settings-hide_matching_files = abap_true AND lv_duplicate = abap_false.
