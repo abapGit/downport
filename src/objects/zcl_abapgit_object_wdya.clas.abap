@@ -21,7 +21,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_OBJECT_WDYA IMPLEMENTATION.
+CLASS zcl_abapgit_object_wdya IMPLEMENTATION.
 
 
   METHOD read.
@@ -72,9 +72,9 @@ CLASS ZCL_ABAPGIT_OBJECT_WDYA IMPLEMENTATION.
 
 
     TRY.
-        CREATE OBJECT lo_app EXPORTING name = is_app-application_name
-                                       definition = is_app
-                                       devclass = iv_package.
+        lo_app = NEW #( name = is_app-application_name
+                        definition = is_app
+                        devclass = iv_package ).
 
         LOOP AT it_properties ASSIGNING <ls_property>.
           li_prop = lo_app->if_wdy_md_application~create_property( <ls_property>-name ).
@@ -84,7 +84,12 @@ CLASS ZCL_ABAPGIT_OBJECT_WDYA IMPLEMENTATION.
         tadir_insert( iv_package ).
 
         lo_app->if_wdy_md_lockable_object~save_to_database( ).
+
+        lo_app->if_wdy_md_lockable_object~unlock( ).
       CATCH cx_wdy_md_exception.
+        IF lo_app IS NOT INITIAL.
+          lo_app->if_wdy_md_lockable_object~unlock( ).
+        ENDIF.
         zcx_abapgit_exception=>raise( 'error saving WDYA' ).
     ENDTRY.
 

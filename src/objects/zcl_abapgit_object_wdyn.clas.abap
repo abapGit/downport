@@ -14,11 +14,9 @@ CLASS zcl_abapgit_object_wdyn DEFINITION
     CONSTANTS c_longtext_id_wd TYPE dokil-id VALUE 'WD' ##NO_TEXT.
     CONSTANTS c_longtext_name_wc TYPE string VALUE 'LONGTEXTS_WC' ##NO_TEXT.
 
-    TYPES temp1_cda9d1eaa8 TYPE TABLE OF wdy_ctlr_compo_vrs.
-TYPES temp2_cda9d1eaa8 TYPE TABLE OF wdy_ctlr_compo_source_vrs.
-DATA:
-      mt_components TYPE temp1_cda9d1eaa8,
-      mt_sources    TYPE temp2_cda9d1eaa8.
+    DATA:
+      mt_components TYPE TABLE OF wdy_ctlr_compo_vrs,
+      mt_sources    TYPE TABLE OF wdy_ctlr_compo_source_vrs.
 
     METHODS:
       get_limu_objects
@@ -48,6 +46,12 @@ DATA:
       recover_view
         IMPORTING is_view TYPE wdy_md_view_meta_data
         RAISING   zcx_abapgit_exception,
+      unlock_definition
+        IMPORTING is_component_key TYPE wdy_md_component_key,
+      unlock_controller
+        IMPORTING is_controller_key TYPE wdy_md_controller_key,
+      unlock_view
+        IMPORTING is_view_key TYPE wdy_md_view_key,
       delta_controller
         IMPORTING is_controller   TYPE wdy_md_controller_meta_data
         RETURNING VALUE(rs_delta) TYPE svrs2_xversionable_object
@@ -561,16 +565,11 @@ CLASS zcl_abapgit_object_wdyn IMPLEMENTATION.
 
   METHOD read_controller.
 
-    TYPES temp3 TYPE TABLE OF wdy_ctlr_compo_vrs.
-TYPES temp4 TYPE TABLE OF wdy_ctlr_compo_source_vrs.
-TYPES temp1 TYPE TABLE OF wdy_controller.
-TYPES temp2 TYPE TABLE OF smodilog.
-TYPES temp5 TYPE TABLE OF smodisrc.
-DATA: lt_components   TYPE temp3,
-          lt_sources      TYPE temp4,
-          lt_definition   TYPE temp1,
-          lt_psmodilog    TYPE temp2,
-          lt_psmodisrc    TYPE temp5,
+    DATA: lt_components   TYPE TABLE OF wdy_ctlr_compo_vrs,
+          lt_sources      TYPE TABLE OF wdy_ctlr_compo_source_vrs,
+          lt_definition   TYPE TABLE OF wdy_controller,
+          lt_psmodilog    TYPE TABLE OF smodilog,
+          lt_psmodisrc    TYPE TABLE OF smodisrc,
           lt_fm_param     TYPE abap_func_parmbind_tab,
           lt_fm_exception TYPE abap_func_excpbind_tab.
 
@@ -678,12 +677,9 @@ DATA: lt_components   TYPE temp3,
 
   METHOD read_definition.
 
-    TYPES temp8 TYPE TABLE OF wdy_component.
-TYPES temp9 TYPE TABLE OF smodilog.
-TYPES temp6 TYPE TABLE OF smodisrc.
-DATA: lt_definition TYPE temp8,
-          lt_psmodilog  TYPE temp9,
-          lt_psmodisrc  TYPE temp6.
+    DATA: lt_definition TYPE TABLE OF wdy_component,
+          lt_psmodilog  TYPE TABLE OF smodilog,
+          lt_psmodisrc  TYPE TABLE OF smodisrc.
 
 
     CALL FUNCTION 'WDYD_GET_OBJECT'
@@ -726,12 +722,9 @@ DATA: lt_definition TYPE temp8,
 
   METHOD read_view.
 
-    TYPES temp11 TYPE TABLE OF wdy_view_vrs.
-TYPES temp12 TYPE TABLE OF smodilog.
-TYPES temp7 TYPE TABLE OF smodisrc.
-DATA: lt_definition TYPE temp11,
-          lt_psmodilog  TYPE temp12,
-          lt_psmodisrc  TYPE temp7.
+    DATA: lt_definition TYPE TABLE OF wdy_view_vrs,
+          lt_psmodilog  TYPE TABLE OF smodilog,
+          lt_psmodisrc  TYPE TABLE OF smodisrc.
 
     FIELD-SYMBOLS: <ls_definition> LIKE LINE OF lt_definition.
 
@@ -803,6 +796,8 @@ DATA: lt_definition TYPE temp11,
         zcx_abapgit_exception=>raise( |Error recovering version of controller: { lx_error->get_text( ) }| ).
     ENDTRY.
 
+    unlock_controller( ls_key ).
+
   ENDMETHOD.
 
 
@@ -831,6 +826,8 @@ DATA: lt_definition TYPE temp11,
         zcx_abapgit_exception=>raise( |Error recovering version of component: { lx_error->get_text( ) }| ).
     ENDTRY.
 
+    unlock_definition( ls_key ).
+
   ENDMETHOD.
 
 
@@ -855,6 +852,58 @@ DATA: lt_definition TYPE temp11,
             corrnr   = lv_corrnr ).
       CATCH cx_wdy_md_exception INTO lx_error.
         zcx_abapgit_exception=>raise( |Error recovering version of abstract view: { lx_error->get_text( ) }| ).
+    ENDTRY.
+
+    unlock_view( ls_key ).
+
+  ENDMETHOD.
+
+
+  METHOD unlock_controller.
+
+    DATA lo_controller TYPE REF TO cl_wdy_md_controller.
+
+    TRY.
+        lo_controller ?= cl_wdy_md_controller=>get_object_by_key(
+          component_name  = is_controller_key-component_name
+          controller_name = is_controller_key-controller_name ).
+        lo_controller->if_wdy_md_lockable_object~unlock( ).
+      CATCH cx_wdy_md_permission_failure cx_wdy_md_not_existing ##NO_HANDLER.
+    ENDTRY.
+
+  ENDMETHOD.
+
+
+  METHOD unlock_definition.
+
+    DATA: lo_component     TYPE REF TO cl_wdy_md_component,
+          lo_comp_intf_def TYPE REF TO cl_wdy_md_component_intf_def.
+
+    TRY.
+        lo_component ?= cl_wdy_md_component=>get_object_by_key( name = is_component_key-component_name ).
+        lo_component->if_wdy_md_component~unlock( ).
+      CATCH cx_wdy_md_not_existing.
+        TRY.
+            lo_comp_intf_def ?= cl_wdy_md_component_intf_def=>get_object_by_key( name = is_component_key-component_name ).
+            lo_comp_intf_def->if_wdy_md_component_intf_def~unlock( ).
+          CATCH cx_wdy_md_permission_failure cx_wdy_md_not_existing ##NO_HANDLER.
+        ENDTRY.
+      CATCH cx_wdy_md_permission_failure ##NO_HANDLER.
+    ENDTRY.
+
+  ENDMETHOD.
+
+
+  METHOD unlock_view.
+
+    DATA lo_view TYPE REF TO cl_wdy_md_abstract_view.
+
+    TRY.
+        lo_view ?= cl_wdy_md_abstract_view=>get_object_by_key(
+          component_name = is_view_key-component_name
+          view_name      = is_view_key-view_name ).
+        lo_view->if_wdy_md_lockable_object~unlock( ).
+      CATCH cx_wdy_md_permission_failure cx_wdy_md_not_existing ##NO_HANDLER.
     ENDTRY.
 
   ENDMETHOD.
@@ -918,12 +967,12 @@ DATA: lt_definition TYPE temp11,
           lv_object_name TYPE seu_objkey.
 
 
-    CREATE OBJECT lo_component.
+    lo_component = NEW #( ).
 
     lv_object_name = ms_item-obj_name.
-    CREATE OBJECT lo_request EXPORTING p_object_type = 'YC'
-                                       p_object_name = lv_object_name
-                                       p_operation = swbm_c_op_delete_no_dialog.
+    lo_request = NEW #( p_object_type = 'YC'
+                        p_object_name = lv_object_name
+                        p_operation = swbm_c_op_delete_no_dialog ).
 
     lo_component->if_wb_program~process_wb_request(
       p_wb_request       = lo_request
@@ -992,9 +1041,7 @@ DATA: lt_definition TYPE temp11,
     SELECT SINGLE component_name FROM wdy_component
       INTO lv_component_name
       WHERE component_name = ms_item-obj_name.          "#EC CI_GENBUFF
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -1047,13 +1094,11 @@ DATA: lt_definition TYPE temp11,
 
   METHOD zif_abapgit_object~serialize.
 
-    TYPES temp14 TYPE STANDARD TABLE OF dokil-object WITH DEFAULT KEY.
-TYPES temp15 TYPE STANDARD TABLE OF dokil WITH DEFAULT KEY.
-DATA: ls_component   TYPE wdy_component_metadata,
+    DATA: ls_component   TYPE wdy_component_metadata,
           ls_comp        TYPE wdy_ctlr_compo_vrs,
           lv_object      TYPE dokil-object,
-          lt_object      TYPE temp14,
-          lt_dokil       TYPE temp15,
+          lt_object      TYPE STANDARD TABLE OF dokil-object WITH DEFAULT KEY,
+          lt_dokil       TYPE STANDARD TABLE OF dokil WITH DEFAULT KEY,
           ls_description TYPE wdy_ext_ctx_map.
 
     ls_component = read( ).
