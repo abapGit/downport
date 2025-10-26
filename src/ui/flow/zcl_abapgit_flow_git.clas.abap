@@ -71,7 +71,7 @@ CLASS zcl_abapgit_flow_git IMPLEMENTATION.
       iv_parent  = ls_main-sha1 ).
     DELETE et_main_expanded WHERE path NP lv_starting_folder.
 
-    lo_find = NEW #( it_objects = lt_objects ).
+    CREATE OBJECT lo_find EXPORTING it_objects = lt_objects.
 
     LOOP AT ct_features ASSIGNING <ls_branch> WHERE branch-display_name <> zif_abapgit_flow_logic=>c_main.
       <ls_branch>-changed_files = lo_find->find_changes(
@@ -147,7 +147,7 @@ CLASS zcl_abapgit_flow_git IMPLEMENTATION.
       iv_url  = iv_url
       it_sha1 = lt_sha1 ).
 
-    lo_visit = NEW #( ).
+    CREATE OBJECT lo_visit.
     lo_visit->clear( )->push( ls_main-sha1 ).
     WHILE lo_visit->size( ) > 0.
       lv_current = lo_visit->pop( ).
