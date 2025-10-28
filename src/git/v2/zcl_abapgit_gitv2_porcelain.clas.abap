@@ -151,7 +151,7 @@ CLASS zcl_abapgit_gitv2_porcelain IMPLEMENTATION.
 
 
   METHOD zif_abapgit_gitv2_porcelain~commits_last_year.
-
+* including trees
     DATA lv_xstring   TYPE xstring.
     DATA lt_arguments TYPE string_table.
     DATA lv_argument  TYPE string.
@@ -178,7 +178,6 @@ CLASS zcl_abapgit_gitv2_porcelain IMPLEMENTATION.
       it_arguments = lt_arguments ).
 
     rt_objects = decode_pack( lv_xstring ).
-    DELETE rt_objects WHERE type <> zif_abapgit_git_definitions=>c_type-commit.
 
   ENDMETHOD.
 
@@ -237,7 +236,7 @@ CLASS zcl_abapgit_gitv2_porcelain IMPLEMENTATION.
     " add dummy packet so the v1 branch parsing can be reused
     lv_data = |0004\n{ zcl_abapgit_convert=>xstring_to_string_utf8( lv_xstring ) }|.
 
-    CREATE OBJECT ro_list TYPE zcl_abapgit_git_branch_list EXPORTING iv_data = lv_data.
+    ro_list = NEW zcl_abapgit_git_branch_list( iv_data = lv_data ).
 
   ENDMETHOD.
 

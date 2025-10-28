@@ -97,7 +97,7 @@ CLASS lcl_test_data IMPLEMENTATION.
 
     ls_data-starting_folder = '/'.
 
-    CREATE OBJECT ro_dot EXPORTING is_data = ls_data.
+    ro_dot = NEW #( is_data = ls_data ).
 
   ENDMETHOD.
 
@@ -311,9 +311,9 @@ CLASS ltcl_find_changes_in_git IMPLEMENTATION.
   METHOD setup.
     DATA lo_mock_gitv2 TYPE REF TO lcl_mock_gitv2.
 
-    CREATE OBJECT mo_test_data.
+    mo_test_data = NEW #( ).
 
-    CREATE OBJECT lo_mock_gitv2 EXPORTING io_test_data = mo_test_data.
+    lo_mock_gitv2 = NEW #( io_test_data = mo_test_data ).
 
     zcl_abapgit_git_injector=>set_v2_porcelain( lo_mock_gitv2 ).
   ENDMETHOD.
@@ -518,9 +518,9 @@ CLASS ltcl_find_up_to_date IMPLEMENTATION.
   METHOD setup.
     DATA lo_mock_gitv2 TYPE REF TO lcl_mock_gitv2.
 
-    CREATE OBJECT mo_test_data.
+    mo_test_data = NEW #( ).
 
-    CREATE OBJECT lo_mock_gitv2 EXPORTING io_test_data = mo_test_data.
+    lo_mock_gitv2 = NEW #( io_test_data = mo_test_data ).
 
     zcl_abapgit_git_injector=>set_v2_porcelain( lo_mock_gitv2 ).
   ENDMETHOD.
@@ -536,8 +536,8 @@ CLASS ltcl_find_up_to_date IMPLEMENTATION.
 
     DATA lt_branches TYPE zif_abapgit_git_definitions=>ty_git_branch_list_tt.
     DATA lt_features TYPE zif_abapgit_flow_logic=>ty_features.
-    DATA ls_feature LIKE LINE OF lt_features.
-    DATA ls_branch LIKE LINE OF lt_branches.
+    DATA ls_feature  LIKE LINE OF lt_features.
+    DATA ls_branch   LIKE LINE OF lt_branches.
 
     " Add a feature branch based on main
     mo_test_data->add_branch(
@@ -559,8 +559,8 @@ CLASS ltcl_find_up_to_date IMPLEMENTATION.
     " Call the method under test
     zcl_abapgit_flow_git=>find_up_to_date(
       EXPORTING
-        iv_url      = mo_test_data->get_url( )
         it_branches = lt_branches
+        it_objects  = mo_test_data->get_all_objects( )
       CHANGING
         ct_features = lt_features ).
 
@@ -625,8 +625,8 @@ CLASS ltcl_find_up_to_date IMPLEMENTATION.
     " Call the method under test
     zcl_abapgit_flow_git=>find_up_to_date(
       EXPORTING
-        iv_url      = mo_test_data->get_url( )
         it_branches = lt_branches
+        it_objects  = mo_test_data->get_all_objects( )
       CHANGING
         ct_features = lt_features ).
 
@@ -652,8 +652,8 @@ CLASS ltcl_find_up_to_date IMPLEMENTATION.
     " Call the method under test - should return immediately
     zcl_abapgit_flow_git=>find_up_to_date(
       EXPORTING
-        iv_url      = mo_test_data->get_url( )
         it_branches = lt_branches
+        it_objects  = mo_test_data->get_all_objects( )
       CHANGING
         ct_features = lt_features ).
 
