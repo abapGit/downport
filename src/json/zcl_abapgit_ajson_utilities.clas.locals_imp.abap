@@ -102,9 +102,7 @@ CLASS lcl_node_iterator IMPLEMENTATION.
       WHEN OTHERS.
         ASSERT 1 = 0.
     ENDCASE.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 AND mr_cursor->path = mv_base_path ).
-    mv_has_next = temp1.
+    mv_has_next = xsdbool( sy-subrc = 0 AND mr_cursor->path = mv_base_path ).
 
   ENDMETHOD.
 
