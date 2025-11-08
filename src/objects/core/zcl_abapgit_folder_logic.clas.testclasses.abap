@@ -230,7 +230,7 @@ CLASS ltcl_folder_logic IMPLEMENTATION.
 
     DATA lo_top_foo TYPE REF TO ltcl_folder_logic_package.
 
-    lo_top_foo = NEW #( ).
+    CREATE OBJECT lo_top_foo.
 
     zcl_abapgit_injector=>set_sap_package( iv_package     = c_top
                                            ii_sap_package = me ).
