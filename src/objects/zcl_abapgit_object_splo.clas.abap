@@ -69,9 +69,7 @@ CLASS zcl_abapgit_object_splo IMPLEMENTATION.
 
     SELECT SINGLE papart INTO lv_papart FROM tsp1d
       WHERE papart = ms_item-obj_name.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
