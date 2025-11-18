@@ -69,15 +69,11 @@ CLASS lcl_rename IMPLEMENTATION.
     CASE mv_rename_by.
       WHEN zcl_abapgit_ajson_mapping=>rename_by-attr_name.
         READ TABLE mt_rename_map ASSIGNING <r> WITH TABLE KEY by_name COMPONENTS from = cv_name.
-        DATA temp1 TYPE xsdboolean.
-        temp1 = boolc( sy-subrc = 0 ).
-        lv_pair_found = temp1.
+        lv_pair_found = xsdbool( sy-subrc = 0 ).
       WHEN zcl_abapgit_ajson_mapping=>rename_by-full_path.
         lv_full_path = is_node-path && cv_name.
         READ TABLE mt_rename_map ASSIGNING <r> WITH TABLE KEY by_name COMPONENTS from = lv_full_path.
-        DATA temp2 TYPE xsdboolean.
-        temp2 = boolc( sy-subrc = 0 ).
-        lv_pair_found = temp2.
+        lv_pair_found = xsdbool( sy-subrc = 0 ).
       WHEN zcl_abapgit_ajson_mapping=>rename_by-pattern.
         lv_full_path = is_node-path && cv_name.
         LOOP AT mt_rename_map ASSIGNING <r>.
@@ -200,7 +196,7 @@ CLASS lcl_mapping_camel IMPLEMENTATION. "DEPRECATED
 
     rv_result = iv_name.
 
-    REPLACE ALL OCCURRENCES OF REGEX `([a-z])([A-Z])` IN rv_result WITH `$1_$2`.
+    REPLACE ALL OCCURRENCES OF REGEX `([a-z])([A-Z])` IN rv_result WITH `$1_$2` ##REGEX_POSIX.
 
   ENDMETHOD.
 
@@ -208,8 +204,7 @@ CLASS lcl_mapping_camel IMPLEMENTATION. "DEPRECATED
   METHOD zif_abapgit_ajson_mapping~to_json.
 
     TYPES ty_token TYPE c LENGTH 255.
-    TYPES temp1 TYPE STANDARD TABLE OF ty_token.
-DATA lt_tokens TYPE temp1.
+    DATA lt_tokens TYPE STANDARD TABLE OF ty_token.
     DATA lv_from TYPE i.
     FIELD-SYMBOLS <token> LIKE LINE OF lt_tokens.
 
@@ -287,7 +282,7 @@ CLASS lcl_to_snake IMPLEMENTATION.
 
   METHOD zif_abapgit_ajson_mapping~rename_node.
 
-    REPLACE ALL OCCURRENCES OF REGEX `([a-z])([A-Z])` IN cv_name WITH `$1_$2`.
+    REPLACE ALL OCCURRENCES OF REGEX `([a-z])([A-Z])` IN cv_name WITH `$1_$2` ##REGEX_POSIX.
     cv_name = to_lower( cv_name ).
 
   ENDMETHOD.
@@ -313,8 +308,7 @@ CLASS lcl_to_camel IMPLEMENTATION.
     TYPES lty_token TYPE c LENGTH 255.
     CONSTANTS lc_forced_underscore_marker TYPE c LENGTH 1 VALUE cl_abap_char_utilities=>horizontal_tab.
 
-    TYPES temp2 TYPE STANDARD TABLE OF lty_token.
-DATA lt_tokens TYPE temp2.
+    DATA lt_tokens TYPE STANDARD TABLE OF lty_token.
     DATA lv_from TYPE i.
     FIELD-SYMBOLS <token> LIKE LINE OF lt_tokens.
 

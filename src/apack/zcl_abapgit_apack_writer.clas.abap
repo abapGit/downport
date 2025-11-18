@@ -35,7 +35,7 @@ CLASS zcl_abapgit_apack_writer IMPLEMENTATION.
 
 
   METHOD create_instance.
-    CREATE OBJECT ro_manifest_writer EXPORTING is_apack_manifest_descriptor = is_apack_manifest_descriptor.
+    ro_manifest_writer = NEW #( is_apack_manifest_descriptor = is_apack_manifest_descriptor ).
   ENDMETHOD.
 
 
@@ -64,7 +64,7 @@ CLASS zcl_abapgit_apack_writer IMPLEMENTATION.
     REPLACE FIRST OCCURRENCE
       OF REGEX '<\?xml version="1\.0" encoding="[\w-]+"\?>'
       IN rv_xml
-      WITH '<?xml version="1.0" encoding="utf-8"?>'.
+      WITH '<?xml version="1.0" encoding="utf-8"?>' ##REGEX_POSIX.
 
   ENDMETHOD.
 ENDCLASS.

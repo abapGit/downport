@@ -176,7 +176,7 @@ CLASS zcl_abapgit_dot_abapgit IMPLEMENTATION.
     ls_data-starting_folder = '/src/'.
     ls_data-folder_logic    = zif_abapgit_dot_abapgit=>c_folder_logic-prefix.
 
-    CREATE OBJECT ro_dot_abapgit EXPORTING is_data = ls_data.
+    ro_dot_abapgit = NEW #( is_data = ls_data ).
 
   ENDMETHOD.
 
@@ -196,7 +196,7 @@ CLASS zcl_abapgit_dot_abapgit IMPLEMENTATION.
 
     ls_data = from_xml( lv_xml ).
 
-    CREATE OBJECT ro_dot_abapgit EXPORTING is_data = ls_data.
+    ro_dot_abapgit = NEW #( is_data = ls_data ).
 
   ENDMETHOD.
 
@@ -436,7 +436,7 @@ CLASS zcl_abapgit_dot_abapgit IMPLEMENTATION.
     REPLACE FIRST OCCURRENCE
       OF REGEX '<\?xml version="1\.0" encoding="[\w-]+"\?>'
       IN rv_xml
-      WITH '<?xml version="1.0" encoding="utf-8"?>'.
+      WITH '<?xml version="1.0" encoding="utf-8"?>' ##REGEX_POSIX.
     ASSERT sy-subrc = 0.
 
   ENDMETHOD.

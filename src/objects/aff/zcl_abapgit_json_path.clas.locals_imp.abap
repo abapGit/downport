@@ -73,7 +73,7 @@ CLASS lcl_json_path IMPLEMENTATION.
           lt_path_elements TYPE string_table,
           lv_json          TYPE string.
 
-    FIND REGEX `(.*)=(.*$)` IN iv_json_path SUBMATCHES lv_path lv_value.
+    FIND REGEX `(.*)=(.*$)` IN iv_json_path SUBMATCHES lv_path lv_value ##REGEX_POSIX.
 
     IF path_contains_array( lv_path ) = abap_true.
 
@@ -98,10 +98,8 @@ CLASS lcl_json_path IMPLEMENTATION.
 
   METHOD path_contains_array.
     DATA lv_array_pattern TYPE string VALUE `.*\[.*\].*`.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( matches( val = iv_path
-                            regex = lv_array_pattern ) ).
-    rv_result = temp1.
+    rv_result = xsdbool( matches( val   = iv_path
+                                regex = lv_array_pattern ) ) ##REGEX_POSIX.
   ENDMETHOD.
 
   METHOD build_json.
@@ -141,8 +139,8 @@ CLASS lcl_json_path IMPLEMENTATION.
 
     ELSE. " is array
 
-      FIND REGEX `\[(.*)\]` IN lv_first_elem SUBMATCHES lv_sub_match.
-      FIND REGEX `(\w+)(?==='([^']*)')` IN lv_sub_match SUBMATCHES lv_key_name lv_key_value.
+      FIND REGEX `\[(.*)\]` IN lv_first_elem SUBMATCHES lv_sub_match ##REGEX_POSIX.
+      FIND REGEX `(\w+)(?==='([^']*)')` IN lv_sub_match SUBMATCHES lv_key_name lv_key_value ##REGEX_POSIX.
       READ TABLE lt_new_path_element INTO lv_name INDEX 2.
 
 
@@ -171,10 +169,8 @@ CLASS lcl_json_path IMPLEMENTATION.
 
   METHOD is_primitiv.
 
-    FIND REGEX `^.\w+` IN iv_string. " string start with .
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( sy-subrc = 0 ).
-    rv_result = temp2.
+    FIND REGEX `^.\w+` IN iv_string ##REGEX_POSIX. " string start with .
+    rv_result = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -190,7 +186,7 @@ CLASS lcl_json_path IMPLEMENTATION.
     lv_pcre_pattern = `(^\$)|(\.\w+)|(\[[^\]]*\])`.
 
     TRY.
-        FIND ALL OCCURRENCES OF REGEX lv_pcre_pattern IN iv_path RESULTS lt_match_result.
+        FIND ALL OCCURRENCES OF REGEX lv_pcre_pattern IN iv_path RESULTS lt_match_result ##REGEX_POSIX.
       CATCH cx_sy_find_infinite_loop cx_sy_range_out_of_bounds cx_sy_invalid_regex cx_sy_regex_too_complex INTO lx_find.
         zcx_abapgit_exception=>raise_with_text( lx_find ).
     ENDTRY.
@@ -204,21 +200,15 @@ CLASS lcl_json_path IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD is_array.
-    DATA temp3 TYPE xsdboolean.
-    temp3 = boolc( io_reader->name = 'array' ).
-    rv_result = temp3.
+    rv_result = xsdbool( io_reader->name = 'array' ).
   ENDMETHOD.
 
   METHOD is_string_open.
-    DATA temp4 TYPE xsdboolean.
-    temp4 = boolc( io_reader->name = 'str' AND io_reader->node_type = if_sxml_node=>co_nt_element_open ).
-    rv_result = temp4.
+    rv_result = xsdbool( io_reader->name = 'str' AND io_reader->node_type = if_sxml_node=>co_nt_element_open ).
   ENDMETHOD.
 
   METHOD is_object.
-    DATA temp5 TYPE xsdboolean.
-    temp5 = boolc( io_reader->name = 'object' ).
-    rv_result = temp5.
+    rv_result = xsdbool( io_reader->name = 'object' ).
   ENDMETHOD.
 
   METHOD serialize_rec.
@@ -397,13 +387,13 @@ CLASS lcl_json_path IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    FIND REGEX `^!` IN iv_line.
+    FIND REGEX `^!` IN iv_line ##REGEX_POSIX.
     IF sy-subrc = 0.
       rv_result = abap_true.
       RETURN.
     ENDIF.
 
-    FIND REGEX `^#` IN iv_line.
+    FIND REGEX `^#` IN iv_line ##REGEX_POSIX.
     IF sy-subrc = 0.
       rv_result = abap_true.
       RETURN.
