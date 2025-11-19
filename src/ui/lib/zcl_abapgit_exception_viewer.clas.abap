@@ -96,7 +96,7 @@ CLASS zcl_abapgit_exception_viewer IMPLEMENTATION.
 
     DATA: lo_grid TYPE REF TO cl_salv_form_layout_grid.
 
-    CREATE OBJECT lo_grid EXPORTING columns = 2.
+    lo_grid = NEW #( columns = 2 ).
 
     add_row( io_grid  = lo_grid
              iv_col_1 = 'Main program:'
@@ -126,7 +126,7 @@ CLASS zcl_abapgit_exception_viewer IMPLEMENTATION.
   METHOD extract_classname.
 
     rv_classname = substring_before( val   = iv_mainprogram
-                                     regex = '=*CP$' ).
+                                     regex = '=*CP$' ) ##REGEX_POSIX.
 
   ENDMETHOD.
 
