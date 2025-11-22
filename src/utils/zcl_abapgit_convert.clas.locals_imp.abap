@@ -21,7 +21,9 @@ CLASS lcl_in IMPLEMENTATION.
     DATA lv_ignore_cerr TYPE abap_bool.
 
 * ignore conversion errors on non-unicode systems
-    lv_ignore_cerr = xsdbool( cl_abap_char_utilities=>charsize = 1 ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( cl_abap_char_utilities=>charsize = 1 ).
+    lv_ignore_cerr = temp1.
 
     IF go_conv_new IS INITIAL AND go_conv_old IS INITIAL.
       TRY.
