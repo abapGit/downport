@@ -35,9 +35,8 @@ CLASS zcl_abapgit_object_tran DEFINITION
         object     TYPE rglif-docutype VALUE 'O' ##NO_TEXT,
       END OF c_variant_type.
 
-    TYPES temp1_15c4f683bb TYPE STANDARD TABLE OF bdcdata.
-DATA:
-      mt_bcdata TYPE temp1_15c4f683bb .
+    DATA:
+      mt_bcdata TYPE STANDARD TABLE OF bdcdata .
 
     METHODS transaction_read
       IMPORTING
@@ -123,8 +122,7 @@ CLASS zcl_abapgit_object_tran IMPLEMENTATION.
 
   METHOD call_se93.
 
-    TYPES temp2 TYPE STANDARD TABLE OF bdcmsgcoll.
-DATA: lt_message TYPE temp2.
+    DATA: lt_message TYPE STANDARD TABLE OF bdcmsgcoll.
     DATA lv_msg TYPE string.
 
     FIELD-SYMBOLS: <ls_message> TYPE bdcmsgcoll.
@@ -159,8 +157,7 @@ DATA: lt_message TYPE temp2.
   METHOD clear_functiongroup_globals.
     TYPES ty_param_vari TYPE abap_bool.
 
-    TYPES temp3 TYPE STANDARD TABLE OF rsmp_check WITH DEFAULT KEY.
-DATA lt_error_list TYPE temp3.
+    DATA lt_error_list TYPE STANDARD TABLE OF rsmp_check WITH DEFAULT KEY.
     FIELD-SYMBOLS <lv_param_vari> TYPE ty_param_vari.
 
     " only way to clear global fields in function group
@@ -221,11 +218,11 @@ DATA lt_error_list TYPE temp3.
     ls_bcdata-dynbegin = 'X'.
     APPEND ls_bcdata TO mt_bcdata.
 
-    add_data( iv_fnam     = 'TSTCT-TTEXT'
-              iv_fval     = is_tstct-ttext ).
+    add_data( iv_fnam = 'TSTCT-TTEXT'
+              iv_fval = is_tstct-ttext ).
 
-    add_data( iv_fnam     = 'RSSTCD-S_CLASS'
-              iv_fval     = 'X' ).
+    add_data( iv_fnam = 'RSSTCD-S_CLASS'
+              iv_fval = 'X' ).
 
     add_data( iv_fnam = 'BDC_OKCODE'
               iv_fval = '=ENTR' ).
@@ -235,11 +232,11 @@ DATA lt_error_list TYPE temp3.
     ls_bcdata-dynbegin = 'X'.
     APPEND ls_bcdata TO mt_bcdata.
 
-    add_data( iv_fnam     = 'RSSTCD-S_TRFRAME'
-              iv_fval     = is_rsstcd-s_trframe ).
+    add_data( iv_fnam = 'RSSTCD-S_TRFRAME'
+              iv_fval = is_rsstcd-s_trframe ).
 
-    add_data( iv_fnam     = 'RSSTCD-S_UPDTASK'
-              iv_fval     = is_rsstcd-s_updtask ).
+    add_data( iv_fnam = 'RSSTCD-S_UPDTASK'
+              iv_fval = is_rsstcd-s_updtask ).
 
     add_data( iv_fnam = 'BDC_OKCODE'
               iv_fval = '=TR_FRAMEWORK' ).
@@ -249,29 +246,29 @@ DATA lt_error_list TYPE temp3.
     ls_bcdata-dynbegin = 'X'.
     APPEND ls_bcdata TO mt_bcdata.
 
-    add_data( iv_fnam     = 'RSSTCD-CLASSNAME'
-              iv_fval     = is_rsstcd-classname ).
+    add_data( iv_fnam = 'RSSTCD-CLASSNAME'
+              iv_fval = is_rsstcd-classname ).
 
-    add_data( iv_fnam     = 'RSSTCD-METHOD'
-              iv_fval     = is_rsstcd-method ).
+    add_data( iv_fnam = 'RSSTCD-METHOD'
+              iv_fval = is_rsstcd-method ).
 
     IF is_rsstcd-s_local IS NOT INITIAL.
-      add_data( iv_fnam     = 'RSSTCD-S_LOCAL'
-                iv_fval     = is_rsstcd-s_local ).
+      add_data( iv_fnam = 'RSSTCD-S_LOCAL'
+                iv_fval = is_rsstcd-s_local ).
     ENDIF.
 
     IF is_rsstcd-s_updlok IS NOT INITIAL.
-      add_data( iv_fnam     = 'RSSTCD-S_UPDLOK'
-                iv_fval     = is_rsstcd-s_updlok ).
+      add_data( iv_fnam = 'RSSTCD-S_UPDLOK'
+                iv_fval = is_rsstcd-s_updlok ).
     ENDIF.
 
-    add_data( iv_fnam     = 'TSTC-PGMNA'
-              iv_fval     = is_tstc-pgmna ).
+    add_data( iv_fnam = 'TSTC-PGMNA'
+              iv_fval = is_tstc-pgmna ).
 
     IF is_tstcc-s_webgui = '2'.
 
-      add_data( iv_fnam     = 'G_IAC_EWT'
-                iv_fval     = abap_true ).
+      add_data( iv_fnam = 'G_IAC_EWT'
+                iv_fval = abap_true ).
 
       add_data( iv_fnam = 'BDC_OKCODE'
                 iv_fval = 'MAKE_PROFI' ).
@@ -283,29 +280,29 @@ DATA lt_error_list TYPE temp3.
 
     ELSEIF is_tstcc-s_webgui IS NOT INITIAL.
 
-      add_data( iv_fnam     = 'TSTCC-S_WEBGUI'
-                iv_fval     = is_tstcc-s_webgui ).
+      add_data( iv_fnam = 'TSTCC-S_WEBGUI'
+                iv_fval = is_tstcc-s_webgui ).
 
     ENDIF.
 
     IF is_tstcc-s_pervas IS NOT INITIAL.
-      add_data( iv_fnam     = 'TSTCC-S_PERVAS'
-                iv_fval     = is_tstcc-s_pervas ).
+      add_data( iv_fnam = 'TSTCC-S_PERVAS'
+                iv_fval = is_tstcc-s_pervas ).
     ENDIF.
 
     IF is_tstcc-s_service IS NOT INITIAL.
-      add_data( iv_fnam     = 'TSTCC-S_SERVICE'
-                iv_fval     = is_tstcc-s_service ).
+      add_data( iv_fnam = 'TSTCC-S_SERVICE'
+                iv_fval = is_tstcc-s_service ).
     ENDIF.
 
     IF is_tstcc-s_platin IS NOT INITIAL.
-      add_data( iv_fnam     = 'TSTCC-S_PLATIN'
-                iv_fval     = is_tstcc-s_platin ).
+      add_data( iv_fnam = 'TSTCC-S_PLATIN'
+                iv_fval = is_tstcc-s_platin ).
     ENDIF.
 
     IF is_tstcc-s_win32 IS NOT INITIAL.
-      add_data( iv_fnam     = 'TSTCC-S_WIN32'
-                iv_fval     = is_tstcc-s_win32 ).
+      add_data( iv_fnam = 'TSTCC-S_WIN32'
+                iv_fval = is_tstcc-s_win32 ).
     ENDIF.
 
     add_data( iv_fnam = 'BDC_OKCODE'
@@ -316,8 +313,8 @@ DATA lt_error_list TYPE temp3.
     ls_bcdata-dynbegin = 'X'.
     APPEND ls_bcdata TO mt_bcdata.
 
-    add_data( iv_fnam     = 'KO007-L_DEVCLASS'
-              iv_fval     = iv_package ).
+    add_data( iv_fnam = 'KO007-L_DEVCLASS'
+              iv_fval = iv_package ).
 
     add_data( iv_fnam = 'BDC_OKCODE'
               iv_fval = '=ADD' ).
@@ -345,8 +342,7 @@ DATA lt_error_list TYPE temp3.
 
   METHOD deserialize_texts.
 
-    TYPES temp4 TYPE TABLE OF tstct.
-DATA lt_tpool_i18n TYPE temp4.
+    DATA lt_tpool_i18n TYPE TABLE OF tstct.
 
     FIELD-SYMBOLS <ls_tpool> LIKE LINE OF lt_tpool_i18n.
 
@@ -358,7 +354,7 @@ DATA lt_tpool_i18n TYPE temp4.
       EXPORTING
         iv_lang_field_name = 'SPRSL'
       CHANGING
-        ct_tab = lt_tpool_i18n ).
+        ct_tab             = lt_tpool_i18n ).
 
     " Force t-code name (security reasons)
     LOOP AT lt_tpool_i18n ASSIGNING <ls_tpool>.
@@ -377,9 +373,7 @@ DATA lt_tpool_i18n TYPE temp4.
 
   METHOD is_variant_transaction.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( is_tstcp-param(1) = '@' ).
-    rv_variant_transaction = temp1.
+    rv_variant_transaction = xsdbool( is_tstcp-param(1) = '@' ).
 
   ENDMETHOD.
 
@@ -405,8 +399,7 @@ DATA lt_tpool_i18n TYPE temp4.
 
   METHOD serialize_texts.
 
-    TYPES temp5 TYPE TABLE OF tstct.
-DATA lt_tpool_i18n TYPE temp5.
+    DATA lt_tpool_i18n TYPE TABLE OF tstct.
 
     IF mo_i18n_params->ms_params-main_language_only = abap_true.
       RETURN.
@@ -425,7 +418,7 @@ DATA lt_tpool_i18n TYPE temp5.
       EXPORTING
         iv_lang_field_name = 'SPRSL'
       CHANGING
-        ct_tab = lt_tpool_i18n ).
+        ct_tab             = lt_tpool_i18n ).
 
     IF lines( lt_tpool_i18n ) > 0.
       SORT lt_tpool_i18n BY sprsl ASCENDING.
@@ -532,13 +525,13 @@ DATA lt_tpool_i18n TYPE temp5.
     CLEAR cs_rsstcd-s_vari.
 
     IF cs_tstcp-param(1) = '\'.             " OO-Transaction without FR
-      split_parameters_comp( EXPORTING ig_type = c_oo_program
+      split_parameters_comp( EXPORTING ig_type  = c_oo_program
                                        ig_param = cs_tstcp-param
                              CHANGING  cg_value = cs_tstc-pgmna ).
-      split_parameters_comp( EXPORTING ig_type = c_oo_class
+      split_parameters_comp( EXPORTING ig_type  = c_oo_class
                                        ig_param = cs_tstcp-param
                              CHANGING  cg_value = cs_rsstcd-classname ).
-      split_parameters_comp( EXPORTING ig_type = c_oo_method
+      split_parameters_comp( EXPORTING ig_type  = c_oo_method
                                        ig_param = cs_tstcp-param
                              CHANGING  cg_value = cs_rsstcd-method ).
 
@@ -582,15 +575,19 @@ DATA lt_tpool_i18n TYPE temp5.
     ELSE.
       cs_rsstcd-st_tcode = space.
       cs_rsstcd-st_prog  = c_true.
+      cs_rsstcd-variant  = cs_tstcp-param.
     ENDIF.
 
     shift_param(
-      CHANGING ct_rsparam = ct_rsparam
-               cs_tstcp   = cs_tstcp ).
+      CHANGING
+        ct_rsparam = ct_rsparam
+        cs_tstcp   = cs_tstcp ).
 
     set_oo_parameters(
-      EXPORTING it_rsparam = ct_rsparam
-      CHANGING cs_rsstcd = cs_rsstcd ).
+      EXPORTING
+        it_rsparam = ct_rsparam
+      CHANGING
+        cs_rsstcd  = cs_rsstcd ).
 
   ENDMETHOD.
 
@@ -610,10 +607,8 @@ DATA lt_tpool_i18n TYPE temp5.
 
   METHOD transaction_read.
 
-    TYPES temp6 TYPE TABLE OF tstc.
-TYPES temp1 TYPE TABLE OF tstcc.
-DATA: lt_tcodes   TYPE temp6,
-          lt_gui_attr TYPE temp1.
+    DATA: lt_tcodes   TYPE TABLE OF tstc,
+          lt_gui_attr TYPE TABLE OF tstcc.
 
     CLEAR: es_transaction, es_gui_attr.
 
@@ -688,7 +683,8 @@ DATA: lt_tcodes   TYPE temp6,
 *               lc_hex_men TYPE x VALUE '01',
                lc_hex_par TYPE x VALUE '02',
                lc_hex_rep TYPE x VALUE '80',
-*               lc_hex_rpv TYPE x VALUE '10',
+               lc_hex_var TYPE x VALUE '90',
+               lc_hex_rpv TYPE x VALUE '10',
                lc_hex_obj TYPE x VALUE '08'.
 
     DATA: lv_dynpro       TYPE d020s-dnum,
@@ -708,15 +704,15 @@ DATA: lt_tcodes   TYPE temp6,
     ENDIF.
 
     io_xml->read( EXPORTING iv_name = 'TSTC'
-                  CHANGING cg_data = ls_tstc ).
+                  CHANGING  cg_data = ls_tstc ).
     io_xml->read( EXPORTING iv_name = 'TSTCC'
-                  CHANGING cg_data = ls_tstcc ).
+                  CHANGING  cg_data = ls_tstcc ).
     io_xml->read( EXPORTING iv_name = 'TSTCT'
-                  CHANGING cg_data = ls_tstct ).
+                  CHANGING  cg_data = ls_tstct ).
     io_xml->read( EXPORTING iv_name = 'TSTCP'
-                  CHANGING cg_data = ls_tstcp ).
+                  CHANGING  cg_data = ls_tstcp ).
     io_xml->read( EXPORTING iv_name = 'AUTHORIZATIONS'
-                  CHANGING cg_data = lt_tstca ).
+                  CHANGING  cg_data = lt_tstca ).
 
     lv_dynpro = ls_tstc-dypno.
 
@@ -746,11 +742,11 @@ DATA: lt_tcodes   TYPE temp6,
     CASE lv_type.
       WHEN c_variant_type-object.
 
-        deserialize_oo_transaction( iv_package      = iv_package
-                                    is_tstc         = ls_tstc
-                                    is_tstcc        = ls_tstcc
-                                    is_tstct        = ls_tstct
-                                    is_rsstcd       = ls_rsstcd ).
+        deserialize_oo_transaction( iv_package = iv_package
+                                    is_tstc    = ls_tstc
+                                    is_tstcc   = ls_tstcc
+                                    is_tstct   = ls_tstct
+                                    is_rsstcd  = ls_rsstcd ).
 
       WHEN OTHERS.
 
@@ -791,6 +787,15 @@ DATA: lt_tcodes   TYPE temp6,
           zcx_abapgit_exception=>raise_t100( ).
         ENDIF.
 
+        " RPY_TRANSACTION_INSERT does not set the variant flag (x'10') in cinfo for report transactions with variants,
+        " so we update it manually to include both report (x'80') and variant (x'10') flags (i.e., '90' in hexadecimal).
+        IF ls_tstc-cinfo O lc_hex_rpv.
+          UPDATE tstc SET cinfo = lc_hex_var WHERE tcode = ls_tstc-tcode.
+          IF sy-subrc <> 0.
+            zcx_abapgit_exception=>raise( 'Update of TSTC cinfo failed' ).
+          ENDIF.
+        ENDIF.
+
     ENDCASE.
 
     IF lt_tstca IS NOT INITIAL.
@@ -812,9 +817,7 @@ DATA: lt_tcodes   TYPE temp6,
 
     SELECT SINGLE tcode FROM tstc INTO lv_tcode
       WHERE tcode = ms_item-obj_name.                   "#EC CI_GENBUFF
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( sy-subrc = 0 ).
-    rv_bool = temp2.
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -854,8 +857,7 @@ DATA: lt_tcodes   TYPE temp6,
 
   METHOD zif_abapgit_object~jump.
 
-    TYPES temp8 TYPE TABLE OF bdcdata.
-DATA: lt_bdcdata TYPE temp8.
+    DATA: lt_bdcdata TYPE TABLE OF bdcdata.
 
     FIELD-SYMBOLS: <ls_bdcdata> LIKE LINE OF lt_bdcdata.
 
