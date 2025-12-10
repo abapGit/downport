@@ -82,9 +82,7 @@ CLASS zcl_abapgit_object_fdt0 IMPLEMENTATION.
         WHERE object_type = 'AP'
         AND id = lv_application_id
         AND deleted = ''.
-      DATA temp1 TYPE xsdboolean.
-      temp1 = boolc( lv_count = 0 ).
-      ev_create = temp1.
+      ev_create = xsdbool( lv_count = 0 ).
     ENDIF.
 
     " Fill in user/time/system-specific fields
@@ -396,8 +394,7 @@ CLASS zcl_abapgit_object_fdt0 IMPLEMENTATION.
   METHOD zif_abapgit_object~delete.
 
     DATA lv_is_local TYPE abap_bool.
-    TYPES temp1 TYPE TABLE OF fdt_admn_0000s-application_id.
-DATA lt_application_id TYPE temp1.
+    DATA lt_application_id TYPE TABLE OF fdt_admn_0000s-application_id.
     DATA ls_object_category_sel TYPE if_fdt_query=>s_object_category_sel.
     DATA lv_failure TYPE abap_bool.
     DATA lx_fdt_input TYPE REF TO cx_fdt_input.
@@ -591,9 +588,7 @@ DATA lt_application_id TYPE temp1.
       AND name = ms_item-obj_name
       AND deleted = ''.
 
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( lv_count > 0 ).
-    rv_bool = temp2.
+    rv_bool = xsdbool( lv_count > 0 ).
 
   ENDMETHOD.
 
@@ -629,6 +624,10 @@ DATA lt_application_id TYPE temp1.
     FIELD-SYMBOLS <ls_version> LIKE LINE OF lt_version.
 
     lv_application_id = get_application_id( ).
+    IF lv_application_id IS INITIAL.
+      rv_active = abap_false.
+      RETURN.
+    ENDIF.
 
     TRY.
         cl_fdt_factory=>get_instance_generic(
@@ -645,9 +644,7 @@ DATA lt_application_id TYPE temp1.
     lv_index = lines( lt_version ).
     READ TABLE lt_version ASSIGNING <ls_version> INDEX lv_index.
 
-    DATA temp3 TYPE xsdboolean.
-    temp3 = boolc( <ls_version>-state = 'A' ).
-    rv_active = temp3.
+    rv_active = xsdbool( <ls_version>-state = 'A' ).
 
   ENDMETHOD.
 
@@ -703,7 +700,7 @@ DATA lt_application_id TYPE temp1.
 
     DATA lo_dexc TYPE REF TO if_fdt_data_exchange.
     DATA lv_application_id TYPE fdt_admn_0000s-application_id.
-    DATA lx_fdt_input TYPE REF TO cx_fdt_input.
+    DATA lx_root TYPE REF TO cx_root.
     DATA lv_xml_fdt0_application TYPE string.
     DATA lo_xml_document TYPE REF TO if_ixml_document.
     DATA lo_xml_element TYPE REF TO if_ixml_element.
@@ -721,6 +718,10 @@ DATA lt_application_id TYPE temp1.
           IMPORTING
             ev_string         = lv_xml_fdt0_application ).
 
+        IF lv_xml_fdt0_application IS INITIAL.
+          zcx_abapgit_exception=>raise( 'FDT0, empty application' ).
+        ENDIF.
+
         lo_xml_document = cl_ixml_80_20=>parse_to_document( stream_string = lv_xml_fdt0_application ).
         lo_xml_element = lo_xml_document->get_root_element( ).
 
@@ -728,8 +729,8 @@ DATA lt_application_id TYPE temp1.
 
         io_xml->set_raw( lo_xml_element ).
 
-      CATCH cx_fdt_input INTO lx_fdt_input.
-        zcx_abapgit_exception=>raise_with_text( lx_fdt_input ).
+      CATCH cx_fdt_input INTO lx_root.
+        zcx_abapgit_exception=>raise_with_text( lx_root ).
     ENDTRY.
 
   ENDMETHOD.
