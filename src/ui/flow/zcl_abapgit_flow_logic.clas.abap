@@ -132,11 +132,19 @@ CLASS zcl_abapgit_flow_logic DEFINITION PUBLIC.
       RAISING
         zcx_abapgit_exception.
 
+    CLASS-METHODS read_transport_users
+      IMPORTING
+        iv_trkorr       TYPE trkorr
+      RETURNING
+        VALUE(rt_users) TYPE zif_abapgit_flow_logic=>ty_transport_users_tt
+      RAISING
+        zcx_abapgit_exception.
+
 ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_FLOW_LOGIC IMPLEMENTATION.
+CLASS zcl_abapgit_flow_logic IMPLEMENTATION.
 
 
   METHOD add_local_status.
@@ -169,9 +177,8 @@ CLASS ZCL_ABAPGIT_FLOW_LOGIC IMPLEMENTATION.
     DATA lv_extension    TYPE string.
     DATA lv_main_file    TYPE string.
 
-
-    FIELD-SYMBOLS <ls_transport> LIKE LINE OF it_transports.
-    FIELD-SYMBOLS <ls_local>     LIKE LINE OF it_local.
+    FIELD-SYMBOLS <ls_transport>     LIKE LINE OF it_transports.
+    FIELD-SYMBOLS <ls_local>         LIKE LINE OF it_local.
     FIELD-SYMBOLS <ls_main_expanded> LIKE LINE OF it_main_expanded.
 
 
@@ -219,6 +226,11 @@ CLASS ZCL_ABAPGIT_FLOW_LOGIC IMPLEMENTATION.
         lv_filename = lv_main_file.
         REPLACE FIRST OCCURRENCE OF lv_extension IN lv_filename WITH '*'.
 
+        IF lv_filename = 'package.devc*'.
+* this might leave deleted packages in git, but its okay for now
+          CONTINUE.
+        ENDIF.
+
         LOOP AT it_main_expanded ASSIGNING <ls_main_expanded>
             WHERE name CP lv_filename.
           CLEAR ls_changed_file.
@@ -261,9 +273,7 @@ CLASS ZCL_ABAPGIT_FLOW_LOGIC IMPLEMENTATION.
 
     LOOP AT it_local ASSIGNING <ls_local> WHERE file-filename <> zif_abapgit_definitions=>c_dot_abapgit.
       READ TABLE ct_main_expanded WITH KEY name = <ls_local>-file-filename ASSIGNING <ls_expanded>.
-      DATA temp1 TYPE xsdboolean.
-      temp1 = boolc( sy-subrc = 0 ).
-      lv_found_main = temp1.
+      lv_found_main = xsdbool( sy-subrc = 0 ).
 
       lv_found_branch = abap_false.
       LOOP AT it_features INTO ls_feature.
@@ -315,11 +325,12 @@ CLASS ZCL_ABAPGIT_FLOW_LOGIC IMPLEMENTATION.
     lt_features = get( )-features.
 
     LOOP AT lt_features INTO ls_feature WHERE repo-key = li_repo->get_key( ).
+      " IF ls_feature-branch-display_name IS NOT INITIAL
+      "     AND ls_feature-branch-up_to_date = abap_false.
+      "   lv_string = |Branch <tt>{ ls_feature-branch-display_name }</tt> is not up to date|.
+      "   INSERT lv_string INTO TABLE rs_consolidate-errors.
+      " ELSE
       IF ls_feature-branch-display_name IS NOT INITIAL
-          AND ls_feature-branch-up_to_date = abap_false.
-        lv_string = |Branch <tt>{ ls_feature-branch-display_name }</tt> is not up to date|.
-        INSERT lv_string INTO TABLE rs_consolidate-errors.
-      ELSEIF ls_feature-branch-display_name IS NOT INITIAL
           AND ls_feature-transport-trkorr IS INITIAL
           AND lines( ls_feature-changed_files ) > 0.
 * its okay if the changes are outside the starting folder
@@ -392,14 +403,15 @@ CLASS ZCL_ABAPGIT_FLOW_LOGIC IMPLEMENTATION.
         ct_features      = lt_features ).
 
     lt_tadir = zcl_abapgit_factory=>get_tadir( )->read(
-      iv_package      = li_repo->get_package( )
-      io_dot          = li_repo->get_dot_abapgit( )
-      iv_check_exists = abap_true ).
+      iv_package        = li_repo->get_package( )
+      io_dot            = li_repo->get_dot_abapgit( )
+      iv_ignore_delflag = abap_true
+      iv_check_exists   = abap_false ).
 
     lt_all_transports = find_open_transports( ).
 
     LOOP AT lt_tadir ASSIGNING <ls_tadir>.
-" skip the object is in any open transport
+" skip the object if it is in any open transport
       READ TABLE lt_all_transports WITH KEY object = <ls_tadir>-object obj_name = <ls_tadir>-obj_name TRANSPORTING NO FIELDS.
       IF sy-subrc = 0 AND <ls_tadir>-object <> 'DEVC'.
 * todo: this is not correct for AFF enabled objects
@@ -411,7 +423,7 @@ CLASS ZCL_ABAPGIT_FLOW_LOGIC IMPLEMENTATION.
       INSERT <ls_tadir> INTO TABLE lt_filter.
 
       IF lines( lt_filter ) >= 500.
-        CREATE OBJECT lo_filter EXPORTING it_filter = lt_filter.
+        lo_filter = NEW #( it_filter = lt_filter ).
         lt_local = li_repo->get_files_local_filtered( lo_filter ).
         CLEAR lt_filter.
         check_files(
@@ -428,7 +440,7 @@ CLASS ZCL_ABAPGIT_FLOW_LOGIC IMPLEMENTATION.
     ENDLOOP.
 
     IF lines( lt_filter ) > 0.
-      CREATE OBJECT lo_filter EXPORTING it_filter = lt_filter.
+      lo_filter = NEW #( it_filter = lt_filter ).
       lt_local = li_repo->get_files_local_filtered( lo_filter ).
       CLEAR lt_filter.
       check_files(
@@ -481,13 +493,9 @@ CLASS ZCL_ABAPGIT_FLOW_LOGIC IMPLEMENTATION.
           AND ls_next-obj_name = ls_transport-obj_name.
 
         READ TABLE cs_information-features WITH KEY transport-trkorr = ls_transport-trkorr TRANSPORTING NO FIELDS.
-        DATA temp2 TYPE xsdboolean.
-        temp2 = boolc( sy-subrc = 0 ).
-        lv_found1 = temp2.
+        lv_found1 = xsdbool( sy-subrc = 0 ).
         READ TABLE cs_information-features WITH KEY transport-trkorr = ls_next-trkorr TRANSPORTING NO FIELDS.
-        DATA temp3 TYPE xsdboolean.
-        temp3 = boolc( sy-subrc = 0 ).
-        lv_found2 = temp3.
+        lv_found2 = xsdbool( sy-subrc = 0 ).
         IF lv_found1 = abap_false AND lv_found2 = abap_false.
           " not in any favorite flow enabled repo
           CONTINUE.
@@ -532,7 +540,7 @@ CLASS ZCL_ABAPGIT_FLOW_LOGIC IMPLEMENTATION.
       ls_result-title  = zcl_abapgit_factory=>get_cts_api( )->read_description( lv_trkorr ).
 
       lt_objects = zcl_abapgit_factory=>get_cts_api( )->list_r3tr_by_request( lv_trkorr ).
-      LOOP AT lt_objects ASSIGNING <ls_object>.
+      LOOP AT lt_objects ASSIGNING <ls_object> WHERE object <> 'CINS' AND object <> 'NOTE'.
         ls_result-object   = <ls_object>-object.
         ls_result-obj_name = <ls_object>-obj_name.
 
@@ -666,6 +674,10 @@ CLASS ZCL_ABAPGIT_FLOW_LOGIC IMPLEMENTATION.
             <ls_feature>-full_match = abap_false.
           ENDIF.
         ENDLOOP.
+
+        IF <ls_feature>-transport-trkorr IS NOT INITIAL.
+          <ls_feature>-transport-users = read_transport_users( <ls_feature>-transport-trkorr ).
+        ENDIF.
       ENDLOOP.
 
       INSERT LINES OF lt_features INTO TABLE rs_information-features.
@@ -780,7 +792,7 @@ CLASS ZCL_ABAPGIT_FLOW_LOGIC IMPLEMENTATION.
     SORT lt_filter BY object obj_name.
     DELETE ADJACENT DUPLICATES FROM lt_filter COMPARING object obj_name.
 
-    CREATE OBJECT lo_filter EXPORTING it_filter = lt_filter.
+    lo_filter = NEW #( it_filter = lt_filter ).
     rt_local = ii_repo->get_files_local_filtered( lo_filter ).
 
   ENDMETHOD.
@@ -864,4 +876,17 @@ CLASS ZCL_ABAPGIT_FLOW_LOGIC IMPLEMENTATION.
     ENDLOOP.
 
   ENDMETHOD.
+
+  METHOD read_transport_users.
+
+    DATA lt_tasks TYPE zif_abapgit_cts_api=>ty_request_and_tasks_tt.
+    DATA ls_task  LIKE LINE OF lt_tasks.
+
+    lt_tasks = zcl_abapgit_factory=>get_cts_api( )->read_request_and_tasks( iv_trkorr ).
+    LOOP AT lt_tasks INTO ls_task.
+      INSERT ls_task-as4user INTO TABLE rt_users.
+    ENDLOOP.
+
+  ENDMETHOD.
+
 ENDCLASS.
