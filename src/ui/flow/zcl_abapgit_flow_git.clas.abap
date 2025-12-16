@@ -96,18 +96,19 @@ CLASS zcl_abapgit_flow_git IMPLEMENTATION.
     LOOP AT ct_features ASSIGNING <ls_feature> WHERE branch-display_name <> zif_abapgit_flow_logic=>c_main.
       IF lv_previous IS INITIAL OR lv_previous <> <ls_feature>-repo-key.
         IF zcl_abapgit_flow_exit=>get_instance( )->get_settings( <ls_feature>-repo-key )-allow_not_up_to_date = abap_true.
-          CREATE OBJECT li_find TYPE lcl_find_changes_new EXPORTING it_objects = lt_objects.
+          li_find = NEW lcl_find_changes_new( it_objects = lt_objects ).
         ELSE.
-          CREATE OBJECT li_find TYPE lcl_find_changes EXPORTING it_objects = lt_objects.
+          li_find = NEW lcl_find_changes( it_objects = lt_objects ).
         ENDIF.
         lv_previous = <ls_feature>-repo-key.
       ENDIF.
 
       <ls_feature>-changed_files = li_find->find_changes(
-        iv_main            = ls_main-sha1
-        iv_branch          = <ls_feature>-branch-sha1
-        iv_first_commit    = <ls_feature>-branch-first_commit
-        iv_starting_folder = lv_starting_folder ).
+        iv_main         = ls_main-sha1
+        iv_branch       = <ls_feature>-branch-sha1
+        iv_first_commit = <ls_feature>-branch-first_commit ).
+
+      DELETE <ls_feature>-changed_files WHERE path NP lv_starting_folder.
 
       <ls_feature>-changed_objects = map_files_to_objects(
         io_dot     = io_dot
@@ -159,7 +160,7 @@ CLASS zcl_abapgit_flow_git IMPLEMENTATION.
     READ TABLE it_branches INTO ls_main WITH KEY display_name = zif_abapgit_flow_logic=>c_main.
     ASSERT sy-subrc = 0.
 
-    CREATE OBJECT lo_visit.
+    lo_visit = NEW #( ).
     lo_visit->clear( )->push( ls_main-sha1 ).
     WHILE lo_visit->size( ) > 0.
       lv_current = lo_visit->pop( ).
