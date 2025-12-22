@@ -66,8 +66,8 @@ CLASS zcl_abapgit_gui_page_cr_repo IMPLEMENTATION.
 
     super->constructor( ).
 
-    mo_validation_log = NEW #( ).
-    mo_form_data = NEW #( ).
+    CREATE OBJECT mo_validation_log.
+    CREATE OBJECT mo_form_data.
 
     mo_form = get_form_schema( ).
     mo_form_util = zcl_abapgit_html_form_utils=>create( mo_form ).
@@ -83,7 +83,7 @@ CLASS zcl_abapgit_gui_page_cr_repo IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_cr_repo.
 
-    lo_component = NEW #( iv_url = iv_url ).
+    CREATE OBJECT lo_component EXPORTING iv_url = iv_url.
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title         = 'Create GitHub Repository'
