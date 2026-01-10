@@ -94,8 +94,8 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_REPO IMPLEMENTATION.
 
     super->constructor( ).
 
-    CREATE OBJECT mo_validation_log.
-    CREATE OBJECT mo_form_data.
+    mo_validation_log = NEW #( ).
+    mo_form_data = NEW #( ).
 
     mi_repo = ii_repo.
     mo_form = get_form_schema( ).
@@ -108,7 +108,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_REPO IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_sett_repo.
 
-    CREATE OBJECT lo_component EXPORTING ii_repo = ii_repo.
+    lo_component = NEW #( ii_repo = ii_repo ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Repository Settings'
@@ -266,7 +266,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_REPO IMPLEMENTATION.
     lo_dot = mi_repo->get_dot_abapgit( ).
     ls_dot = lo_dot->get_data( ).
     lv_main_lang = lo_dot->get_main_language( ).
-    CREATE OBJECT ro_form_data.
+    ro_form_data = NEW #( ).
 
     " Repository Settings
     ro_form_data->set(
@@ -278,11 +278,9 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_REPO IMPLEMENTATION.
     ro_form_data->set(
       iv_key = c_id-i18n_langs
       iv_val = zcl_abapgit_lxe_texts=>convert_table_to_lang_string( lo_dot->get_i18n_languages( ) ) ).
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( lo_dot->use_lxe( ) = abap_true ).
     ro_form_data->set(
       iv_key = c_id-use_lxe
-      iv_val = temp1 ) ##TYPE.
+      iv_val = xsdbool( lo_dot->use_lxe( ) = abap_true ) ) ##TYPE.
     ro_form_data->set(
       iv_key = c_id-wo_transaltion
       iv_val = concat_lines_of(
@@ -362,13 +360,11 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_REPO IMPLEMENTATION.
 
   METHOD save_settings.
 
-    TYPES temp1 TYPE STANDARD TABLE OF string WITH DEFAULT KEY.
-TYPES temp2 TYPE STANDARD TABLE OF string WITH DEFAULT KEY.
-DATA:
+    DATA:
       lo_dot          TYPE REF TO zcl_abapgit_dot_abapgit,
       lv_ignore       TYPE string,
-      lt_ignore       TYPE temp1,
-      lt_wo_transl    TYPE temp2,
+      lt_ignore       TYPE STANDARD TABLE OF string WITH DEFAULT KEY,
+      lt_wo_transl    TYPE STANDARD TABLE OF string WITH DEFAULT KEY,
       ls_requirements TYPE zif_abapgit_dot_abapgit=>ty_requirement,
       lt_requirements TYPE zif_abapgit_dot_abapgit=>ty_requirement_tt.
 
@@ -388,9 +384,7 @@ DATA:
       zcl_abapgit_lxe_texts=>convert_lang_string_to_table(
         iv_langs              = mo_form_data->get( c_id-i18n_langs )
         iv_skip_main_language = lo_dot->get_main_language( ) ) ).
-    DATA temp3 TYPE xsdboolean.
-    temp3 = boolc( mo_form_data->get( c_id-use_lxe ) = abap_true ).
-    lo_dot->use_lxe( temp3 ).
+    lo_dot->use_lxe( xsdbool( mo_form_data->get( c_id-use_lxe ) = abap_true ) ).
 
     lt_wo_transl = zcl_abapgit_i18n_params=>normalize_obj_patterns(
       zcl_abapgit_convert=>split_string( mo_form_data->get( c_id-wo_transaltion ) ) ).
@@ -580,7 +574,7 @@ DATA:
 
     register_handlers( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( `<div class="repo">` ).
 
