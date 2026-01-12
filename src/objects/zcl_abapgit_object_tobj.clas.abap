@@ -46,8 +46,7 @@ CLASS zcl_abapgit_object_tobj IMPLEMENTATION.
 
 
   METHOD update_extra.
-    TYPES temp1 TYPE STANDARD TABLE OF tvimf.
-DATA: lt_current_tvimf TYPE temp1.
+    DATA: lt_current_tvimf TYPE STANDARD TABLE OF tvimf.
     FIELD-SYMBOLS: <ls_tvimf> TYPE tvimf.
 
     MODIFY tddat FROM is_tobj-tddat.
@@ -136,15 +135,15 @@ DATA: lt_current_tvimf TYPE temp1.
 
 
     io_xml->read( EXPORTING iv_name = 'OBJH'
-                  CHANGING cg_data = ls_objh ).
+                  CHANGING  cg_data = ls_objh ).
     io_xml->read( EXPORTING iv_name = 'OBJT'
-                  CHANGING cg_data = ls_objt ).
+                  CHANGING  cg_data = ls_objt ).
     io_xml->read( EXPORTING iv_name = 'OBJS'
-                  CHANGING cg_data = lt_objs ).
+                  CHANGING  cg_data = lt_objs ).
     io_xml->read( EXPORTING iv_name = 'OBJSL'
-                  CHANGING cg_data = lt_objsl ).
+                  CHANGING  cg_data = lt_objsl ).
     io_xml->read( EXPORTING iv_name = 'OBJM'
-                  CHANGING cg_data = lt_objm ).
+                  CHANGING  cg_data = lt_objm ).
 
     CALL FUNCTION 'OBJ_GENERATE'
       EXPORTING
@@ -194,8 +193,14 @@ DATA: lt_current_tvimf TYPE temp1.
       WHERE objectname = ls_objh-objectname
       AND objecttype = ls_objh-objecttype.
 
+* fm OBJ_GENERATE ignores several fields like primary table flag
+* for Individual Transaction Objects
+    IF ls_objh-objecttype = 'T'.
+      MODIFY objs FROM TABLE lt_objs.
+    ENDIF.
+
     io_xml->read( EXPORTING iv_name = 'TOBJ'
-                  CHANGING cg_data = ls_tobj ).
+                  CHANGING  cg_data = ls_tobj ).
     ls_tobj-tvdir-gendate = sy-datum.
     ls_tobj-tvdir-gentime = sy-uzeit.
     ls_tobj-tvdir-devclass = iv_package.
@@ -215,9 +220,7 @@ DATA: lt_current_tvimf TYPE temp1.
     SELECT SINGLE objectname FROM objh INTO lv_objectname
       WHERE objectname = ms_item-obj_name(lv_type_pos)
       AND objecttype = ms_item-obj_name+lv_type_pos.    "#EC CI_GENBUFF
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -268,9 +271,7 @@ DATA: lt_current_tvimf TYPE temp1.
         jump_not_possible = 1
         OTHERS            = 2.
 
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( sy-subrc = 0 ).
-    rv_exit = temp2.
+    rv_exit = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
