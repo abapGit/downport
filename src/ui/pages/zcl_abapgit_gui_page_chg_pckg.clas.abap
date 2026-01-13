@@ -24,6 +24,11 @@ CLASS zcl_abapgit_gui_page_chg_pckg DEFINITION
         zcx_abapgit_exception.
 
   PROTECTED SECTION.
+
+    METHODS check_support
+      RAISING
+        zcx_abapgit_exception.
+
   PRIVATE SECTION.
 
     CONSTANTS:
@@ -188,22 +193,46 @@ CLASS zcl_abapgit_gui_page_chg_pckg IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD constructor.
+  METHOD check_support.
 
-    super->constructor( ).
-    mi_repo = ii_repo.
-    CREATE OBJECT mo_validation_log.
-    CREATE OBJECT mo_form_data.
-    mo_form = get_form_schema( ).
-    mo_form_util = zcl_abapgit_html_form_utils=>create( mo_form ).
-
-    IF mi_repo->get_dot_abapgit( )->get_folder_logic( ) <> zif_abapgit_dot_abapgit=>c_folder_logic-prefix.
-      zcx_abapgit_exception=>raise( 'Feature is only supported repositories with prefix folder logic' ).
-    ENDIF.
+    DATA lt_packages TYPE zif_abapgit_sap_package=>ty_devclass_tt.
+    DATA lt_local TYPE zif_abapgit_definitions=>ty_files_item_tt.
 
     IF zcl_abapgit_factory=>get_cts_api( )->is_chrec_possible_for_package( mi_repo->get_package( ) ) = abap_true.
       zcx_abapgit_exception=>raise( 'Feature is only supported local packages (no transport)' ).
     ENDIF.
+
+    " This is limited to prefix logic, repositories that have only one package, or repositories that have no
+    " local objects (yet)
+    IF mi_repo->get_dot_abapgit( )->get_folder_logic( ) <> zif_abapgit_dot_abapgit=>c_folder_logic-prefix.
+
+      lt_packages = zcl_abapgit_factory=>get_sap_package( mi_repo->get_package( ) )->list_subpackages( ).
+
+      lt_local = mi_repo->get_files_local( ).
+
+      IF lines( lt_packages ) > 1 AND lines( lt_local ) > 2.
+        zcx_abapgit_exception=>raise(
+          iv_text     =
+          'Feature is *not* supported for repositories with full/mixed folder logic'
+          iv_longtext =
+          'It is limited to repositories that have only one package, or repositories that have no local objects' ).
+      ENDIF.
+
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD constructor.
+
+    super->constructor( ).
+    mi_repo = ii_repo.
+    mo_validation_log = NEW #( ).
+    mo_form_data = NEW #( ).
+    mo_form = get_form_schema( ).
+    mo_form_util = zcl_abapgit_html_form_utils=>create( mo_form ).
+
+    check_support( ).
 
   ENDMETHOD.
 
@@ -212,7 +241,7 @@ CLASS zcl_abapgit_gui_page_chg_pckg IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_chg_pckg.
 
-    CREATE OBJECT lo_component EXPORTING ii_repo = ii_repo.
+    lo_component = NEW #( ii_repo = ii_repo ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Change Repository Package'
@@ -240,7 +269,7 @@ CLASS zcl_abapgit_gui_page_chg_pckg IMPLEMENTATION.
         ls_package-parentcl = ls_map-new_package.
       ENDIF.
 
-      zcl_abapgit_factory=>get_sap_package( ls_map-new_package )->create( ls_package ).
+      zcl_abapgit_factory=>get_sap_package( <ls_map>-new_package )->create( ls_package ).
     ENDLOOP.
 
     " TODO: Transportable packages (add to transport and tadir)
@@ -356,7 +385,7 @@ CLASS zcl_abapgit_gui_page_chg_pckg IMPLEMENTATION.
 
     lv_key = mi_repo->get_key( ).
 
-    CREATE OBJECT lo_checksums EXPORTING iv_repo_key = lv_key.
+    lo_checksums = NEW #( iv_repo_key = lv_key ).
 
     lt_checksums = lo_checksums->zif_abapgit_repo_checksums~get( ).
 
