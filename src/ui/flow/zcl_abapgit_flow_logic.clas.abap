@@ -35,12 +35,12 @@ CLASS zcl_abapgit_flow_logic DEFINITION PUBLIC.
     TYPES: BEGIN OF ty_transport,
              trkorr   TYPE trkorr,
              title    TYPE string,
-             object   TYPE e071-object,
-             obj_name TYPE e071-obj_name,
+             object   TYPE tadir-object,
+             obj_name TYPE tadir-obj_name,
              devclass TYPE tadir-devclass,
            END OF ty_transport.
 
-    TYPES ty_transports_tt TYPE STANDARD TABLE OF ty_transport WITH DEFAULT KEY.
+    TYPES ty_transports_tt TYPE STANDARD TABLE OF ty_transport WITH NON-UNIQUE KEY trkorr.
 
     TYPES ty_trkorr_tt TYPE STANDARD TABLE OF trkorr WITH DEFAULT KEY.
 
@@ -54,7 +54,7 @@ CLASS zcl_abapgit_flow_logic DEFINITION PUBLIC.
 
     CLASS-METHODS check_files
       IMPORTING
-        it_local          TYPE zif_abapgit_definitions=>ty_files_item_tt
+        it_local          TYPE zif_abapgit_flow_logic=>ty_local_files
         it_features       TYPE zif_abapgit_flow_logic=>ty_features
       CHANGING
         ct_main_expanded  TYPE zif_abapgit_git_definitions=>ty_expanded_tt
@@ -72,7 +72,7 @@ CLASS zcl_abapgit_flow_logic DEFINITION PUBLIC.
       IMPORTING
         ii_repo          TYPE REF TO zif_abapgit_repo
         it_main_expanded TYPE zif_abapgit_git_definitions=>ty_expanded_tt
-        it_local         TYPE zif_abapgit_definitions=>ty_files_item_tt
+        it_local         TYPE zif_abapgit_flow_logic=>ty_local_files
       CHANGING
         ct_features      TYPE zif_abapgit_flow_logic=>ty_features
         ct_transports    TYPE ty_transports_tt
@@ -89,7 +89,7 @@ CLASS zcl_abapgit_flow_logic DEFINITION PUBLIC.
       IMPORTING
         iv_trkorr        TYPE trkorr
         it_transports    TYPE ty_transports_tt
-        it_local         TYPE zif_abapgit_definitions=>ty_files_item_tt
+        it_local         TYPE zif_abapgit_flow_logic=>ty_local_files
         it_main_expanded TYPE zif_abapgit_git_definitions=>ty_expanded_tt
       CHANGING
         cs_feature       TYPE zif_abapgit_flow_logic=>ty_feature
@@ -106,7 +106,7 @@ CLASS zcl_abapgit_flow_logic DEFINITION PUBLIC.
 
     CLASS-METHODS add_local_status
       IMPORTING
-        it_local    TYPE zif_abapgit_definitions=>ty_files_item_tt
+        it_local    TYPE zif_abapgit_flow_logic=>ty_local_files
       CHANGING
         ct_features TYPE zif_abapgit_flow_logic=>ty_features
       RAISING
@@ -134,7 +134,7 @@ CLASS zcl_abapgit_flow_logic DEFINITION PUBLIC.
         it_all_transports      TYPE ty_transports_tt
         it_features            TYPE zif_abapgit_flow_logic=>ty_features
       RETURNING
-        VALUE(rt_local)        TYPE zif_abapgit_definitions=>ty_files_item_tt
+        VALUE(rt_local)        TYPE zif_abapgit_flow_logic=>ty_local_files
       RAISING
         zcx_abapgit_exception.
 
@@ -279,9 +279,7 @@ CLASS zcl_abapgit_flow_logic IMPLEMENTATION.
 
     LOOP AT it_local ASSIGNING <ls_local> WHERE file-filename <> zif_abapgit_definitions=>c_dot_abapgit.
       READ TABLE ct_main_expanded WITH KEY name = <ls_local>-file-filename ASSIGNING <ls_expanded>.
-      DATA temp1 TYPE xsdboolean.
-      temp1 = boolc( sy-subrc = 0 ).
-      lv_found_main = temp1.
+      lv_found_main = xsdbool( sy-subrc = 0 ).
 
       lv_found_branch = abap_false.
       LOOP AT it_features INTO ls_feature.
@@ -370,7 +368,7 @@ CLASS zcl_abapgit_flow_logic IMPLEMENTATION.
     DATA lt_tadir    TYPE zif_abapgit_definitions=>ty_tadir_tt.
     DATA lt_filter   TYPE zif_abapgit_definitions=>ty_tadir_tt.
     DATA lo_filter   TYPE REF TO zcl_abapgit_object_filter_obj.
-    DATA lt_local    TYPE zif_abapgit_definitions=>ty_files_item_tt.
+    DATA lt_local    TYPE zif_abapgit_flow_logic=>ty_local_files.
     DATA lt_features TYPE zif_abapgit_flow_logic=>ty_features.
     DATA li_repo     TYPE REF TO zif_abapgit_repo.
     DATA lt_main_expanded TYPE zif_abapgit_git_definitions=>ty_expanded_tt.
@@ -431,7 +429,7 @@ CLASS zcl_abapgit_flow_logic IMPLEMENTATION.
       INSERT <ls_tadir> INTO TABLE lt_filter.
 
       IF lines( lt_filter ) >= 500.
-        CREATE OBJECT lo_filter EXPORTING it_filter = lt_filter.
+        lo_filter = NEW #( it_filter = lt_filter ).
         lt_local = li_repo->get_files_local_filtered( lo_filter ).
         CLEAR lt_filter.
         check_files(
@@ -448,7 +446,7 @@ CLASS zcl_abapgit_flow_logic IMPLEMENTATION.
     ENDLOOP.
 
     IF lines( lt_filter ) > 0.
-      CREATE OBJECT lo_filter EXPORTING it_filter = lt_filter.
+      lo_filter = NEW #( it_filter = lt_filter ).
       lt_local = li_repo->get_files_local_filtered( lo_filter ).
       CLEAR lt_filter.
       check_files(
@@ -501,13 +499,9 @@ CLASS zcl_abapgit_flow_logic IMPLEMENTATION.
           AND ls_next-obj_name = ls_transport-obj_name.
 
         READ TABLE cs_information-features WITH KEY transport-trkorr = ls_transport-trkorr TRANSPORTING NO FIELDS.
-        DATA temp2 TYPE xsdboolean.
-        temp2 = boolc( sy-subrc = 0 ).
-        lv_found1 = temp2.
+        lv_found1 = xsdbool( sy-subrc = 0 ).
         READ TABLE cs_information-features WITH KEY transport-trkorr = ls_next-trkorr TRANSPORTING NO FIELDS.
-        DATA temp3 TYPE xsdboolean.
-        temp3 = boolc( sy-subrc = 0 ).
-        lv_found2 = temp3.
+        lv_found2 = xsdbool( sy-subrc = 0 ).
         IF lv_found1 = abap_false AND lv_found2 = abap_false.
           " not in any favorite flow enabled repo
           CONTINUE.
@@ -612,7 +606,7 @@ CLASS zcl_abapgit_flow_logic IMPLEMENTATION.
     DATA lt_relevant_transports TYPE ty_trkorr_tt.
     DATA lt_repos TYPE ty_repos_tt.
     DATA lt_main_expanded TYPE zif_abapgit_git_definitions=>ty_expanded_tt.
-    DATA lt_local TYPE zif_abapgit_definitions=>ty_files_item_tt.
+    DATA lt_local TYPE zif_abapgit_flow_logic=>ty_local_files.
     DATA lt_real_transports LIKE lt_all_transports.
 
     FIELD-SYMBOLS <ls_feature> LIKE LINE OF lt_features.
@@ -834,7 +828,7 @@ CLASS zcl_abapgit_flow_logic IMPLEMENTATION.
     SORT lt_filter BY object obj_name.
     DELETE ADJACENT DUPLICATES FROM lt_filter COMPARING object obj_name.
 
-    CREATE OBJECT lo_filter EXPORTING it_filter = lt_filter.
+    lo_filter = NEW #( it_filter = lt_filter ).
     rt_local = ii_repo->get_files_local_filtered( lo_filter ).
 
   ENDMETHOD.
