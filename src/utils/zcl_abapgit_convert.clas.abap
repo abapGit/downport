@@ -4,16 +4,6 @@ CLASS zcl_abapgit_convert DEFINITION
 
   PUBLIC SECTION.
 
-    CLASS-METHODS bitbyte_to_int
-      IMPORTING
-        !iv_bits      TYPE clike
-      RETURNING
-        VALUE(rv_int) TYPE i .
-    CLASS-METHODS x_to_bitbyte
-      IMPORTING
-        !iv_x             TYPE x
-      RETURNING
-        VALUE(rv_bitbyte) TYPE zif_abapgit_git_definitions=>ty_bitbyte .
     CLASS-METHODS string_to_xstring_utf8
       IMPORTING
         !iv_string        TYPE string
@@ -158,36 +148,6 @@ CLASS zcl_abapgit_convert IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD bitbyte_to_int.
-
-    DATA: lv_bitbyte TYPE string,
-          lv_len     TYPE i,
-          lv_offset  TYPE i.
-
-    lv_bitbyte = iv_bits.
-    SHIFT lv_bitbyte LEFT DELETING LEADING '0 '.
-    lv_len     = strlen( lv_bitbyte ).
-    lv_offset  = lv_len - 1.
-
-    rv_int = 0.
-    DO lv_len TIMES.
-
-      IF sy-index = 1.
-        "Initialize
-        IF lv_bitbyte+lv_offset(1) = '1'.
-          rv_int = 1.
-        ENDIF.
-      ELSEIF lv_bitbyte+lv_offset(1) = '1'.
-        rv_int = rv_int + ( 2 ** ( sy-index - 1 ) ).
-      ENDIF.
-
-      lv_offset = lv_offset - 1. "Move Cursor
-
-    ENDDO.
-
-  ENDMETHOD.
-
-
   METHOD conversion_exit_isola_output.
 
     language_sap1_to_sap2(
@@ -244,7 +204,7 @@ CLASS zcl_abapgit_convert IMPLEMENTATION.
             re_lang_sap1 = lcl_bcp47_language_table=>bcp47_to_sap1( im_lang_bcp47 ).
           CATCH zcx_abapgit_exception.
 
-            CREATE OBJECT lv_regex EXPORTING pattern = `[A-Z0-9]{2}`.
+            lv_regex = NEW #( pattern = `[A-Z0-9]{2}` ).
             lv_abap_matcher = lv_regex->create_matcher( text = im_lang_bcp47 ).
 
             IF abap_true = lv_abap_matcher->match( ).
@@ -464,9 +424,8 @@ CLASS zcl_abapgit_convert IMPLEMENTATION.
     ENDIF.
 
     APPEND INITIAL LINE TO et_bintab ASSIGNING <lg_line>.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( cl_abap_typedescr=>describe_by_data( <lg_line> )->type_kind = cl_abap_typedescr=>typekind_struct1 ).
-    lv_struct = temp1.
+    lv_struct = xsdbool(
+      cl_abap_typedescr=>describe_by_data( <lg_line> )->type_kind = cl_abap_typedescr=>typekind_struct1 ).
     IF lv_struct = abap_true.
       ASSIGN COMPONENT 1 OF STRUCTURE <lg_line> TO <lg_line>.
     ENDIF.
@@ -536,18 +495,4 @@ CLASS zcl_abapgit_convert IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD x_to_bitbyte.
-
-    CLEAR rv_bitbyte.
-
-    GET BIT 1 OF iv_x INTO rv_bitbyte+0(1).
-    GET BIT 2 OF iv_x INTO rv_bitbyte+1(1).
-    GET BIT 3 OF iv_x INTO rv_bitbyte+2(1).
-    GET BIT 4 OF iv_x INTO rv_bitbyte+3(1).
-    GET BIT 5 OF iv_x INTO rv_bitbyte+4(1).
-    GET BIT 6 OF iv_x INTO rv_bitbyte+5(1).
-    GET BIT 7 OF iv_x INTO rv_bitbyte+6(1).
-    GET BIT 8 OF iv_x INTO rv_bitbyte+7(1).
-
-  ENDMETHOD.
 ENDCLASS.
