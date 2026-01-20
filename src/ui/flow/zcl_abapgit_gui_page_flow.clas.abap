@@ -160,7 +160,7 @@ CLASS zcl_abapgit_gui_page_flow IMPLEMENTATION.
       <ls_filter>-object = <ls_object>-obj_type.
       <ls_filter>-obj_name = <ls_object>-obj_name.
     ENDLOOP.
-    lo_filter = NEW #( it_filter = lt_filter ).
+    CREATE OBJECT lo_filter EXPORTING it_filter = lt_filter.
 
     set_branch(
       iv_branch = lv_branch
@@ -204,7 +204,7 @@ CLASS zcl_abapgit_gui_page_flow IMPLEMENTATION.
       <ls_filter>-object = <ls_object>-obj_type.
       <ls_filter>-obj_name = <ls_object>-obj_name.
     ENDLOOP.
-    lo_filter = NEW #( it_filter = lt_filter ).
+    CREATE OBJECT lo_filter EXPORTING it_filter = lt_filter.
 
     set_branch(
       iv_branch = lv_branch
@@ -232,7 +232,7 @@ CLASS zcl_abapgit_gui_page_flow IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_flow.
 
-    lo_component = NEW #( ).
+    CREATE OBJECT lo_component.
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title         = 'Flow'
@@ -266,8 +266,8 @@ CLASS zcl_abapgit_gui_page_flow IMPLEMENTATION.
     DATA lv_opt     TYPE c LENGTH 1.
 
 
-    ri_html = NEW zcl_abapgit_html( ).
-    lo_toolbar = NEW #( iv_id = 'toolbar-flow' ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    CREATE OBJECT lo_toolbar EXPORTING iv_id = 'toolbar-flow'.
 
     li_repo ?= zcl_abapgit_repo_srv=>get_instance( )->get( is_feature-repo-key ).
     IF li_repo->get_local_settings( )-write_protected = abap_true.
@@ -310,7 +310,7 @@ CLASS zcl_abapgit_gui_page_flow IMPLEMENTATION.
     DATA lv_user       TYPE syuname.
     DATA lv_icon_class TYPE string.
 
-    ri_html = NEW zcl_abapgit_html( ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
     ri_html->add( '<span class="toolbar-light pad-sides">' ).
 
     CLEAR lv_prefix.
@@ -407,19 +407,27 @@ CLASS zcl_abapgit_gui_page_flow IMPLEMENTATION.
         zcl_abapgit_persist_factory=>get_user( )->set_flow_settings( ms_user_settings ).
         rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
       WHEN c_action-hide_full_matches.
-        ms_user_settings-hide_full_matches = xsdbool( ms_user_settings-hide_full_matches <> abap_true ).
+        DATA temp1 TYPE xsdboolean.
+        temp1 = boolc( ms_user_settings-hide_full_matches <> abap_true ).
+        ms_user_settings-hide_full_matches = temp1.
         zcl_abapgit_persist_factory=>get_user( )->set_flow_settings( ms_user_settings ).
         rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
       WHEN c_action-hide_conflicts.
-        ms_user_settings-hide_conflicts = xsdbool( ms_user_settings-hide_conflicts <> abap_true ).
+        DATA temp2 TYPE xsdboolean.
+        temp2 = boolc( ms_user_settings-hide_conflicts <> abap_true ).
+        ms_user_settings-hide_conflicts = temp2.
         zcl_abapgit_persist_factory=>get_user( )->set_flow_settings( ms_user_settings ).
         rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
       WHEN c_action-show_details.
-        ms_user_settings-show_details = xsdbool( ms_user_settings-show_details <> abap_true ).
+        DATA temp3 TYPE xsdboolean.
+        temp3 = boolc( ms_user_settings-show_details <> abap_true ).
+        ms_user_settings-show_details = temp3.
         zcl_abapgit_persist_factory=>get_user( )->set_flow_settings( ms_user_settings ).
         rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
       WHEN c_action-hide_matching_files.
-        ms_user_settings-hide_matching_files = xsdbool( ms_user_settings-hide_matching_files <> abap_true ).
+        DATA temp4 TYPE xsdboolean.
+        temp4 = boolc( ms_user_settings-hide_matching_files <> abap_true ).
+        ms_user_settings-hide_matching_files = temp4.
         zcl_abapgit_persist_factory=>get_user( )->set_flow_settings( ms_user_settings ).
         rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
       WHEN c_action-refresh.
@@ -514,7 +522,7 @@ CLASS zcl_abapgit_gui_page_flow IMPLEMENTATION.
 
   METHOD render_info.
 
-    ri_html = NEW zcl_abapgit_html( ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
 
     IF is_feature-branch-display_name IS INITIAL.
       ri_html->add( |No branch found, comparing with <tt>main</tt>| ).
@@ -569,7 +577,7 @@ CLASS zcl_abapgit_gui_page_flow IMPLEMENTATION.
 
   METHOD render_feature.
 
-    ri_html = NEW zcl_abapgit_html( ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
 
     ri_html->add( '<b><font size="+2">' && is_feature-repo-name ).
     IF is_feature-branch-display_name IS NOT INITIAL.
@@ -626,7 +634,7 @@ CLASS zcl_abapgit_gui_page_flow IMPLEMENTATION.
     lo_timer = zcl_abapgit_timer=>create( )->start( ).
 
     register_handlers( ).
-    ri_html = NEW zcl_abapgit_html( ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
     ri_html->add( '<div class="repo-overview">' ).
 
     IF ms_information IS INITIAL.
