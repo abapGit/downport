@@ -176,7 +176,7 @@ ENDCLASS.
 CLASS lcl_find_changes_new IMPLEMENTATION.
   METHOD constructor.
     mt_objects = it_objects.
-    CREATE OBJECT mo_walker EXPORTING it_objects = it_objects.
+    mo_walker = NEW #( it_objects = it_objects ).
   ENDMETHOD.
 
   METHOD find_changed_in_commit.
@@ -265,7 +265,7 @@ CLASS lcl_find_changes IMPLEMENTATION.
 
   METHOD constructor.
     mt_objects = it_objects.
-    CREATE OBJECT mo_walker EXPORTING it_objects = it_objects.
+    mo_walker = NEW #( it_objects = it_objects ).
   ENDMETHOD.
 
   METHOD lif_find_changes~find_changes.
