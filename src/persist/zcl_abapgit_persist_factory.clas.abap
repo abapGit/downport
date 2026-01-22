@@ -11,6 +11,9 @@ CLASS zcl_abapgit_persist_factory DEFINITION
     CLASS-METHODS get_repo_cs
       RETURNING
         VALUE(ri_repo_cs) TYPE REF TO zif_abapgit_persist_repo_cs .
+    CLASS-METHODS get_repo_data
+      RETURNING
+        VALUE(ri_repo_data) TYPE REF TO zif_abapgit_persist_repo_data.
     CLASS-METHODS get_settings
       RETURNING
         VALUE(ri_settings) TYPE REF TO zif_abapgit_persist_settings .
@@ -30,6 +33,7 @@ CLASS zcl_abapgit_persist_factory DEFINITION
 
     CLASS-DATA gi_repo TYPE REF TO zif_abapgit_persist_repo .
     CLASS-DATA gi_repo_cs TYPE REF TO zif_abapgit_persist_repo_cs .
+    CLASS-DATA gi_repo_data TYPE REF TO zif_abapgit_persist_repo_data.
     CLASS-DATA gi_settings TYPE REF TO zif_abapgit_persist_settings .
     CLASS-DATA gi_background TYPE REF TO zif_abapgit_persist_background.
     CLASS-DATA gi_packages TYPE REF TO zif_abapgit_persist_packages.
@@ -44,7 +48,7 @@ CLASS zcl_abapgit_persist_factory IMPLEMENTATION.
   METHOD get_background.
 
     IF gi_background IS INITIAL.
-      CREATE OBJECT gi_background TYPE zcl_abapgit_persist_background.
+      gi_background = NEW zcl_abapgit_persist_background( ).
     ENDIF.
 
     ri_background = gi_background.
@@ -55,7 +59,7 @@ CLASS zcl_abapgit_persist_factory IMPLEMENTATION.
   METHOD get_packages.
 
     IF gi_packages IS INITIAL.
-      CREATE OBJECT gi_packages TYPE zcl_abapgit_persist_packages.
+      gi_packages = NEW zcl_abapgit_persist_packages( ).
     ENDIF.
 
     ri_packages = gi_packages.
@@ -66,7 +70,7 @@ CLASS zcl_abapgit_persist_factory IMPLEMENTATION.
   METHOD get_repo.
 
     IF gi_repo IS INITIAL.
-      CREATE OBJECT gi_repo TYPE zcl_abapgit_persistence_repo.
+      gi_repo = NEW zcl_abapgit_persistence_repo( ).
     ENDIF.
 
     ri_repo = gi_repo.
@@ -77,7 +81,7 @@ CLASS zcl_abapgit_persist_factory IMPLEMENTATION.
   METHOD get_repo_cs.
 
     IF gi_repo_cs IS INITIAL.
-      CREATE OBJECT gi_repo_cs TYPE zcl_abapgit_persistence_repo.
+      gi_repo_cs = NEW zcl_abapgit_persistence_repo( ).
     ENDIF.
 
     ri_repo_cs = gi_repo_cs.
@@ -85,10 +89,21 @@ CLASS zcl_abapgit_persist_factory IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD get_repo_data.
+
+    IF gi_repo_data IS INITIAL.
+      gi_repo_data = NEW zcl_abapgit_persistence_repo( ).
+    ENDIF.
+
+    ri_repo_data = gi_repo_data.
+
+  ENDMETHOD.
+
+
   METHOD get_settings.
 
     IF gi_settings IS INITIAL.
-      CREATE OBJECT gi_settings TYPE zcl_abapgit_persist_settings.
+      gi_settings = NEW zcl_abapgit_persist_settings( ).
     ENDIF.
 
     ri_settings = gi_settings.
@@ -100,11 +115,11 @@ CLASS zcl_abapgit_persist_factory IMPLEMENTATION.
 
     IF iv_user = sy-uname ##USER_OK.
       IF gi_current_user IS NOT BOUND.
-        CREATE OBJECT gi_current_user TYPE zcl_abapgit_persistence_user.
+        gi_current_user = NEW zcl_abapgit_persistence_user( ).
       ENDIF.
       ri_user = gi_current_user.
     ELSE.
-      CREATE OBJECT ri_user TYPE zcl_abapgit_persistence_user EXPORTING iv_user = iv_user.
+      ri_user = NEW zcl_abapgit_persistence_user( iv_user = iv_user ).
     ENDIF.
 
   ENDMETHOD.

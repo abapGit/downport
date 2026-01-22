@@ -7,6 +7,7 @@ CLASS zcl_abapgit_persistence_repo DEFINITION
 
     INTERFACES zif_abapgit_persist_repo .
     INTERFACES zif_abapgit_persist_repo_cs .
+    INTERFACES zif_abapgit_persist_repo_data.
 
     METHODS constructor .
     METHODS rewrite_repo_meta
@@ -19,8 +20,7 @@ CLASS zcl_abapgit_persistence_repo DEFINITION
 
   PRIVATE SECTION.
 
-    TYPES temp1_ad823f8588 TYPE STANDARD TABLE OF abap_compname.
-DATA mt_meta_fields TYPE temp1_ad823f8588.
+    DATA mt_meta_fields TYPE STANDARD TABLE OF abap_compname.
     DATA mo_db TYPE REF TO zcl_abapgit_persistence_db .
 
     METHODS from_xml
@@ -212,6 +212,34 @@ CLASS zcl_abapgit_persistence_repo IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD zif_abapgit_persist_repo_data~delete.
+
+    mo_db->delete(
+      iv_type  = zcl_abapgit_persistence_db=>c_type_repo_data
+      iv_value = iv_key ).
+
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_persist_repo_data~read.
+
+    rv_json = mo_db->read(
+      iv_type  = zcl_abapgit_persistence_db=>c_type_repo_data
+      iv_value = iv_key ).
+
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_persist_repo_data~update.
+
+    mo_db->modify(
+      iv_type  = zcl_abapgit_persistence_db=>c_type_repo_data
+      iv_value = iv_key
+      iv_data  = iv_json ).
+
+  ENDMETHOD.
+
+
   METHOD zif_abapgit_persist_repo~add.
 
     DATA: ls_repo        TYPE zif_abapgit_persistence=>ty_repo,
@@ -260,9 +288,7 @@ CLASS zcl_abapgit_persistence_repo IMPLEMENTATION.
       it_keys = lt_keys
       iv_type = zcl_abapgit_persistence_db=>c_type_repo ).
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( lines( lt_content ) > 0 ).
-    rv_yes = temp1.
+    rv_yes = xsdbool( lines( lt_content ) > 0 ).
 
   ENDMETHOD.
 
