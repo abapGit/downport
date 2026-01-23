@@ -52,7 +52,7 @@ CLASS zcl_abapgit_exit IMPLEMENTATION.
       ENDTRY.
     ENDIF.
 
-    CREATE OBJECT gi_global_exit TYPE zcl_abapgit_exit. " this class
+    gi_global_exit = NEW zcl_abapgit_exit( ). " this class
 
     ri_exit = gi_global_exit.
 
@@ -76,9 +76,7 @@ CLASS zcl_abapgit_exit IMPLEMENTATION.
       EXCEPTIONS
         type_not_found = 1
         OTHERS         = 2 ).
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_running_in_test_context = temp1.
+    rv_running_in_test_context = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -489,6 +487,7 @@ CLASS zcl_abapgit_exit IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD zif_abapgit_exit~change_committer_info.
 
     IF gi_exit IS NOT INITIAL.
@@ -499,6 +498,18 @@ CLASS zcl_abapgit_exit IMPLEMENTATION.
             CHANGING
               cv_name     = cv_name
               cv_email    = cv_email ).
+        CATCH cx_sy_ref_is_initial cx_sy_dyn_call_illegal_method ##NO_HANDLER.
+      ENDTRY.
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_exit~validate_after_push.
+
+    IF gi_exit IS NOT INITIAL.
+      TRY.
+          gi_exit->validate_after_push( ii_repo_online ).
         CATCH cx_sy_ref_is_initial cx_sy_dyn_call_illegal_method ##NO_HANDLER.
       ENDTRY.
     ENDIF.
