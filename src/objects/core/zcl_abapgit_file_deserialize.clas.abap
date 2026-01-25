@@ -175,7 +175,7 @@ CLASS zcl_abapgit_file_deserialize IMPLEMENTATION.
 
     lt_items = map_results_to_items( it_results ).
 
-    CREATE OBJECT lo_graph EXPORTING it_items = lt_items.
+    lo_graph = NEW #( it_items = lt_items ).
 
     LOOP AT lt_items INTO ls_item.
       CLEAR lt_requires.
@@ -256,7 +256,15 @@ CLASS zcl_abapgit_file_deserialize IMPLEMENTATION.
           DELETE lt_requires WHERE obj_type <> 'SRVB'.
         WHEN 'SUSH'.
           lt_requires = lt_items.
-          DELETE lt_requires WHERE obj_type <> 'SRVB' AND obj_type <> 'HTTP'.
+          " lead applications must go first since there's a check in when deserializing (see USOBAUTHSTART/USOBHASH)
+          DELETE lt_requires WHERE
+            obj_type <> 'APIS' AND obj_type <> 'DMON' AND obj_type <> 'EEEC' AND obj_type <> 'EEEP' AND
+            obj_type <> 'FUGR' AND obj_type <> 'G4BA' AND obj_type <> 'GSMP' AND obj_type <> 'HTTP' AND
+            obj_type <> 'IDOC' AND obj_type <> 'INA1' AND obj_type <> 'IWSG' AND obj_type <> 'IWSV' AND
+            obj_type <> 'PDWS' AND obj_type <> 'SADT' AND obj_type <> 'SAJC' AND obj_type <> 'SAMC' AND
+            obj_type <> 'SAPC' AND obj_type <> 'SICF' AND obj_type <> 'SQL1' AND obj_type <> 'SUCO' AND
+            obj_type <> 'SUKR' AND obj_type <> 'TRAN' AND obj_type <> 'WAPA' AND obj_type <> 'WDCA' AND
+            obj_type <> 'WDYA'.
         WHEN 'SRVB'.
           lt_requires = lt_items.
           DELETE lt_requires WHERE obj_type <> 'SRVD'.
