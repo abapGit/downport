@@ -35,9 +35,8 @@ CLASS zcl_abapgit_object_tran DEFINITION
         object     TYPE rglif-docutype VALUE 'O' ##NO_TEXT,
       END OF c_variant_type.
 
-    TYPES temp1_15c4f683bb TYPE STANDARD TABLE OF bdcdata.
-DATA:
-      mt_bcdata TYPE temp1_15c4f683bb .
+    DATA:
+      mt_bcdata TYPE STANDARD TABLE OF bdcdata .
 
     METHODS transaction_read
       IMPORTING
@@ -123,8 +122,7 @@ CLASS zcl_abapgit_object_tran IMPLEMENTATION.
 
   METHOD call_se93.
 
-    TYPES temp2 TYPE STANDARD TABLE OF bdcmsgcoll.
-DATA: lt_message TYPE temp2.
+    DATA: lt_message TYPE STANDARD TABLE OF bdcmsgcoll.
     DATA lv_msg TYPE string.
 
     FIELD-SYMBOLS: <ls_message> TYPE bdcmsgcoll.
@@ -159,8 +157,7 @@ DATA: lt_message TYPE temp2.
   METHOD clear_functiongroup_globals.
     TYPES ty_param_vari TYPE abap_bool.
 
-    TYPES temp3 TYPE STANDARD TABLE OF rsmp_check WITH DEFAULT KEY.
-DATA lt_error_list TYPE temp3.
+    DATA lt_error_list TYPE STANDARD TABLE OF rsmp_check WITH DEFAULT KEY.
     FIELD-SYMBOLS <lv_param_vari> TYPE ty_param_vari.
 
     " only way to clear global fields in function group
@@ -345,8 +342,7 @@ DATA lt_error_list TYPE temp3.
 
   METHOD deserialize_texts.
 
-    TYPES temp4 TYPE TABLE OF tstct.
-DATA lt_tpool_i18n TYPE temp4.
+    DATA lt_tpool_i18n TYPE TABLE OF tstct.
 
     FIELD-SYMBOLS <ls_tpool> LIKE LINE OF lt_tpool_i18n.
 
@@ -377,9 +373,7 @@ DATA lt_tpool_i18n TYPE temp4.
 
   METHOD is_variant_transaction.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( is_tstcp-param(1) = '@' ).
-    rv_variant_transaction = temp1.
+    rv_variant_transaction = xsdbool( is_tstcp-param(1) = '@' ).
 
   ENDMETHOD.
 
@@ -405,8 +399,7 @@ DATA lt_tpool_i18n TYPE temp4.
 
   METHOD serialize_texts.
 
-    TYPES temp5 TYPE TABLE OF tstct.
-DATA lt_tpool_i18n TYPE temp5.
+    DATA lt_tpool_i18n TYPE TABLE OF tstct.
 
     IF mo_i18n_params->ms_params-main_language_only = abap_true.
       RETURN.
@@ -614,10 +607,8 @@ DATA lt_tpool_i18n TYPE temp5.
 
   METHOD transaction_read.
 
-    TYPES temp6 TYPE TABLE OF tstc.
-TYPES temp1 TYPE TABLE OF tstcc.
-DATA: lt_tcodes   TYPE temp6,
-          lt_gui_attr TYPE temp1.
+    DATA: lt_tcodes   TYPE TABLE OF tstc,
+          lt_gui_attr TYPE TABLE OF tstcc.
 
     CLEAR: es_transaction, es_gui_attr.
 
@@ -705,7 +696,12 @@ DATA: lt_tcodes   TYPE temp6,
           lt_tstca        TYPE ty_tstca,
           lt_param_values TYPE ty_param_values,
           ls_rsstcd       TYPE rsstcd.
+    DATA: ls_item TYPE zif_abapgit_definitions=>ty_item,
+          lr_head TYPE REF TO data,
+          lx_err  TYPE REF TO cx_root,
+          lo_sush TYPE REF TO zcl_abapgit_object_sush.
 
+    FIELD-SYMBOLS <ls_head> TYPE any.
 
     IF zif_abapgit_object~exists( ) = abap_true.
       zif_abapgit_object~delete( iv_package   = iv_package
@@ -816,6 +812,38 @@ DATA: lt_tcodes   TYPE temp6,
       deserialize_texts( io_xml ).
     ENDIF.
 
+    " Import SU22 data by reusing SUSH deserializer
+    TRY.
+        CREATE DATA lr_head TYPE ('IF_SU22_ADT_OBJECT=>TS_SU2X_HEAD').
+        ASSIGN lr_head->* TO <ls_head>.
+      CATCH cx_root.
+        RETURN. ">>> no SU22 in this release
+    ENDTRY.
+
+    TRY.
+        io_xml->read( EXPORTING iv_name = 'HEAD'
+                      CHANGING  cg_data = <ls_head> ).
+
+        IF <ls_head> IS NOT INITIAL.
+          ls_item-obj_type    = 'SUSH'.
+          ls_item-obj_name    = ms_item-obj_name.
+          ls_item-obj_name+30 = 'TR'.
+
+          lo_sush = NEW zcl_abapgit_object_sush( is_item = ls_item
+                                                 iv_language = mv_language ).
+
+          lo_sush->zif_abapgit_object~deserialize(
+            iv_package   = iv_package
+            io_xml       = io_xml
+            iv_step      = iv_step
+            ii_log       = ii_log
+            iv_transport = iv_transport ).
+        ENDIF.
+
+      CATCH cx_root INTO lx_err.
+        zcx_abapgit_exception=>raise_with_text( lx_err ).
+    ENDTRY.
+
   ENDMETHOD.
 
 
@@ -823,12 +851,9 @@ DATA: lt_tcodes   TYPE temp6,
 
     DATA: lv_tcode TYPE tstc-tcode.
 
-
     SELECT SINGLE tcode FROM tstc INTO lv_tcode
       WHERE tcode = ms_item-obj_name.                   "#EC CI_GENBUFF
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( sy-subrc = 0 ).
-    rv_bool = temp2.
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -868,11 +893,9 @@ DATA: lt_tcodes   TYPE temp6,
 
   METHOD zif_abapgit_object~jump.
 
-    TYPES temp8 TYPE TABLE OF bdcdata.
-DATA: lt_bdcdata TYPE temp8.
+    DATA: lt_bdcdata TYPE TABLE OF bdcdata.
 
     FIELD-SYMBOLS: <ls_bdcdata> LIKE LINE OF lt_bdcdata.
-
 
     APPEND INITIAL LINE TO lt_bdcdata ASSIGNING <ls_bdcdata>.
     <ls_bdcdata>-program  = 'SAPLSEUK'.
@@ -914,7 +937,9 @@ DATA: lt_bdcdata TYPE temp8.
           ls_tstcp       TYPE tstcp,
           lt_tstca       TYPE ty_tstca,
           ls_gui_attr    TYPE tstcc.
-
+    DATA: ls_item TYPE zif_abapgit_definitions=>ty_item,
+          ls_sush TYPE usob_sm,
+          lo_sush TYPE REF TO zcl_abapgit_object_sush.
 
     lv_transaction = ms_item-obj_name.
 
@@ -954,6 +979,19 @@ DATA: lt_bdcdata TYPE temp8.
 
     IF mo_i18n_params->is_lxe_applicable( ) = abap_false.
       serialize_texts( io_xml ).
+    ENDIF.
+
+    " Add SU22 data by reusing SUSH serializer
+    SELECT SINGLE * FROM usob_sm INTO ls_sush WHERE name = ms_item-obj_name AND type = 'TR'.
+    IF sy-subrc = 0.
+      ls_item-obj_type    = 'SUSH'.
+      ls_item-obj_name    = ms_item-obj_name.
+      ls_item-obj_name+30 = 'TR'.
+
+      lo_sush = NEW zcl_abapgit_object_sush( is_item = ls_item
+                                             iv_language = mv_language ).
+
+      lo_sush->zif_abapgit_object~serialize( io_xml ).
     ENDIF.
 
   ENDMETHOD.
