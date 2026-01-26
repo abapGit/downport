@@ -110,6 +110,11 @@ CLASS zcl_abapgit_gui_page_sett_info DEFINITION
         !iv_size       TYPE i
       RETURNING
         VALUE(rv_size) TYPE string .
+    METHODS get_unsupported_objects_local
+      RETURNING
+        VALUE(rt_objects) TYPE zif_abapgit_definitions=>ty_items_tt
+      RAISING
+        zcx_abapgit_exception .
 ENDCLASS.
 
 
@@ -120,7 +125,7 @@ CLASS zcl_abapgit_gui_page_sett_info IMPLEMENTATION.
   METHOD constructor.
 
     super->constructor( ).
-    CREATE OBJECT mo_form_data.
+    mo_form_data = NEW #( ).
     mi_repo = ii_repo.
     mo_form = get_form_schema( ).
 
@@ -131,7 +136,7 @@ CLASS zcl_abapgit_gui_page_sett_info IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_sett_info.
 
-    CREATE OBJECT lo_component EXPORTING ii_repo = ii_repo.
+    lo_component = NEW #( ii_repo = ii_repo ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Repository Stats'
@@ -434,7 +439,7 @@ CLASS zcl_abapgit_gui_page_sett_info IMPLEMENTATION.
 
     CLEAR ls_stats.
     ls_stats-measure = 'Number of Unsupported Objects'.
-    ls_stats-local   = lines( mi_repo->get_unsupported_objects_local( ) ).
+    ls_stats-local   = lines( get_unsupported_objects_local( ) ).
 
     lt_supported_types = zcl_abapgit_objects=>supported_list( ).
 
@@ -577,7 +582,7 @@ CLASS zcl_abapgit_gui_page_sett_info IMPLEMENTATION.
 
     read_settings( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( `<div class="repo">` ).
 
@@ -589,6 +594,29 @@ CLASS zcl_abapgit_gui_page_sett_info IMPLEMENTATION.
     ri_html->add( mo_form->render( mo_form_data ) ).
 
     ri_html->add( `</div>` ).
+
+  ENDMETHOD.
+
+
+  METHOD get_unsupported_objects_local.
+
+    DATA: lt_tadir           TYPE zif_abapgit_definitions=>ty_tadir_tt,
+          lt_supported_types TYPE zif_abapgit_objects=>ty_types_tt.
+
+    FIELD-SYMBOLS: <ls_tadir>  LIKE LINE OF lt_tadir,
+                   <ls_object> LIKE LINE OF rt_objects.
+
+    lt_tadir = mi_repo->get_tadir_objects( ).
+
+    lt_supported_types = zcl_abapgit_objects=>supported_list( ).
+    LOOP AT lt_tadir ASSIGNING <ls_tadir>.
+      READ TABLE lt_supported_types WITH KEY table_line = <ls_tadir>-object TRANSPORTING NO FIELDS.
+      IF sy-subrc <> 0.
+        APPEND INITIAL LINE TO rt_objects ASSIGNING <ls_object>.
+        MOVE-CORRESPONDING <ls_tadir> TO <ls_object>.
+        <ls_object>-obj_type = <ls_tadir>-object.
+      ENDIF.
+    ENDLOOP.
 
   ENDMETHOD.
 ENDCLASS.
