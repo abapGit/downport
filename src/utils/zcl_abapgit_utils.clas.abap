@@ -49,14 +49,14 @@ CLASS zcl_abapgit_utils IMPLEMENTATION.
     " but this is insufficient if the data contains German umlauts and other special characters.
     " Therefore we adopted another algorithm, which is similarly used by AL11
     " RSWATCH0 / GUESS_FILE_TYPE
-    " We count non-printable characters if there are more than XX% it's binary.
+    " We count non-printable characters if there are more than 10% it's binary.
 
     CONSTANTS:
       lc_binary_threshold TYPE i VALUE 10,
       lc_bytes_to_check   TYPE i VALUE 1000.
 
     DATA: lv_string_data           TYPE string,
-          lv_printable_chars_count TYPE i,
+          lv_non_printable_chars   TYPE i,
           lv_percentage            TYPE i,
           lv_data                  TYPE xstring,
           lv_xlen                  TYPE i.
@@ -80,14 +80,12 @@ CLASS zcl_abapgit_utils IMPLEMENTATION.
         RETURN.
     ENDTRY.
 
-    REPLACE ALL OCCURRENCES OF cl_abap_char_utilities=>newline IN lv_string_data WITH space.
     REPLACE ALL OCCURRENCES OF cl_abap_char_utilities=>cr_lf IN lv_string_data WITH space.
+    REPLACE ALL OCCURRENCES OF cl_abap_char_utilities=>newline IN lv_string_data WITH space.
 
-    FIND ALL OCCURRENCES OF REGEX '[^[:print:]]' IN lv_string_data MATCH COUNT lv_printable_chars_count ##REGEX_POSIX.
-    lv_percentage = lv_printable_chars_count * 100 / strlen( lv_string_data ).
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( lv_percentage > lc_binary_threshold ).
-    rv_is_binary = temp1.
+    FIND ALL OCCURRENCES OF REGEX '[^[:print:]]' IN lv_string_data MATCH COUNT lv_non_printable_chars  ##REGEX_POSIX.
+    lv_percentage = lv_non_printable_chars  * 100 / strlen( lv_string_data ).
+    rv_is_binary = xsdbool( lv_percentage > lc_binary_threshold ).
 
   ENDMETHOD.
 
@@ -103,9 +101,7 @@ CLASS zcl_abapgit_utils IMPLEMENTATION.
       rv_valid = abap_true.
     ELSE.
       FIND REGEX lc_email_regex IN iv_email ##REGEX_POSIX.
-      DATA temp2 TYPE xsdboolean.
-      temp2 = boolc( sy-subrc = 0 ).
-      rv_valid = temp2.
+      rv_valid = xsdbool( sy-subrc = 0 ).
     ENDIF.
 
   ENDMETHOD.

@@ -279,9 +279,7 @@ CLASS zcl_abapgit_flow_logic IMPLEMENTATION.
 
     LOOP AT it_local ASSIGNING <ls_local> WHERE file-filename <> zif_abapgit_definitions=>c_dot_abapgit.
       READ TABLE ct_main_expanded WITH KEY name = <ls_local>-file-filename ASSIGNING <ls_expanded>.
-      DATA temp1 TYPE xsdboolean.
-      temp1 = boolc( sy-subrc = 0 ).
-      lv_found_main = temp1.
+      lv_found_main = xsdbool( sy-subrc = 0 ).
 
       lv_found_branch = abap_false.
       LOOP AT it_features INTO ls_feature.
@@ -431,7 +429,7 @@ CLASS zcl_abapgit_flow_logic IMPLEMENTATION.
       INSERT <ls_tadir> INTO TABLE lt_filter.
 
       IF lines( lt_filter ) >= 500.
-        CREATE OBJECT lo_filter EXPORTING it_filter = lt_filter.
+        lo_filter = NEW #( it_filter = lt_filter ).
         lt_local = li_repo->get_files_local_filtered( lo_filter ).
         CLEAR lt_filter.
         check_files(
@@ -448,7 +446,7 @@ CLASS zcl_abapgit_flow_logic IMPLEMENTATION.
     ENDLOOP.
 
     IF lines( lt_filter ) > 0.
-      CREATE OBJECT lo_filter EXPORTING it_filter = lt_filter.
+      lo_filter = NEW #( it_filter = lt_filter ).
       lt_local = li_repo->get_files_local_filtered( lo_filter ).
       CLEAR lt_filter.
       check_files(
@@ -501,13 +499,9 @@ CLASS zcl_abapgit_flow_logic IMPLEMENTATION.
           AND ls_next-obj_name = ls_transport-obj_name.
 
         READ TABLE cs_information-features WITH KEY transport-trkorr = ls_transport-trkorr TRANSPORTING NO FIELDS.
-        DATA temp2 TYPE xsdboolean.
-        temp2 = boolc( sy-subrc = 0 ).
-        lv_found1 = temp2.
+        lv_found1 = xsdbool( sy-subrc = 0 ).
         READ TABLE cs_information-features WITH KEY transport-trkorr = ls_next-trkorr TRANSPORTING NO FIELDS.
-        DATA temp3 TYPE xsdboolean.
-        temp3 = boolc( sy-subrc = 0 ).
-        lv_found2 = temp3.
+        lv_found2 = xsdbool( sy-subrc = 0 ).
         IF lv_found1 = abap_false AND lv_found2 = abap_false.
           " not in any favorite flow enabled repo
           CONTINUE.
@@ -574,6 +568,7 @@ CLASS zcl_abapgit_flow_logic IMPLEMENTATION.
 
     DATA lt_pulls TYPE zif_abapgit_pr_enum_provider=>ty_pull_requests.
     DATA ls_pull LIKE LINE OF lt_pulls.
+    DATA lv_index TYPE i.
 
     FIELD-SYMBOLS <ls_branch> LIKE LINE OF ct_features.
 
@@ -586,16 +581,26 @@ CLASS zcl_abapgit_flow_logic IMPLEMENTATION.
     lt_pulls = zcl_abapgit_pr_enumerator=>new( iv_url )->get_pulls( ).
 
     LOOP AT ct_features ASSIGNING <ls_branch>.
-      READ TABLE lt_pulls INTO ls_pull WITH KEY head_branch = <ls_branch>-branch-display_name.
-      IF sy-subrc = 0.
-        " remove markdown formatting,
-        REPLACE ALL OCCURRENCES OF '`' IN ls_pull-title WITH ''.
+      lv_index = sy-tabix.
 
-        <ls_branch>-pr-title = |{ ls_pull-title } #{ ls_pull-number }|.
-        <ls_branch>-pr-url = ls_pull-html_url.
-        <ls_branch>-pr-number = ls_pull-number.
-        <ls_branch>-pr-draft = ls_pull-draft.
+      READ TABLE lt_pulls INTO ls_pull WITH KEY head_branch = <ls_branch>-branch-display_name.
+      IF sy-subrc <> 0.
+        CONTINUE.
       ENDIF.
+
+      READ TABLE ls_pull-labels WITH KEY table_line = 'no-merge' TRANSPORTING NO FIELDS.
+      IF sy-subrc = 0.
+        DELETE ct_features INDEX lv_index.
+        CONTINUE.
+      ENDIF.
+
+      " remove markdown formatting,
+      REPLACE ALL OCCURRENCES OF '`' IN ls_pull-title WITH ''.
+
+      <ls_branch>-pr-title = |{ ls_pull-title } #{ ls_pull-number }|.
+      <ls_branch>-pr-url = ls_pull-html_url.
+      <ls_branch>-pr-number = ls_pull-number.
+      <ls_branch>-pr-draft = ls_pull-draft.
     ENDLOOP.
 
   ENDMETHOD.
@@ -834,7 +839,7 @@ CLASS zcl_abapgit_flow_logic IMPLEMENTATION.
     SORT lt_filter BY object obj_name.
     DELETE ADJACENT DUPLICATES FROM lt_filter COMPARING object obj_name.
 
-    CREATE OBJECT lo_filter EXPORTING it_filter = lt_filter.
+    lo_filter = NEW #( it_filter = lt_filter ).
     rt_local = ii_repo->get_files_local_filtered( lo_filter ).
 
   ENDMETHOD.

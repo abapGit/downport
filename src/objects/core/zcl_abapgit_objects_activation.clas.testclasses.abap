@@ -18,7 +18,7 @@ ENDCLASS.
 CLASS ltcl_tests IMPLEMENTATION.
 
   METHOD setup.
-    CREATE OBJECT mo_cut.
+    mo_cut = NEW #( ).
   ENDMETHOD.
 
   METHOD is_active.
@@ -75,6 +75,10 @@ CLASS ltcl_tests IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
       act = mo_cut->is_ddic_type( 'PROG' )
       exp = abap_false ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = mo_cut->is_ddic_type( 'DESD' )
+      exp = abap_true ).
 
   ENDMETHOD.
 
