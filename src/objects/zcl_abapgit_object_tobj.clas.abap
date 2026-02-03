@@ -46,8 +46,7 @@ CLASS zcl_abapgit_object_tobj IMPLEMENTATION.
 
 
   METHOD update_extra.
-    TYPES temp1 TYPE STANDARD TABLE OF tvimf.
-DATA: lt_current_tvimf TYPE temp1.
+    DATA: lt_current_tvimf TYPE STANDARD TABLE OF tvimf.
     FIELD-SYMBOLS: <ls_tvimf> TYPE tvimf.
 
     MODIFY tddat FROM is_tobj-tddat.
@@ -134,6 +133,7 @@ DATA: lt_current_tvimf TYPE temp1.
           lt_objm  TYPE tt_objm,
           ls_tobj  TYPE ty_tobj.
 
+    FIELD-SYMBOLS <lv_abap_language_version> TYPE uccheck.
 
     io_xml->read( EXPORTING iv_name = 'OBJH'
                   CHANGING  cg_data = ls_objh ).
@@ -145,6 +145,11 @@ DATA: lt_current_tvimf TYPE temp1.
                   CHANGING  cg_data = lt_objsl ).
     io_xml->read( EXPORTING iv_name = 'OBJM'
                   CHANGING  cg_data = lt_objm ).
+
+    ASSIGN COMPONENT 'ABAP_LANGUAGE_VERSION' OF STRUCTURE ls_objh TO <lv_abap_language_version>.
+    IF sy-subrc = 0.
+      set_abap_language_version( CHANGING cv_abap_language_version = <lv_abap_language_version> ).
+    ENDIF.
 
     CALL FUNCTION 'OBJ_GENERATE'
       EXPORTING
@@ -221,9 +226,7 @@ DATA: lt_current_tvimf TYPE temp1.
     SELECT SINGLE objectname FROM objh INTO lv_objectname
       WHERE objectname = ms_item-obj_name(lv_type_pos)
       AND objecttype = ms_item-obj_name+lv_type_pos.    "#EC CI_GENBUFF
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -274,9 +277,7 @@ DATA: lt_current_tvimf TYPE temp1.
         jump_not_possible = 1
         OTHERS            = 2.
 
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( sy-subrc = 0 ).
-    rv_exit = temp2.
+    rv_exit = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -300,6 +301,8 @@ DATA: lt_current_tvimf TYPE temp1.
           lt_objm     TYPE tt_objm,
           ls_tobj     TYPE ty_tobj,
           lv_type_pos TYPE i.
+
+    FIELD-SYMBOLS <lv_abap_language_version> TYPE uccheck.
 
     lv_type_pos = strlen( ms_item-obj_name ) - 1.
 
@@ -333,6 +336,11 @@ DATA: lt_current_tvimf TYPE temp1.
 
     CLEAR: ls_objh-luser,
            ls_objh-ldate.
+
+    ASSIGN COMPONENT 'ABAP_LANGUAGE_VERSION' OF STRUCTURE ls_objh TO <lv_abap_language_version>.
+    IF sy-subrc = 0.
+      clear_abap_language_version( CHANGING cv_abap_language_version = <lv_abap_language_version> ).
+    ENDIF.
 
     SORT lt_objs BY objectname objecttype tabname.
     SORT lt_objsl BY objectname objecttype trwcount.

@@ -250,11 +250,18 @@ CLASS zcl_abapgit_object_xinx IMPLEMENTATION.
     DATA: ls_extension_index TYPE ty_extension_index,
           lv_rc              TYPE sy-subrc.
 
+    FIELD-SYMBOLS <lv_abap_language_version> TYPE uccheck.
+
     io_xml->read(
       EXPORTING
         iv_name = 'XINX'
       CHANGING
         cg_data = ls_extension_index ).
+
+    ASSIGN COMPONENT 'ABAP_LANGUAGE_VERSION' OF STRUCTURE ls_extension_index-dd12v TO <lv_abap_language_version>.
+    IF sy-subrc = 0.
+      set_abap_language_version( CHANGING cv_abap_language_version = <lv_abap_language_version> ).
+    ENDIF.
 
     tadir_insert( iv_package ).
 
@@ -321,9 +328,7 @@ CLASS zcl_abapgit_object_xinx IMPLEMENTATION.
       zcx_abapgit_exception=>raise( 'Error reading index' ).
     ENDIF.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( ls_dd12v IS NOT INITIAL ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( ls_dd12v IS NOT INITIAL ).
 
   ENDMETHOD.
 
@@ -378,6 +383,8 @@ CLASS zcl_abapgit_object_xinx IMPLEMENTATION.
 
     DATA: ls_extension_index TYPE ty_extension_index.
 
+    FIELD-SYMBOLS <lv_abap_language_version> TYPE uccheck.
+
     CALL FUNCTION 'DDIF_INDX_GET'
       EXPORTING
         name          = mv_name
@@ -398,6 +405,11 @@ CLASS zcl_abapgit_object_xinx IMPLEMENTATION.
     CLEAR: ls_extension_index-dd12v-as4user,
            ls_extension_index-dd12v-as4date,
            ls_extension_index-dd12v-as4time.
+
+    ASSIGN COMPONENT 'ABAP_LANGUAGE_VERSION' OF STRUCTURE ls_extension_index-dd12v TO <lv_abap_language_version>.
+    IF sy-subrc = 0.
+      clear_abap_language_version( CHANGING cv_abap_language_version = <lv_abap_language_version> ).
+    ENDIF.
 
     io_xml->add( iv_name = 'XINX'
                  ig_data = ls_extension_index ).

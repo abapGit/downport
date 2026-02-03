@@ -199,7 +199,7 @@ CLASS zcl_abapgit_object_enho_hook IMPLEMENTATION.
     lv_package = iv_package.
     TRY.
         TRY.
-            cl_enh_factory=>create_enhancement(
+            CALL METHOD ('CL_ENH_FACTORY')=>create_enhancement
               EXPORTING
                 enhname               = lv_enhname
                 enhtype               = cl_abstract_enh_tool_redef=>credefinition
@@ -208,7 +208,7 @@ CLASS zcl_abapgit_object_enho_hook IMPLEMENTATION.
               IMPORTING
                 enhancement           = li_tool
               CHANGING
-                devclass              = lv_package ).
+                devclass              = lv_package.
           CATCH cx_root.
             cl_enh_factory=>create_enhancement(
               EXPORTING
@@ -285,9 +285,7 @@ CLASS zcl_abapgit_object_enho_hook IMPLEMENTATION.
     IF ls_original_object-org_main_type = 'PROG' OR ls_original_object-org_main_type = 'REPS'.
       TRY.
           ls_progdir = zcl_abapgit_factory=>get_sap_report( )->read_progdir( ls_original_object-org_main_name ).
-          DATA temp1 TYPE xsdboolean.
-          temp1 = boolc( ls_progdir-subc = 'I' ).
-          ls_original_object-include_bound = temp1.
+          ls_original_object-include_bound = xsdbool( ls_progdir-subc = 'I' ).
         CATCH zcx_abapgit_exception.
           ls_original_object-include_bound = abap_false.
       ENDTRY.
