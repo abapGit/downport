@@ -131,9 +131,8 @@ CLASS zcl_abapgit_data_deserializer IMPLEMENTATION.
 
   METHOD is_table_included_in_repo.
 
-    TYPES temp1 TYPE STANDARD TABLE OF devclass WITH DEFAULT KEY.
-DATA:
-      lt_packages TYPE temp1,
+    DATA:
+      lt_packages TYPE STANDARD TABLE OF devclass WITH DEFAULT KEY,
       lv_package  TYPE devclass.
 
     lt_packages = zcl_abapgit_factory=>get_sap_package( iv_package )->list_subpackages( ).
@@ -144,9 +143,7 @@ DATA:
       iv_obj_name = |{ iv_tabname }| ).
 
     READ TABLE lt_packages TRANSPORTING NO FIELDS WITH TABLE KEY table_line = lv_package.
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( sy-subrc = 0 ).
-    rv_is_included = temp2.
+    rv_is_included = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 

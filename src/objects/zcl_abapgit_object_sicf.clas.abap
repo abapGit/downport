@@ -90,14 +90,13 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_OBJECT_SICF IMPLEMENTATION.
+CLASS zcl_abapgit_object_sicf IMPLEMENTATION.
 
 
   METHOD change_sicf.
 
-    TYPES temp1 TYPE TABLE OF icfhandler.
-DATA: lt_icfhndlist TYPE icfhndlist,
-          lt_existing   TYPE temp1,
+    DATA: lt_icfhndlist TYPE icfhndlist,
+          lt_existing   TYPE TABLE OF icfhandler,
           ls_icfserdesc TYPE icfserdesc.
 
     FIELD-SYMBOLS: <ls_existing> LIKE LINE OF lt_existing.
@@ -173,9 +172,9 @@ DATA: lt_icfhndlist TYPE icfhndlist,
       <ls_sots_use> LIKE LINE OF lt_sots_use.
 
     io_xml->read( EXPORTING iv_name = 'SOTS'
-                  CHANGING cg_data = lt_sots ).
+                  CHANGING  cg_data = lt_sots ).
     io_xml->read( EXPORTING iv_name = 'SOTS_USE'
-                  CHANGING cg_data = lt_sots_use ).
+                  CHANGING  cg_data = lt_sots_use ).
 
     LOOP AT lt_sots_use ASSIGNING <ls_sots_use>.
       <ls_sots_use>-obj_name = ms_item-obj_name.
@@ -398,12 +397,12 @@ DATA: lt_icfhndlist TYPE icfhndlist,
 
     zcl_abapgit_sots_handler=>read_sots(
       EXPORTING
-        iv_object   = ms_item-obj_type
-        iv_obj_name = ms_item-obj_name
+        iv_object      = ms_item-obj_type
+        iv_obj_name    = ms_item-obj_name
         io_i18n_params = mo_i18n_params
       IMPORTING
-        et_sots     = lt_sots
-        et_sots_use = lt_sots_use ).
+        et_sots        = lt_sots
+        et_sots_use    = lt_sots_use ).
 
     LOOP AT lt_sots_use ASSIGNING <ls_sots_use>.
       CLEAR <ls_sots_use>-obj_name.
@@ -433,7 +432,7 @@ DATA: lt_icfhndlist TYPE icfhndlist,
 
     DATA: ls_icfservice TYPE icfservice.
 
-    read( EXPORTING iv_clear = abap_false
+    read( EXPORTING iv_clear      = abap_false
           IMPORTING es_icfservice = ls_icfservice ).
 
     rv_user = ls_icfservice-icf_muser.
@@ -503,22 +502,21 @@ DATA: lt_icfhndlist TYPE icfhndlist,
 
   METHOD zif_abapgit_object~deserialize.
 
-    TYPES temp2 TYPE TABLE OF icfhandler.
-DATA: ls_icfservice TYPE icfservice,
+    DATA: ls_icfservice TYPE icfservice,
           ls_read       TYPE icfservice,
           ls_icfdocu    TYPE icfdocu,
           lv_url        TYPE string,
           lv_exists     TYPE abap_bool,
-          lt_icfhandler TYPE temp2.
+          lt_icfhandler TYPE TABLE OF icfhandler.
 
     io_xml->read( EXPORTING iv_name = 'URL'
-                  CHANGING cg_data = lv_url ).
+                  CHANGING  cg_data = lv_url ).
     io_xml->read( EXPORTING iv_name = 'ICFSERVICE'
-                  CHANGING cg_data = ls_icfservice ).
+                  CHANGING  cg_data = ls_icfservice ).
     io_xml->read( EXPORTING iv_name = 'ICFDOCU'
-                  CHANGING cg_data = ls_icfdocu ).
+                  CHANGING  cg_data = ls_icfdocu ).
     io_xml->read( EXPORTING iv_name = 'ICFHANDLER_TABLE'
-                  CHANGING cg_data = lt_icfhandler ).
+                  CHANGING  cg_data = lt_icfhandler ).
 
     lv_exists = zif_abapgit_object~exists( ).
     IF lv_exists = abap_false.
@@ -551,9 +549,7 @@ DATA: ls_icfservice TYPE icfservice,
     SELECT SINGLE icfaltnme FROM icfservice INTO ls_key-icf_name
       WHERE icf_name = ms_item-obj_name(15)
       AND icfparguid = ms_item-obj_name+15.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -598,9 +594,8 @@ DATA: ls_icfservice TYPE icfservice,
 
   METHOD zif_abapgit_object~jump.
 
-    TYPES temp3 TYPE STANDARD TABLE OF bdcdata.
-DATA: ls_bcdata TYPE bdcdata,
-          lt_bcdata TYPE temp3.
+    DATA: ls_bcdata TYPE bdcdata,
+          lt_bcdata TYPE STANDARD TABLE OF bdcdata.
 
     ls_bcdata-program  = 'RSICFTREE'.
     ls_bcdata-dynpro   = '1000'.
@@ -663,11 +658,10 @@ DATA: ls_bcdata TYPE bdcdata,
 
   METHOD zif_abapgit_object~serialize.
 
-    TYPES temp4 TYPE TABLE OF icfhandler.
-DATA: ls_icfservice TYPE icfservice,
+    DATA: ls_icfservice TYPE icfservice,
           ls_icfdocu    TYPE icfdocu,
           lv_url        TYPE string,
-          lt_icfhandler TYPE temp4.
+          lt_icfhandler TYPE TABLE OF icfhandler.
 
     read( IMPORTING es_icfservice = ls_icfservice
                     es_icfdocu    = ls_icfdocu
@@ -691,6 +685,20 @@ DATA: ls_icfservice TYPE icfservice,
       CLEAR ls_icfservice-icfaltnme_orig.
     ENDIF.
     CLEAR ls_icfservice-icfbitmap.
+
+    " Clear settings that are only relevant for redirects
+    IF ls_icfservice-kind401 <> 'X'.
+      CLEAR: ls_icfservice-httpcde401, ls_icfservice-url401, ls_icfservice-formflg401.
+    ENDIF.
+    IF ls_icfservice-kind500 <> 'X'.
+      CLEAR: ls_icfservice-httpcde500, ls_icfservice-url500.
+    ENDIF.
+    IF ls_icfservice-kindlpag <> 'X'.
+      CLEAR: ls_icfservice-httpcdelpag, ls_icfservice-urllpag.
+    ENDIF.
+    IF ls_icfservice-kindnfpag <> 'X'.
+      CLEAR: ls_icfservice-httpcdenfpag, ls_icfservice-urlnfpag.
+    ENDIF.
 
     io_xml->add( iv_name = 'URL'
                  ig_data = lv_url ).
