@@ -104,10 +104,10 @@ CLASS zcl_abapgit_gui_page_code_insp IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_code_insp.
 
-    CREATE OBJECT lo_component EXPORTING ii_repo = ii_repo
-                                         io_stage = io_stage
-                                         iv_check_variant = iv_check_variant
-                                         iv_raise_when_no_results = iv_raise_when_no_results.
+    lo_component = NEW #( ii_repo = ii_repo
+                          io_stage = io_stage
+                          iv_check_variant = iv_check_variant
+                          iv_raise_when_no_results = iv_raise_when_no_results ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create( lo_component ).
 
@@ -132,18 +132,15 @@ CLASS zcl_abapgit_gui_page_code_insp IMPLEMENTATION.
   METHOD has_inspection_errors.
 
     READ TABLE mt_result TRANSPORTING NO FIELDS WITH KEY kind = 'E'.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_has_inspection_errors = temp1.
+    rv_has_inspection_errors = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
 
   METHOD is_stage_allowed.
 
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( NOT ( mi_repo->get_local_settings( )-block_commit = abap_true AND has_inspection_errors( ) = abap_true ) ).
-    rv_is_stage_allowed = temp2.
+    rv_is_stage_allowed = xsdbool( NOT (
+      mi_repo->get_local_settings( )-block_commit = abap_true AND has_inspection_errors( ) = abap_true ) ).
 
   ENDMETHOD.
 
@@ -194,8 +191,9 @@ CLASS zcl_abapgit_gui_page_code_insp IMPLEMENTATION.
         IF is_stage_allowed( ) = abap_true.
 
           rs_handled-page   = zcl_abapgit_gui_page_stage=>create(
-            ii_repo_online = li_repo_online
-            iv_sci_result  = status( ) ).
+            ii_repo_online   = li_repo_online
+            iv_sci_result    = status( )
+            ii_force_refresh = abap_true ).
 
           rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page.
 
@@ -303,7 +301,7 @@ CLASS zcl_abapgit_gui_page_code_insp IMPLEMENTATION.
 
     register_handlers( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->div(
       iv_class = 'repo'
