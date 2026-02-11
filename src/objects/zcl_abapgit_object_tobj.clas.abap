@@ -46,7 +46,8 @@ CLASS zcl_abapgit_object_tobj IMPLEMENTATION.
 
 
   METHOD update_extra.
-    DATA: lt_current_tvimf TYPE STANDARD TABLE OF tvimf.
+    TYPES temp1 TYPE STANDARD TABLE OF tvimf.
+DATA: lt_current_tvimf TYPE temp1.
     FIELD-SYMBOLS: <ls_tvimf> TYPE tvimf.
 
     MODIFY tddat FROM is_tobj-tddat.
@@ -226,7 +227,9 @@ CLASS zcl_abapgit_object_tobj IMPLEMENTATION.
     SELECT SINGLE objectname FROM objh INTO lv_objectname
       WHERE objectname = ms_item-obj_name(lv_type_pos)
       AND objecttype = ms_item-obj_name+lv_type_pos.    "#EC CI_GENBUFF
-    rv_bool = xsdbool( sy-subrc = 0 ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( sy-subrc = 0 ).
+    rv_bool = temp1.
 
   ENDMETHOD.
 
@@ -277,7 +280,9 @@ CLASS zcl_abapgit_object_tobj IMPLEMENTATION.
         jump_not_possible = 1
         OTHERS            = 2.
 
-    rv_exit = xsdbool( sy-subrc = 0 ).
+    DATA temp2 TYPE xsdboolean.
+    temp2 = boolc( sy-subrc = 0 ).
+    rv_exit = temp2.
 
   ENDMETHOD.
 
