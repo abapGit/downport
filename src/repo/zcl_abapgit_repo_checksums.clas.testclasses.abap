@@ -386,13 +386,13 @@ CLASS ltcl_test_checksums IMPLEMENTATION.
     DATA li_cut TYPE REF TO zif_abapgit_repo_checksums.
     DATA lt_checksums_exp TYPE zif_abapgit_persistence=>ty_local_checksum_tt.
 
-    lo_mock = NEW #( ).
+    CREATE OBJECT lo_mock.
     zcl_abapgit_repo_srv=>inject_instance( lo_mock ).
     zcl_abapgit_persist_injector=>set_repo_cs( me ).
 
     ltcl_test_checksum_serializer=>get_mock( IMPORTING et_checksums = lt_checksums_exp ).
 
-    li_cut = NEW zcl_abapgit_repo_checksums( iv_repo_key = '1' ).
+    CREATE OBJECT li_cut TYPE zcl_abapgit_repo_checksums EXPORTING iv_repo_key = '1'.
 
     cl_abap_unit_assert=>assert_equals(
       act = li_cut->get( )
@@ -408,25 +408,25 @@ CLASS ltcl_test_checksums IMPLEMENTATION.
     DATA lo_l_builder TYPE REF TO lcl_local_file_builder.
     DATA lo_r_builder TYPE REF TO lcl_remote_file_builder.
 
-    lo_mock = NEW #( ).
+    CREATE OBJECT lo_mock.
     zcl_abapgit_repo_srv=>inject_instance( lo_mock ).
     zcl_abapgit_persist_injector=>set_repo_cs( me ).
 
     " Local
-    lo_l_builder = NEW #( ).
+    CREATE OBJECT lo_l_builder.
     lo_l_builder->add( '$PKG PROG ZHELLO / zhello.prog.abap hash1' ).
     lo_l_builder->add( '$PKG PROG ZHELLO / zhello.prog.xml  hash2' ).
     lo_l_builder->add( '$PKG DEVC $PKG   / $pkg.devc.xml    hash3' ).
     lo_mock->mt_local_files = lo_l_builder->mt_tab.
 
     " Remote
-    lo_r_builder = NEW #( ).
+    CREATE OBJECT lo_r_builder.
     lo_r_builder->add( '/ zhello.prog.abap hash1' ).
     lo_r_builder->add( '/ zhello.prog.xml  hash2' ).
     lo_r_builder->add( '/ $pkg.devc.xml    hash3' ).
     lo_mock->mt_remote_files = lo_r_builder->mt_tab.
 
-    li_cut = NEW zcl_abapgit_repo_checksums( iv_repo_key = '1' ).
+    CREATE OBJECT li_cut TYPE zcl_abapgit_repo_checksums EXPORTING iv_repo_key = '1'.
 
     li_cut->rebuild( ).
 
@@ -453,16 +453,16 @@ CLASS ltcl_test_checksums IMPLEMENTATION.
     DATA lv_cs_exp TYPE string.
     DATA lo_f_builder TYPE REF TO lcl_file_sig_builder.
 
-    lo_mock = NEW #( ).
+    CREATE OBJECT lo_mock.
 
     zcl_abapgit_repo_srv=>inject_instance( lo_mock ).
     zcl_abapgit_persist_injector=>set_repo_cs( me ).
 
-    lo_f_builder = NEW #( ).
+    CREATE OBJECT lo_f_builder.
     lo_f_builder->add( '/ zhello.prog.abap hash1' ).
     lo_f_builder->add( '/ zhello.prog.xml  hashNEW' ).
 
-    li_cut = NEW zcl_abapgit_repo_checksums( iv_repo_key = '1' ).
+    CREATE OBJECT li_cut TYPE zcl_abapgit_repo_checksums EXPORTING iv_repo_key = '1'.
 
     li_cut->update( lo_f_builder->mt_tab ).
 
@@ -508,25 +508,25 @@ CLASS ltcl_test_checksums IMPLEMENTATION.
     DATA lo_l_builder TYPE REF TO lcl_local_file_builder.
     DATA lo_r_builder TYPE REF TO lcl_remote_file_builder.
 
-    lo_mock = NEW #( ).
+    CREATE OBJECT lo_mock.
     zcl_abapgit_repo_srv=>inject_instance( lo_mock ).
     zcl_abapgit_persist_injector=>set_repo_cs( me ).
 
     " Local
-    lo_l_builder = NEW #( ).
+    CREATE OBJECT lo_l_builder.
     lo_l_builder->add( '@ @ @ / .abapgit.xml hashZ' ).
     lo_l_builder->add( '@ @ @ / .gitignore   whatever' ).
     lo_l_builder->add( '$PKG DEVC $PKG   / $pkg.devc.xml    hash3' ).
     lo_mock->mt_local_files = lo_l_builder->mt_tab.
 
     " Remote
-    lo_r_builder = NEW #( ).
+    CREATE OBJECT lo_r_builder.
     lo_r_builder->add( '/ .abapgit.xml     hashZ' ).
     lo_r_builder->add( '/ .gitignore       whatever' ).
     lo_r_builder->add( '/ $pkg.devc.xml    hash3' ).
     lo_mock->mt_remote_files = lo_r_builder->mt_tab.
 
-    li_cut = NEW zcl_abapgit_repo_checksums( iv_repo_key = '1' ).
+    CREATE OBJECT li_cut TYPE zcl_abapgit_repo_checksums EXPORTING iv_repo_key = '1'.
 
     li_cut->rebuild( ).
 
@@ -569,11 +569,11 @@ CLASS ltcl_update_calculator_test IMPLEMENTATION.
     DATA lo_l_builder TYPE REF TO lcl_local_file_builder.
     DATA lo_f_builder TYPE REF TO lcl_file_sig_builder.
 
-    lo_f_builder = NEW #( ).
+    CREATE OBJECT lo_f_builder.
     lo_f_builder->add( '/ zhello.prog.abap hash1' ).
     lo_f_builder->add( '/ zhello.prog.xml  hashNEW' ).
 
-    lo_l_builder = NEW #( ).
+    CREATE OBJECT lo_l_builder.
     lo_l_builder->add( '$PKG PROG ZHELLO / zhello.prog.abap hash1' ).
     lo_l_builder->add( '$PKG PROG ZHELLO / zhello.prog.xml  hash2' ).
     lo_l_builder->add( '$PKG DEVC $PKG   / $pkg.devc.xml    hash3' ).
