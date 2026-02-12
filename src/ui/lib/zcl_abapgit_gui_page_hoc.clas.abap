@@ -107,8 +107,8 @@ CLASS zcl_abapgit_gui_page_hoc IMPLEMENTATION.
       ENDTRY.
     ENDIF.
 
-    CREATE OBJECT lo_page EXPORTING ii_child_component = ii_child_component
-                                    is_control = ls_control.
+    lo_page = NEW #( ii_child_component = ii_child_component
+                     is_control = ls_control ).
 
     ri_page_wrap = lo_page.
 

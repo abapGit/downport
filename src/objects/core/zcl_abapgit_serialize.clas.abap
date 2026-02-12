@@ -237,7 +237,7 @@ CLASS zcl_abapgit_serialize IMPLEMENTATION.
       ii_log                = ii_log
       it_filter             = it_filter ).
 
-    CREATE OBJECT lo_filter.
+    lo_filter = NEW #( ).
 
     lo_filter->apply( EXPORTING it_filter = it_filter
                       CHANGING  ct_tadir  = lt_tadir ).
@@ -245,9 +245,7 @@ CLASS zcl_abapgit_serialize IMPLEMENTATION.
 * if there are less than 10 objects run in single thread
 * this helps a lot when debugging, plus performance gain
 * with low number of objects does not matter much
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( lines( lt_tadir ) < 10 ).
-    lv_force = temp1.
+    lv_force = xsdbool( lines( lt_tadir ) < 10 ).
 
     lt_found = serialize(
       iv_package          = iv_package
@@ -293,7 +291,7 @@ CLASS zcl_abapgit_serialize IMPLEMENTATION.
     ms_i18n_params-suppress_po_comments = is_local_settings-suppress_lxe_po_comments.
 
     IF mo_dot_abapgit IS NOT INITIAL.
-      CREATE OBJECT mo_abap_language_version EXPORTING io_dot_abapgit = mo_dot_abapgit.
+      mo_abap_language_version = NEW #( io_dot_abapgit = mo_dot_abapgit ).
     ENDIF.
 
   ENDMETHOD.
@@ -565,9 +563,13 @@ CLASS zcl_abapgit_serialize IMPLEMENTATION.
 
   METHOD is_parallelization_possible.
 
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( zcl_abapgit_factory=>get_environment( )->is_merged( ) = abap_false AND zcl_abapgit_persist_factory=>get_settings( )->read( )->get_parallel_proc_disabled( ) = abap_false AND zcl_abapgit_factory=>get_function_module( )->function_exists( 'Z_ABAPGIT_SERIALIZE_PARALLEL' ) = abap_true ).
-    rv_result = temp2.
+    rv_result = xsdbool( zcl_abapgit_factory=>get_environment( )->is_merged( ) = abap_false
+                   AND zcl_abapgit_persist_factory=>get_settings( )->read( )->get_parallel_proc_disabled( ) = abap_false
+                   " The function module below should always exist here as is_merged evaluated to false above.
+                   " It does however not exist in the transpiled version which then causes unit tests to fail.
+                   " Therefore the check needs to stay.
+                   AND zcl_abapgit_factory=>get_function_module(
+                                         )->function_exists( 'Z_ABAPGIT_SERIALIZE_PARALLEL' ) = abap_true ).
 
   ENDMETHOD.
 
@@ -640,13 +642,10 @@ CLASS zcl_abapgit_serialize IMPLEMENTATION.
         DESTINATION IN GROUP mv_group
         CALLING on_end_of_task ON END OF TASK
         EXPORTING
-          iv_obj_type             = is_tadir-object
-          iv_obj_name             = is_tadir-obj_name
-          iv_devclass             = is_tadir-devclass
-          iv_path                 = is_tadir-path
-          iv_srcsystem            = is_tadir-srcsystem
+          is_tadir                = is_tadir
           iv_abap_language_vers   = lv_abap_language_version
           iv_language             = ms_i18n_params-main_language
+          iv_path                 = is_tadir-path
           iv_main_language_only   = lv_main_language_only
           iv_suppress_po_comments = ms_i18n_params-suppress_po_comments
           it_translation_langs    = ms_i18n_params-translation_languages
@@ -681,6 +680,7 @@ CLASS zcl_abapgit_serialize IMPLEMENTATION.
     ls_file_item-item-obj_name  = is_tadir-obj_name.
     ls_file_item-item-devclass  = is_tadir-devclass.
     ls_file_item-item-srcsystem = is_tadir-srcsystem.
+    ls_file_item-item-origlang  = is_tadir-masterlang.
     IF mo_abap_language_version IS NOT INITIAL.
       ls_file_item-item-abap_language_version = mo_abap_language_version->get_repo_abap_language_version( ).
     ENDIF.
