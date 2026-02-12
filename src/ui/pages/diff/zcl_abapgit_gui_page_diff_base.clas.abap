@@ -261,15 +261,12 @@ CLASS zcl_abapgit_gui_page_diff_base IMPLEMENTATION.
 
   METHOD add_filter_sub_menu.
 
-    TYPES temp1 TYPE SORTED TABLE OF string WITH UNIQUE DEFAULT KEY.
-TYPES temp2 TYPE SORTED TABLE OF string WITH UNIQUE DEFAULT KEY.
-TYPES temp3 TYPE SORTED TABLE OF string WITH UNIQUE DEFAULT KEY.
-DATA:
+    DATA:
       lo_sub_filter TYPE REF TO zcl_abapgit_html_toolbar,
       lv_user       TYPE string,
-      lt_extensions TYPE temp1,
-      lt_obj_types  TYPE temp2,
-      lt_users      TYPE temp3.
+      lt_extensions TYPE SORTED TABLE OF string WITH UNIQUE DEFAULT KEY,
+      lt_obj_types  TYPE SORTED TABLE OF string WITH UNIQUE DEFAULT KEY,
+      lt_users      TYPE SORTED TABLE OF string WITH UNIQUE DEFAULT KEY.
 
     FIELD-SYMBOLS: <ls_diff> LIKE LINE OF mt_diff_files,
                    <lv_i>    TYPE string.
@@ -283,7 +280,7 @@ DATA:
     ENDLOOP.
 
     IF lines( lt_extensions ) > 1 OR lines( lt_obj_types ) > 1 OR lines( lt_users ) > 1.
-      CREATE OBJECT lo_sub_filter EXPORTING iv_id = 'diff-filter'.
+      lo_sub_filter = NEW #( iv_id = 'diff-filter' ).
 
       IF lines( lt_users ) > 1.
         lo_sub_filter->add( iv_txt = 'Only my changes'
@@ -298,9 +295,9 @@ DATA:
                             iv_typ = zif_abapgit_html=>c_action_type-separator ).
         LOOP AT lt_extensions ASSIGNING <lv_i>.
           lo_sub_filter->add( iv_txt = <lv_i>
-                       iv_typ = zif_abapgit_html=>c_action_type-onclick
-                       iv_aux = 'extension'
-                       iv_chk = abap_true ).
+                              iv_typ = zif_abapgit_html=>c_action_type-onclick
+                              iv_aux = 'extension'
+                              iv_chk = abap_true ).
         ENDLOOP.
       ENDIF.
 
@@ -310,9 +307,9 @@ DATA:
                             iv_typ = zif_abapgit_html=>c_action_type-separator ).
         LOOP AT lt_obj_types ASSIGNING <lv_i>.
           lo_sub_filter->add( iv_txt = <lv_i>
-                       iv_typ = zif_abapgit_html=>c_action_type-onclick
-                       iv_aux = 'object-type'
-                       iv_chk = abap_true ).
+                              iv_typ = zif_abapgit_html=>c_action_type-onclick
+                              iv_aux = 'object-type'
+                              iv_chk = abap_true ).
         ENDLOOP.
       ENDIF.
 
@@ -322,9 +319,9 @@ DATA:
                             iv_typ = zif_abapgit_html=>c_action_type-separator ).
         LOOP AT lt_users ASSIGNING <lv_i>.
           lo_sub_filter->add( iv_txt = <lv_i>
-                       iv_typ = zif_abapgit_html=>c_action_type-onclick
-                       iv_aux = 'changed-by'
-                       iv_chk = abap_true ).
+                              iv_typ = zif_abapgit_html=>c_action_type-onclick
+                              iv_aux = 'changed-by'
+                              iv_chk = abap_true ).
         ENDLOOP.
       ENDIF.
 
@@ -341,16 +338,16 @@ DATA:
           lv_jump_target TYPE string.
     FIELD-SYMBOLS: <ls_diff> LIKE LINE OF mt_diff_files.
 
-    CREATE OBJECT lo_sub_jump EXPORTING iv_id = 'jump'.
+    lo_sub_jump = NEW #( iv_id = 'jump' ).
 
     LOOP AT mt_diff_files ASSIGNING <ls_diff>.
 
       lv_jump_target = <ls_diff>-path && <ls_diff>-filename.
 
       lo_sub_jump->add(
-          iv_id  = |li_jump_{ sy-tabix }|
-          iv_txt = lv_jump_target
-          iv_typ = zif_abapgit_html=>c_action_type-onclick ).
+        iv_id  = |li_jump_{ sy-tabix }|
+        iv_txt = lv_jump_target
+        iv_typ = zif_abapgit_html=>c_action_type-onclick ).
 
     ENDLOOP.
 
@@ -399,7 +396,7 @@ DATA:
     DATA lo_sub_view TYPE REF TO zcl_abapgit_html_toolbar.
     DATA lv_txt TYPE string.
 
-    CREATE OBJECT lo_sub_view EXPORTING iv_id = 'diff-view'.
+    lo_sub_view = NEW #( iv_id = 'diff-view' ).
 
     IF ms_view-hide_diffs = abap_true.
       lv_txt = 'Expand All Diffs'.
@@ -543,12 +540,12 @@ DATA:
 
     get_files_and_status(
       EXPORTING
-        is_file    = is_file
-        is_object  = is_object
+        is_file   = is_file
+        is_object = is_object
       IMPORTING
-        et_local   = lt_local
-        et_remote  = lt_remote
-        et_status  = lt_status ).
+        et_local  = lt_local
+        et_remote = lt_remote
+        et_status = lt_status ).
 
     IF is_file IS NOT INITIAL.        " Diff for one file
 
@@ -615,9 +612,9 @@ DATA:
 
     IF mi_repo IS NOT INITIAL.
       calculate_diff(
-          is_file   = is_file
-          is_object = is_object
-          it_files  = it_files ).
+        is_file   = is_file
+        is_object = is_object
+        it_files  = it_files ).
 
       IF lines( mt_diff_files ) = 0.
         zcx_abapgit_exception=>raise(
@@ -648,7 +645,7 @@ DATA:
     ENDIF.
 
     IF ls_item IS NOT INITIAL.
-      CREATE OBJECT lo_filter EXPORTING is_item = ls_item.
+      lo_filter = NEW #( is_item = ls_item ).
 
       et_local  = mi_repo->get_files_local_filtered( lo_filter ).
       et_remote = mi_repo->get_files_remote(
@@ -727,9 +724,7 @@ DATA:
     READ TABLE it_files WITH KEY file-path     = is_status-path
                                  file-filename = is_status-filename
                         TRANSPORTING NO FIELDS.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_is_file_requested = temp1.
+    rv_is_file_requested = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -737,9 +732,7 @@ DATA:
   METHOD is_refresh.
 
     FIND FIRST OCCURRENCE OF REGEX |^{ c_actions-refresh_prefix }| IN iv_action ##REGEX_POSIX.
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( sy-subrc = 0 ).
-    rv_is_refrseh = temp2.
+    rv_is_refrseh = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -847,7 +840,7 @@ DATA:
     DATA: lv_beacon  TYPE string,
           lt_beacons TYPE zif_abapgit_definitions=>ty_string_tt.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     IF is_diff_line-beacon > 0.
       lt_beacons = is_diff-o_diff->get_beacons( ).
@@ -893,7 +886,7 @@ DATA:
 
     DATA lv_display TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( |<div class="diff" data-extension="{ is_diff-type
       }" data-object-type="{ is_diff-obj_type
@@ -931,7 +924,7 @@ DATA:
           lv_jump  TYPE string,
           lv_link  TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div class="diff_head">' ).
 
@@ -954,9 +947,16 @@ DATA:
         CLEAR: ls_stats-insert, ls_stats-delete.
       ENDIF.
 
+      " Count of updated lines (yellow) is only shown in split view
+      IF mv_unified = abap_true.
+        ls_stats-insert = ls_stats-insert + ls_stats-update.
+        ls_stats-delete = ls_stats-delete + ls_stats-update.
+      ENDIF.
       ri_html->add( |<span class="diff_banner diff_ins">+ { ls_stats-insert }</span>| ).
       ri_html->add( |<span class="diff_banner diff_del">- { ls_stats-delete }</span>| ).
-      ri_html->add( |<span class="diff_banner diff_upd">~ { ls_stats-update }</span>| ).
+      IF mv_unified = abap_false.
+        ri_html->add( |<span class="diff_banner diff_upd">~ { ls_stats-update }</span>| ).
+      ENDIF.
     ENDIF.
 
     " no links for nonexistent or deleted objects
@@ -1007,7 +1007,7 @@ DATA:
 
     IF is_diff-fstate = c_fstate-both AND mv_unified = abap_true.
       ii_html->add( '<span class="attention pad-sides">Attention: Unified mode'
-                 && ' highlighting for MM assumes local file is newer ! </span>' ).
+        && ' highlighting for MM assumes local file is newer ! </span>' ).
     ENDIF.
 
     IF is_diff-obj_type IS NOT INITIAL
@@ -1037,7 +1037,7 @@ DATA:
 
     lo_highlighter = zcl_abapgit_syntax_factory=>create( iv_filename     = is_diff-filename
                                                          iv_hidden_chars = ms_view-hidden_chars ).
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     lt_diffs = is_diff-o_diff->get( ).
 
@@ -1108,7 +1108,7 @@ DATA:
 
     DATA ls_diff_line TYPE zif_abapgit_definitions=>ty_diff.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     IF mv_unified = abap_true.
       ls_diff_line-old = 'No diffs found'.
@@ -1131,7 +1131,7 @@ DATA:
           lv_mark TYPE string,
           lv_bg   TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     " Note: CSS classes "new" and "old" are used to enable column-based copy to clipboard
 
@@ -1181,10 +1181,10 @@ DATA:
     ENDIF.
 
     render_line_split_row(
-        ii_html   = ri_html
-        iv_fstate = iv_fstate
-        iv_old    = lv_old
-        iv_new    = lv_new ).
+      ii_html   = ri_html
+      iv_fstate = iv_fstate
+      iv_old    = lv_old
+      iv_new    = lv_new ).
 
     ri_html->add( '</tr>' ).
 
@@ -1208,7 +1208,7 @@ DATA:
 
     FIELD-SYMBOLS <ls_diff_line> LIKE LINE OF mt_delayed_lines.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     " Note: CSS classes "new" and "old" are used to enable column-based copy to clipboard
 
@@ -1260,7 +1260,7 @@ DATA:
 
   METHOD render_scripts.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
 
@@ -1291,7 +1291,7 @@ DATA:
 
   METHOD render_table_head.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
     ri_html->add( '<thead class="header">' ).
     ri_html->add( '<tr>' ).
 
@@ -1350,7 +1350,7 @@ DATA:
 
         mv_unified = zcl_abapgit_persist_factory=>get_user( )->toggle_diff_unified( ).
 
-        rs_handled-page  = zcl_abapgit_gui_page_hoc=>create(
+        rs_handled-page = zcl_abapgit_gui_page_hoc=>create(
           iv_page_title         = 'Diff'
           iv_page_layout        = get_page_layout( )
           ii_page_menu_provider = me
@@ -1360,33 +1360,23 @@ DATA:
 
       WHEN c_actions-toggle_hide_diffs. " Toggle display of diffs
 
-        DATA temp3 TYPE xsdboolean.
-        temp3 = boolc( ms_view-hide_diffs = abap_false ).
-        ms_view-hide_diffs = temp3.
+        ms_view-hide_diffs = xsdbool( ms_view-hide_diffs = abap_false ).
 
       WHEN c_actions-toggle_hidden_chars. " Toggle display of hidden characters
 
-        DATA temp4 TYPE xsdboolean.
-        temp4 = boolc( ms_view-hidden_chars = abap_false ).
-        ms_view-hidden_chars = temp4.
+        ms_view-hidden_chars = xsdbool( ms_view-hidden_chars = abap_false ).
 
       WHEN c_actions-toggle_ignore_indent. " Toggle ignore indentation
 
-        DATA temp5 TYPE xsdboolean.
-        temp5 = boolc( ms_view-ignore_indent = abap_false ).
-        ms_view-ignore_indent = temp5.
+        ms_view-ignore_indent = xsdbool( ms_view-ignore_indent = abap_false ).
 
       WHEN c_actions-toggle_ignore_comments. " Toggle ignore comments
 
-        DATA temp6 TYPE xsdboolean.
-        temp6 = boolc( ms_view-ignore_comments = abap_false ).
-        ms_view-ignore_comments = temp6.
+        ms_view-ignore_comments = xsdbool( ms_view-ignore_comments = abap_false ).
 
       WHEN c_actions-toggle_ignore_case. " Toggle case sensitivity
 
-        DATA temp7 TYPE xsdboolean.
-        temp7 = boolc( ms_view-ignore_case = abap_false ).
-        ms_view-ignore_case = temp7.
+        ms_view-ignore_case = xsdbool( ms_view-ignore_case = abap_false ).
 
       WHEN OTHERS.
 
@@ -1458,7 +1448,7 @@ DATA:
 
     register_handlers( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     li_progress = zcl_abapgit_progress=>get_instance( lines( mt_diff_files ) ).
 
