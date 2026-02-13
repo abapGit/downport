@@ -46,9 +46,10 @@ CLASS zcl_abapgit_object_dtel IMPLEMENTATION.
 
   METHOD deserialize_texts.
 
-    DATA: lv_name       TYPE ddobjname,
+    TYPES temp1 TYPE TABLE OF langu.
+DATA: lv_name       TYPE ddobjname,
           ls_dd04v_tmp  TYPE dd04v,
-          lt_i18n_langs TYPE TABLE OF langu,
+          lt_i18n_langs TYPE temp1,
           lt_dd04_texts TYPE ty_dd04_texts.
 
     FIELD-SYMBOLS: <lv_lang>      LIKE LINE OF lt_i18n_langs,
@@ -98,11 +99,12 @@ CLASS zcl_abapgit_object_dtel IMPLEMENTATION.
 
   METHOD serialize_texts.
 
-    DATA: lv_name            TYPE ddobjname,
+    TYPES temp2 TYPE TABLE OF langu.
+DATA: lv_name            TYPE ddobjname,
           lv_index           TYPE i,
           ls_dd04v           TYPE dd04v,
           lt_dd04_texts      TYPE ty_dd04_texts,
-          lt_i18n_langs      TYPE TABLE OF langu,
+          lt_i18n_langs      TYPE temp2,
           lt_language_filter TYPE zif_abapgit_environment=>ty_system_language_filter.
 
     FIELD-SYMBOLS: <lv_lang>      LIKE LINE OF lt_i18n_langs,
@@ -261,7 +263,9 @@ CLASS zcl_abapgit_object_dtel IMPLEMENTATION.
       SELECT SINGLE rollname FROM dd04l INTO lv_rollname
         WHERE rollname = lv_rollname.
     ENDIF.
-    rv_bool = xsdbool( sy-subrc = 0 ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( sy-subrc = 0 ).
+    rv_bool = temp1.
 
   ENDMETHOD.
 
