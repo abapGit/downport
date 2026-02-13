@@ -176,7 +176,7 @@ CLASS zcl_abapgit_dot_abapgit IMPLEMENTATION.
     ls_data-starting_folder = '/src/'.
     ls_data-folder_logic    = zif_abapgit_dot_abapgit=>c_folder_logic-prefix.
 
-    CREATE OBJECT ro_dot_abapgit EXPORTING is_data = ls_data.
+    ro_dot_abapgit = NEW #( is_data = ls_data ).
 
   ENDMETHOD.
 
@@ -196,7 +196,7 @@ CLASS zcl_abapgit_dot_abapgit IMPLEMENTATION.
 
     ls_data = from_xml( lv_xml ).
 
-    CREATE OBJECT ro_dot_abapgit EXPORTING is_data = ls_data.
+    ro_dot_abapgit = NEW #( is_data = ls_data ).
 
   ENDMETHOD.
 
@@ -321,8 +321,19 @@ CLASS zcl_abapgit_dot_abapgit IMPLEMENTATION.
       RETURN.
     ENDIF.
 
+    " Ignore all files outside of starting folder tree
+    IF ms_data-starting_folder <> '/' AND NOT lv_name CP lv_starting.
+      rv_ignored = abap_true.
+    ENDIF.
+
+    " Allow all files in data folder
+    IF iv_path = zif_abapgit_data_config=>c_default_path.
+      rv_ignored = abap_false.
+    ENDIF.
+
     " Ignore all files matching pattern in ignore list
-    LOOP AT ms_data-ignore INTO lv_ignore.
+    " Patterns are read top-to-bottom with later ones overriding earlier (like .gitignore)
+    LOOP AT ms_data-ignore INTO lv_ignore WHERE table_line IS NOT INITIAL.
       " # needs to be escaped since it's the escape character
       " and used as namespace separator in filenames, for example
       lv_ignore = replace(
@@ -332,18 +343,11 @@ CLASS zcl_abapgit_dot_abapgit IMPLEMENTATION.
         occ  = 0 ).
       IF lv_name CP lv_ignore.
         rv_ignored = abap_true.
-        RETURN.
+      ENDIF.
+      IF lv_ignore(1) = '!' AND lv_name CP lv_ignore+1(*).
+        rv_ignored = abap_false.
       ENDIF.
     ENDLOOP.
-
-    " Ignore all files outside of starting folder tree
-    IF ms_data-starting_folder <> '/' AND NOT lv_name CP lv_starting.
-      rv_ignored = abap_true.
-    ENDIF.
-
-    IF iv_path = zif_abapgit_data_config=>c_default_path.
-      rv_ignored = abap_false.
-    ENDIF.
 
   ENDMETHOD.
 
