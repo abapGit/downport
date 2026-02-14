@@ -202,15 +202,15 @@ CLASS zcl_abapgit_gui_page_data IMPLEMENTATION.
 
     super->constructor( ).
 
-    mo_validation_log = NEW #( ).
-    mo_form_data = NEW #( ).
+    CREATE OBJECT mo_validation_log.
+    CREATE OBJECT mo_form_data.
 
     mo_form = get_form_schema( ).
     mo_form_util = zcl_abapgit_html_form_utils=>create( mo_form ).
 
     mi_repo = zcl_abapgit_repo_srv=>get_instance( )->get( iv_key ).
 
-    mi_config = NEW zcl_abapgit_data_config( ).
+    CREATE OBJECT mi_config TYPE zcl_abapgit_data_config.
     mi_config->zif_abapgit_data_persistence~load_config( iv_key ).
 
   ENDMETHOD.
@@ -220,7 +220,7 @@ CLASS zcl_abapgit_gui_page_data IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_data.
 
-    lo_component = NEW #( iv_key = iv_key ).
+    CREATE OBJECT lo_component EXPORTING iv_key = iv_key.
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title         = 'Data Config'
@@ -314,14 +314,14 @@ CLASS zcl_abapgit_gui_page_data IMPLEMENTATION.
     DATA lt_configs TYPE zif_abapgit_data_config=>ty_config_tt.
     DATA ls_config LIKE LINE OF lt_configs.
 
-    ri_html = NEW zcl_abapgit_html( ).
-    lo_form_data = NEW #( ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    CREATE OBJECT lo_form_data.
 
     lt_configs = mi_config->get_configs( ).
 
     LOOP AT lt_configs INTO ls_config.
       lo_form = zcl_abapgit_html_form=>create( ).
-      lo_form_data = NEW #( ).
+      CREATE OBJECT lo_form_data.
 
       lo_form_data->set(
         iv_key = c_id-table
@@ -432,7 +432,7 @@ CLASS zcl_abapgit_gui_page_data IMPLEMENTATION.
 
     register_handlers( ).
 
-    ri_html = NEW zcl_abapgit_html( ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
     ri_html->add( '<div class="repo">' ).
     ri_html->add( render_existing( ) ).
     mo_form_data->delete( 'table' ).
