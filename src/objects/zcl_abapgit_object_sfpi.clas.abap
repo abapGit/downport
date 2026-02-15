@@ -130,7 +130,9 @@ CLASS zcl_abapgit_object_sfpi IMPLEMENTATION.
     SELECT SINGLE name FROM fpinterface
       INTO lv_name
       WHERE name = ms_item-obj_name.
-    rv_bool = xsdbool( sy-subrc = 0 ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( sy-subrc = 0 ).
+    rv_bool = temp1.
 
   ENDMETHOD.
 
