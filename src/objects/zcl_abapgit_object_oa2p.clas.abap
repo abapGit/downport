@@ -194,9 +194,10 @@ CLASS zcl_abapgit_object_oa2p IMPLEMENTATION.
 
   METHOD zif_abapgit_object~is_locked.
 
-    DATA: lv_profile_name TYPE eqegraarg,
+    TYPES temp1 TYPE STANDARD TABLE OF seqg3.
+DATA: lv_profile_name TYPE eqegraarg,
           lv_lock_number  TYPE i,
-          lt_locks        TYPE STANDARD TABLE OF seqg3.
+          lt_locks        TYPE temp1.
 
     lv_profile_name = mv_profile.
 
@@ -211,7 +212,9 @@ CLASS zcl_abapgit_object_oa2p IMPLEMENTATION.
         enq     = lt_locks.    " Number of chosen lock entries
 
 
-    rv_is_locked = xsdbool( lv_lock_number > 0 ).
+    DATA temp2 TYPE xsdboolean.
+    temp2 = boolc( lv_lock_number > 0 ).
+    rv_is_locked = temp2.
 
   ENDMETHOD.
 
