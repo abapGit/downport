@@ -342,7 +342,8 @@ CLASS zcl_abapgit_syntax_css IMPLEMENTATION.
 
   METHOD insert_keywords.
 
-    DATA: lt_keywords TYPE STANDARD TABLE OF string,
+    TYPES temp1 TYPE STANDARD TABLE OF string.
+DATA: lt_keywords TYPE temp1,
           ls_keyword  TYPE ty_keyword.
 
     FIELD-SYMBOLS: <lv_keyword> TYPE any.
@@ -365,7 +366,9 @@ CLASS zcl_abapgit_syntax_css IMPLEMENTATION.
 
     lv_str = to_lower( iv_chunk ).
     READ TABLE gt_keywords WITH TABLE KEY keyword = lv_str TRANSPORTING NO FIELDS.
-    rv_yes = xsdbool( sy-subrc = 0 ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( sy-subrc = 0 ).
+    rv_yes = temp1.
 
   ENDMETHOD.
 
