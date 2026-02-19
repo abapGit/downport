@@ -78,7 +78,7 @@ CLASS ltd_git_transport IMPLEMENTATION.
 
   METHOD zif_abapgit_git_transport~branches.
 
-    ri_branch_list = NEW ltd_branch_list( ).
+    CREATE OBJECT ri_branch_list TYPE ltd_branch_list.
 
   ENDMETHOD.
 
@@ -249,7 +249,7 @@ CLASS ltcl_validate_form IMPLEMENTATION.
     DATA: ls_data TYPE zif_abapgit_persistence=>ty_repo.
     DATA: li_repo_online TYPE REF TO zif_abapgit_repo_online.
 
-    mo_git_transport_mock = NEW ltd_git_transport( ).
+    CREATE OBJECT mo_git_transport_mock TYPE ltd_git_transport.
     zcl_abapgit_git_injector=>set_git_transport( mo_git_transport_mock ).
 
     " Disable GUI
@@ -258,14 +258,14 @@ CLASS ltcl_validate_form IMPLEMENTATION.
     ls_data-key = 1.
     ls_data-branch_name = 'main'.
 
-    li_repo_online = NEW ltd_repo_online( ).
+    CREATE OBJECT li_repo_online TYPE ltd_repo_online.
 
-    mo_given_form_data = NEW #( ).
+    CREATE OBJECT mo_given_form_data.
     mo_given_form_data->set(
         iv_key = zcl_abapgit_gui_page_sett_remo=>c_id-branch
         iv_val = 'main' ).
 
-    mo_cut = NEW #( ii_repo = li_repo_online ).
+    CREATE OBJECT mo_cut EXPORTING ii_repo = li_repo_online.
 
   ENDMETHOD.
 
