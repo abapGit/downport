@@ -14,11 +14,9 @@ CLASS zcl_abapgit_object_wdyn DEFINITION
     CONSTANTS c_longtext_id_wd TYPE dokil-id VALUE 'WD' ##NO_TEXT.
     CONSTANTS c_longtext_name_wc TYPE string VALUE 'LONGTEXTS_WC' ##NO_TEXT.
 
-    TYPES temp1_cda9d1eaa8 TYPE TABLE OF wdy_ctlr_compo_vrs.
-TYPES temp2_cda9d1eaa8 TYPE TABLE OF wdy_ctlr_compo_source_vrs.
-DATA:
-      mt_components TYPE temp1_cda9d1eaa8,
-      mt_sources    TYPE temp2_cda9d1eaa8.
+    DATA:
+      mt_components TYPE TABLE OF wdy_ctlr_compo_vrs,
+      mt_sources    TYPE TABLE OF wdy_ctlr_compo_source_vrs.
 
     METHODS:
       get_limu_objects
@@ -188,14 +186,14 @@ CLASS zcl_abapgit_object_wdyn IMPLEMENTATION.
     ls_key-controller_name = is_controller-definition-controller_name.
 
     lv_found = cl_wdy_md_controller=>check_existency(
-          component_name  = ls_key-component_name
-          controller_name = ls_key-controller_name ).
+      component_name  = ls_key-component_name
+      controller_name = ls_key-controller_name ).
     IF lv_found = abap_false.
       TRY.
           li_controller ?= cl_wdy_md_controller=>create_complete(
-                component_name  = ls_key-component_name
-                controller_name = ls_key-controller_name
-                controller_type = is_controller-definition-controller_type ).
+            component_name  = ls_key-component_name
+            controller_name = ls_key-controller_name
+            controller_type = is_controller-definition-controller_type ).
           li_controller->save_to_database( ).
           li_controller->unlock( ).
         CATCH cx_wdy_md_exception INTO lx_error.
@@ -339,14 +337,14 @@ CLASS zcl_abapgit_object_wdyn IMPLEMENTATION.
     ls_key-view_name      = is_view-definition-view_name.
 
     lv_found = cl_wdy_md_abstract_view=>check_existency(
-                 component_name = ls_key-component_name
-                 name           = ls_key-view_name ).
+      component_name = ls_key-component_name
+      name           = ls_key-view_name ).
     IF lv_found = abap_false.
       TRY.
           li_view = cl_wdy_md_abstract_view=>create(
-                      component_name = is_view-definition-component_name
-                      view_name      = is_view-definition-view_name
-                      type           = is_view-definition-type ).
+            component_name = is_view-definition-component_name
+            view_name      = is_view-definition-view_name
+            type           = is_view-definition-type ).
           li_view->save_to_database( ).
           li_view->unlock( ).
         CATCH cx_wdy_md_exception INTO lx_error.
@@ -408,16 +406,16 @@ CLASS zcl_abapgit_object_wdyn IMPLEMENTATION.
       ls_sources LIKE LINE OF mt_sources.
 
     " Old format
-    ii_xml->read( EXPORTING iv_name  = 'SOURCES'
-                  CHANGING cg_data = mt_sources ).
+    ii_xml->read( EXPORTING iv_name = 'SOURCES'
+                  CHANGING  cg_data = mt_sources ).
 
     IF mt_sources IS NOT INITIAL.
       RETURN.
     ENDIF.
 
     " New format
-    ii_xml->read( EXPORTING iv_name  = 'FILES'
-                  CHANGING cg_data = lt_extra ).
+    ii_xml->read( EXPORTING iv_name = 'FILES'
+                  CHANGING  cg_data = lt_extra ).
 
     LOOP AT lt_extra INTO lv_extra.
       lv_line = 0.
@@ -567,16 +565,11 @@ CLASS zcl_abapgit_object_wdyn IMPLEMENTATION.
 
   METHOD read_controller.
 
-    TYPES temp3 TYPE TABLE OF wdy_ctlr_compo_vrs.
-TYPES temp4 TYPE TABLE OF wdy_ctlr_compo_source_vrs.
-TYPES temp1 TYPE TABLE OF wdy_controller.
-TYPES temp2 TYPE TABLE OF smodilog.
-TYPES temp5 TYPE TABLE OF smodisrc.
-DATA: lt_components   TYPE temp3,
-          lt_sources      TYPE temp4,
-          lt_definition   TYPE temp1,
-          lt_psmodilog    TYPE temp2,
-          lt_psmodisrc    TYPE temp5,
+    DATA: lt_components   TYPE TABLE OF wdy_ctlr_compo_vrs,
+          lt_sources      TYPE TABLE OF wdy_ctlr_compo_source_vrs,
+          lt_definition   TYPE TABLE OF wdy_controller,
+          lt_psmodilog    TYPE TABLE OF smodilog,
+          lt_psmodisrc    TYPE TABLE OF smodisrc,
           lt_fm_param     TYPE abap_func_parmbind_tab,
           lt_fm_exception TYPE abap_func_excpbind_tab.
 
@@ -586,76 +579,76 @@ DATA: lt_components   TYPE temp3,
 *   Calling FM dynamically because version 702 has less parameters
 
 *   FM parameters
-    add_fm_param_exporting( EXPORTING iv_name     = 'CONTROLLER_KEY'
-                                      ig_value    = is_key
+    add_fm_param_exporting( EXPORTING iv_name  = 'CONTROLLER_KEY'
+                                      ig_value = is_key
                             CHANGING  ct_param = lt_fm_param ).
-    add_fm_param_exporting( EXPORTING iv_name     = 'GET_ALL_TRANSLATIONS'
-                                      ig_value    = abap_false
+    add_fm_param_exporting( EXPORTING iv_name  = 'GET_ALL_TRANSLATIONS'
+                                      ig_value = abap_false
                             CHANGING  ct_param = lt_fm_param ).
-    add_fm_param_tables( EXPORTING iv_name = 'DEFINITION'
+    add_fm_param_tables( EXPORTING iv_name  = 'DEFINITION'
                          CHANGING  ct_value = lt_definition
                                    ct_param = lt_fm_param ).
-    add_fm_param_tables( EXPORTING iv_name = 'DESCRIPTIONS'
-                         CHANGING ct_value = rs_controller-descriptions
-                                  ct_param = lt_fm_param ).
-    add_fm_param_tables( EXPORTING iv_name = 'CONTROLLER_USAGES'
-                         CHANGING ct_value = rs_controller-controller_usages
-                                  ct_param = lt_fm_param ).
-    add_fm_param_tables( EXPORTING iv_name = 'CONTROLLER_COMPONENTS'
-                         CHANGING ct_value = lt_components
-                                  ct_param = lt_fm_param ).
-    add_fm_param_tables( EXPORTING iv_name = 'CONTROLLER_COMPONENT_SOURCES'
-                         CHANGING ct_value = lt_sources
-                                  ct_param = lt_fm_param ).
-    add_fm_param_tables( EXPORTING iv_name = 'CONTROLLER_COMPONENT_TEXTS'
-                         CHANGING ct_value = rs_controller-controller_component_texts
-                                  ct_param = lt_fm_param ).
-    add_fm_param_tables( EXPORTING iv_name = 'CONTROLLER_PARAMETERS'
-                         CHANGING ct_value = rs_controller-controller_parameters
-                                  ct_param = lt_fm_param ).
-    add_fm_param_tables( EXPORTING iv_name = 'CONTROLLER_PARAMETER_TEXTS'
-                         CHANGING ct_value = rs_controller-controller_parameter_texts
-                                  ct_param = lt_fm_param ).
-    add_fm_param_tables( EXPORTING iv_name = 'CONTEXT_NODES'
-                         CHANGING ct_value = rs_controller-context_nodes
-                                  ct_param = lt_fm_param ).
-    add_fm_param_tables( EXPORTING iv_name = 'CONTEXT_ATTRIBUTES'
-                         CHANGING ct_value = rs_controller-context_attributes
-                                  ct_param = lt_fm_param ).
-    add_fm_param_tables( EXPORTING iv_name = 'CONTEXT_MAPPINGS'
-                         CHANGING ct_value = rs_controller-context_mappings
-                                  ct_param = lt_fm_param ).
-    add_fm_param_tables( EXPORTING iv_name = 'FIELDGROUPS'
-                         CHANGING ct_value = rs_controller-fieldgroups
-                                  ct_param = lt_fm_param ).
+    add_fm_param_tables( EXPORTING iv_name  = 'DESCRIPTIONS'
+                         CHANGING  ct_value = rs_controller-descriptions
+                                   ct_param = lt_fm_param ).
+    add_fm_param_tables( EXPORTING iv_name  = 'CONTROLLER_USAGES'
+                         CHANGING  ct_value = rs_controller-controller_usages
+                                   ct_param = lt_fm_param ).
+    add_fm_param_tables( EXPORTING iv_name  = 'CONTROLLER_COMPONENTS'
+                         CHANGING  ct_value = lt_components
+                                   ct_param = lt_fm_param ).
+    add_fm_param_tables( EXPORTING iv_name  = 'CONTROLLER_COMPONENT_SOURCES'
+                         CHANGING  ct_value = lt_sources
+                                   ct_param = lt_fm_param ).
+    add_fm_param_tables( EXPORTING iv_name  = 'CONTROLLER_COMPONENT_TEXTS'
+                         CHANGING  ct_value = rs_controller-controller_component_texts
+                                   ct_param = lt_fm_param ).
+    add_fm_param_tables( EXPORTING iv_name  = 'CONTROLLER_PARAMETERS'
+                         CHANGING  ct_value = rs_controller-controller_parameters
+                                   ct_param = lt_fm_param ).
+    add_fm_param_tables( EXPORTING iv_name  = 'CONTROLLER_PARAMETER_TEXTS'
+                         CHANGING  ct_value = rs_controller-controller_parameter_texts
+                                   ct_param = lt_fm_param ).
+    add_fm_param_tables( EXPORTING iv_name  = 'CONTEXT_NODES'
+                         CHANGING  ct_value = rs_controller-context_nodes
+                                   ct_param = lt_fm_param ).
+    add_fm_param_tables( EXPORTING iv_name  = 'CONTEXT_ATTRIBUTES'
+                         CHANGING  ct_value = rs_controller-context_attributes
+                                   ct_param = lt_fm_param ).
+    add_fm_param_tables( EXPORTING iv_name  = 'CONTEXT_MAPPINGS'
+                         CHANGING  ct_value = rs_controller-context_mappings
+                                   ct_param = lt_fm_param ).
+    add_fm_param_tables( EXPORTING iv_name  = 'FIELDGROUPS'
+                         CHANGING  ct_value = rs_controller-fieldgroups
+                                   ct_param = lt_fm_param ).
 *   Version 702 doesn't have these two attributes so we
 *   use them dynamically for downward compatibility
     ASSIGN COMPONENT 'CONTROLLER_EXCEPTIONS' OF STRUCTURE rs_controller TO <lt_ctrl_exceptions>.
     IF sy-subrc = 0.
-      add_fm_param_tables( EXPORTING iv_name = 'CONTROLLER_EXCEPTIONS'
-                           CHANGING ct_value = <lt_ctrl_exceptions>
-                                    ct_param = lt_fm_param ).
+      add_fm_param_tables( EXPORTING iv_name  = 'CONTROLLER_EXCEPTIONS'
+                           CHANGING  ct_value = <lt_ctrl_exceptions>
+                                     ct_param = lt_fm_param ).
     ENDIF.
     ASSIGN COMPONENT 'CONTROLLER_EXCEPTION_TEXTS' OF STRUCTURE rs_controller TO <lt_ctrl_exception_texts>.
     IF sy-subrc = 0.
-      add_fm_param_tables( EXPORTING iv_name = 'CONTROLLER_EXCEPTION_TEXTS'
-                           CHANGING ct_value = <lt_ctrl_exception_texts>
-                                    ct_param = lt_fm_param ).
+      add_fm_param_tables( EXPORTING iv_name  = 'CONTROLLER_EXCEPTION_TEXTS'
+                           CHANGING  ct_value = <lt_ctrl_exception_texts>
+                                     ct_param = lt_fm_param ).
     ENDIF.
-    add_fm_param_tables( EXPORTING iv_name = 'PSMODILOG'
-                         CHANGING ct_value = lt_psmodilog
-                                  ct_param = lt_fm_param ).
-    add_fm_param_tables( EXPORTING iv_name = 'PSMODISRC'
-                         CHANGING ct_value = lt_psmodisrc
-                                  ct_param = lt_fm_param ).
+    add_fm_param_tables( EXPORTING iv_name  = 'PSMODILOG'
+                         CHANGING  ct_value = lt_psmodilog
+                                   ct_param = lt_fm_param ).
+    add_fm_param_tables( EXPORTING iv_name  = 'PSMODISRC'
+                         CHANGING  ct_value = lt_psmodisrc
+                                   ct_param = lt_fm_param ).
 
 *   FM exceptions
-    add_fm_exception( EXPORTING iv_name = 'NOT_EXISTING'
-                                iv_value = 1
-                      CHANGING ct_exception = lt_fm_exception ).
-    add_fm_exception( EXPORTING iv_name = 'OTHERS'
-                                iv_value = 2
-                      CHANGING ct_exception = lt_fm_exception ).
+    add_fm_exception( EXPORTING iv_name      = 'NOT_EXISTING'
+                                iv_value     = 1
+                      CHANGING  ct_exception = lt_fm_exception ).
+    add_fm_exception( EXPORTING iv_name      = 'OTHERS'
+                                iv_value     = 2
+                      CHANGING  ct_exception = lt_fm_exception ).
 
     CALL FUNCTION 'WDYC_GET_OBJECT'
       PARAMETER-TABLE
@@ -684,13 +677,11 @@ DATA: lt_components   TYPE temp3,
 
   METHOD read_definition.
 
-    TYPES temp8 TYPE TABLE OF wdy_component.
-TYPES temp9 TYPE TABLE OF smodilog.
-TYPES temp6 TYPE TABLE OF smodisrc.
-DATA: lt_definition TYPE temp8,
-          lt_psmodilog  TYPE temp9,
-          lt_psmodisrc  TYPE temp6.
+    DATA: lt_definition TYPE TABLE OF wdy_component,
+          lt_psmodilog  TYPE TABLE OF smodilog,
+          lt_psmodisrc  TYPE TABLE OF smodisrc.
 
+    FIELD-SYMBOLS <lv_field> TYPE any.
 
     CALL FUNCTION 'WDYD_GET_OBJECT'
       EXPORTING
@@ -727,17 +718,19 @@ DATA: lt_definition TYPE temp8,
            rs_definition-definition-gendate,
            rs_definition-definition-gentime.
 
+    ASSIGN COMPONENT 'GENVERSION' OF STRUCTURE rs_definition-definition TO <lv_field>.
+    IF sy-subrc = 0.
+      CLEAR <lv_field>.
+    ENDIF.
+
   ENDMETHOD.
 
 
   METHOD read_view.
 
-    TYPES temp11 TYPE TABLE OF wdy_view_vrs.
-TYPES temp12 TYPE TABLE OF smodilog.
-TYPES temp7 TYPE TABLE OF smodisrc.
-DATA: lt_definition TYPE temp11,
-          lt_psmodilog  TYPE temp12,
-          lt_psmodisrc  TYPE temp7.
+    DATA: lt_definition TYPE TABLE OF wdy_view_vrs,
+          lt_psmodilog  TYPE TABLE OF smodilog,
+          lt_psmodisrc  TYPE TABLE OF smodisrc.
 
     FIELD-SYMBOLS: <ls_definition> LIKE LINE OF lt_definition.
 
@@ -872,6 +865,47 @@ DATA: lt_definition TYPE temp11,
   ENDMETHOD.
 
 
+  METHOD serialize_sources.
+
+    DATA:
+      lv_extra TYPE string,
+      lt_extra TYPE string_table,
+      ls_abap  TYPE abaptxt255,
+      lt_abap  TYPE abaptxt255_tab.
+
+    FIELD-SYMBOLS <ls_sources> LIKE LINE OF mt_sources.
+
+    " Store code as separate ABAP files instead of XML (assumes sorted data, see "read")
+    LOOP AT mt_sources ASSIGNING <ls_sources>.
+      AT NEW controller_name.
+        CLEAR lt_abap.
+        lv_extra = to_lower( <ls_sources>-controller_name ).
+      ENDAT.
+
+      ls_abap-line = <ls_sources>-source_line.
+      INSERT ls_abap INTO TABLE lt_abap.
+
+      AT END OF cmpname.
+        CLEAR ls_abap.
+        INSERT ls_abap INTO TABLE lt_abap.
+      ENDAT.
+      AT END OF controller_name.
+        IF lt_abap IS NOT INITIAL.
+          mo_files->add_abap(
+            iv_extra = lv_extra
+            it_abap  = lt_abap ).
+          INSERT lv_extra INTO TABLE lt_extra.
+        ENDIF.
+      ENDAT.
+    ENDLOOP.
+
+    ii_xml->add(
+      iv_name = 'FILES'
+      ig_data = lt_extra ).
+
+  ENDMETHOD.
+
+
   METHOD unlock_controller.
 
     DATA lo_controller TYPE REF TO cl_wdy_md_controller.
@@ -922,47 +956,6 @@ DATA: lt_definition TYPE temp11,
   ENDMETHOD.
 
 
-  METHOD serialize_sources.
-
-    DATA:
-      lv_extra TYPE string,
-      lt_extra TYPE string_table,
-      ls_abap  TYPE abaptxt255,
-      lt_abap  TYPE abaptxt255_tab.
-
-    FIELD-SYMBOLS <ls_sources> LIKE LINE OF mt_sources.
-
-    " Store code as separate ABAP files instead of XML (assumes sorted data, see "read")
-    LOOP AT mt_sources ASSIGNING <ls_sources>.
-      AT NEW controller_name.
-        CLEAR lt_abap.
-        lv_extra = to_lower( <ls_sources>-controller_name ).
-      ENDAT.
-
-      ls_abap-line = <ls_sources>-source_line.
-      INSERT ls_abap INTO TABLE lt_abap.
-
-      AT END OF cmpname.
-        CLEAR ls_abap.
-        INSERT ls_abap INTO TABLE lt_abap.
-      ENDAT.
-      AT END OF controller_name.
-        IF lt_abap IS NOT INITIAL.
-          mo_files->add_abap(
-            iv_extra = lv_extra
-            it_abap  = lt_abap ).
-          INSERT lv_extra INTO TABLE lt_extra.
-        ENDIF.
-      ENDAT.
-    ENDLOOP.
-
-    ii_xml->add(
-      iv_name = 'FILES'
-      ig_data = lt_extra ).
-
-  ENDMETHOD.
-
-
   METHOD zif_abapgit_object~changed_by.
     SELECT SINGLE changedby FROM wdy_component INTO rv_user
       WHERE component_name = ms_item-obj_name AND version = 'A'.
@@ -980,12 +973,12 @@ DATA: lt_definition TYPE temp11,
           lv_object_name TYPE seu_objkey.
 
 
-    CREATE OBJECT lo_component.
+    lo_component = NEW #( ).
 
     lv_object_name = ms_item-obj_name.
-    CREATE OBJECT lo_request EXPORTING p_object_type = 'YC'
-                                       p_object_name = lv_object_name
-                                       p_operation = swbm_c_op_delete_no_dialog.
+    lo_request = NEW #( p_object_type = 'YC'
+                        p_object_name = lv_object_name
+                        p_operation = swbm_c_op_delete_no_dialog ).
 
     lo_component->if_wb_program~process_wb_request(
       p_wb_request       = lo_request
@@ -1003,9 +996,9 @@ DATA: lt_definition TYPE temp11,
                    <ls_controller> LIKE LINE OF ls_component-ctlr_metadata.
 
     io_xml->read( EXPORTING iv_name = 'COMPONENT'
-                  CHANGING cg_data = ls_component ).
-    io_xml->read( EXPORTING iv_name  = 'COMPONENTS'
-                  CHANGING cg_data = mt_components ).
+                  CHANGING  cg_data = ls_component ).
+    io_xml->read( EXPORTING iv_name = 'COMPONENTS'
+                  CHANGING  cg_data = mt_components ).
 
     deserialize_sources( io_xml ).
 
@@ -1054,9 +1047,7 @@ DATA: lt_definition TYPE temp11,
     SELECT SINGLE component_name FROM wdy_component
       INTO lv_component_name
       WHERE component_name = ms_item-obj_name.          "#EC CI_GENBUFF
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -1109,13 +1100,11 @@ DATA: lt_definition TYPE temp11,
 
   METHOD zif_abapgit_object~serialize.
 
-    TYPES temp14 TYPE STANDARD TABLE OF dokil-object WITH DEFAULT KEY.
-TYPES temp15 TYPE STANDARD TABLE OF dokil WITH DEFAULT KEY.
-DATA: ls_component   TYPE wdy_component_metadata,
+    DATA: ls_component   TYPE wdy_component_metadata,
           ls_comp        TYPE wdy_ctlr_compo_vrs,
           lv_object      TYPE dokil-object,
-          lt_object      TYPE temp14,
-          lt_dokil       TYPE temp15,
+          lt_object      TYPE STANDARD TABLE OF dokil-object WITH DEFAULT KEY,
+          lt_dokil       TYPE STANDARD TABLE OF dokil WITH DEFAULT KEY,
           ls_description TYPE wdy_ext_ctx_map.
 
     ls_component = read( ).
@@ -1130,11 +1119,11 @@ DATA: ls_component   TYPE wdy_component_metadata,
     READ TABLE ls_component-comp_metadata-descriptions INTO ls_description INDEX 1.
     IF sy-subrc = 0.
       zcl_abapgit_sotr_handler=>read_sotr(
-        iv_pgmid    = 'LIMU'
-        iv_object   = 'WDYV'
-        iv_obj_name = ms_item-obj_name
+        iv_pgmid       = 'LIMU'
+        iv_object      = 'WDYV'
+        iv_obj_name    = ms_item-obj_name
         io_i18n_params = mo_i18n_params
-        io_xml      = io_xml ).
+        io_xml         = io_xml ).
     ENDIF.
 
     serialize_longtexts(
