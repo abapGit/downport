@@ -24,7 +24,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD setup.
 
-    mi_cut = NEW zcl_abapgit_environment( ).
+    CREATE OBJECT mi_cut TYPE zcl_abapgit_environment.
 
   ENDMETHOD.
 
