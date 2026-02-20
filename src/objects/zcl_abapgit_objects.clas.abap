@@ -110,9 +110,6 @@ CLASS zcl_abapgit_objects DEFINITION
         !is_item             TYPE zif_abapgit_definitions=>ty_item
       RETURNING
         VALUE(rv_class_name) TYPE string .
-    CLASS-METHODS update_package_tree
-      IMPORTING
-        !iv_package TYPE devclass .
     CLASS-METHODS delete_object
       IMPORTING
         !iv_package   TYPE devclass
@@ -207,6 +204,18 @@ CLASS zcl_abapgit_objects DEFINITION
       RETURNING
         VALUE(rv_extra) TYPE string.
 
+    CLASS-METHODS collect_packages
+      IMPORTING
+        !it_steps          TYPE zif_abapgit_objects=>ty_step_data_tt
+        !it_results        TYPE zif_abapgit_definitions=>ty_results_tt
+      RETURNING
+        VALUE(rt_packages) TYPE zif_abapgit_sap_package=>ty_devclass_tt .
+    CLASS-METHODS update_package_trees
+      IMPORTING
+        !it_packages TYPE zif_abapgit_sap_package=>ty_devclass_tt
+      RAISING
+        zcx_abapgit_exception .
+
     CLASS-METHODS is_type_supported_exit
       IMPORTING
         !iv_obj_type   TYPE zif_abapgit_definitions=>ty_item-obj_type
@@ -270,11 +279,10 @@ CLASS zcl_abapgit_objects IMPLEMENTATION.
 
   METHOD check_duplicates.
 
-    TYPES temp1 TYPE STANDARD TABLE OF string WITH DEFAULT KEY.
-DATA: lt_files          TYPE zif_abapgit_git_definitions=>ty_files_tt,
+    DATA: lt_files          TYPE zif_abapgit_git_definitions=>ty_files_tt,
           lv_path           TYPE string,
           lv_filename       TYPE string,
-          lt_duplicates     TYPE temp1,
+          lt_duplicates     TYPE STANDARD TABLE OF string WITH DEFAULT KEY,
           lv_duplicates     LIKE LINE OF lt_duplicates,
           lv_all_duplicates TYPE string.
 
@@ -355,6 +363,28 @@ DATA: lt_files          TYPE zif_abapgit_git_definitions=>ty_files_tt,
   ENDMETHOD.
 
 
+  METHOD collect_packages.
+
+    DATA ls_deser  TYPE zif_abapgit_objects=>ty_deserialization.
+    DATA ls_result TYPE zif_abapgit_definitions=>ty_result.
+
+    FIELD-SYMBOLS <ls_step> TYPE zif_abapgit_objects=>ty_step_data.
+
+    LOOP AT it_steps ASSIGNING <ls_step>.
+      LOOP AT <ls_step>-objects INTO ls_deser.
+        IF ls_deser-package IS NOT INITIAL.
+          COLLECT ls_deser-package INTO rt_packages.
+        ENDIF.
+      ENDLOOP.
+    ENDLOOP.
+
+    LOOP AT it_results INTO ls_result WHERE packmove = abap_true AND package IS NOT INITIAL.
+      COLLECT ls_result-package INTO rt_packages.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
   METHOD class_name.
 
     CONCATENATE 'ZCL_ABAPGIT_OBJECT_' is_item-obj_type INTO rv_class_name.
@@ -418,11 +448,11 @@ DATA: lt_files          TYPE zif_abapgit_git_definitions=>ty_files_tt,
 
         TRY. " 2nd step, try looking for plugins
             IF io_files IS BOUND AND io_i18n_params IS BOUND.
-              CREATE OBJECT ri_obj TYPE zcl_abapgit_objects_bridge EXPORTING is_item = is_item
-                                                                             io_files = io_files
-                                                                             io_i18n_params = io_i18n_params.
+              ri_obj = NEW zcl_abapgit_objects_bridge( is_item = is_item
+                                                       io_files = io_files
+                                                       io_i18n_params = io_i18n_params ).
             ELSE.
-              CREATE OBJECT ri_obj TYPE zcl_abapgit_objects_bridge EXPORTING is_item = is_item.
+              ri_obj = NEW zcl_abapgit_objects_bridge( is_item = is_item ).
             ENDIF.
           CATCH cx_sy_create_object_error zcx_abapgit_exception.
             RAISE EXCEPTION TYPE zcx_abapgit_type_not_supported EXPORTING obj_type = is_item-obj_type.
@@ -633,7 +663,7 @@ DATA: lt_files          TYPE zif_abapgit_git_definitions=>ty_files_tt,
       ii_log->add_info( |>>> Deserializing { lines( lt_items ) } objects| ).
     ENDIF.
 
-    CREATE OBJECT lo_abap_language_vers EXPORTING io_dot_abapgit = lo_dot.
+    lo_abap_language_vers = NEW #( io_dot_abapgit = lo_dot ).
 
     lo_folder_logic = zcl_abapgit_folder_logic=>get_instance( ).
     LOOP AT lt_results ASSIGNING <ls_result>.
@@ -744,7 +774,9 @@ DATA: lt_files          TYPE zif_abapgit_git_definitions=>ty_files_tt,
       CHANGING
         ct_files       = rt_accessed_files ).
 
-    update_package_tree( ii_repo->get_package( ) ).
+    update_package_trees( collect_packages(
+      it_steps   = lt_steps
+      it_results = lt_results ) ).
 
     " Set the original system for all updated objects to what's defined in repo settings
     update_original_system(
@@ -1043,9 +1075,7 @@ DATA: lt_files          TYPE zif_abapgit_git_definitions=>ty_files_tt,
       AND object = 'ENHO'
       AND obj_name = lv_enho_name.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -1114,9 +1144,7 @@ DATA: lt_files          TYPE zif_abapgit_git_definitions=>ty_files_tt,
     li_exit->change_supported_object_types( CHANGING ct_types = lt_types ).
 
     READ TABLE lt_types TRANSPORTING NO FIELDS WITH TABLE KEY table_line = iv_obj_type.
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( sy-subrc = 0 ).
-    rv_bool = temp2.
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -1223,16 +1251,14 @@ DATA: lt_files          TYPE zif_abapgit_git_definitions=>ty_files_tt,
       io_files       = lo_files
       io_i18n_params = io_i18n_params ).
 
-    CREATE OBJECT li_xml TYPE zcl_abapgit_xml_output.
+    li_xml = NEW zcl_abapgit_xml_output( ).
 
     rs_files_and_item-item = is_item.
 
     TRY.
         li_obj->serialize( li_xml ).
       CATCH zcx_abapgit_exception INTO lx_error.
-        DATA temp3 TYPE xsdboolean.
-        temp3 = boolc( li_obj->is_active( ) = abap_false ).
-        rs_files_and_item-item-inactive = temp3.
+        rs_files_and_item-item-inactive = xsdbool( li_obj->is_active( ) = abap_false ).
         RAISE EXCEPTION lx_error.
     ENDTRY.
 
@@ -1255,9 +1281,7 @@ DATA: lt_files          TYPE zif_abapgit_git_definitions=>ty_files_tt,
 
     check_duplicates( rs_files_and_item-files ).
 
-    DATA temp4 TYPE xsdboolean.
-    temp4 = boolc( li_obj->is_active( ) = abap_false ).
-    rs_files_and_item-item-inactive = temp4.
+    rs_files_and_item-item-inactive = xsdbool( li_obj->is_active( ) = abap_false ).
 
     LOOP AT rs_files_and_item-files ASSIGNING <ls_file>.
       <ls_file>-sha1 = zcl_abapgit_hash=>sha1_blob( <ls_file>-data ).
@@ -1268,8 +1292,7 @@ DATA: lt_files          TYPE zif_abapgit_git_definitions=>ty_files_tt,
 
   METHOD supported_list.
 
-    TYPES temp2 TYPE STANDARD TABLE OF ko100.
-DATA lt_objects            TYPE temp2.
+    DATA lt_objects            TYPE STANDARD TABLE OF ko100.
     DATA ls_item               TYPE zif_abapgit_definitions=>ty_item.
     DATA ls_supported_obj_type TYPE ty_supported_types.
     DATA lt_types              TYPE zif_abapgit_exit=>ty_object_types.
@@ -1316,6 +1339,17 @@ DATA lt_objects            TYPE temp2.
     ENDLOOP.
 
     gv_supported_obj_types_loaded = abap_true.
+
+  ENDMETHOD.
+
+
+  METHOD update_package_trees.
+
+    DATA lv_package TYPE devclass.
+
+    LOOP AT it_packages INTO lv_package.
+      zcl_abapgit_factory=>get_sap_package( lv_package )->update_tree( ).
+    ENDLOOP.
 
   ENDMETHOD.
 
@@ -1379,25 +1413,4 @@ DATA lt_objects            TYPE temp2.
   ENDMETHOD.
 
 
-  METHOD update_package_tree.
-
-    DATA: lt_packages TYPE zif_abapgit_sap_package=>ty_devclass_tt,
-          lv_package  LIKE LINE OF lt_packages,
-          lv_tree     TYPE string.
-
-
-    lt_packages = zcl_abapgit_factory=>get_sap_package( iv_package )->list_subpackages( ).
-    APPEND iv_package TO lt_packages.
-
-    LOOP AT lt_packages INTO lv_package.
-* update package tree for SE80
-      lv_tree = 'EU_' && lv_package.
-      CALL FUNCTION 'WB_TREE_ACTUALIZE'
-        EXPORTING
-          tree_name              = lv_tree
-          without_crossreference = abap_true
-          with_tcode_index       = abap_true.
-    ENDLOOP.
-
-  ENDMETHOD.
 ENDCLASS.
