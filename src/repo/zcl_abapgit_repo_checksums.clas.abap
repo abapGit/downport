@@ -175,7 +175,7 @@ CLASS zcl_abapgit_repo_checksums IMPLEMENTATION.
       <ls_filter>-obj_name = ls_item-obj_name.
     ENDLOOP.
 
-    CREATE OBJECT lo_filter EXPORTING it_filter = lt_filter.
+    lo_filter = NEW #( it_filter = lt_filter ).
 
     rt_files = mi_repo->get_files_local_filtered( lo_filter ).
 
