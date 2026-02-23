@@ -258,7 +258,7 @@ CLASS zcl_abapgit_gui_page_repo_over IMPLEMENTATION.
 
     DATA lo_tab_scheme TYPE REF TO lcl_table_scheme.
 
-    CREATE OBJECT lo_tab_scheme.
+    lo_tab_scheme = NEW #( ).
 
     lo_tab_scheme->add_column(
       iv_tech_name      = 'FAVORITE'
@@ -291,7 +291,7 @@ CLASS zcl_abapgit_gui_page_repo_over IMPLEMENTATION.
       iv_allow_order_by = abap_true
     )->add_column(
       iv_tech_name      = 'BRANCH'
-      iv_display_name   = 'Branch/Tag'
+      iv_display_name   = 'Branch/Tag/Commit'
       iv_allow_order_by = abap_true
     )->add_column(
       iv_tech_name      = 'DESERIALIZED_BY'
@@ -362,7 +362,7 @@ CLASS zcl_abapgit_gui_page_repo_over IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_repo_over.
 
-    CREATE OBJECT lo_component EXPORTING iv_only_favorites = iv_only_favorites.
+    lo_component = NEW #( iv_only_favorites = iv_only_favorites ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title         = 'Repository List'
@@ -495,7 +495,7 @@ CLASS zcl_abapgit_gui_page_repo_over IMPLEMENTATION.
       iv_class    = |{ lc_action_class }|
       iv_li_class = |{ lc_action_class }| ).
 
-    CREATE OBJECT lo_toolbar_more_sub EXPORTING iv_id = 'toolbar-ovp-more_sub'.
+    lo_toolbar_more_sub = NEW #( iv_id = 'toolbar-ovp-more_sub' ).
 
     lo_toolbar_more_sub->add(
       iv_txt      = |Stage by Transport|
@@ -520,17 +520,17 @@ CLASS zcl_abapgit_gui_page_repo_over IMPLEMENTATION.
       iv_typ = zif_abapgit_html=>c_action_type-separator ).
 
     lo_toolbar_more_sub->add(
-      iv_txt   = |Remove Repository|
-      iv_title = |Remove abapGit's records of the repository (the system's |
-              && |development objects will remain unaffected)|
-      iv_act   = |{ zif_abapgit_definitions=>c_action-repo_remove }{ lc_dummy_key }|
+      iv_txt      = |Remove Repository|
+      iv_title    = |Remove abapGit's records of the repository (the system's |
+                    && |development objects will remain unaffected)|
+      iv_act      = |{ zif_abapgit_definitions=>c_action-repo_remove }{ lc_dummy_key }|
       iv_class    = |{ lc_action_class }|
       iv_li_class = |{ lc_action_class }| ).
 
     lo_toolbar_more_sub->add(
       iv_txt      = |Remove Objects|
       iv_title    = |Delete all development objects belonging to this package |
-                 && |(and subpackages) from the system, but keep repository in abapGit|
+                    && |(and subpackages) from the system, but keep repository in abapGit|
       iv_act      = |{ zif_abapgit_definitions=>c_action-repo_delete_objects }{ lc_dummy_key }|
       iv_class    = |{ lc_action_class }|
       iv_li_class = |{ lc_action_class }| ).
@@ -538,7 +538,7 @@ CLASS zcl_abapgit_gui_page_repo_over IMPLEMENTATION.
     lo_toolbar_more_sub->add(
       iv_txt      = |Uninstall|
       iv_title    = |Delete all development objects belonging to this package |
-                 && |(and subpackages) from the system, and remove the repository from abapGit|
+                    && |(and subpackages) from the system, and remove the repository from abapGit|
       iv_act      = |{ zif_abapgit_definitions=>c_action-repo_purge }{ lc_dummy_key }|
       iv_class    = |{ lc_action_class }|
       iv_li_class = |{ lc_action_class }| ).
@@ -560,7 +560,7 @@ CLASS zcl_abapgit_gui_page_repo_over IMPLEMENTATION.
 
     DATA lv_icon_class TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( |<form class="inline" method="post" action="sapevent:{ c_action-apply_filter }">| ).
     ri_html->add( zcl_abapgit_gui_chunk_lib=>render_text_input(
@@ -659,7 +659,7 @@ CLASS zcl_abapgit_gui_page_repo_over IMPLEMENTATION.
 
   METHOD render_scripts.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
     ri_html->add( 'var gHelper = new RepoOverViewHelper({ focusFilterKey: "f" });' ).
@@ -712,6 +712,7 @@ CLASS zcl_abapgit_gui_page_repo_over IMPLEMENTATION.
   METHOD render_table_item.
 
     DATA:
+      li_repo_online    TYPE REF TO zif_abapgit_repo_online,
       lv_is_online_repo TYPE abap_bool,
       lv_repo_type_icon TYPE string,
       lv_favorite_icon  TYPE string,
@@ -719,9 +720,7 @@ CLASS zcl_abapgit_gui_page_repo_over IMPLEMENTATION.
       lv_lock           TYPE string,
       lv_flow           TYPE string.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( is_repo-offline = abap_false ).
-    lv_is_online_repo = temp1.
+    lv_is_online_repo = xsdbool( is_repo-offline = abap_false ).
 
     " Start of row
     IF is_repo-favorite = abap_true.
@@ -800,10 +799,9 @@ CLASS zcl_abapgit_gui_page_repo_over IMPLEMENTATION.
     " Branch
     IF is_repo-branch IS INITIAL.
       ii_html->td( ).
-    ELSE.
-      ii_html->td( ii_content = zcl_abapgit_gui_chunk_lib=>render_branch_name(
-        iv_branch   = is_repo-branch
-        iv_repo_key = is_repo-key ) ).
+    ELSEIF is_repo-offline = abap_false.
+      li_repo_online ?= zcl_abapgit_repo_srv=>get_instance( )->get( is_repo-key ).
+      ii_html->td( ii_content = zcl_abapgit_gui_chunk_lib=>render_branch_name( ii_repo_online = li_repo_online ) ).
     ENDIF.
 
     " Details: deserialized by
@@ -815,7 +813,7 @@ CLASS zcl_abapgit_gui_page_repo_over IMPLEMENTATION.
 
     " Details: deserialized at
     ii_html->td(
-      iv_class = 'ro-detail'
+      iv_class   = 'ro-detail'
       iv_content = is_repo-deserialized_at ).
 
     " Details: created by
@@ -827,12 +825,12 @@ CLASS zcl_abapgit_gui_page_repo_over IMPLEMENTATION.
 
     " Details: created at
     ii_html->td(
-      iv_class = 'ro-detail'
+      iv_class   = 'ro-detail'
       iv_content = is_repo-created_at ).
 
     " Details: repo key
     ii_html->td(
-      iv_class = 'ro-detail'
+      iv_class   = 'ro-detail'
       iv_content = |{ is_repo-key }| ).
 
     " Go-to action
@@ -914,18 +912,14 @@ CLASS zcl_abapgit_gui_page_repo_over IMPLEMENTATION.
         IF ii_event->query( )->has( 'FORCE_STATE' ) = abap_true.
           ms_list_settings-only_favorites = ii_event->query( )->get( 'FORCE_STATE' ).
         ELSE.
-          DATA temp2 TYPE xsdboolean.
-          temp2 = boolc( ms_list_settings-only_favorites = abap_false ).
-          ms_list_settings-only_favorites = temp2.
+          ms_list_settings-only_favorites = xsdbool( ms_list_settings-only_favorites = abap_false ).
         ENDIF.
         save_settings( ).
         rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
 
       WHEN zif_abapgit_definitions=>c_action-direction.
 
-        DATA temp3 TYPE xsdboolean.
-        temp3 = boolc( ii_event->query( )->get( 'DIRECTION' ) = 'DESCENDING' ).
-        set_order_direction( temp3 ).
+        set_order_direction( xsdbool( ii_event->query( )->get( 'DIRECTION' ) = 'DESCENDING' ) ).
         rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
 
       WHEN c_action-apply_filter.
@@ -1078,7 +1072,7 @@ CLASS zcl_abapgit_gui_page_repo_over IMPLEMENTATION.
 
     lt_overview = prepare_overviews( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     zcl_abapgit_exit=>get_instance( )->wall_message_list( ri_html ).
 
