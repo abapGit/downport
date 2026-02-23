@@ -194,7 +194,7 @@ CLASS ltcl_serialize IMPLEMENTATION.
     ls_item-obj_type = 'INTF'.
     ls_item-obj_name = 'IF_BADI_TADIR_CHANGED'.
 
-    CREATE OBJECT li_aff_registry TYPE ltd_aff_supported_true.
+    li_aff_registry = NEW ltd_aff_supported_true( ).
     zcl_abapgit_aff_injector=>set_registry( li_aff_registry ).
 
     APPEND `DE` TO lt_target_langu.
@@ -461,7 +461,7 @@ CLASS ltcl_check_objects_locked IMPLEMENTATION.
   METHOD then_exception_shd_be_raised.
 
     cl_abap_unit_assert=>assert_equals(
-      exp = |Object TABL Z_TEST_TABL is locked. Action not possible.|
+      exp = |Object TABL Z_TEST_TABL is locked by an editor, user, or ABAP process. Action not possible.|
       act = mv_exception_text ).
 
   ENDMETHOD.
