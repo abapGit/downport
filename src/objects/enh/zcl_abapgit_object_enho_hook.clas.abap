@@ -285,9 +285,7 @@ CLASS zcl_abapgit_object_enho_hook IMPLEMENTATION.
     IF ls_original_object-org_main_type = 'PROG' OR ls_original_object-org_main_type = 'REPS'.
       TRY.
           ls_progdir = zcl_abapgit_factory=>get_sap_report( )->read_progdir( ls_original_object-org_main_name ).
-          DATA temp1 TYPE xsdboolean.
-          temp1 = boolc( ls_progdir-subc = 'I' ).
-          ls_original_object-include_bound = temp1.
+          ls_original_object-include_bound = xsdbool( ls_progdir-subc = 'I' ).
         CATCH zcx_abapgit_exception.
           ls_original_object-include_bound = abap_false.
       ENDTRY.

@@ -10,9 +10,12 @@ ENDCLASS.
 CLASS lcl_empty_filter IMPLEMENTATION.
   METHOD zif_abapgit_ajson_filter~keep_node.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( ( iv_visit = zif_abapgit_ajson_filter=>visit_type-value AND is_node-value IS NOT INITIAL ) OR ( iv_visit <> zif_abapgit_ajson_filter=>visit_type-value AND is_node-children > 0 ) ).
-    rv_keep = temp1.
+    rv_keep = xsdbool(
+      ( iv_visit = zif_abapgit_ajson_filter=>visit_type-value AND
+        is_node-type <> zif_abapgit_ajson_types=>node_type-number AND is_node-value IS NOT INITIAL ) OR " string & bool & null
+      ( iv_visit = zif_abapgit_ajson_filter=>visit_type-value AND
+        is_node-type = zif_abapgit_ajson_types=>node_type-number AND is_node-value <> '0' ) OR " num
+      ( iv_visit <> zif_abapgit_ajson_filter=>visit_type-value AND is_node-children > 0 ) ). " array & object
     " children = 0 on open for initially empty nodes and on close for filtered ones
 
   ENDMETHOD.
@@ -33,8 +36,7 @@ CLASS lcl_paths_filter DEFINITION FINAL.
       RAISING
         zcx_abapgit_ajson_error.
   PRIVATE SECTION.
-    TYPES temp1_c60817b628 TYPE HASHED TABLE OF string WITH UNIQUE KEY table_line.
-DATA mt_skip_paths TYPE temp1_c60817b628.
+    DATA mt_skip_paths TYPE HASHED TABLE OF string WITH UNIQUE KEY table_line.
     DATA mv_pattern_search TYPE abap_bool.
 ENDCLASS.
 
@@ -57,9 +59,7 @@ CLASS lcl_paths_filter IMPLEMENTATION.
       ENDLOOP.
     ELSE.
       READ TABLE mt_skip_paths WITH KEY table_line = lv_full_path TRANSPORTING NO FIELDS.
-      DATA temp2 TYPE xsdboolean.
-      temp2 = boolc( sy-subrc <> 0 ).
-      rv_keep = temp2.
+      rv_keep = xsdbool( sy-subrc <> 0 ).
     ENDIF.
 
   ENDMETHOD.
@@ -70,11 +70,7 @@ CLASS lcl_paths_filter IMPLEMENTATION.
     DATA lt_tab TYPE string_table.
     FIELD-SYMBOLS <s> TYPE string.
 
-    DATA temp3 TYPE xsdboolean.
-    temp3 = boolc( iv_skip_paths IS INITIAL ).
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( it_skip_paths IS INITIAL ).
-    IF temp3 = temp1. " XOR
+    IF xsdbool( iv_skip_paths IS INITIAL ) = xsdbool( it_skip_paths IS INITIAL ). " XOR
       zcx_abapgit_ajson_error=>raise( 'no filter path specified' ).
     ENDIF.
 
