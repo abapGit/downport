@@ -35,9 +35,8 @@ CLASS zcl_abapgit_object_tran DEFINITION
         object     TYPE rglif-docutype VALUE 'O' ##NO_TEXT,
       END OF c_variant_type.
 
-    TYPES temp1_15c4f683bb TYPE STANDARD TABLE OF bdcdata.
-DATA:
-      mt_bcdata TYPE temp1_15c4f683bb .
+    DATA:
+      mt_bcdata TYPE STANDARD TABLE OF bdcdata .
 
     METHODS transaction_read
       IMPORTING
@@ -123,8 +122,7 @@ CLASS zcl_abapgit_object_tran IMPLEMENTATION.
 
   METHOD call_se93.
 
-    TYPES temp2 TYPE STANDARD TABLE OF bdcmsgcoll.
-DATA: lt_message TYPE temp2.
+    DATA: lt_message TYPE STANDARD TABLE OF bdcmsgcoll.
     DATA lv_msg TYPE string.
 
     FIELD-SYMBOLS: <ls_message> TYPE bdcmsgcoll.
@@ -159,8 +157,7 @@ DATA: lt_message TYPE temp2.
   METHOD clear_functiongroup_globals.
     TYPES ty_param_vari TYPE abap_bool.
 
-    TYPES temp3 TYPE STANDARD TABLE OF rsmp_check WITH DEFAULT KEY.
-DATA lt_error_list TYPE temp3.
+    DATA lt_error_list TYPE STANDARD TABLE OF rsmp_check WITH DEFAULT KEY.
     FIELD-SYMBOLS <lv_param_vari> TYPE ty_param_vari.
 
     " only way to clear global fields in function group
@@ -345,8 +342,7 @@ DATA lt_error_list TYPE temp3.
 
   METHOD deserialize_texts.
 
-    TYPES temp4 TYPE TABLE OF tstct.
-DATA lt_tpool_i18n TYPE temp4.
+    DATA lt_tpool_i18n TYPE TABLE OF tstct.
 
     FIELD-SYMBOLS <ls_tpool> LIKE LINE OF lt_tpool_i18n.
 
@@ -377,9 +373,7 @@ DATA lt_tpool_i18n TYPE temp4.
 
   METHOD is_variant_transaction.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( is_tstcp-param(1) = '@' ).
-    rv_variant_transaction = temp1.
+    rv_variant_transaction = xsdbool( is_tstcp-param(1) = '@' ).
 
   ENDMETHOD.
 
@@ -405,8 +399,7 @@ DATA lt_tpool_i18n TYPE temp4.
 
   METHOD serialize_texts.
 
-    TYPES temp5 TYPE TABLE OF tstct.
-DATA lt_tpool_i18n TYPE temp5.
+    DATA lt_tpool_i18n TYPE TABLE OF tstct.
 
     IF mo_i18n_params->ms_params-main_language_only = abap_true.
       RETURN.
@@ -614,10 +607,8 @@ DATA lt_tpool_i18n TYPE temp5.
 
   METHOD transaction_read.
 
-    TYPES temp6 TYPE TABLE OF tstc.
-TYPES temp1 TYPE TABLE OF tstcc.
-DATA: lt_tcodes   TYPE temp6,
-          lt_gui_attr TYPE temp1.
+    DATA: lt_tcodes   TYPE TABLE OF tstc,
+          lt_gui_attr TYPE TABLE OF tstcc.
 
     CLEAR: es_transaction, es_gui_attr.
 
@@ -839,8 +830,8 @@ DATA: lt_tcodes   TYPE temp6,
           ls_item-obj_name    = ms_item-obj_name.
           ls_item-obj_name+30 = 'TR'.
 
-          CREATE OBJECT lo_sush TYPE zcl_abapgit_object_sush EXPORTING is_item = ls_item
-                                                                       iv_language = mv_language.
+          lo_sush = NEW zcl_abapgit_object_sush( is_item = ls_item
+                                                 iv_language = mv_language ).
 
           lo_sush->zif_abapgit_object~deserialize(
             iv_package   = iv_package
@@ -863,9 +854,7 @@ DATA: lt_tcodes   TYPE temp6,
 
     SELECT SINGLE tcode FROM tstc INTO lv_tcode
       WHERE tcode = ms_item-obj_name.                   "#EC CI_GENBUFF
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( sy-subrc = 0 ).
-    rv_bool = temp2.
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -905,8 +894,7 @@ DATA: lt_tcodes   TYPE temp6,
 
   METHOD zif_abapgit_object~jump.
 
-    TYPES temp8 TYPE TABLE OF bdcdata.
-DATA: lt_bdcdata TYPE temp8.
+    DATA: lt_bdcdata TYPE TABLE OF bdcdata.
 
     FIELD-SYMBOLS: <ls_bdcdata> LIKE LINE OF lt_bdcdata.
 
@@ -1002,8 +990,8 @@ DATA: lt_bdcdata TYPE temp8.
       ls_item-obj_name+30 = 'TR'.
 
       TRY.
-          CREATE OBJECT lo_sush TYPE zcl_abapgit_object_sush EXPORTING is_item = ls_item
-                                                                       iv_language = mv_language.
+          lo_sush = NEW zcl_abapgit_object_sush( is_item = ls_item
+                                                 iv_language = mv_language ).
 
           lo_sush->zif_abapgit_object~serialize( io_xml ).
         CATCH zcx_abapgit_type_not_supported.

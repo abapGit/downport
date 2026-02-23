@@ -62,7 +62,7 @@ ENDCLASS.
 CLASS lcl_persist_settings IMPLEMENTATION.
 
   METHOD constructor.
-    CREATE OBJECT mo_settings.
+    mo_settings = NEW #( ).
   ENDMETHOD.
 
   METHOD zif_abapgit_persist_settings~modify.
@@ -100,9 +100,6 @@ CLASS ltcl_abap_language_version DEFINITION FOR TESTING RISK LEVEL HARMLESS
       set_environment
         IMPORTING
           iv_is_cloud TYPE abap_bool,
-      set_features
-        IMPORTING
-          iv_features TYPE string,
       repo_setting_test
         IMPORTING
           iv_version TYPE string
@@ -122,10 +119,8 @@ CLASS ltcl_abap_language_version DEFINITION FOR TESTING RISK LEVEL HARMLESS
           iv_new      TYPE abap_bool.
 
     METHODS:
-      repo_setting_feature_off FOR TESTING,
-      repo_setting_feature_on FOR TESTING,
-      object_type_feature_off FOR TESTING,
-      object_type_feature_on FOR TESTING,
+      repo_setting FOR TESTING,
+      object_type FOR TESTING,
       is_import_allowed FOR TESTING,
       check_abap_language_vers_same FOR TESTING RAISING zcx_abapgit_exception,
       check_abap_language_vers_diff FOR TESTING.
@@ -135,10 +130,10 @@ ENDCLASS.
 CLASS ltcl_abap_language_version IMPLEMENTATION.
 
   METHOD setup.
-    CREATE OBJECT mo_environment.
+    mo_environment = NEW #( ).
     zcl_abapgit_injector=>set_environment( mo_environment ).
 
-    CREATE OBJECT mi_persistency TYPE lcl_persist_settings.
+    mi_persistency = NEW lcl_persist_settings( ).
     zcl_abapgit_persist_injector=>set_settings( mi_persistency ).
 
     APPEND zif_abapgit_dot_abapgit=>c_abap_language_version-undefined TO mt_versions.
@@ -154,15 +149,11 @@ CLASS ltcl_abap_language_version IMPLEMENTATION.
     mo_dot_abapgit = zcl_abapgit_dot_abapgit=>build_default( ).
     mo_dot_abapgit->set_abap_language_version( iv_abap_language_version ).
 
-    CREATE OBJECT mo_cut EXPORTING io_dot_abapgit = mo_dot_abapgit.
+    mo_cut = NEW #( io_dot_abapgit = mo_dot_abapgit ).
   ENDMETHOD.
 
   METHOD set_environment.
     mo_environment->set_cloud( iv_is_cloud ).
-  ENDMETHOD.
-
-  METHOD set_features.
-    mi_persistency->read( )->set_experimental_features( iv_features ).
   ENDMETHOD.
 
   METHOD repo_setting_test.
@@ -187,29 +178,9 @@ CLASS ltcl_abap_language_version IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD repo_setting_feature_off.
+  METHOD repo_setting.
 
     DATA lv_version TYPE string.
-
-    " If experimental feature is off, repo setting is not taken into consideration
-    set_features( '' ).
-
-    LOOP AT mt_versions INTO lv_version.
-
-      repo_setting_test(
-        iv_version = lv_version
-        iv_exp     = zcl_abapgit_abap_language_vers=>c_any_abap_language_version ).
-
-    ENDLOOP.
-
-  ENDMETHOD.
-
-  METHOD repo_setting_feature_on.
-
-    DATA lv_version TYPE string.
-
-    " If experimental feature is on, repo setting is returned
-    set_features( zcl_abapgit_abap_language_vers=>c_feature_flag ).
 
     LOOP AT mt_versions INTO lv_version.
 
@@ -298,32 +269,9 @@ CLASS ltcl_abap_language_version IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD object_type_feature_off.
+  METHOD object_type.
 
     DATA lv_version TYPE string.
-
-    " If experimental feature is off, repo setting is ignored
-    set_features( '' ).
-
-    LOOP AT mt_versions INTO lv_version.
-
-      object_type_test(
-        iv_version      = lv_version
-        iv_standard     = zcl_abapgit_abap_language_vers=>c_any_abap_language_version
-        iv_standard_src = zcl_abapgit_abap_language_vers=>c_any_abap_language_version
-        iv_cloud        = zcl_abapgit_abap_language_vers=>c_any_abap_language_version
-        iv_cloud_src    = zcl_abapgit_abap_language_vers=>c_any_abap_language_version ).
-
-    ENDLOOP.
-
-  ENDMETHOD.
-
-  METHOD object_type_feature_on.
-
-    DATA lv_version TYPE string.
-
-    " If experimental feature is on, repo setting is ignored but package setting is returned
-    set_features( zcl_abapgit_abap_language_vers=>c_feature_flag ).
 
     LOOP AT mt_versions INTO lv_version.
 
