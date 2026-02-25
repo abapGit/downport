@@ -27,7 +27,7 @@ CLASS ltcl_po_file IMPLEMENTATION.
 
     FIELD-SYMBOLS <ls_p> LIKE LINE OF lt_lxe_pairs.
 
-    lo_po = NEW #( iv_lang = 'xx' ).
+    CREATE OBJECT lo_po EXPORTING iv_lang = 'xx'.
 
     APPEND INITIAL LINE TO lt_lxe_pairs ASSIGNING <ls_p>.
     <ls_p>-textkey = 'K1'.
@@ -52,7 +52,7 @@ CLASS ltcl_po_file IMPLEMENTATION.
 
     lv_act = lo_po->build_po_body( )->join_w_newline_and_flush( ).
 
-    lo_buf = NEW #( ).
+    CREATE OBJECT lo_buf.
 
     lo_buf->add( '#: T1/OBJ1/K1, maxlen=10'
       )->add( '#: T1/OBJ1/K2 X, maxlen=11'
@@ -78,8 +78,8 @@ CLASS ltcl_po_file IMPLEMENTATION.
 
     FIELD-SYMBOLS <ls_p> LIKE LINE OF lt_lxe_pairs.
 
-    lo_po = NEW #( iv_lang = 'xx'
-                   iv_suppress_comments = abap_true ).
+    CREATE OBJECT lo_po EXPORTING iv_lang = 'xx'
+                                  iv_suppress_comments = abap_true.
 
     APPEND INITIAL LINE TO lt_lxe_pairs ASSIGNING <ls_p>.
     <ls_p>-textkey = 'K1'.
@@ -104,7 +104,7 @@ CLASS ltcl_po_file IMPLEMENTATION.
 
     lv_act = lo_po->build_po_body( )->join_w_newline_and_flush( ).
 
-    lo_buf = NEW #( ).
+    CREATE OBJECT lo_buf.
 
     lo_buf->add( 'msgid "Hello"'
       )->add( 'msgstr "Hello DE"'
@@ -149,7 +149,7 @@ CLASS ltcl_po_file IMPLEMENTATION.
       CLEAR <ls_p>-t_text.
     ENDLOOP.
 
-    lo_buf = NEW #( ).
+    CREATE OBJECT lo_buf.
 
     lo_buf->add( 'msgid ""'
       )->add( 'msgstr ""'
@@ -164,7 +164,7 @@ CLASS ltcl_po_file IMPLEMENTATION.
       )->add( 'msgid "World"'
       )->add( 'msgstr "World DE"' ).
 
-    lo_po = NEW #( iv_lang = 'xx' ).
+    CREATE OBJECT lo_po EXPORTING iv_lang = 'xx'.
     lo_po->parse_po( lo_buf->join_w_newline_and_flush( ) ).
     lo_po->zif_abapgit_i18n_file~translate(
       CHANGING
@@ -185,7 +185,7 @@ CLASS ltcl_po_file IMPLEMENTATION.
 
     DATA lo_po TYPE REF TO zcl_abapgit_po_file.
 
-    lo_po = NEW #( iv_lang = 'xx' ).
+    CREATE OBJECT lo_po EXPORTING iv_lang = 'xx'.
 
     TRY.
         lo_po->parse_po( zcl_abapgit_string_buffer=>new(
@@ -281,7 +281,7 @@ CLASS ltcl_po_file IMPLEMENTATION.
     DATA lo_po TYPE REF TO zcl_abapgit_po_file.
     FIELD-SYMBOLS <ls_p> LIKE LINE OF lo_po->mt_pairs.
 
-    lo_po = NEW #( iv_lang = 'xx' ).
+    CREATE OBJECT lo_po EXPORTING iv_lang = 'xx'.
     lo_po->parse_po( zcl_abapgit_string_buffer=>new(
       )->add( 'msgid "a"'
       )->add( 'msgstr "1\n"'
@@ -297,7 +297,7 @@ CLASS ltcl_po_file IMPLEMENTATION.
       act = <ls_p>-target
       exp = |1{ cl_abap_char_utilities=>newline }2| ).
 
-    lo_po = NEW #( iv_lang = 'xx' ).
+    CREATE OBJECT lo_po EXPORTING iv_lang = 'xx'.
     lo_po->parse_po( zcl_abapgit_string_buffer=>new(
       )->add( 'msgid "a"'
       )->add( 'msgstr ""'
