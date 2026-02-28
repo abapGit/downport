@@ -86,12 +86,14 @@ CLASS zcl_abapgit_cts_api IMPLEMENTATION.
 
 
   METHOD get_current_transport_for_obj.
-    DATA: lv_object_lockable   TYPE abap_bool,
+    TYPES temp1 TYPE STANDARD TABLE OF tlock WITH DEFAULT KEY.
+TYPES temp2 TYPE STANDARD TABLE OF trkorr WITH DEFAULT KEY.
+DATA: lv_object_lockable   TYPE abap_bool,
           lv_locked            TYPE abap_bool,
           lv_transport_request TYPE trkorr,
           ls_tlock             TYPE tlock,
-          lt_tlock             TYPE STANDARD TABLE OF tlock WITH DEFAULT KEY,
-          lt_transports        TYPE STANDARD TABLE OF trkorr WITH DEFAULT KEY,
+          lt_tlock             TYPE temp1,
+          lt_transports        TYPE temp2,
           lv_task              TYPE trkorr,
           lv_tr_object_name    TYPE trobj_name.
 
@@ -188,7 +190,9 @@ CLASS zcl_abapgit_cts_api IMPLEMENTATION.
       zcx_abapgit_exception=>raise_t100( ).
     ENDIF.
 
-    rv_locked = xsdbool( lv_lock_flag <> space ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( lv_lock_flag <> space ).
+    rv_locked = temp1.
   ENDMETHOD.
 
 
@@ -206,7 +210,9 @@ CLASS zcl_abapgit_cts_api IMPLEMENTATION.
       IMPORTING
         pe_result = lv_type_check_result.
 
-    rv_lockable = xsdbool( lv_type_check_result = 'L' ).
+    DATA temp2 TYPE xsdboolean.
+    temp2 = boolc( lv_type_check_result = 'L' ).
+    rv_lockable = temp2.
   ENDMETHOD.
 
 
@@ -224,7 +230,9 @@ CLASS zcl_abapgit_cts_api IMPLEMENTATION.
       IMPORTING
         pe_result = lv_type_check_result.
 
-    rv_transportable = xsdbool( lv_type_check_result CA 'RTL' OR iv_object_type = 'TABU' ).
+    DATA temp3 TYPE xsdboolean.
+    temp3 = boolc( lv_type_check_result CA 'RTL' OR iv_object_type = 'TABU' ).
+    rv_transportable = temp3.
   ENDMETHOD.
 
 
@@ -357,7 +365,8 @@ CLASS zcl_abapgit_cts_api IMPLEMENTATION.
   METHOD zif_abapgit_cts_api~create_transport_entries.
 
     DATA lt_tables      TYPE tredt_objects.
-    DATA lt_table_keys  TYPE STANDARD TABLE OF e071k.
+    TYPES temp3 TYPE STANDARD TABLE OF e071k.
+DATA lt_table_keys  TYPE temp3.
     DATA lv_with_dialog TYPE abap_bool.
 
     FIELD-SYMBOLS <ls_table> LIKE LINE OF lt_tables.
@@ -460,7 +469,8 @@ CLASS zcl_abapgit_cts_api IMPLEMENTATION.
   METHOD zif_abapgit_cts_api~get_transports_for_list.
 
     DATA lv_request TYPE trkorr.
-    DATA lt_tlock TYPE SORTED TABLE OF tlock WITH NON-UNIQUE KEY object hikey.
+    TYPES temp4 TYPE SORTED TABLE OF tlock WITH NON-UNIQUE KEY object hikey.
+DATA lt_tlock TYPE temp4.
     DATA ls_object_key TYPE e071.
     DATA lv_type_check_result TYPE c LENGTH 1.
     DATA ls_lock_key TYPE tlock_int.
@@ -602,8 +612,10 @@ CLASS zcl_abapgit_cts_api IMPLEMENTATION.
              obj_name TYPE e071-obj_name,
            END OF ty_contents.
 
-    DATA lt_tasks    TYPE STANDARD TABLE OF trkorr WITH DEFAULT KEY.
-    DATA lt_contents TYPE STANDARD TABLE OF ty_contents WITH DEFAULT KEY.
+    TYPES temp5 TYPE STANDARD TABLE OF trkorr WITH DEFAULT KEY.
+DATA lt_tasks    TYPE temp5.
+    TYPES temp6 TYPE STANDARD TABLE OF ty_contents WITH DEFAULT KEY.
+DATA lt_contents TYPE temp6.
     DATA ls_contents LIKE LINE OF lt_contents.
     DATA ls_list     LIKE LINE OF rt_list.
 
