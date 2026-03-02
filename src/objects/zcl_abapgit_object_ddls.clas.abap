@@ -254,10 +254,12 @@ CLASS zcl_abapgit_object_ddls IMPLEMENTATION.
 
   METHOD zif_abapgit_object~delete.
 
-    DATA:
-      lt_deltab   TYPE TABLE OF dcdeltb,
+    TYPES temp1 TYPE TABLE OF dcdeltb.
+TYPES temp2 TYPE TABLE OF dcgentb.
+DATA:
+      lt_deltab   TYPE temp1,
       ls_deltab   TYPE dcdeltb,
-      lt_gentab   TYPE TABLE OF dcgentb,
+      lt_gentab   TYPE temp2,
       lv_rc       TYPE sy-subrc,
       lv_logname  TYPE ddmass-logname.
 
@@ -416,7 +418,9 @@ CLASS zcl_abapgit_object_ddls IMPLEMENTATION.
             name      = ms_item-obj_name
           IMPORTING
             got_state = lv_state.
-        rv_bool = xsdbool( NOT lv_state IS INITIAL ).
+        DATA temp1 TYPE xsdboolean.
+        temp1 = boolc( NOT lv_state IS INITIAL ).
+        rv_bool = temp1.
       CATCH cx_root.
         rv_bool = abap_false.
     ENDTRY.
