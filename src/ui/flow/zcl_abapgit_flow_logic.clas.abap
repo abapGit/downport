@@ -33,11 +33,12 @@ CLASS zcl_abapgit_flow_logic DEFINITION PUBLIC.
   PRIVATE SECTION.
 
     TYPES: BEGIN OF ty_transport,
-             trkorr   TYPE trkorr,
-             title    TYPE string,
-             object   TYPE tadir-object,
-             obj_name TYPE tadir-obj_name,
-             devclass TYPE tadir-devclass,
+             trkorr     TYPE trkorr,
+             title      TYPE string,
+             object     TYPE tadir-object,
+             obj_name   TYPE tadir-obj_name,
+             devclass   TYPE tadir-devclass,
+             changed_at TYPE timestamp,
            END OF ty_transport.
 
     TYPES ty_transports_tt TYPE STANDARD TABLE OF ty_transport WITH NON-UNIQUE KEY trkorr.
@@ -143,6 +144,14 @@ CLASS zcl_abapgit_flow_logic DEFINITION PUBLIC.
         iv_trkorr       TYPE trkorr
       RETURNING
         VALUE(rt_users) TYPE zif_abapgit_flow_logic=>ty_users_tt
+      RAISING
+        zcx_abapgit_exception.
+
+    CLASS-METHODS get_latest_task_timestamp
+      IMPORTING
+        iv_trkorr            TYPE trkorr
+      RETURNING
+        VALUE(rv_changed_at) TYPE timestamp
       RAISING
         zcx_abapgit_exception.
 
@@ -279,9 +288,7 @@ CLASS zcl_abapgit_flow_logic IMPLEMENTATION.
 
     LOOP AT it_local ASSIGNING <ls_local> WHERE file-filename <> zif_abapgit_definitions=>c_dot_abapgit.
       READ TABLE ct_main_expanded WITH KEY name = <ls_local>-file-filename ASSIGNING <ls_expanded>.
-      DATA temp1 TYPE xsdboolean.
-      temp1 = boolc( sy-subrc = 0 ).
-      lv_found_main = temp1.
+      lv_found_main = xsdbool( sy-subrc = 0 ).
 
       lv_found_branch = abap_false.
       LOOP AT it_features INTO ls_feature.
@@ -431,7 +438,7 @@ CLASS zcl_abapgit_flow_logic IMPLEMENTATION.
       INSERT <ls_tadir> INTO TABLE lt_filter.
 
       IF lines( lt_filter ) >= 500.
-        CREATE OBJECT lo_filter EXPORTING it_filter = lt_filter.
+        lo_filter = NEW #( it_filter = lt_filter ).
         lt_local = li_repo->get_files_local_filtered( lo_filter ).
         CLEAR lt_filter.
         check_files(
@@ -448,7 +455,7 @@ CLASS zcl_abapgit_flow_logic IMPLEMENTATION.
     ENDLOOP.
 
     IF lines( lt_filter ) > 0.
-      CREATE OBJECT lo_filter EXPORTING it_filter = lt_filter.
+      lo_filter = NEW #( it_filter = lt_filter ).
       lt_local = li_repo->get_files_local_filtered( lo_filter ).
       CLEAR lt_filter.
       check_files(
@@ -501,13 +508,9 @@ CLASS zcl_abapgit_flow_logic IMPLEMENTATION.
           AND ls_next-obj_name = ls_transport-obj_name.
 
         READ TABLE cs_information-features WITH KEY transport-trkorr = ls_transport-trkorr TRANSPORTING NO FIELDS.
-        DATA temp2 TYPE xsdboolean.
-        temp2 = boolc( sy-subrc = 0 ).
-        lv_found1 = temp2.
+        lv_found1 = xsdbool( sy-subrc = 0 ).
         READ TABLE cs_information-features WITH KEY transport-trkorr = ls_next-trkorr TRANSPORTING NO FIELDS.
-        DATA temp3 TYPE xsdboolean.
-        temp3 = boolc( sy-subrc = 0 ).
-        lv_found2 = temp3.
+        lv_found2 = xsdbool( sy-subrc = 0 ).
         IF lv_found1 = abap_false AND lv_found2 = abap_false.
           " not in any favorite flow enabled repo
           CONTINUE.
@@ -536,7 +539,6 @@ CLASS zcl_abapgit_flow_logic IMPLEMENTATION.
     DATA lv_obj_name TYPE tadir-obj_name.
     DATA lt_date     TYPE zif_abapgit_cts_api=>ty_date_range.
     DATA ls_date     LIKE LINE OF lt_date.
-
     FIELD-SYMBOLS <ls_object> LIKE LINE OF lt_objects.
 
 * only look for transports that are created/changed in the last two years
@@ -550,6 +552,7 @@ CLASS zcl_abapgit_flow_logic IMPLEMENTATION.
     LOOP AT lt_trkorr INTO lv_trkorr.
       ls_result-trkorr = lv_trkorr.
       ls_result-title  = zcl_abapgit_factory=>get_cts_api( )->read_description( lv_trkorr ).
+      ls_result-changed_at = get_latest_task_timestamp( lv_trkorr ).
 
       lt_objects = zcl_abapgit_factory=>get_cts_api( )->list_r3tr_by_request( lv_trkorr ).
       LOOP AT lt_objects ASSIGNING <ls_object> WHERE object <> 'CINS' AND object <> 'NOTE'.
@@ -566,6 +569,36 @@ CLASS zcl_abapgit_flow_logic IMPLEMENTATION.
       ENDLOOP.
 
     ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD get_latest_task_timestamp.
+
+    DATA lt_tasks    TYPE zif_abapgit_cts_api=>ty_request_and_tasks_tt.
+    DATA ls_task     LIKE LINE OF lt_tasks.
+    DATA lv_max_date TYPE d.
+    DATA lv_max_time TYPE t.
+
+    TRY.
+        lt_tasks = zcl_abapgit_factory=>get_cts_api( )->read_request_and_tasks( iv_trkorr ).
+
+        LOOP AT lt_tasks INTO ls_task.
+          IF ls_task-as4date > lv_max_date
+              OR ( ls_task-as4date = lv_max_date AND ls_task-as4time > lv_max_time ).
+            lv_max_date = ls_task-as4date.
+            lv_max_time = ls_task-as4time.
+          ENDIF.
+        ENDLOOP.
+
+        IF lv_max_date IS NOT INITIAL.
+          CONVERT DATE lv_max_date TIME lv_max_time INTO TIME STAMP rv_changed_at TIME ZONE sy-zonlo.
+        ELSE.
+          GET TIME STAMP FIELD rv_changed_at.
+        ENDIF.
+      CATCH zcx_abapgit_exception.
+        GET TIME STAMP FIELD rv_changed_at.
+    ENDTRY.
 
   ENDMETHOD.
 
@@ -714,8 +747,6 @@ CLASS zcl_abapgit_flow_logic IMPLEMENTATION.
       CHANGING
         cs_information     = rs_information ).
 
-    SORT rs_information-features BY full_match transport-trkorr DESCENDING.
-
   ENDMETHOD.
 
 
@@ -845,7 +876,7 @@ CLASS zcl_abapgit_flow_logic IMPLEMENTATION.
     SORT lt_filter BY object obj_name.
     DELETE ADJACENT DUPLICATES FROM lt_filter COMPARING object obj_name.
 
-    CREATE OBJECT lo_filter EXPORTING it_filter = lt_filter.
+    lo_filter = NEW #( it_filter = lt_filter ).
     rt_local = ii_repo->get_files_local_filtered( lo_filter ).
 
   ENDMETHOD.
@@ -874,6 +905,7 @@ CLASS zcl_abapgit_flow_logic IMPLEMENTATION.
         IF sy-subrc = 0.
           <ls_feature>-transport-trkorr = <ls_transport>-trkorr.
           <ls_feature>-transport-title = <ls_transport>-title.
+          <ls_feature>-transport-changed_at = <ls_transport>-changed_at.
 
           add_objects_and_files_from_tr(
             EXPORTING
@@ -915,6 +947,7 @@ CLASS zcl_abapgit_flow_logic IMPLEMENTATION.
       ls_result-repo = build_repo_data( ii_repo ).
       ls_result-transport-trkorr = <ls_transport>-trkorr.
       ls_result-transport-title = <ls_transport>-title.
+      ls_result-transport-changed_at = <ls_transport>-changed_at.
 
       add_objects_and_files_from_tr(
         EXPORTING

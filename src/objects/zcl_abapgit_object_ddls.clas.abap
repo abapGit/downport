@@ -34,17 +34,40 @@ CLASS zcl_abapgit_object_ddls DEFINITION PUBLIC INHERITING FROM zcl_abapgit_obje
       CHANGING
         !cg_data TYPE any
       RAISING
-        zcx_abapgit_exception.
+        zcx_abapgit_exception .
+    METHODS clear_baseinfo
+      IMPORTING
+        !iv_json       TYPE string
+      RETURNING
+        VALUE(rv_json) TYPE string.
     METHODS get_log_uuid
       RETURNING
         VALUE(rv_log_uuid) TYPE sysuuid_c32.
-
 
 ENDCLASS.
 
 
 
 CLASS zcl_abapgit_object_ddls IMPLEMENTATION.
+
+
+  METHOD clear_baseinfo.
+
+    " To prevent diffs across various releases
+    DATA li_json TYPE REF TO zif_abapgit_ajson.
+
+    TRY.
+        li_json = zcl_abapgit_ajson=>parse(
+          iv_json            = iv_json
+          iv_keep_item_order = abap_true ).
+        li_json = li_json->filter( zcl_abapgit_ajson_filter_lib=>create_empty_filter( ) ).
+        rv_json = li_json->stringify( 2 ) && |\n|.
+      CATCH zcx_abapgit_ajson_error.
+        " fallback to original value
+        rv_json = iv_json.
+    ENDTRY.
+
+  ENDMETHOD.
 
 
   METHOD clear_fields.
@@ -254,12 +277,10 @@ CLASS zcl_abapgit_object_ddls IMPLEMENTATION.
 
   METHOD zif_abapgit_object~delete.
 
-    TYPES temp1 TYPE TABLE OF dcdeltb.
-TYPES temp2 TYPE TABLE OF dcgentb.
-DATA:
-      lt_deltab   TYPE temp1,
+    DATA:
+      lt_deltab   TYPE TABLE OF dcdeltb,
       ls_deltab   TYPE dcdeltb,
-      lt_gentab   TYPE temp2,
+      lt_gentab   TYPE TABLE OF dcgentb,
       lv_rc       TYPE sy-subrc,
       lv_logname  TYPE ddmass-logname.
 
@@ -334,7 +355,7 @@ DATA:
 
     TRY.
         io_xml->read( EXPORTING iv_name = 'DDLS'
-                      CHANGING cg_data  = <lg_data> ).
+                      CHANGING  cg_data = <lg_data> ).
 
         ASSIGN COMPONENT 'SOURCE' OF STRUCTURE <lg_data> TO <lg_source>.
         ASSERT sy-subrc = 0.
@@ -418,9 +439,7 @@ DATA:
             name      = ms_item-obj_name
           IMPORTING
             got_state = lv_state.
-        DATA temp1 TYPE xsdboolean.
-        temp1 = boolc( NOT lv_state IS INITIAL ).
-        rv_bool = temp1.
+        rv_bool = xsdbool( NOT lv_state IS INITIAL ).
       CATCH cx_root.
         rv_bool = abap_false.
     ENDTRY.
@@ -539,7 +558,7 @@ DATA:
               ASSERT sy-subrc = 0.
               mo_files->add_string(
                 iv_ext    = 'baseinfo'
-                iv_string = <lg_field> ).
+                iv_string = clear_baseinfo( <lg_field> ) ).
               EXIT.
             ENDIF.
           ENDLOOP.

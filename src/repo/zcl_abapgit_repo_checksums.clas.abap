@@ -9,7 +9,7 @@ CLASS zcl_abapgit_repo_checksums DEFINITION
 
     METHODS constructor
       IMPORTING
-        !iv_repo_key TYPE zif_abapgit_persistence=>ty_repo-key
+        !ii_repo TYPE REF TO zif_abapgit_repo
       RAISING
         zcx_abapgit_exception.
 
@@ -112,10 +112,10 @@ CLASS zcl_abapgit_repo_checksums IMPLEMENTATION.
 
 
   METHOD constructor.
-    ASSERT iv_repo_key IS NOT INITIAL.
-    mv_repo_key = iv_repo_key.
-    mi_repo = zcl_abapgit_repo_srv=>get_instance( )->get( mv_repo_key ).
-    " Should be safe as repo_srv is supposed to be single source of repo instances
+
+    mv_repo_key = ii_repo->get_key( ).
+    mi_repo = ii_repo.
+
   ENDMETHOD.
 
 
@@ -175,7 +175,7 @@ CLASS zcl_abapgit_repo_checksums IMPLEMENTATION.
       <ls_filter>-obj_name = ls_item-obj_name.
     ENDLOOP.
 
-    CREATE OBJECT lo_filter EXPORTING it_filter = lt_filter.
+    lo_filter = NEW #( it_filter = lt_filter ).
 
     rt_files = mi_repo->get_files_local_filtered( lo_filter ).
 
