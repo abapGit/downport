@@ -49,9 +49,9 @@ CLASS zcl_abapgit_gui_in_page_modal IMPLEMENTATION.
 
 
   METHOD create.
-    CREATE OBJECT ro_wrap EXPORTING ii_child = ii_child
-                                    iv_width = iv_width
-                                    iv_height = iv_height.
+    ro_wrap = NEW #( ii_child = ii_child
+                     iv_width = iv_width
+                     iv_height = iv_height ).
   ENDMETHOD.
 
 
@@ -59,8 +59,8 @@ CLASS zcl_abapgit_gui_in_page_modal IMPLEMENTATION.
 
     DATA lo_style TYPE REF TO zcl_abapgit_string_buffer.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
-    CREATE OBJECT lo_style.
+    ri_html = NEW zcl_abapgit_html( ).
+    lo_style = NEW #( ).
 
     IF ms_attrs-width IS NOT INITIAL.
       lo_style->add( |width:{ ms_attrs-width }px;| ).
