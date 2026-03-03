@@ -34,7 +34,7 @@ CLASS zcl_abapgit_flow_exit IMPLEMENTATION.
       CATCH cx_sy_create_object_error ##NO_HANDLER.
     ENDTRY.
 
-    CREATE OBJECT gi_global_exit TYPE zcl_abapgit_flow_exit. " this class
+    gi_global_exit = NEW zcl_abapgit_flow_exit( ). " this class
 
     ri_exit = gi_global_exit.
 
@@ -88,6 +88,17 @@ CLASS zcl_abapgit_flow_exit IMPLEMENTATION.
         CATCH cx_sy_ref_is_initial cx_sy_dyn_call_illegal_method ##NO_HANDLER.
       ENDTRY.
     ENDIF.
+  ENDMETHOD.
+
+  METHOD zif_abapgit_flow_exit~change_github_username.
+
+    IF gi_exit IS NOT INITIAL.
+      TRY.
+          gi_exit->change_github_username( CHANGING cv_username = cv_username ).
+        CATCH cx_sy_ref_is_initial cx_sy_dyn_call_illegal_method ##NO_HANDLER.
+      ENDTRY.
+    ENDIF.
+
   ENDMETHOD.
 
 ENDCLASS.

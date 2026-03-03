@@ -29,6 +29,20 @@ CLASS zcl_abapgit_flow_logic DEFINITION PUBLIC.
         VALUE(rt_repos)   TYPE ty_repos_tt
       RAISING
         zcx_abapgit_exception.
+
+    TYPES: BEGIN OF ty_update_result,
+             updated TYPE i,
+             errors  TYPE i,
+             skipped TYPE i,
+           END OF ty_update_result.
+
+    CLASS-METHODS update_all_branches
+      IMPORTING
+        it_features      TYPE zif_abapgit_flow_logic=>ty_features
+      RETURNING
+        VALUE(rs_result) TYPE ty_update_result
+      RAISING
+        zcx_abapgit_exception.
   PROTECTED SECTION.
   PRIVATE SECTION.
 
@@ -154,6 +168,12 @@ CLASS zcl_abapgit_flow_logic DEFINITION PUBLIC.
         VALUE(rv_changed_at) TYPE timestamp
       RAISING
         zcx_abapgit_exception.
+
+    CLASS-METHODS find_github_username
+      IMPORTING
+        it_repos           TYPE ty_repos_tt
+      RETURNING
+        VALUE(rv_username) TYPE string.
 
 ENDCLASS.
 
@@ -288,9 +308,7 @@ CLASS zcl_abapgit_flow_logic IMPLEMENTATION.
 
     LOOP AT it_local ASSIGNING <ls_local> WHERE file-filename <> zif_abapgit_definitions=>c_dot_abapgit.
       READ TABLE ct_main_expanded WITH KEY name = <ls_local>-file-filename ASSIGNING <ls_expanded>.
-      DATA temp1 TYPE xsdboolean.
-      temp1 = boolc( sy-subrc = 0 ).
-      lv_found_main = temp1.
+      lv_found_main = xsdbool( sy-subrc = 0 ).
 
       lv_found_branch = abap_false.
       LOOP AT it_features INTO ls_feature.
@@ -440,7 +458,7 @@ CLASS zcl_abapgit_flow_logic IMPLEMENTATION.
       INSERT <ls_tadir> INTO TABLE lt_filter.
 
       IF lines( lt_filter ) >= 500.
-        CREATE OBJECT lo_filter EXPORTING it_filter = lt_filter.
+        lo_filter = NEW #( it_filter = lt_filter ).
         lt_local = li_repo->get_files_local_filtered( lo_filter ).
         CLEAR lt_filter.
         check_files(
@@ -457,7 +475,7 @@ CLASS zcl_abapgit_flow_logic IMPLEMENTATION.
     ENDLOOP.
 
     IF lines( lt_filter ) > 0.
-      CREATE OBJECT lo_filter EXPORTING it_filter = lt_filter.
+      lo_filter = NEW #( it_filter = lt_filter ).
       lt_local = li_repo->get_files_local_filtered( lo_filter ).
       CLEAR lt_filter.
       check_files(
@@ -510,13 +528,9 @@ CLASS zcl_abapgit_flow_logic IMPLEMENTATION.
           AND ls_next-obj_name = ls_transport-obj_name.
 
         READ TABLE cs_information-features WITH KEY transport-trkorr = ls_transport-trkorr TRANSPORTING NO FIELDS.
-        DATA temp2 TYPE xsdboolean.
-        temp2 = boolc( sy-subrc = 0 ).
-        lv_found1 = temp2.
+        lv_found1 = xsdbool( sy-subrc = 0 ).
         READ TABLE cs_information-features WITH KEY transport-trkorr = ls_next-trkorr TRANSPORTING NO FIELDS.
-        DATA temp3 TYPE xsdboolean.
-        temp3 = boolc( sy-subrc = 0 ).
-        lv_found2 = temp3.
+        lv_found2 = xsdbool( sy-subrc = 0 ).
         IF lv_found1 = abap_false AND lv_found2 = abap_false.
           " not in any favorite flow enabled repo
           CONTINUE.
@@ -609,6 +623,28 @@ CLASS zcl_abapgit_flow_logic IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD find_github_username.
+
+    DATA li_repo_online TYPE REF TO zif_abapgit_repo_online.
+    DATA li_exit        TYPE REF TO zif_abapgit_flow_exit.
+
+    READ TABLE it_repos INTO li_repo_online INDEX 1.
+    IF sy-subrc = 0.
+      TRY.
+          rv_username = zcl_abapgit_login_manager=>get_username( li_repo_online->get_url( ) ).
+        CATCH zcx_abapgit_exception ##NO_HANDLER.
+      ENDTRY.
+    ENDIF.
+
+    TRY.
+        li_exit = zcl_abapgit_flow_exit=>get_instance( ).
+        li_exit->change_github_username( CHANGING cv_username = rv_username ).
+      CATCH zcx_abapgit_exception ##NO_HANDLER.
+    ENDTRY.
+
+  ENDMETHOD.
+
+
   METHOD find_prs.
 
     DATA lt_pulls TYPE zif_abapgit_pr_enum_provider=>ty_pull_requests.
@@ -646,6 +682,7 @@ CLASS zcl_abapgit_flow_logic IMPLEMENTATION.
       <ls_branch>-pr-url = ls_pull-html_url.
       <ls_branch>-pr-number = ls_pull-number.
       <ls_branch>-pr-draft = ls_pull-draft.
+      <ls_branch>-pr-author = ls_pull-user.
     ENDLOOP.
 
   ENDMETHOD.
@@ -674,6 +711,7 @@ CLASS zcl_abapgit_flow_logic IMPLEMENTATION.
 * list branches on favorite + flow enabled + transported repos
     lt_repos = list_repos( ).
     rs_information-enabled_repositories = lines( lt_repos ).
+    rs_information-github_username = find_github_username( lt_repos ).
 
     LOOP AT lt_repos INTO li_repo_online.
 
@@ -799,6 +837,59 @@ CLASS zcl_abapgit_flow_logic IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD update_all_branches.
+
+    DATA ls_feature      LIKE LINE OF it_features.
+    DATA li_repo_online  TYPE REF TO zif_abapgit_repo_online.
+    DATA lo_github       TYPE REF TO zcl_abapgit_pr_enum_github.
+    DATA lv_previous_key TYPE zif_abapgit_persistence=>ty_value.
+    DATA lv_url          TYPE string.
+    DATA lv_user         TYPE string.
+    DATA lv_repo         TYPE string.
+
+    LOOP AT it_features INTO ls_feature.
+      IF ls_feature-branch-up_to_date <> abap_false.
+        CONTINUE.
+      ENDIF.
+      IF ls_feature-pr-number IS INITIAL.
+        rs_result-skipped = rs_result-skipped + 1.
+        CONTINUE.
+      ENDIF.
+
+      IF lv_previous_key <> ls_feature-repo-key.
+        li_repo_online ?= zcl_abapgit_repo_srv=>get_instance( )->get( ls_feature-repo-key ).
+        lv_url = li_repo_online->get_url( ).
+
+        FIND FIRST OCCURRENCE OF REGEX 'github\.com\/([^\/]+)\/([^\/]+)'
+          IN lv_url
+          SUBMATCHES lv_user lv_repo ##REGEX_POSIX.
+        IF sy-subrc <> 0.
+          rs_result-skipped = rs_result-skipped + 1.
+          CONTINUE.
+        ENDIF.
+        lv_repo = replace(
+          val = lv_repo
+          regex = '\.git$'
+          with = '' ) ##REGEX_POSIX.
+
+        lo_github = NEW #( iv_user_and_repo = |{ lv_user }/{ lv_repo }|
+                           ii_http_agent = zcl_abapgit_http_agent=>create( ) ).
+        lv_previous_key = ls_feature-repo-key.
+      ENDIF.
+
+      TRY.
+          lo_github->update_pull_request_branch(
+            iv_pull_number       = ls_feature-pr-number
+            iv_expected_head_sha = ls_feature-branch-sha1 ).
+          rs_result-updated = rs_result-updated + 1.
+        CATCH zcx_abapgit_exception.
+          rs_result-errors = rs_result-errors + 1.
+      ENDTRY.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
   METHOD read_transport_users.
 
     DATA lt_tasks TYPE zif_abapgit_cts_api=>ty_request_and_tasks_tt.
@@ -882,7 +973,7 @@ CLASS zcl_abapgit_flow_logic IMPLEMENTATION.
     SORT lt_filter BY object obj_name.
     DELETE ADJACENT DUPLICATES FROM lt_filter COMPARING object obj_name.
 
-    CREATE OBJECT lo_filter EXPORTING it_filter = lt_filter.
+    lo_filter = NEW #( it_filter = lt_filter ).
     rt_local = ii_repo->get_files_local_filtered( lo_filter ).
 
   ENDMETHOD.
