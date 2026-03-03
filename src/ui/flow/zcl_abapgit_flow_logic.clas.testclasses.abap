@@ -305,7 +305,7 @@ CLASS lcl_gitv2 IMPLEMENTATION.
     mo_data = io_data.
   ENDMETHOD.
   METHOD zif_abapgit_gitv2_porcelain~list_branches.
-    ro_list = NEW lcl_branch_list( io_data = mo_data ).
+    CREATE OBJECT ro_list TYPE lcl_branch_list EXPORTING io_data = mo_data.
   ENDMETHOD.
   METHOD zif_abapgit_gitv2_porcelain~list_no_blobs.
     RETURN.
@@ -420,7 +420,7 @@ CLASS lcl_repo IMPLEMENTATION.
   METHOD zif_abapgit_repo~get_dot_abapgit.
     DATA ls_data TYPE zif_abapgit_dot_abapgit=>ty_dot_abapgit.
     ls_data-starting_folder = '/'.
-    ro_dot_abapgit = NEW #( is_data = ls_data ).
+    CREATE OBJECT ro_dot_abapgit EXPORTING is_data = ls_data.
   ENDMETHOD.
   METHOD zif_abapgit_repo~set_dot_abapgit.
     RETURN.
@@ -632,13 +632,13 @@ CLASS ltcl_flow_logic IMPLEMENTATION.
     DATA lo_tadir       TYPE REF TO lcl_tadir.
     DATA lo_cts         TYPE REF TO lcl_cts.
 
-    ro_data = NEW #( ).
-    lo_repo = NEW #( ).
-    lo_sap_package = NEW #( ).
-    lo_tadir = NEW #( io_data = ro_data ).
-    lo_cts = NEW #( io_data = ro_data ).
-    lo_gitv2 = NEW #( io_data = ro_data ).
-    lo_repo_srv = NEW #( io_repo = lo_repo ).
+    CREATE OBJECT ro_data.
+    CREATE OBJECT lo_repo.
+    CREATE OBJECT lo_sap_package.
+    CREATE OBJECT lo_tadir EXPORTING io_data = ro_data.
+    CREATE OBJECT lo_cts EXPORTING io_data = ro_data.
+    CREATE OBJECT lo_gitv2 EXPORTING io_data = ro_data.
+    CREATE OBJECT lo_repo_srv EXPORTING io_repo = lo_repo.
 
     zcl_abapgit_repo_srv=>inject_instance( lo_repo_srv ).
 
