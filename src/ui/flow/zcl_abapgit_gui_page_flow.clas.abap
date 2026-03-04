@@ -175,7 +175,7 @@ CLASS zcl_abapgit_gui_page_flow IMPLEMENTATION.
 
   METHOD build_advanced_dropdown.
 
-    CREATE OBJECT ro_advanced_dropdown.
+    ro_advanced_dropdown = NEW #( ).
 
     ro_advanced_dropdown->add(
       iv_txt = 'Consolidate'
@@ -250,7 +250,7 @@ CLASS zcl_abapgit_gui_page_flow IMPLEMENTATION.
       <ls_filter>-object = <ls_object>-obj_type.
       <ls_filter>-obj_name = <ls_object>-obj_name.
     ENDLOOP.
-    CREATE OBJECT lo_filter EXPORTING it_filter = lt_filter.
+    lo_filter = NEW #( it_filter = lt_filter ).
 
     set_branch(
       iv_branch = lv_branch
@@ -302,7 +302,7 @@ CLASS zcl_abapgit_gui_page_flow IMPLEMENTATION.
       <ls_filter>-object = <ls_object>-obj_type.
       <ls_filter>-obj_name = <ls_object>-obj_name.
     ENDLOOP.
-    CREATE OBJECT lo_filter EXPORTING it_filter = lt_filter.
+    lo_filter = NEW #( it_filter = lt_filter ).
 
     LOOP AT ls_feature-changed_files INTO ls_remote WHERE remote_sha1 IS NOT INITIAL.
       INSERT ls_remote-remote_sha1 INTO TABLE lt_sha1.
@@ -358,7 +358,7 @@ CLASS zcl_abapgit_gui_page_flow IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_flow.
 
-    CREATE OBJECT lo_component.
+    lo_component = NEW #( ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title         = 'Flow'
@@ -392,8 +392,8 @@ CLASS zcl_abapgit_gui_page_flow IMPLEMENTATION.
     DATA lv_opt     TYPE c LENGTH 1.
 
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
-    CREATE OBJECT lo_toolbar EXPORTING iv_id = 'toolbar-flow'.
+    ri_html = NEW zcl_abapgit_html( ).
+    lo_toolbar = NEW #( iv_id = 'toolbar-flow' ).
 
     li_repo ?= zcl_abapgit_repo_srv=>get_instance( )->get( is_feature-repo-key ).
     IF li_repo->get_local_settings( )-write_protected = abap_true.
@@ -434,7 +434,7 @@ CLASS zcl_abapgit_gui_page_flow IMPLEMENTATION.
     DATA lv_user  TYPE syuname.
     DATA lt_users TYPE zif_abapgit_flow_logic=>ty_users_tt.
 
-    CREATE OBJECT ro_toolbar.
+    ro_toolbar = NEW #( ).
 
     lt_users = zcl_abapgit_flow_logic=>get_involved_users( ms_information ).
     INSERT sy-uname INTO TABLE lt_users.
@@ -442,19 +442,15 @@ CLASS zcl_abapgit_gui_page_flow IMPLEMENTATION.
       INSERT ms_user_settings-username_filter INTO TABLE lt_users.
     ENDIF.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( ms_user_settings-username_filter IS INITIAL ).
     ro_toolbar->add(
       iv_txt = 'All users'
-      iv_chk = temp1
+      iv_chk = xsdbool( ms_user_settings-username_filter IS INITIAL )
       iv_act = c_action-username_filter ).
 
     LOOP AT lt_users INTO lv_user.
-      DATA temp2 TYPE xsdboolean.
-      temp2 = boolc( ms_user_settings-username_filter = lv_user ).
       ro_toolbar->add(
         iv_txt = |{ lv_user }|
-        iv_chk = temp2
+        iv_chk = xsdbool( ms_user_settings-username_filter = lv_user )
         iv_act = |{ c_action-username_filter }?user={ lv_user }| ).
     ENDLOOP.
 
@@ -464,7 +460,7 @@ CLASS zcl_abapgit_gui_page_flow IMPLEMENTATION.
 
     DATA lv_current_sort TYPE string.
 
-    CREATE OBJECT ro_toolbar.
+    ro_toolbar = NEW #( ).
 
     IF ms_user_settings-sort_order IS INITIAL.
       lv_current_sort = c_sort_order-default.
@@ -472,18 +468,14 @@ CLASS zcl_abapgit_gui_page_flow IMPLEMENTATION.
       lv_current_sort = ms_user_settings-sort_order.
     ENDIF.
 
-    DATA temp3 TYPE xsdboolean.
-    temp3 = boolc( lv_current_sort = c_sort_order-default ).
     ro_toolbar->add(
       iv_txt = 'Default'
-      iv_chk = temp3
+      iv_chk = xsdbool( lv_current_sort = c_sort_order-default )
       iv_act = |{ c_action-sort_order }?order={ c_sort_order-default }| ).
 
-    DATA temp4 TYPE xsdboolean.
-    temp4 = boolc( lv_current_sort = c_sort_order-transport_descend ).
     ro_toolbar->add(
       iv_txt = 'Recently Modified Transport'
-      iv_chk = temp4
+      iv_chk = xsdbool( lv_current_sort = c_sort_order-transport_descend )
       iv_act = |{ c_action-sort_order }?order={ c_sort_order-transport_descend }| ).
 
   ENDMETHOD.
@@ -516,27 +508,19 @@ CLASS zcl_abapgit_gui_page_flow IMPLEMENTATION.
         zcl_abapgit_persist_factory=>get_user( )->set_flow_settings( ms_user_settings ).
         rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
       WHEN c_action-hide_full_matches.
-        DATA temp5 TYPE xsdboolean.
-        temp5 = boolc( ms_user_settings-hide_full_matches <> abap_true ).
-        ms_user_settings-hide_full_matches = temp5.
+        ms_user_settings-hide_full_matches = xsdbool( ms_user_settings-hide_full_matches <> abap_true ).
         zcl_abapgit_persist_factory=>get_user( )->set_flow_settings( ms_user_settings ).
         rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
       WHEN c_action-hide_conflicts.
-        DATA temp6 TYPE xsdboolean.
-        temp6 = boolc( ms_user_settings-hide_conflicts <> abap_true ).
-        ms_user_settings-hide_conflicts = temp6.
+        ms_user_settings-hide_conflicts = xsdbool( ms_user_settings-hide_conflicts <> abap_true ).
         zcl_abapgit_persist_factory=>get_user( )->set_flow_settings( ms_user_settings ).
         rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
       WHEN c_action-show_details.
-        DATA temp7 TYPE xsdboolean.
-        temp7 = boolc( ms_user_settings-show_details <> abap_true ).
-        ms_user_settings-show_details = temp7.
+        ms_user_settings-show_details = xsdbool( ms_user_settings-show_details <> abap_true ).
         zcl_abapgit_persist_factory=>get_user( )->set_flow_settings( ms_user_settings ).
         rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
       WHEN c_action-hide_matching_files.
-        DATA temp8 TYPE xsdboolean.
-        temp8 = boolc( ms_user_settings-hide_matching_files <> abap_true ).
-        ms_user_settings-hide_matching_files = temp8.
+        ms_user_settings-hide_matching_files = xsdbool( ms_user_settings-hide_matching_files <> abap_true ).
         zcl_abapgit_persist_factory=>get_user( )->set_flow_settings( ms_user_settings ).
         rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
       WHEN c_action-rollback_pr.
@@ -577,7 +561,7 @@ CLASS zcl_abapgit_gui_page_flow IMPLEMENTATION.
 
   METHOD build_view_dropdown.
 
-    CREATE OBJECT ro_toolbar.
+    ro_toolbar = NEW #( ).
 
     ro_toolbar->add(
       iv_txt = 'Hide full matches'
@@ -668,7 +652,7 @@ CLASS zcl_abapgit_gui_page_flow IMPLEMENTATION.
 
   METHOD render_info.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     IF is_feature-branch-display_name IS INITIAL.
       ri_html->add( |No branch found, comparing with <tt>main</tt>| ).
@@ -735,7 +719,7 @@ CLASS zcl_abapgit_gui_page_flow IMPLEMENTATION.
 
   METHOD render_feature.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<b><font size="+2">' && is_feature-repo-name ).
     IF is_feature-branch-display_name IS NOT INITIAL.
@@ -815,7 +799,7 @@ CLASS zcl_abapgit_gui_page_flow IMPLEMENTATION.
     lo_timer = zcl_abapgit_timer=>create( )->start( ).
 
     register_handlers( ).
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
     ri_html->add( '<div class="repo-overview">' ).
 
     IF ms_information IS INITIAL.
