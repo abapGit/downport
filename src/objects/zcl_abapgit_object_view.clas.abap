@@ -107,10 +107,9 @@ CLASS zcl_abapgit_object_view IMPLEMENTATION.
 
   METHOD deserialize_texts.
 
-    TYPES temp1 TYPE TABLE OF langu.
-DATA:
+    DATA:
       lv_name       TYPE ddobjname,
-      lt_i18n_langs TYPE temp1,
+      lt_i18n_langs TYPE TABLE OF langu,
       lt_dd25_texts TYPE ty_dd25_texts,
       ls_dd25v_tmp  TYPE dd25v.
 
@@ -162,10 +161,9 @@ DATA:
 
   METHOD insert_transport.
 
-    TYPES temp2 TYPE TABLE OF tddat.
-DATA:
+    DATA:
       ls_key  TYPE tddat,
-      lt_keys TYPE temp2.
+      lt_keys TYPE TABLE OF tddat.
 
     IF iv_transport IS INITIAL.
       RETURN.
@@ -233,12 +231,11 @@ DATA:
 
   METHOD serialize_texts.
 
-    TYPES temp3 TYPE TABLE OF langu.
-DATA:
+    DATA:
       lv_index           TYPE i,
       ls_dd25v           TYPE dd25v,
       lt_dd25_texts      TYPE ty_dd25_texts,
-      lt_i18n_langs      TYPE temp3,
+      lt_i18n_langs      TYPE TABLE OF langu,
       lt_language_filter TYPE zif_abapgit_environment=>ty_system_language_filter.
 
     FIELD-SYMBOLS:
@@ -360,17 +357,13 @@ DATA:
 
   METHOD zif_abapgit_object~deserialize.
 
-    TYPES temp4 TYPE TABLE OF dd26v.
-TYPES temp1 TYPE TABLE OF dd27p.
-TYPES temp2 TYPE TABLE OF dd28j.
-TYPES temp3 TYPE TABLE OF dd28v.
-DATA: lv_name   TYPE ddobjname,
+    DATA: lv_name   TYPE ddobjname,
           ls_dd25v  TYPE dd25v,
           ls_dd09l  TYPE dd09l,
-          lt_dd26v  TYPE temp4,
-          lt_dd27p  TYPE temp1,
-          lt_dd28j  TYPE temp2,
-          lt_dd28v  TYPE temp3,
+          lt_dd26v  TYPE TABLE OF dd26v,
+          lt_dd27p  TYPE TABLE OF dd27p,
+          lt_dd28j  TYPE TABLE OF dd28j,
+          lt_dd28v  TYPE TABLE OF dd28v,
           ls_extras TYPE zif_abapgit_object_tabl=>ty_internal-extras.
 
     FIELD-SYMBOLS: <ls_dd27p> LIKE LINE OF lt_dd27p.
@@ -458,9 +451,7 @@ DATA: lv_name   TYPE ddobjname,
 
     SELECT SINGLE viewname FROM dd25l INTO lv_viewname
       WHERE viewname = ms_item-obj_name.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
     IF rv_bool = abap_true.
       TRY.

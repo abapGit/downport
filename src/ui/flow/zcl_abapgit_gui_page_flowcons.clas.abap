@@ -113,11 +113,11 @@ CLASS zcl_abapgit_gui_page_flowcons IMPLEMENTATION.
     SORT lt_filter BY object obj_name.
     DELETE ADJACENT DUPLICATES FROM lt_filter COMPARING object obj_name.
 
-    CREATE OBJECT lo_filter EXPORTING it_filter = lt_filter.
+    lo_filter = NEW #( it_filter = lt_filter ).
     lt_local = mo_repo->zif_abapgit_repo~get_files_local_filtered( lo_filter ).
 
 * just add all files, some will match, but its okay
-    CREATE OBJECT lo_stage.
+    lo_stage = NEW #( ).
     LOOP AT lt_local INTO ls_local.
       lo_stage->add( iv_path     = ls_local-file-path
                      iv_filename = ls_local-file-filename
@@ -158,7 +158,7 @@ CLASS zcl_abapgit_gui_page_flowcons IMPLEMENTATION.
 
     lo_dot = mo_repo->zif_abapgit_repo~get_dot_abapgit( ).
 
-    CREATE OBJECT lo_stage.
+    lo_stage = NEW #( ).
     LOOP AT ms_consolidate-only_remote INTO ls_file.
       lo_stage->rm( iv_path     = ls_file-path
                     iv_filename = ls_file-filename ).
@@ -203,7 +203,7 @@ CLASS zcl_abapgit_gui_page_flowcons IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_flowcons.
 
-    CREATE OBJECT lo_component EXPORTING ii_repo = ii_repo.
+    lo_component = NEW #( ii_repo = ii_repo ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title         = 'Flow Consolidate'
@@ -264,7 +264,7 @@ CLASS zcl_abapgit_gui_page_flowcons IMPLEMENTATION.
     li_repo ?= mo_repo.
     lo_timer = zcl_abapgit_timer=>create( )->start( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
     ri_html->add( '<div class="repo-overview">' ).
 
     ri_html->add( zcl_abapgit_gui_chunk_lib=>render_repo_top(
@@ -295,7 +295,7 @@ CLASS zcl_abapgit_gui_page_flowcons IMPLEMENTATION.
 
     IF lines( ms_consolidate-missing_remote ) > 0.
       ri_html->add( '<h2>Missing Remote Files</h2>' ).
-      CREATE OBJECT lo_toolbar EXPORTING iv_id = 'toolbar-flow-cons'.
+      lo_toolbar = NEW #( iv_id = 'toolbar-flow-cons' ).
       lo_toolbar->add( iv_txt = |Stage and commit { lines( ms_consolidate-missing_remote ) } files to new branch|
                        iv_act = c_action-stage_missing_remote
                        iv_opt = zif_abapgit_html=>c_html_opt-strong ).
@@ -308,7 +308,7 @@ CLASS zcl_abapgit_gui_page_flowcons IMPLEMENTATION.
 
     IF lines( ms_consolidate-only_remote ) > 0.
       ri_html->add( '<h2>Files Only Remote</h2>' ).
-      CREATE OBJECT lo_toolbar EXPORTING iv_id = 'toolbar-flow-cons'.
+      lo_toolbar = NEW #( iv_id = 'toolbar-flow-cons' ).
       lo_toolbar->add( iv_txt = |Remove and commit { lines( ms_consolidate-only_remote ) } files to new branch|
                        iv_act = c_action-stage_only_remote
                        iv_opt = zif_abapgit_html=>c_html_opt-strong ).
