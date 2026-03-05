@@ -43,10 +43,12 @@ CLASS zcl_abapgit_objects_generic DEFINITION
       ty_t_objkey TYPE SORTED TABLE OF ty_s_objkey WITH UNIQUE KEY num .
 
     DATA ms_object_header TYPE objh .
-    DATA:
-      mt_object_table TYPE STANDARD TABLE OF objsl WITH DEFAULT KEY .
-    DATA:
-      mt_object_method TYPE STANDARD TABLE OF objm WITH DEFAULT KEY .
+    TYPES temp1_c6f892cf3d TYPE STANDARD TABLE OF objsl WITH DEFAULT KEY.
+DATA:
+      mt_object_table TYPE temp1_c6f892cf3d .
+    TYPES temp2_c6f892cf3d TYPE STANDARD TABLE OF objm WITH DEFAULT KEY.
+DATA:
+      mt_object_method TYPE temp2_c6f892cf3d .
     DATA ms_item TYPE zif_abapgit_definitions=>ty_item .
     DATA mv_language TYPE spras .
 
@@ -130,9 +132,11 @@ CLASS zcl_abapgit_objects_generic IMPLEMENTATION.
 
   METHOD after_import.
 
-    DATA: lt_cts_object_entry TYPE STANDARD TABLE OF e071 WITH DEFAULT KEY,
+    TYPES temp3 TYPE STANDARD TABLE OF e071 WITH DEFAULT KEY.
+TYPES temp1 TYPE STANDARD TABLE OF e071k WITH DEFAULT KEY.
+DATA: lt_cts_object_entry TYPE temp3,
           ls_cts_object_entry LIKE LINE OF lt_cts_object_entry,
-          lt_cts_key          TYPE STANDARD TABLE OF e071k WITH DEFAULT KEY.
+          lt_cts_key          TYPE temp1.
 
     FIELD-SYMBOLS <ls_object_method> LIKE LINE OF mt_object_method.
 
@@ -184,9 +188,11 @@ CLASS zcl_abapgit_objects_generic IMPLEMENTATION.
 
   METHOD before_export.
 
-    DATA: lt_cts_object_entry TYPE STANDARD TABLE OF e071 WITH DEFAULT KEY,
+    TYPES temp5 TYPE STANDARD TABLE OF e071 WITH DEFAULT KEY.
+TYPES temp2 TYPE STANDARD TABLE OF e071k WITH DEFAULT KEY.
+DATA: lt_cts_object_entry TYPE temp5,
           ls_cts_object_entry LIKE LINE OF lt_cts_object_entry,
-          lt_cts_key          TYPE STANDARD TABLE OF e071k WITH DEFAULT KEY,
+          lt_cts_key          TYPE temp2,
           lv_client           TYPE trclient.
 
     FIELD-SYMBOLS <ls_object_method> LIKE LINE OF mt_object_method.
@@ -422,7 +428,9 @@ CLASS zcl_abapgit_objects_generic IMPLEMENTATION.
     ASSIGN lr_table_line->* TO <lg_table_line>.
 
     SELECT SINGLE * FROM (lv_primary) INTO <lg_table_line> WHERE (lv_where_clause).
-    rv_bool = xsdbool( sy-dbcnt > 0 ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( sy-dbcnt > 0 ).
+    rv_bool = temp1.
 
   ENDMETHOD.
 

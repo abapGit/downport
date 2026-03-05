@@ -132,8 +132,8 @@ CLASS zcl_abapgit_gui_page_db_entry IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_db_entry.
 
-    lo_component = NEW #( iv_edit_mode = iv_edit_mode
-                          is_key = is_key ).
+    CREATE OBJECT lo_component EXPORTING iv_edit_mode = iv_edit_mode
+                                         is_key = is_key.
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_extra_css_url       = c_css_url
@@ -174,7 +174,7 @@ CLASS zcl_abapgit_gui_page_db_entry IMPLEMENTATION.
 
     DATA lo_buf TYPE REF TO zcl_abapgit_string_buffer.
 
-    lo_buf = NEW #( ).
+    CREATE OBJECT lo_buf.
 
     " @@abapmerge include zabapgit_css_page_db_entry.w3mi.data.css > lo_buf->add( '$$' ).
     gui_services( )->register_page_asset(
@@ -263,7 +263,9 @@ CLASS zcl_abapgit_gui_page_db_entry IMPLEMENTATION.
 
     CASE ii_event->mv_action.
       WHEN c_action-switch_mode.
-        mv_edit_mode = xsdbool( mv_edit_mode = abap_false ).
+        DATA temp1 TYPE xsdboolean.
+        temp1 = boolc( mv_edit_mode = abap_false ).
+        mv_edit_mode = temp1.
         rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
       WHEN c_action-update.
         do_update( dbcontent_decode( ii_event->form_data( ) ) ).
@@ -297,7 +299,7 @@ CLASS zcl_abapgit_gui_page_db_entry IMPLEMENTATION.
       CATCH zcx_abapgit_not_found ##NO_HANDLER.
     ENDTRY.
 
-    ri_html = NEW zcl_abapgit_html( ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
 
     ri_html->add( '<div class="db-entry">' ).
 
