@@ -47,7 +47,8 @@ CLASS zcl_abapgit_object_sfpf IMPLEMENTATION.
 *     it is better to collect all attributes in a cache table
 *     instead of implementing of a nested loop using get_next().
 
-    DATA:
+    TYPES temp1 LIKE SORTED TABLE OF ls_attr_href WITH NON-UNIQUE KEY val.
+DATA:
       li_iterator TYPE REF TO if_ixml_node_iterator,
       li_elem     TYPE REF TO if_ixml_element,
       lv_new      TYPE string,
@@ -57,7 +58,7 @@ CLASS zcl_abapgit_object_sfpf IMPLEMENTATION.
         val  TYPE string,
         attr TYPE REF TO if_ixml_attribute,
       END OF ls_attr_href,
-      lt_attr_href LIKE SORTED TABLE OF ls_attr_href WITH NON-UNIQUE KEY val.
+      lt_attr_href TYPE temp1.
 
     FIELD-SYMBOLS <ls_attr_href> LIKE LINE OF lt_attr_href.
 
@@ -286,7 +287,9 @@ CLASS zcl_abapgit_object_sfpf IMPLEMENTATION.
     SELECT SINGLE name FROM fplayout
       INTO lv_name
       WHERE name = ms_item-obj_name.
-    rv_bool = xsdbool( sy-subrc = 0 ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( sy-subrc = 0 ).
+    rv_bool = temp1.
 
   ENDMETHOD.
 
