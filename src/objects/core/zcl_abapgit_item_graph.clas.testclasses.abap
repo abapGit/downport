@@ -17,7 +17,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA ls_item2 LIKE LINE OF lt_items.
     DATA ls_next LIKE LINE OF lt_items.
 
-    li_log = NEW zcl_abapgit_log( ).
+    CREATE OBJECT li_log TYPE zcl_abapgit_log.
 
     ls_item1-obj_type = 'TYPE'.
     ls_item1-obj_type = '1111'.
@@ -27,7 +27,7 @@ CLASS ltcl_test IMPLEMENTATION.
     ls_item2-obj_type = '2222'.
     APPEND ls_item2 TO lt_items.
 
-    lo_graph = NEW #( it_items = lt_items ).
+    CREATE OBJECT lo_graph EXPORTING it_items = lt_items.
 
     lo_graph->add_edge(
       is_from = ls_item1
