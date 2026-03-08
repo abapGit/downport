@@ -279,10 +279,11 @@ CLASS zcl_abapgit_objects IMPLEMENTATION.
 
   METHOD check_duplicates.
 
-    DATA: lt_files          TYPE zif_abapgit_git_definitions=>ty_files_tt,
+    TYPES temp1 TYPE STANDARD TABLE OF string WITH DEFAULT KEY.
+DATA: lt_files          TYPE zif_abapgit_git_definitions=>ty_files_tt,
           lv_path           TYPE string,
           lv_filename       TYPE string,
-          lt_duplicates     TYPE STANDARD TABLE OF string WITH DEFAULT KEY,
+          lt_duplicates     TYPE temp1,
           lv_duplicates     LIKE LINE OF lt_duplicates,
           lv_all_duplicates TYPE string.
 
@@ -448,11 +449,11 @@ CLASS zcl_abapgit_objects IMPLEMENTATION.
 
         TRY. " 2nd step, try looking for plugins
             IF io_files IS BOUND AND io_i18n_params IS BOUND.
-              ri_obj = NEW zcl_abapgit_objects_bridge( is_item = is_item
-                                                       io_files = io_files
-                                                       io_i18n_params = io_i18n_params ).
+              CREATE OBJECT ri_obj TYPE zcl_abapgit_objects_bridge EXPORTING is_item = is_item
+                                                                             io_files = io_files
+                                                                             io_i18n_params = io_i18n_params.
             ELSE.
-              ri_obj = NEW zcl_abapgit_objects_bridge( is_item = is_item ).
+              CREATE OBJECT ri_obj TYPE zcl_abapgit_objects_bridge EXPORTING is_item = is_item.
             ENDIF.
           CATCH cx_sy_create_object_error zcx_abapgit_exception.
             RAISE EXCEPTION TYPE zcx_abapgit_type_not_supported EXPORTING obj_type = is_item-obj_type.
@@ -663,7 +664,7 @@ CLASS zcl_abapgit_objects IMPLEMENTATION.
       ii_log->add_info( |>>> Deserializing { lines( lt_items ) } objects| ).
     ENDIF.
 
-    lo_abap_language_vers = NEW #( io_dot_abapgit = lo_dot ).
+    CREATE OBJECT lo_abap_language_vers EXPORTING io_dot_abapgit = lo_dot.
 
     lo_folder_logic = zcl_abapgit_folder_logic=>get_instance( ).
     LOOP AT lt_results ASSIGNING <ls_result>.
@@ -1075,7 +1076,9 @@ CLASS zcl_abapgit_objects IMPLEMENTATION.
       AND object = 'ENHO'
       AND obj_name = lv_enho_name.
 
-    rv_bool = xsdbool( sy-subrc = 0 ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( sy-subrc = 0 ).
+    rv_bool = temp1.
 
   ENDMETHOD.
 
@@ -1144,7 +1147,9 @@ CLASS zcl_abapgit_objects IMPLEMENTATION.
     li_exit->change_supported_object_types( CHANGING ct_types = lt_types ).
 
     READ TABLE lt_types TRANSPORTING NO FIELDS WITH TABLE KEY table_line = iv_obj_type.
-    rv_bool = xsdbool( sy-subrc = 0 ).
+    DATA temp2 TYPE xsdboolean.
+    temp2 = boolc( sy-subrc = 0 ).
+    rv_bool = temp2.
 
   ENDMETHOD.
 
@@ -1251,14 +1256,16 @@ CLASS zcl_abapgit_objects IMPLEMENTATION.
       io_files       = lo_files
       io_i18n_params = io_i18n_params ).
 
-    li_xml = NEW zcl_abapgit_xml_output( ).
+    CREATE OBJECT li_xml TYPE zcl_abapgit_xml_output.
 
     rs_files_and_item-item = is_item.
 
     TRY.
         li_obj->serialize( li_xml ).
       CATCH zcx_abapgit_exception INTO lx_error.
-        rs_files_and_item-item-inactive = xsdbool( li_obj->is_active( ) = abap_false ).
+        DATA temp3 TYPE xsdboolean.
+        temp3 = boolc( li_obj->is_active( ) = abap_false ).
+        rs_files_and_item-item-inactive = temp3.
         RAISE EXCEPTION lx_error.
     ENDTRY.
 
@@ -1281,7 +1288,9 @@ CLASS zcl_abapgit_objects IMPLEMENTATION.
 
     check_duplicates( rs_files_and_item-files ).
 
-    rs_files_and_item-item-inactive = xsdbool( li_obj->is_active( ) = abap_false ).
+    DATA temp4 TYPE xsdboolean.
+    temp4 = boolc( li_obj->is_active( ) = abap_false ).
+    rs_files_and_item-item-inactive = temp4.
 
     LOOP AT rs_files_and_item-files ASSIGNING <ls_file>.
       <ls_file>-sha1 = zcl_abapgit_hash=>sha1_blob( <ls_file>-data ).
@@ -1292,7 +1301,8 @@ CLASS zcl_abapgit_objects IMPLEMENTATION.
 
   METHOD supported_list.
 
-    DATA lt_objects            TYPE STANDARD TABLE OF ko100.
+    TYPES temp2 TYPE STANDARD TABLE OF ko100.
+DATA lt_objects            TYPE temp2.
     DATA ls_item               TYPE zif_abapgit_definitions=>ty_item.
     DATA ls_supported_obj_type TYPE ty_supported_types.
     DATA lt_types              TYPE zif_abapgit_exit=>ty_object_types.
