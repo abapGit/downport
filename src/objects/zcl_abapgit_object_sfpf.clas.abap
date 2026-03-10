@@ -8,6 +8,15 @@ CLASS zcl_abapgit_object_sfpf DEFINITION
 
     INTERFACES zif_abapgit_object .
 
+    METHODS constructor
+      IMPORTING
+        !is_item        TYPE zif_abapgit_definitions=>ty_item
+        !iv_language    TYPE spras
+        !io_files       TYPE REF TO zcl_abapgit_objects_files OPTIONAL
+        !io_i18n_params TYPE REF TO zcl_abapgit_i18n_params OPTIONAL
+      RAISING
+        zcx_abapgit_type_not_supported.
+
     CLASS-METHODS fix_oref
       IMPORTING
         !ii_document TYPE REF TO if_ixml_document
@@ -33,6 +42,32 @@ ENDCLASS.
 CLASS zcl_abapgit_object_sfpf IMPLEMENTATION.
 
 
+  METHOD constructor.
+
+    DATA: lv_version TYPE string.
+
+    super->constructor(
+        is_item        = is_item
+        iv_language    = iv_language
+        io_files       = io_files
+        io_i18n_params = io_i18n_params ).
+
+    TRY.
+
+        lv_version = cl_fp=>get_reference(
+            )->create_pdf_object( connection = cl_fp=>get_ads_connection( )
+            )->get_version_info( ).
+
+        IF lv_version IS INITIAL.
+          RAISE EXCEPTION TYPE zcx_abapgit_type_not_supported EXPORTING obj_type = is_item-obj_type.
+        ENDIF.
+
+      CATCH cx_root.
+        RAISE EXCEPTION TYPE zcx_abapgit_type_not_supported EXPORTING obj_type = is_item-obj_type.
+    ENDTRY.
+
+  ENDMETHOD.
+
   METHOD fix_oref.
 
 * During serialization of a SFPF / SFPI object the interface hierarchy
@@ -47,8 +82,7 @@ CLASS zcl_abapgit_object_sfpf IMPLEMENTATION.
 *     it is better to collect all attributes in a cache table
 *     instead of implementing of a nested loop using get_next().
 
-    TYPES temp1 LIKE SORTED TABLE OF ls_attr_href WITH NON-UNIQUE KEY val.
-DATA:
+    DATA:
       li_iterator TYPE REF TO if_ixml_node_iterator,
       li_elem     TYPE REF TO if_ixml_element,
       lv_new      TYPE string,
@@ -58,7 +92,7 @@ DATA:
         val  TYPE string,
         attr TYPE REF TO if_ixml_attribute,
       END OF ls_attr_href,
-      lt_attr_href TYPE temp1.
+      lt_attr_href LIKE SORTED TABLE OF ls_attr_href WITH NON-UNIQUE KEY val.
 
     FIELD-SYMBOLS <ls_attr_href> LIKE LINE OF lt_attr_href.
 
@@ -287,9 +321,7 @@ DATA:
     SELECT SINGLE name FROM fplayout
       INTO lv_name
       WHERE name = ms_item-obj_name.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
