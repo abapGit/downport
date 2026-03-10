@@ -118,7 +118,7 @@ CLASS ltcl_stream_test IMPLEMENTATION.
     DATA lv_offset TYPE i.
     DATA lv_length TYPE i.
 
-    lo_stream = NEW #( iv_data = 'FF' ).
+    CREATE OBJECT lo_stream EXPORTING iv_data = 'FF'.
 
     lo_stream->eat_offset_and_length(
       EXPORTING iv_instruction = '01'
@@ -141,7 +141,7 @@ CLASS ltcl_stream_test IMPLEMENTATION.
     DATA lv_offset TYPE i.
     DATA lv_length TYPE i.
 
-    lo_stream = NEW #( iv_data = '0102' ).
+    CREATE OBJECT lo_stream EXPORTING iv_data = '0102'.
 
     lo_stream->eat_offset_and_length(
       EXPORTING iv_instruction = '03'
@@ -165,7 +165,7 @@ CLASS ltcl_stream_test IMPLEMENTATION.
     DATA lv_offset TYPE i.
     DATA lv_length TYPE i.
 
-    lo_stream = NEW #( iv_data = '01020304' ).
+    CREATE OBJECT lo_stream EXPORTING iv_data = '01020304'.
 
     lo_stream->eat_offset_and_length(
       EXPORTING iv_instruction = '0F'
@@ -189,7 +189,7 @@ CLASS ltcl_stream_test IMPLEMENTATION.
     DATA lv_offset TYPE i.
     DATA lv_length TYPE i.
 
-    lo_stream = NEW #( iv_data = '0A' ).
+    CREATE OBJECT lo_stream EXPORTING iv_data = '0A'.
 
     lo_stream->eat_offset_and_length(
       EXPORTING iv_instruction = '10'
@@ -212,7 +212,7 @@ CLASS ltcl_stream_test IMPLEMENTATION.
     DATA lv_offset TYPE i.
     DATA lv_length TYPE i.
 
-    lo_stream = NEW #( iv_data = '0102' ).
+    CREATE OBJECT lo_stream EXPORTING iv_data = '0102'.
 
     lo_stream->eat_offset_and_length(
       EXPORTING iv_instruction = '30'
@@ -236,7 +236,7 @@ CLASS ltcl_stream_test IMPLEMENTATION.
     DATA lv_offset TYPE i.
     DATA lv_length TYPE i.
 
-    lo_stream = NEW #( iv_data = '010203' ).
+    CREATE OBJECT lo_stream EXPORTING iv_data = '010203'.
 
     lo_stream->eat_offset_and_length(
       EXPORTING iv_instruction = '70'
@@ -260,7 +260,7 @@ CLASS ltcl_stream_test IMPLEMENTATION.
     DATA lv_offset TYPE i.
     DATA lv_length TYPE i.
 
-    lo_stream = NEW #( iv_data = '00' ).
+    CREATE OBJECT lo_stream EXPORTING iv_data = '00'.
 
     lo_stream->eat_offset_and_length(
       EXPORTING iv_instruction = '00'
@@ -283,7 +283,7 @@ CLASS ltcl_stream_test IMPLEMENTATION.
     DATA lv_offset TYPE i.
     DATA lv_length TYPE i.
 
-    lo_stream = NEW #( iv_data = '0A14' ).
+    CREATE OBJECT lo_stream EXPORTING iv_data = '0A14'.
 
     lo_stream->eat_offset_and_length(
       EXPORTING iv_instruction = '11'
@@ -306,7 +306,7 @@ CLASS ltcl_stream_test IMPLEMENTATION.
     DATA lv_offset TYPE i.
     DATA lv_length TYPE i.
 
-    lo_stream = NEW #( iv_data = '01020304050607' ).
+    CREATE OBJECT lo_stream EXPORTING iv_data = '01020304050607'.
 
     lo_stream->eat_offset_and_length(
       EXPORTING iv_instruction = '7F'
@@ -331,7 +331,7 @@ CLASS ltcl_stream_test IMPLEMENTATION.
     DATA lv_offset TYPE i.
     DATA lv_length TYPE i.
 
-    lo_stream = NEW #( iv_data = '00' ).
+    CREATE OBJECT lo_stream EXPORTING iv_data = '00'.
 
     lo_stream->eat_offset_and_length(
       EXPORTING iv_instruction = '80'
