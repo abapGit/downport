@@ -17,7 +17,7 @@ CLASS zcl_abapgit_frontend_services DEFINITION LOCAL FRIENDS ltcl_frontend_servi
 CLASS ltcl_frontend_services IMPLEMENTATION.
 
   METHOD setup.
-    CREATE OBJECT mo_cut.
+    mo_cut = NEW #( ).
   ENDMETHOD.
 
   METHOD path_windows.
