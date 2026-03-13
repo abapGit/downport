@@ -13,6 +13,7 @@ CLASS zcl_abapgit_gui_page_patch DEFINITION
         !is_file       TYPE zif_abapgit_git_definitions=>ty_file OPTIONAL
         !is_object     TYPE zif_abapgit_definitions=>ty_item OPTIONAL
         !it_files      TYPE zif_abapgit_definitions=>ty_stage_tt OPTIONAL
+        !iv_sci_result TYPE zif_abapgit_definitions=>ty_sci_result DEFAULT zif_abapgit_definitions=>c_sci_result-no_run
       RETURNING
         VALUE(ri_page) TYPE REF TO zif_abapgit_gui_renderable
       RAISING
@@ -20,10 +21,11 @@ CLASS zcl_abapgit_gui_page_patch DEFINITION
 
     METHODS constructor
       IMPORTING
-        !iv_key    TYPE zif_abapgit_persistence=>ty_repo-key
-        !is_file   TYPE zif_abapgit_git_definitions=>ty_file OPTIONAL
-        !is_object TYPE zif_abapgit_definitions=>ty_item OPTIONAL
-        !it_files  TYPE zif_abapgit_definitions=>ty_stage_tt OPTIONAL
+        !iv_key        TYPE zif_abapgit_persistence=>ty_repo-key
+        !is_file       TYPE zif_abapgit_git_definitions=>ty_file OPTIONAL
+        !is_object     TYPE zif_abapgit_definitions=>ty_item OPTIONAL
+        !it_files      TYPE zif_abapgit_definitions=>ty_stage_tt OPTIONAL
+        !iv_sci_result TYPE zif_abapgit_definitions=>ty_sci_result DEFAULT zif_abapgit_definitions=>c_sci_result-no_run
       RAISING
         zcx_abapgit_exception.
 
@@ -46,6 +48,7 @@ CLASS zcl_abapgit_gui_page_patch DEFINITION
     METHODS:
       add_menu_begin REDEFINITION,
       add_menu_end REDEFINITION,
+      get_sci_result REDEFINITION,
       refresh REDEFINITION.
 
   PRIVATE SECTION.
@@ -65,6 +68,7 @@ CLASS zcl_abapgit_gui_page_patch DEFINITION
     DATA mv_section_count TYPE i .
     DATA mv_pushed TYPE abap_bool .
     DATA mi_repo_online TYPE REF TO zif_abapgit_repo_online .
+    DATA mv_sci_result TYPE zif_abapgit_definitions=>ty_sci_result .
 
     METHODS render_patch
       IMPORTING
@@ -206,7 +210,7 @@ CLASS zcl_abapgit_gui_page_patch IMPLEMENTATION.
 
       lv_something_patched = abap_true.
 
-      CREATE OBJECT lo_git_add_patch EXPORTING it_diff = <ls_diff_file>-o_diff->get( ).
+      lo_git_add_patch = NEW #( it_diff = <ls_diff_file>-o_diff->get( ) ).
 
       lv_patch = lo_git_add_patch->get_patch_binary( ).
 
@@ -332,9 +336,7 @@ CLASS zcl_abapgit_gui_page_patch IMPLEMENTATION.
       lv_patch_count = lv_patch_count + 1.
     ENDLOOP.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( lv_patch_count = lines( it_diff ) ).
-    rv_are_all_lines_patched = temp1.
+    rv_are_all_lines_patched = xsdbool( lv_patch_count = lines( it_diff ) ).
 
   ENDMETHOD.
 
@@ -355,10 +357,11 @@ CLASS zcl_abapgit_gui_page_patch IMPLEMENTATION.
     mi_extra = me.
 
     mi_repo_online ?= mi_repo.
+    mv_sci_result = iv_sci_result.
 
     " While patching we always want to be in split mode
     CLEAR mv_unified.
-    CREATE OBJECT mo_stage.
+    mo_stage = NEW #( ).
 
   ENDMETHOD.
 
@@ -367,16 +370,24 @@ CLASS zcl_abapgit_gui_page_patch IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_patch.
 
-    CREATE OBJECT lo_component EXPORTING iv_key = iv_key
-                                         is_file = is_file
-                                         is_object = is_object
-                                         it_files = it_files.
+    lo_component = NEW #( iv_key = iv_key
+                          is_file = is_file
+                          is_object = is_object
+                          it_files = it_files
+                          iv_sci_result = iv_sci_result ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title         = 'Patch'
       iv_page_layout        = zcl_abapgit_gui_page=>c_page_layout-full_width
       ii_page_menu_provider = lo_component
       ii_child_component    = lo_component ).
+
+  ENDMETHOD.
+
+
+  METHOD get_sci_result.
+
+    rv_sci_result = mv_sci_result.
 
   ENDMETHOD.
 
@@ -507,7 +518,7 @@ CLASS zcl_abapgit_gui_page_patch IMPLEMENTATION.
 
   METHOD render_scripts.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
     ri_html->add( 'preparePatch();' ).
