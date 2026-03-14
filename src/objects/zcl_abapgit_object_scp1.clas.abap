@@ -389,9 +389,7 @@ CLASS zcl_abapgit_object_scp1 IMPLEMENTATION.
         profid = lv_profid
       IMPORTING
         rc     = lv_rc.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( lv_rc = 0 ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( lv_rc = 0 ).
 
   ENDMETHOD.
 
