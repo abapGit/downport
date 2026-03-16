@@ -78,6 +78,18 @@ CLASS zcl_abapgit_cts_api DEFINITION
         !iv_object_type         TYPE trobjtype
       RETURNING
         VALUE(rv_transportable) TYPE abap_bool .
+
+    "! Insert logical object into customizing request
+    "! @parameter iv_transport | Transport
+    "! @parameter iv_object | Object type
+    "! @parameter iv_obj_name | Object Name
+    METHODS insert_cust_logical_object
+      IMPORTING
+        !iv_transport TYPE trkorr
+        !iv_object    TYPE trobjtype
+        !iv_obj_name  TYPE csequence
+      RAISING
+        zcx_abapgit_exception.
 ENDCLASS.
 
 
@@ -86,14 +98,12 @@ CLASS zcl_abapgit_cts_api IMPLEMENTATION.
 
 
   METHOD get_current_transport_for_obj.
-    TYPES temp1 TYPE STANDARD TABLE OF tlock WITH DEFAULT KEY.
-TYPES temp2 TYPE STANDARD TABLE OF trkorr WITH DEFAULT KEY.
-DATA: lv_object_lockable   TYPE abap_bool,
+    DATA: lv_object_lockable   TYPE abap_bool,
           lv_locked            TYPE abap_bool,
           lv_transport_request TYPE trkorr,
           ls_tlock             TYPE tlock,
-          lt_tlock             TYPE temp1,
-          lt_transports        TYPE temp2,
+          lt_tlock             TYPE STANDARD TABLE OF tlock WITH DEFAULT KEY,
+          lt_transports        TYPE STANDARD TABLE OF trkorr WITH DEFAULT KEY,
           lv_task              TYPE trkorr,
           lv_tr_object_name    TYPE trobj_name.
 
@@ -157,6 +167,57 @@ DATA: lv_object_lockable   TYPE abap_bool,
   ENDMETHOD.
 
 
+  METHOD insert_cust_logical_object.
+
+    DATA: lt_tasks    TYPE trwbo_request_headers,
+          ls_task     TYPE trwbo_request_header,
+          lv_obj_name TYPE e071-obj_name.
+
+    CALL FUNCTION 'TR_READ_REQUEST_WITH_TASKS'
+      EXPORTING
+        iv_trkorr          = iv_transport
+      IMPORTING
+        et_request_headers = lt_tasks
+      EXCEPTIONS
+        invalid_input      = 1
+        OTHERS             = 2.
+    IF sy-subrc <> 0.
+      zcx_abapgit_exception=>raise_t100( ).
+    ENDIF.
+
+    READ TABLE lt_tasks INTO ls_task WITH KEY strkorr = iv_transport.
+    IF sy-subrc = 0.
+
+      lv_obj_name = iv_obj_name.
+
+      CALL FUNCTION 'TLOGO_OBJECT_APPEND'
+        EXPORTING
+          korrnr                      = ls_task-trkorr
+          objtype                     = iv_object
+          obj_name                    = lv_obj_name
+        EXCEPTIONS
+          korrnr_already_released     = 1
+          korrnr_locked               = 2
+          korrnr_not_exists           = 3
+          korrnr_not_korr             = 4
+          korr_other_user             = 5
+          no_logical_object           = 6
+          object_has_no_tadir         = 7
+          object_locked_in_other_korr = 8
+          obj_name_too_long_or_space  = 9
+          error_append_to_comm        = 10
+          OTHERS                      = 11.
+      IF sy-subrc <> 0.
+        zcx_abapgit_exception=>raise_t100( ).
+      ENDIF.
+    ELSE.
+      zcx_abapgit_exception=>raise(
+        |Error inserting logical object { iv_obj_name } into customizing transport { iv_transport }| ).
+    ENDIF.
+
+  ENDMETHOD.
+
+
   METHOD is_object_locked_in_transport.
     DATA: ls_object_key        TYPE e071,
           lv_type_check_result TYPE c LENGTH 1,
@@ -190,9 +251,7 @@ DATA: lv_object_lockable   TYPE abap_bool,
       zcx_abapgit_exception=>raise_t100( ).
     ENDIF.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( lv_lock_flag <> space ).
-    rv_locked = temp1.
+    rv_locked = xsdbool( lv_lock_flag <> space ).
   ENDMETHOD.
 
 
@@ -210,9 +269,7 @@ DATA: lv_object_lockable   TYPE abap_bool,
       IMPORTING
         pe_result = lv_type_check_result.
 
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( lv_type_check_result = 'L' ).
-    rv_lockable = temp2.
+    rv_lockable = xsdbool( lv_type_check_result = 'L' ).
   ENDMETHOD.
 
 
@@ -230,9 +287,7 @@ DATA: lv_object_lockable   TYPE abap_bool,
       IMPORTING
         pe_result = lv_type_check_result.
 
-    DATA temp3 TYPE xsdboolean.
-    temp3 = boolc( lv_type_check_result CA 'RTL' OR iv_object_type = 'TABU' ).
-    rv_transportable = temp3.
+    rv_transportable = xsdbool( lv_type_check_result CA 'RTL' OR iv_object_type = 'TABU' ).
   ENDMETHOD.
 
 
@@ -365,8 +420,7 @@ DATA: lv_object_lockable   TYPE abap_bool,
   METHOD zif_abapgit_cts_api~create_transport_entries.
 
     DATA lt_tables      TYPE tredt_objects.
-    TYPES temp3 TYPE STANDARD TABLE OF e071k.
-DATA lt_table_keys  TYPE temp3.
+    DATA lt_table_keys  TYPE STANDARD TABLE OF e071k.
     DATA lv_with_dialog TYPE abap_bool.
 
     FIELD-SYMBOLS <ls_table> LIKE LINE OF lt_tables.
@@ -469,8 +523,7 @@ DATA lt_table_keys  TYPE temp3.
   METHOD zif_abapgit_cts_api~get_transports_for_list.
 
     DATA lv_request TYPE trkorr.
-    TYPES temp4 TYPE SORTED TABLE OF tlock WITH NON-UNIQUE KEY object hikey.
-DATA lt_tlock TYPE temp4.
+    DATA lt_tlock TYPE SORTED TABLE OF tlock WITH NON-UNIQUE KEY object hikey.
     DATA ls_object_key TYPE e071.
     DATA lv_type_check_result TYPE c LENGTH 1.
     DATA ls_lock_key TYPE tlock_int.
@@ -561,23 +614,33 @@ DATA lt_tlock TYPE temp4.
 
   METHOD zif_abapgit_cts_api~insert_transport_object.
 
-    CALL FUNCTION 'RS_CORR_INSERT'
-      EXPORTING
-        object              = iv_obj_name
-        object_class        = iv_object
-        devclass            = iv_package
-        master_language     = iv_language
-        korrnum             = iv_transport
-        mode                = iv_mode
-        global_lock         = abap_true
-        suppress_dialog     = abap_true
-      EXCEPTIONS
-        cancelled           = 1
-        permission_failure  = 2
-        unknown_objectclass = 3
-        OTHERS              = 4.
-    IF sy-subrc <> 0.
-      zcx_abapgit_exception=>raise_t100( ).
+    IF zif_abapgit_cts_api~is_object_type_customizing( iv_object ) = abap_true.
+
+      insert_cust_logical_object( iv_transport = iv_transport
+                                  iv_object    = iv_object
+                                  iv_obj_name  = iv_obj_name ).
+
+    ELSE.
+
+      CALL FUNCTION 'RS_CORR_INSERT'
+        EXPORTING
+          object              = iv_obj_name
+          object_class        = iv_object
+          devclass            = iv_package
+          master_language     = iv_language
+          korrnum             = iv_transport
+          mode                = iv_mode
+          global_lock         = abap_true
+          suppress_dialog     = abap_true
+        EXCEPTIONS
+          cancelled           = 1
+          permission_failure  = 2
+          unknown_objectclass = 3
+          OTHERS              = 4.
+      IF sy-subrc <> 0.
+        zcx_abapgit_exception=>raise_t100( ).
+      ENDIF.
+
     ENDIF.
 
   ENDMETHOD.
@@ -587,6 +650,29 @@ DATA lt_tlock TYPE temp4.
     IF iv_package IS NOT INITIAL.
       rv_possible = zcl_abapgit_factory=>get_sap_package( iv_package )->are_changes_recorded_in_tr_req( ).
     ENDIF.
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_cts_api~is_object_type_customizing.
+
+    DATA:
+      ls_e071              TYPE e071,
+      lv_is_logical_object TYPE abap_bool,
+      lv_category          TYPE c LENGTH 4.
+
+    ls_e071-pgmid  = iv_pgmid.
+    ls_e071-object = iv_object.
+
+    CALL FUNCTION 'TR_CHECK_TYPE'
+      EXPORTING
+        wi_e071     = ls_e071
+      IMPORTING
+        we_category = lv_category
+        ev_logo_obj = lv_is_logical_object.
+
+    rv_is_customizing_object = xsdbool(
+      lv_category = zif_abapgit_cts_api~c_transport_category-customizing AND lv_is_logical_object = abap_true ).
+
   ENDMETHOD.
 
 
@@ -612,10 +698,8 @@ DATA lt_tlock TYPE temp4.
              obj_name TYPE e071-obj_name,
            END OF ty_contents.
 
-    TYPES temp5 TYPE STANDARD TABLE OF trkorr WITH DEFAULT KEY.
-DATA lt_tasks    TYPE temp5.
-    TYPES temp6 TYPE STANDARD TABLE OF ty_contents WITH DEFAULT KEY.
-DATA lt_contents TYPE temp6.
+    DATA lt_tasks    TYPE STANDARD TABLE OF trkorr WITH DEFAULT KEY.
+    DATA lt_contents TYPE STANDARD TABLE OF ty_contents WITH DEFAULT KEY.
     DATA ls_contents LIKE LINE OF lt_contents.
     DATA ls_list     LIKE LINE OF rt_list.
 
@@ -714,7 +798,7 @@ DATA lt_contents TYPE temp6.
 * fallback to any language
       SELECT SINGLE as4text FROM e07t
         INTO rv_description
-        WHERE trkorr = iv_trkorr ##SUBRC_OK. "#EC CI_NOORDER
+        WHERE trkorr = iv_trkorr ##SUBRC_OK.            "#EC CI_NOORDER
     ENDIF.
 
   ENDMETHOD.
