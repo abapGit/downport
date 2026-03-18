@@ -35,7 +35,7 @@ CLASS zcl_abapgit_apack_writer IMPLEMENTATION.
 
 
   METHOD create_instance.
-    ro_manifest_writer = NEW #( is_apack_manifest_descriptor = is_apack_manifest_descriptor ).
+    CREATE OBJECT ro_manifest_writer EXPORTING is_apack_manifest_descriptor = is_apack_manifest_descriptor.
   ENDMETHOD.
 
 
