@@ -221,9 +221,7 @@ CLASS zcl_abapgit_git_commit IMPLEMENTATION.
       READ TABLE it_commits
         TRANSPORTING NO FIELDS
         WITH KEY sha1 = iv_sha1.
-      DATA temp1 TYPE xsdboolean.
-      temp1 = boolc( sy-subrc <> 0 ).
-      rv_result = temp1.
+      rv_result = xsdbool( sy-subrc <> 0 ).
 
     ENDIF.
 
@@ -232,9 +230,8 @@ CLASS zcl_abapgit_git_commit IMPLEMENTATION.
 
   METHOD parse_commits.
 
-    TYPES temp1 TYPE STANDARD TABLE OF string WITH DEFAULT KEY.
-DATA: ls_commit TYPE zif_abapgit_git_definitions=>ty_commit,
-          lt_body   TYPE temp1,
+    DATA: ls_commit TYPE zif_abapgit_git_definitions=>ty_commit,
+          lt_body   TYPE STANDARD TABLE OF string WITH DEFAULT KEY,
           ls_raw    TYPE zcl_abapgit_git_pack=>ty_commit.
 
     FIELD-SYMBOLS: <ls_object> LIKE LINE OF it_objects,
