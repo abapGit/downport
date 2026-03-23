@@ -182,7 +182,7 @@ iv_end = iv_end_offset ).
 
   METHOD create.
 
-    ri_result = NEW zcl_abapgit_diff3( ).
+    CREATE OBJECT ri_result TYPE zcl_abapgit_diff3.
 
   ENDMETHOD.
 
