@@ -158,7 +158,7 @@ CLASS zcl_abapgit_background IMPLEMENTATION.
     WRITE: / 'Background mode'.
 
     LOOP AT lt_list ASSIGNING <ls_list>.
-      CREATE OBJECT li_log TYPE zcl_abapgit_log.
+      li_log = NEW zcl_abapgit_log( ).
 
       TRY.
           li_repo = zcl_abapgit_repo_srv=>get_instance( )->get( <ls_list>-key ).
