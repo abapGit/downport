@@ -48,7 +48,7 @@ CLASS zcl_abapgit_persist_factory IMPLEMENTATION.
   METHOD get_background.
 
     IF gi_background IS INITIAL.
-      gi_background = NEW zcl_abapgit_persist_background( ).
+      CREATE OBJECT gi_background TYPE zcl_abapgit_persist_background.
     ENDIF.
 
     ri_background = gi_background.
@@ -59,7 +59,7 @@ CLASS zcl_abapgit_persist_factory IMPLEMENTATION.
   METHOD get_packages.
 
     IF gi_packages IS INITIAL.
-      gi_packages = NEW zcl_abapgit_persist_packages( ).
+      CREATE OBJECT gi_packages TYPE zcl_abapgit_persist_packages.
     ENDIF.
 
     ri_packages = gi_packages.
@@ -70,7 +70,7 @@ CLASS zcl_abapgit_persist_factory IMPLEMENTATION.
   METHOD get_repo.
 
     IF gi_repo IS INITIAL.
-      gi_repo = NEW zcl_abapgit_persistence_repo( ).
+      CREATE OBJECT gi_repo TYPE zcl_abapgit_persistence_repo.
     ENDIF.
 
     ri_repo = gi_repo.
@@ -81,7 +81,7 @@ CLASS zcl_abapgit_persist_factory IMPLEMENTATION.
   METHOD get_repo_cs.
 
     IF gi_repo_cs IS INITIAL.
-      gi_repo_cs = NEW zcl_abapgit_persistence_repo( ).
+      CREATE OBJECT gi_repo_cs TYPE zcl_abapgit_persistence_repo.
     ENDIF.
 
     ri_repo_cs = gi_repo_cs.
@@ -92,7 +92,7 @@ CLASS zcl_abapgit_persist_factory IMPLEMENTATION.
   METHOD get_repo_data.
 
     IF gi_repo_data IS INITIAL.
-      gi_repo_data = NEW zcl_abapgit_persistence_repo( ).
+      CREATE OBJECT gi_repo_data TYPE zcl_abapgit_persistence_repo.
     ENDIF.
 
     ri_repo_data = gi_repo_data.
@@ -103,7 +103,7 @@ CLASS zcl_abapgit_persist_factory IMPLEMENTATION.
   METHOD get_settings.
 
     IF gi_settings IS INITIAL.
-      gi_settings = NEW zcl_abapgit_persist_settings( ).
+      CREATE OBJECT gi_settings TYPE zcl_abapgit_persist_settings.
     ENDIF.
 
     ri_settings = gi_settings.
@@ -115,11 +115,11 @@ CLASS zcl_abapgit_persist_factory IMPLEMENTATION.
 
     IF iv_user = sy-uname ##USER_OK.
       IF gi_current_user IS NOT BOUND.
-        gi_current_user = NEW zcl_abapgit_persistence_user( ).
+        CREATE OBJECT gi_current_user TYPE zcl_abapgit_persistence_user.
       ENDIF.
       ri_user = gi_current_user.
     ELSE.
-      ri_user = NEW zcl_abapgit_persistence_user( iv_user = iv_user ).
+      CREATE OBJECT ri_user TYPE zcl_abapgit_persistence_user EXPORTING iv_user = iv_user.
     ENDIF.
 
   ENDMETHOD.
