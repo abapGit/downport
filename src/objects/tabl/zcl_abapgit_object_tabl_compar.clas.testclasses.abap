@@ -44,7 +44,7 @@ CLASS ltcl_table_compare_tests IMPLEMENTATION.
         OTHERS        = 2.
     ASSERT sy-subrc = 0.
 
-    mi_cut = NEW zcl_abapgit_object_tabl_compar( is_item = ls_item ).
+    CREATE OBJECT mi_cut TYPE zcl_abapgit_object_tabl_compar EXPORTING is_item = ls_item.
 
   ENDMETHOD.
 
@@ -58,31 +58,31 @@ CLASS ltcl_table_compare_tests IMPLEMENTATION.
       li_log            TYPE REF TO zif_abapgit_log.
 
     TRY.
-        li_local_xml = NEW zcl_abapgit_xml_output( ).
+        CREATE OBJECT li_local_xml TYPE zcl_abapgit_xml_output.
 
         li_local_xml->add( iv_name = 'DD02V'
                            ig_data = is_local-dd02v ).
         li_local_xml->add( iv_name = 'DD03P_TABLE'
                            ig_data = is_local-dd03p ).
 
-        li_local_version = NEW zcl_abapgit_xml_input( iv_xml = li_local_xml->render( )
-                                                      iv_filename = 't100.tabl.xml' ).
+        CREATE OBJECT li_local_version TYPE zcl_abapgit_xml_input EXPORTING iv_xml = li_local_xml->render( )
+                                                                            iv_filename = 't100.tabl.xml'.
 
-        li_remote_xml = NEW zcl_abapgit_xml_output( ).
+        CREATE OBJECT li_remote_xml TYPE zcl_abapgit_xml_output.
 
         li_remote_xml->add( iv_name = 'DD02V'
                             ig_data = is_remote-dd02v ).
         li_remote_xml->add( iv_name = 'DD03P_TABLE'
                             ig_data = is_remote-dd03p ).
 
-        li_remote_version = NEW zcl_abapgit_xml_input( iv_xml = li_remote_xml->render( )
-                                                       iv_filename = 't100.tabl.xml' ).
+        CREATE OBJECT li_remote_version TYPE zcl_abapgit_xml_input EXPORTING iv_xml = li_remote_xml->render( )
+                                                                             iv_filename = 't100.tabl.xml'.
 
       CATCH zcx_abapgit_exception.
         cl_abap_unit_assert=>fail( 'Error initializing XML' ).
     ENDTRY.
 
-    li_log = NEW zcl_abapgit_log( ).
+    CREATE OBJECT li_log TYPE zcl_abapgit_log.
 
     rs_result = mi_cut->compare(
       ii_local  = li_local_version
