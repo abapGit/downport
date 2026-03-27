@@ -246,7 +246,7 @@ CLASS zcl_abapgit_json_handler IMPLEMENTATION.
     map2json_custom_enum( EXPORTING it_enum_mappings = iv_enum_mappings
                           CHANGING co_ajson          = lo_ajson ).
 
-    lo_filter = NEW #( iv_skip_paths = iv_skip_paths ).
+    CREATE OBJECT lo_filter EXPORTING iv_skip_paths = iv_skip_paths.
 
     " files end with an empty line (EOF)
     lv_json = lo_ajson->clone( )->filter( lo_filter )->stringify( 2 ) && cl_abap_char_utilities=>newline.
