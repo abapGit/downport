@@ -73,7 +73,7 @@ CLASS lcl_task_definition IMPLEMENTATION.
 
     DATA lo_taskdef TYPE REF TO lcl_task_definition.
 
-    CREATE OBJECT lo_taskdef.
+    lo_taskdef = NEW #( ).
     lo_taskdef->mv_objid = iv_objid.
     lo_taskdef->supply_instance( ).
 
@@ -164,6 +164,11 @@ CLASS lcl_task_definition IMPLEMENTATION.
           lv_element         TYPE swfdname.
 
     li_container = mo_taskdef->container.
+
+    IF li_container IS NOT BOUND.
+      RETURN.
+    ENDIF.
+
     lt_user_elements = li_container->all_elements_list( ).
     lt_system_elements = li_container->all_elements_list( list_system = abap_true ).
 
@@ -185,7 +190,7 @@ CLASS lcl_task_definition IMPLEMENTATION.
   METHOD create.
     DATA lo_task TYPE REF TO lcl_task_definition.
 
-    CREATE OBJECT lo_task TYPE lcl_task_definition.
+    lo_task = NEW lcl_task_definition( ).
     lo_task->mv_objid = iv_objid.
     lo_task->ms_task = is_task_data.
     ri_result = lo_task.
@@ -197,6 +202,10 @@ CLASS lcl_task_definition IMPLEMENTATION.
 
     DATA lt_exception_list TYPE swf_cx_tab.
     DATA lx_exception TYPE REF TO cx_swf_ifs_exception.
+
+    IF iv_xml_string IS INITIAL OR mo_taskdef->container IS NOT BOUND.
+      RETURN.
+    ENDIF.
 
     mo_taskdef->container->import_from_xml(
             EXPORTING xml_stream     = iv_xml_string
