@@ -214,14 +214,16 @@ CLASS zcl_abapgit_object_fugr IMPLEMENTATION.
 
   METHOD deserialize_functions.
 
-    TYPES temp1 TYPE TABLE OF abaptxt255.
-DATA: lv_include   TYPE rs38l-include,
+    DATA: lv_include   TYPE rs38l-include,
           lv_area      TYPE rs38l-area,
           lv_group     TYPE rs38l-area,
           lv_namespace TYPE rs38l-namespace,
-          lt_source    TYPE temp1,
+          lt_source    TYPE TABLE OF abaptxt255,
           lv_msg       TYPE string,
           lx_error     TYPE REF TO zcx_abapgit_exception.
+
+    DATA lt_tasks TYPE zif_abapgit_cts_api=>ty_request_and_tasks_tt.
+    DATA lv_transport TYPE trkorr.
 
     FIELD-SYMBOLS: <ls_func> LIKE LINE OF it_functions.
 
@@ -289,8 +291,10 @@ DATA: lv_include   TYPE rs38l-include,
               corrnum                 = iv_transport
               rfcscope                = <ls_func>-rfcscope " not on lower releases
               rfcvers                 = <ls_func>-rfcvers " not on lower releases
+              suppress_corr_check     = abap_false
             IMPORTING
               function_include        = lv_include
+              corrnum_e               = lv_transport
             TABLES
               import_parameter        = <ls_func>-import
               export_parameter        = <ls_func>-export
@@ -323,8 +327,10 @@ DATA: lv_include   TYPE rs38l-include,
               namespace               = lv_namespace
               remote_basxml_supported = <ls_func>-remote_basxml
               corrnum                 = iv_transport
+              suppress_corr_check     = abap_false
             IMPORTING
               function_include        = lv_include
+              corrnum_e               = lv_transport
             TABLES
               import_parameter        = <ls_func>-import
               export_parameter        = <ls_func>-export
@@ -350,6 +356,17 @@ DATA: lv_include   TYPE rs38l-include,
         ii_log->add_error( iv_msg  = |Function module { <ls_func>-funcname }: { lv_msg }|
                            is_item = ms_item ).
         CONTINUE.  "with next function module
+      ENDIF.
+
+      IF iv_transport IS NOT INITIAL.
+        lt_tasks = zcl_abapgit_factory=>get_cts_api( )->read_request_and_tasks( iv_transport ).
+        READ TABLE lt_tasks WITH KEY trkorr = lv_transport TRANSPORTING NO FIELDS.
+        IF sy-subrc <> 0.
+          " this happens when a FUNC is recorded in a different transport than
+          " what the current user selected
+          ii_log->add_warning( iv_msg  = |FUGR, transport changed to { lv_transport }|
+                               is_item = ms_item ).
+        ENDIF.
       ENDIF.
 
       zcl_abapgit_factory=>get_sap_report( )->insert_report(
@@ -395,13 +412,12 @@ DATA: lv_include   TYPE rs38l-include,
 
   METHOD deserialize_includes.
 
-    TYPES temp2 TYPE TABLE OF abaptxt255.
-DATA: lo_xml       TYPE REF TO zif_abapgit_xml_input,
+    DATA: lo_xml       TYPE REF TO zif_abapgit_xml_input,
           ls_progdir   TYPE zif_abapgit_sap_report=>ty_progdir,
           lt_includes  TYPE ty_sobj_name_tt,
           lt_tpool     TYPE textpool_table,
           lt_tpool_ext TYPE zif_abapgit_lang_definitions=>ty_tpool_tt,
-          lt_source    TYPE temp2,
+          lt_source    TYPE TABLE OF abaptxt255,
           lx_exc       TYPE REF TO zcx_abapgit_exception.
 
     FIELD-SYMBOLS: <lv_include> LIKE LINE OF lt_includes.
@@ -483,6 +499,8 @@ DATA: lo_xml       TYPE REF TO zif_abapgit_xml_input,
           lv_stext     TYPE tftit-stext,
           lv_group     TYPE rs38l-area.
 
+    DATA lv_transport TYPE trkorr.
+
     lv_complete = ms_item-obj_name.
 
     CALL FUNCTION 'FUNCTION_INCLUDE_SPLIT'
@@ -521,6 +539,8 @@ DATA: lo_xml       TYPE REF TO zif_abapgit_xml_input,
         unicode_checks          = iv_version
         corrnum                 = iv_transport
         suppress_corr_check     = abap_false
+      IMPORTING
+        corrnum                 = lv_transport
       EXCEPTIONS
         name_already_exists     = 1
         name_not_correct        = 2
@@ -551,9 +571,8 @@ DATA: lo_xml       TYPE REF TO zif_abapgit_xml_input,
 
   METHOD functions.
 
-    TYPES temp3 TYPE STANDARD TABLE OF enlfdir.
-DATA: lv_area    TYPE rs38l-area,
-          lt_enlfdir TYPE temp3.
+    DATA: lv_area    TYPE rs38l-area,
+          lt_enlfdir TYPE STANDARD TABLE OF enlfdir.
     DATA lv_index TYPE i.
 
     FIELD-SYMBOLS: <ls_functab> TYPE LINE OF ty_rs38l_incl_tt,
@@ -644,16 +663,14 @@ DATA: lv_area    TYPE rs38l-area,
              progname TYPE reposrc-progname,
            END OF ty_reposrc.
 
-    TYPES temp4 TYPE STANDARD TABLE OF ty_reposrc WITH DEFAULT KEY.
-TYPES temp1 TYPE HASHED TABLE OF objname WITH UNIQUE KEY table_line.
-DATA: lt_reposrc        TYPE temp4,
+    DATA: lt_reposrc        TYPE STANDARD TABLE OF ty_reposrc WITH DEFAULT KEY,
           ls_reposrc        LIKE LINE OF lt_reposrc,
           lv_program        TYPE program,
           lv_maintviewname  LIKE LINE OF rt_includes,
           lv_offset_ns      TYPE i,
           lv_tabix          LIKE sy-tabix,
           lt_functab        TYPE ty_rs38l_incl_tt,
-          lt_tadir_includes TYPE temp1.
+          lt_tadir_includes TYPE HASHED TABLE OF objname WITH UNIQUE KEY table_line.
 
     FIELD-SYMBOLS: <lv_include> LIKE LINE OF rt_includes,
                    <ls_func>    LIKE LINE OF lt_functab.
@@ -908,9 +925,8 @@ DATA: lt_reposrc        TYPE temp4,
 
   METHOD serialize_functions.
 
-    TYPES temp6 TYPE TABLE OF rssource.
-DATA:
-      lt_source     TYPE temp6,
+    DATA:
+      lt_source     TYPE TABLE OF rssource,
       lt_functab    TYPE ty_rs38l_incl_tt,
       lt_new_source TYPE rsfb_source,
       ls_function   LIKE LINE OF rt_functions.
@@ -1129,8 +1145,8 @@ DATA:
 
     LOOP AT it_includes INTO lv_include.
 
-      CREATE OBJECT lo_cross EXPORTING p_name = lv_include
-                                       p_include = lv_include.
+      lo_cross = NEW #( p_name = lv_include
+                        p_include = lv_include ).
 
       lo_cross->index_actualize( ).
 
@@ -1147,9 +1163,8 @@ DATA:
              time TYPE t,
            END OF ty_stamps.
 
-    TYPES temp7 TYPE STANDARD TABLE OF ty_stamps WITH DEFAULT KEY.
-DATA:
-      lt_stamps    TYPE temp7,
+    DATA:
+      lt_stamps    TYPE STANDARD TABLE OF ty_stamps WITH DEFAULT KEY,
       lv_program   TYPE program,
       lv_found     TYPE abap_bool,
       lt_functions TYPE ty_rs38l_incl_tt.
@@ -1342,9 +1357,7 @@ DATA:
         function_pool   = lv_pool
       EXCEPTIONS
         pool_not_exists = 1.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc <> 1 ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( sy-subrc <> 1 ).
 
     " Skip FUGR generated by CHDO
     IF rv_bool = abap_true.
