@@ -22,7 +22,7 @@ CLASS zcl_abapgit_object_ecat IMPLEMENTATION.
 
   METHOD get_download.
 
-    CREATE OBJECT ro_download TYPE zcl_abapgit_ecatt_script_downl.
+    ro_download = NEW zcl_abapgit_ecatt_script_downl( ).
 
   ENDMETHOD.
 
@@ -43,7 +43,7 @@ CLASS zcl_abapgit_object_ecat IMPLEMENTATION.
 
   METHOD get_upload.
 
-    CREATE OBJECT ro_upload TYPE zcl_abapgit_ecatt_script_upl.
+    ro_upload = NEW zcl_abapgit_ecatt_script_upl( ).
 
   ENDMETHOD.
 ENDCLASS.
