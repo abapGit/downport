@@ -89,7 +89,7 @@ CLASS ltcl_test_simple_table IMPLEMENTATION.
       iv_css_class = 'tabclass'
       it_data      = test_data_set( ) )->render( ).
 
-    CREATE OBJECT li_html_exp TYPE zcl_abapgit_html.
+    li_html_exp = NEW zcl_abapgit_html( ).
 
     li_html_exp->add(
       '<table id="simple" class="tabclass">' )->add(
@@ -142,7 +142,7 @@ CLASS ltcl_test_simple_table IMPLEMENTATION.
       iv_with_cids = abap_true
       it_data      = test_data_set( ) )->render( ).
 
-    CREATE OBJECT li_html_exp TYPE zcl_abapgit_html.
+    li_html_exp = NEW zcl_abapgit_html( ).
 
     li_html_exp->add(
       '<table id="with-cids">' )->add(
@@ -197,7 +197,7 @@ CLASS ltcl_test_simple_table IMPLEMENTATION.
       iv_id        = 'with-sort'
       it_data      = test_data_set( ) )->render( ).
 
-    CREATE OBJECT li_html_exp TYPE zcl_abapgit_html.
+    li_html_exp = NEW zcl_abapgit_html( ).
 
     li_html_exp->add(
       '<table id="with-sort">' )->add(
@@ -260,7 +260,7 @@ CLASS ltcl_test_simple_table IMPLEMENTATION.
       iv_id        = 'with-sort'
       it_data      = test_data_set( ) )->render( ).
 
-    CREATE OBJECT li_html_exp TYPE zcl_abapgit_html.
+    li_html_exp = NEW zcl_abapgit_html( ).
 
     li_html_exp->add(
       '<table id="with-sort">' )->add(
