@@ -168,6 +168,7 @@ CLASS zcl_abapgit_object_srvd IMPLEMENTATION.
 
     DATA:
       lr_metadata TYPE REF TO data,
+      li_element  TYPE REF TO if_ixml_element,
       lr_data     TYPE REF TO data.
 
     FIELD-SYMBOLS:
@@ -187,6 +188,21 @@ CLASS zcl_abapgit_object_srvd IMPLEMENTATION.
     CREATE DATA lr_metadata  TYPE ('CL_SRVD_WB_OBJECT_DATA=>TY_METADATA_EXTENDED').
     ASSIGN lr_metadata->* TO <ls_metadata>.
     ASSERT sy-subrc = 0.
+
+    li_element = io_xml->get_raw( )->find_from_name_ns( 'DESCRIPTION' ).
+    IF li_element IS NOT BOUND OR li_element->get_value( ) IS INITIAL.
+      zcx_abapgit_exception=>raise( |SRVD: XML must contain DESCRIPTION and be filled| ).
+    ENDIF.
+
+* note: these cannot be done after reading the XML, as it will trigger conversion exits and fail while reading
+    li_element = io_xml->get_raw( )->find_from_name_ns( 'LANGUAGE' ).
+    IF li_element IS NOT BOUND OR strlen( li_element->get_value( ) ) <> 2.
+      zcx_abapgit_exception=>raise( |SRVD: XML must contain LANGUAGE and be 2 characters| ).
+    ENDIF.
+    li_element = io_xml->get_raw( )->find_from_name_ns( 'MASTER_LANGUAGE' ).
+    IF li_element IS NOT BOUND OR strlen( li_element->get_value( ) ) <> 2.
+      zcx_abapgit_exception=>raise( |SRVD: XML must contain MASTER_LANGUAGE and be 2 characters| ).
+    ENDIF.
 
     io_xml->read(
       EXPORTING
@@ -490,9 +506,7 @@ CLASS zcl_abapgit_object_srvd IMPLEMENTATION.
             version        = 'A'
           IMPORTING
             eo_object_data = lo_object_data.
-        DATA temp1 TYPE xsdboolean.
-        temp1 = boolc( lo_object_data IS NOT INITIAL AND lo_object_data->get_object_key( ) IS NOT INITIAL ).
-        rv_bool = temp1.
+        rv_bool = xsdbool( lo_object_data IS NOT INITIAL AND lo_object_data->get_object_key( ) IS NOT INITIAL ).
 
         IF rv_bool = abap_false.
           CALL METHOD lo_wb_object_operator->('IF_WB_OBJECT_OPERATOR~READ')
@@ -501,9 +515,7 @@ CLASS zcl_abapgit_object_srvd IMPLEMENTATION.
               version        = 'I'
             IMPORTING
               eo_object_data = lo_object_data.
-          DATA temp2 TYPE xsdboolean.
-          temp2 = boolc( lo_object_data IS NOT INITIAL AND lo_object_data->get_object_key( ) IS NOT INITIAL ).
-          rv_bool = temp2.
+          rv_bool = xsdbool( lo_object_data IS NOT INITIAL AND lo_object_data->get_object_key( ) IS NOT INITIAL ).
         ENDIF.
       CATCH cx_root.
         rv_bool = abap_false.
