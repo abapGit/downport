@@ -15,7 +15,7 @@ CLASS zcl_abapgit_longtexts DEFINITION LOCAL FRIENDS ltcl_longtexts.
 CLASS ltcl_longtexts IMPLEMENTATION.
 
   METHOD setup.
-    CREATE OBJECT mo_cut.
+    mo_cut = NEW #( ).
   ENDMETHOD.
 
   METHOD escape_name.
