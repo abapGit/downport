@@ -80,28 +80,23 @@ CLASS zcl_abapgit_zlib IMPLEMENTATION.
 
   METHOD decode.
 
-    DATA: lv_bit   TYPE c LENGTH 1,
-          lv_len   TYPE i,
-          lv_count TYPE i,
+    DATA: lv_count TYPE i,
           lv_code  TYPE i,
           lv_index TYPE i,
           lv_first TYPE i.
 
 
     DO zcl_abapgit_zlib_huffman=>c_maxbits TIMES.
-      lv_len = sy-index.
+      lv_count = io_huffman->get_count( sy-index ).
 
-      lv_bit = go_stream->take_bits( 1 ).
-      lv_code = lv_bit + lv_code * 2.
-      lv_count = io_huffman->get_count( lv_len ).
+      lv_code = go_stream->take_bit( ) + lv_code * 2.
 
       IF lv_code - lv_count < lv_first.
         rv_symbol = io_huffman->get_symbol( lv_index + lv_code - lv_first + 1 ).
         RETURN.
       ENDIF.
       lv_index = lv_index + lv_count.
-      lv_first = lv_first + lv_count.
-      lv_first = lv_first * 2.
+      lv_first = ( lv_first + lv_count ) * 2.
     ENDDO.
 
   ENDMETHOD.
@@ -140,7 +135,7 @@ CLASS zcl_abapgit_zlib IMPLEMENTATION.
     ENDIF.
 
     CLEAR gv_out.
-    CREATE OBJECT go_stream EXPORTING iv_data = iv_compressed.
+    go_stream = NEW #( iv_data = iv_compressed ).
 
     DO.
       lv_bfinal = go_stream->take_bits( 1 ).
@@ -223,7 +218,7 @@ CLASS zcl_abapgit_zlib IMPLEMENTATION.
       <lv_length> = go_stream->take_int( 3 ).
     ENDDO.
 
-    CREATE OBJECT go_lencode EXPORTING it_lengths = lt_lengths.
+    go_lencode = NEW #( it_lengths = lt_lengths ).
 
     CLEAR lt_lengths.
     WHILE lines( lt_lengths ) < lv_nlen + lv_ndist.
@@ -252,9 +247,9 @@ CLASS zcl_abapgit_zlib IMPLEMENTATION.
     DELETE lt_lengths FROM lv_nlen + 1.
     DELETE lt_dists TO lv_nlen.
 
-    CREATE OBJECT go_lencode EXPORTING it_lengths = lt_lengths.
+    go_lencode = NEW #( it_lengths = lt_lengths ).
 
-    CREATE OBJECT go_distcode EXPORTING it_lengths = lt_dists.
+    go_distcode = NEW #( it_lengths = lt_dists ).
 
   ENDMETHOD.
 
@@ -277,14 +272,14 @@ CLASS zcl_abapgit_zlib IMPLEMENTATION.
       APPEND 8 TO lt_lengths.
     ENDDO.
 
-    CREATE OBJECT go_lencode EXPORTING it_lengths = lt_lengths.
+    go_lencode = NEW #( it_lengths = lt_lengths ).
 
     CLEAR lt_lengths.
     DO c_maxdcodes TIMES.
       APPEND 5 TO lt_lengths.
     ENDDO.
 
-    CREATE OBJECT go_distcode EXPORTING it_lengths = lt_lengths.
+    go_distcode = NEW #( it_lengths = lt_lengths ).
 
   ENDMETHOD.
 
