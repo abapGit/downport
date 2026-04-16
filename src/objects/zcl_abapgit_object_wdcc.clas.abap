@@ -97,14 +97,12 @@ CLASS zcl_abapgit_object_wdcc IMPLEMENTATION.
 
   METHOD zif_abapgit_object~deserialize.
 
-    TYPES temp1 TYPE TABLE OF wdy_config_compt.
-TYPES temp2 TYPE TABLE OF wdy_config_datt.
-DATA: lv_config_id   TYPE c LENGTH 32,
+    DATA: lv_config_id   TYPE c LENGTH 32,
           lv_config_type TYPE n LENGTH 2,
           lv_config_var  TYPE c LENGTH 6,
-          lt_otr_texts   TYPE temp1,
+          lt_otr_texts   TYPE TABLE OF wdy_config_compt,
           ls_orig_config TYPE wdy_config_data,
-          lt_config_datt TYPE temp2,
+          lt_config_datt TYPE TABLE OF wdy_config_datt,
           lv_xml_string  TYPE string,
           lv_xml_xstring TYPE xstring.
 
@@ -264,11 +262,9 @@ DATA: lv_config_id   TYPE c LENGTH 32,
 
   METHOD after_import.
 
-    TYPES temp3 TYPE STANDARD TABLE OF e071 WITH DEFAULT KEY.
-TYPES temp4 TYPE STANDARD TABLE OF e071k WITH DEFAULT KEY.
-DATA: lt_cts_object_entry TYPE temp3,
+    DATA: lt_cts_object_entry TYPE STANDARD TABLE OF e071 WITH DEFAULT KEY,
           ls_cts_object_entry LIKE LINE OF lt_cts_object_entry,
-          lt_cts_key          TYPE temp4.
+          lt_cts_key          TYPE STANDARD TABLE OF e071k WITH DEFAULT KEY.
 
     ls_cts_object_entry-pgmid    = 'R3TR'.
     ls_cts_object_entry-object   = ms_item-obj_type.
@@ -338,8 +334,7 @@ DATA: lt_cts_object_entry TYPE temp3,
 
   METHOD zif_abapgit_object~is_locked.
 
-    TYPES temp5 TYPE STANDARD TABLE OF seqg3.
-DATA: lt_enq   TYPE temp5,
+    DATA: lt_enq   TYPE STANDARD TABLE OF seqg3,
           lv_subrc TYPE sysubrc,
           lv_garg  TYPE eqegraarg.
 
@@ -361,9 +356,7 @@ DATA: lt_enq   TYPE temp5,
       zcx_abapgit_exception=>raise( 'Error check object lock WDCC: ' && ms_item-obj_name ).
     ENDIF.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( lines( lt_enq ) > 0 ).
-    rv_is_locked = temp1.
+    rv_is_locked = xsdbool( lines( lt_enq ) > 0 ).
 
   ENDMETHOD.
 
@@ -385,11 +378,9 @@ DATA: lt_enq   TYPE temp5,
 
   METHOD zif_abapgit_object~serialize.
 
-    TYPES temp6 TYPE TABLE OF wdy_config_compt.
-TYPES temp5 TYPE TABLE OF wdy_config_datt.
-DATA: lv_xml_xstring TYPE xstring,
-          lt_otr_texts   TYPE temp6,
-          lt_cc_text     TYPE temp5,
+    DATA: lv_xml_xstring TYPE xstring,
+          lt_otr_texts   TYPE TABLE OF wdy_config_compt,
+          lt_cc_text     TYPE TABLE OF wdy_config_datt,
           ls_orig_config TYPE wdy_config_data,
           ls_outline     TYPE wdy_cfg_outline_data,
           ls_config_key  TYPE wdy_config_key,
