@@ -66,8 +66,9 @@ CLASS zcl_abapgit_object_tabl_compar IMPLEMENTATION.
 
   METHOD get_where_used_recursive.
 
-    DATA: lt_findstrings TYPE string_table,
-          lt_founds      TYPE STANDARD TABLE OF rsfindlst,
+    TYPES temp1 TYPE STANDARD TABLE OF rsfindlst.
+DATA: lt_findstrings TYPE string_table,
+          lt_founds      TYPE temp1,
           lt_scope       TYPE ty_seu_obj,
           lv_findstring  LIKE LINE OF lt_findstrings.
 
@@ -142,16 +143,20 @@ CLASS zcl_abapgit_object_tabl_compar IMPLEMENTATION.
 
     DELETE lt_founds WHERE object_cls <> 'DT'.
 
-    rv_is_structure_used_in_db_tab = xsdbool( lines( lt_founds ) > 0 ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( lines( lt_founds ) > 0 ).
+    rv_is_structure_used_in_db_tab = temp1.
 
   ENDMETHOD.
 
 
   METHOD validate.
 
-    DATA: lt_old_table_fields TYPE TABLE OF dd03p,
+    TYPES temp2 TYPE TABLE OF dd03p.
+TYPES temp1 TYPE TABLE OF dd03p.
+DATA: lt_old_table_fields TYPE temp2,
           ls_old_table_field  LIKE LINE OF lt_old_table_fields,
-          lt_new_table_fields TYPE TABLE OF dd03p,
+          lt_new_table_fields TYPE temp1,
           ls_new_table_field  LIKE LINE OF lt_new_table_fields,
           ls_dd02v            TYPE dd02v,
           lv_inconsistent     TYPE abap_bool.
