@@ -227,11 +227,14 @@ CLASS zcl_abapgit_lxe_texts IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    " Convert string of 2-letter ISO languages into table of sy-langu codes
+    " Convert string of languages into table of of 2-letter ISO languages
     SPLIT iv_langs AT ',' INTO TABLE lt_langs_str.
 
     LOOP AT lt_langs_str ASSIGNING <lv_str>.
       lv_laiso = condense( to_upper( <lv_str> ) ).
+      IF strlen( lv_laiso ) = 1.
+        lv_laiso = langu_to_laiso_safe( lv_laiso(1) ).
+      ENDIF.
       APPEND lv_laiso TO rt_languages.
     ENDLOOP.
 
@@ -255,7 +258,7 @@ CLASS zcl_abapgit_lxe_texts IMPLEMENTATION.
       <lv_lang> LIKE LINE OF it_languages,
       <lv_str>  TYPE string.
 
-    " Convert table of sy-langu codes into string of 2-letter ISO languages
+    " Convert table of 2-letter ISO languages codes into string
     LOOP AT it_languages ASSIGNING <lv_lang>.
       " Keep * as indicator for 'all installed languages'
       IF <lv_lang> = '*'.
@@ -667,8 +670,8 @@ CLASS zcl_abapgit_lxe_texts IMPLEMENTATION.
 
     LOOP AT mo_i18n_params->ms_params-translation_languages INTO lv_lang.
       lv_lang = to_lower( lv_lang ).
-      CREATE OBJECT lo_po_file EXPORTING iv_suppress_comments = mo_i18n_params->ms_params-suppress_po_comments
-                                         iv_lang = lv_lang.
+      lo_po_file = NEW #( iv_suppress_comments = mo_i18n_params->ms_params-suppress_po_comments
+                          iv_lang = lv_lang ).
       LOOP AT lt_lxe_texts ASSIGNING <ls_translation>.
         IF iso4_to_iso2( <ls_translation>-target_lang ) = lv_lang.
           lo_po_file->push_text_pairs(
