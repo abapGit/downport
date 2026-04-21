@@ -280,9 +280,7 @@ CLASS ltcl_zlib IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( act = ls_data-raw
                                         exp = lc_raw ).
     cl_abap_unit_assert=>assert_not_initial( ls_data-compressed_len ).
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( ls_data-compressed_len < xstrlen( lv_compressed ) ).
-    cl_abap_unit_assert=>assert_true( temp1 ).
+    cl_abap_unit_assert=>assert_true( xsdbool( ls_data-compressed_len < xstrlen( lv_compressed ) ) ).
 
   ENDMETHOD.
 
