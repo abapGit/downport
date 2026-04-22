@@ -109,15 +109,12 @@ CLASS zcl_abapgit_object_shlp IMPLEMENTATION.
 
   METHOD zif_abapgit_object~deserialize.
 
-    TYPES temp1 TYPE TABLE OF dd31v.
-TYPES temp2 TYPE TABLE OF dd32p.
-TYPES temp3 TYPE TABLE OF dd33v.
-DATA: lv_name  TYPE ddobjname,
+    DATA: lv_name  TYPE ddobjname,
           lv_done  TYPE abap_bool,
           ls_dd30v TYPE dd30v,
-          lt_dd31v TYPE temp1,
-          lt_dd32p TYPE temp2,
-          lt_dd33v TYPE temp3.
+          lt_dd31v TYPE TABLE OF dd31v,
+          lt_dd32p TYPE TABLE OF dd32p,
+          lt_dd33v TYPE TABLE OF dd33v.
 
     io_xml->read( EXPORTING iv_name = 'DD30V'
                   CHANGING cg_data = ls_dd30v ).
@@ -175,9 +172,7 @@ DATA: lv_name  TYPE ddobjname,
 
     SELECT SINGLE shlpname FROM dd30l INTO lv_shlpname
       WHERE shlpname = ms_item-obj_name.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -231,15 +226,12 @@ DATA: lv_name  TYPE ddobjname,
 
   METHOD zif_abapgit_object~serialize.
 
-    TYPES temp4 TYPE TABLE OF dd31v.
-TYPES temp5 TYPE TABLE OF dd32p.
-TYPES temp6 TYPE TABLE OF dd33v.
-DATA: lv_name  TYPE ddobjname,
+    DATA: lv_name  TYPE ddobjname,
           lv_state TYPE ddgotstate,
           ls_dd30v TYPE dd30v,
-          lt_dd31v TYPE temp4,
-          lt_dd32p TYPE temp5,
-          lt_dd33v TYPE temp6.
+          lt_dd31v TYPE TABLE OF dd31v,
+          lt_dd32p TYPE TABLE OF dd32p,
+          lt_dd33v TYPE TABLE OF dd33v.
 
     FIELD-SYMBOLS: <ls_dd32p> LIKE LINE OF lt_dd32p.
     FIELD-SYMBOLS <lg_field> TYPE any.
