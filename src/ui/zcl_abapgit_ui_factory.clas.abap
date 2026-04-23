@@ -48,7 +48,7 @@ CLASS zcl_abapgit_ui_factory IMPLEMENTATION.
     DATA lo_buf TYPE REF TO zcl_abapgit_string_buffer.
     DATA li_asset_man TYPE REF TO zif_abapgit_gui_asset_manager.
 
-    lo_buf = NEW #( ).
+    CREATE OBJECT lo_buf.
 
     li_asset_man = zcl_abapgit_gui_asset_manager=>create( ).
 
@@ -113,9 +113,9 @@ CLASS zcl_abapgit_ui_factory IMPLEMENTATION.
 
     IF gi_fe_services IS INITIAL.
       IF iv_disable_gui IS INITIAL.
-        gi_fe_services = NEW zcl_abapgit_frontend_services( ).
+        CREATE OBJECT gi_fe_services TYPE zcl_abapgit_frontend_services.
       ELSE.
-        gi_fe_services = NEW zcl_abapgit_frontend_no_gui( ).
+        CREATE OBJECT gi_fe_services TYPE zcl_abapgit_frontend_no_gui.
       ENDIF.
     ENDIF.
 
@@ -136,17 +136,17 @@ CLASS zcl_abapgit_ui_factory IMPLEMENTATION.
     IF go_gui IS INITIAL.
       li_asset_man = get_asset_manager( ).
 
-      lo_html_preprocessor = NEW #( ii_asset_man = li_asset_man ).
+      CREATE OBJECT lo_html_preprocessor EXPORTING ii_asset_man = li_asset_man.
       lo_html_preprocessor->preserve_css( 'css/ag-icons.css' ).
       lo_html_preprocessor->preserve_css( 'css/common.css' ).
 
-      li_router = NEW zcl_abapgit_gui_router( ).
-      li_hotkey_ctl = NEW zcl_abapgit_gui_hotkey_ctl( ).
+      CREATE OBJECT li_router TYPE zcl_abapgit_gui_router.
+      CREATE OBJECT li_hotkey_ctl TYPE zcl_abapgit_gui_hotkey_ctl.
 
-      go_gui = NEW #( io_component = li_router
-                      ii_hotkey_ctl = li_hotkey_ctl
-                      ii_html_processor = lo_html_preprocessor
-                      ii_asset_man = li_asset_man ).
+      CREATE OBJECT go_gui EXPORTING io_component = li_router
+                                     ii_hotkey_ctl = li_hotkey_ctl
+                                     ii_html_processor = lo_html_preprocessor
+                                     ii_asset_man = li_asset_man.
     ENDIF.
     ro_gui = go_gui.
 
@@ -164,7 +164,7 @@ CLASS zcl_abapgit_ui_factory IMPLEMENTATION.
   METHOD get_popups.
 
     IF gi_popups IS INITIAL.
-      gi_popups = NEW zcl_abapgit_popups( ).
+      CREATE OBJECT gi_popups TYPE zcl_abapgit_popups.
     ENDIF.
 
     ri_popups = gi_popups.
