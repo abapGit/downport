@@ -164,7 +164,7 @@ CLASS zcl_abapgit_log_viewer IMPLEMENTATION.
     ASSERT is_log-exception IS BOUND.
     lx_abapgit ?= is_log-exception.
 
-    CREATE OBJECT ro_exception_viewer EXPORTING ix_error = lx_abapgit.
+    ro_exception_viewer = NEW #( ix_error = lx_abapgit ).
 
   ENDMETHOD.
 
@@ -410,7 +410,7 @@ CLASS zcl_abapgit_log_viewer IMPLEMENTATION.
                                   start_line   = ls_position-start_row
                                   end_line     = ls_position-end_row ).
 
-        CREATE OBJECT lo_form_header EXPORTING text = ii_log->get_title( ).
+        lo_form_header = NEW #( text = ii_log->get_title( ) ).
 
         lo_alv->set_top_of_list( lo_form_header ).
 
@@ -488,7 +488,7 @@ CLASS zcl_abapgit_log_viewer IMPLEMENTATION.
           lv_class   TYPE string,
           lv_icon    TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     IF ii_log->count( ) = 0.
       RETURN.
@@ -512,6 +512,9 @@ CLASS zcl_abapgit_log_viewer IMPLEMENTATION.
       ri_html->add( |<span class="{ lv_class }">| ).
       ri_html->add_icon( lv_icon ).
       ri_html->add( lr_message->text ).
+      IF lr_message->id IS NOT INITIAL AND lr_message->number IS NOT INITIAL.
+        ri_html->add( | ({ lr_message->id } { lr_message->number })| ).
+      ENDIF.
       ri_html->add( '</span>' ).
     ENDLOOP.
 
