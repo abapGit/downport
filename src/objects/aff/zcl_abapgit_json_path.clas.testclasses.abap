@@ -39,7 +39,7 @@ CLASS ltcl_json_path IMPLEMENTATION.
     lo_ajson->delete( '/category/' ).
     lo_ajson->delete( '/proxy/' ).
 
-    CREATE OBJECT lo_cut.
+    lo_cut = NEW #( ).
     rt_result = lo_cut->serialize( lo_ajson->stringify( ) ).
   ENDMETHOD.
 
@@ -154,7 +154,7 @@ CLASS ltcl_json_path IMPLEMENTATION.
     APPEND `$.descriptions.methods[?(@.name=='METH1')].description=Sonne` TO lt_file.
     APPEND `$.descriptions.methods[?(@.name=='METH1')].parameters[?(@.name=='param2')].description=ABC` TO lt_file.
 
-    CREATE OBJECT lo_cut.
+    lo_cut = NEW #( ).
     lv_act = lo_cut->deserialize( lt_file ).
 
     APPEND `{  "header": { "description": "Text" } ,` TO lt_exp.
@@ -185,7 +185,7 @@ CLASS ltcl_json_path IMPLEMENTATION.
 
     APPEND `$.header.description=Text` TO lt_file.
 
-    CREATE OBJECT lo_cut.
+    lo_cut = NEW #( ).
     lv_act = lo_cut->deserialize( lt_file ).
 
     lv_is_equal = zcl_abapgit_ajson_utilities=>new( )->is_equal(
@@ -206,7 +206,7 @@ CLASS ltcl_json_path IMPLEMENTATION.
     APPEND `!this is a comment [abc]` TO lt_file.
     APPEND `` TO lt_file.
 
-    CREATE OBJECT lo_cut.
+    lo_cut = NEW #( ).
     lv_act = lo_cut->deserialize( lt_file ).
 
     cl_abap_unit_assert=>assert_equals(
