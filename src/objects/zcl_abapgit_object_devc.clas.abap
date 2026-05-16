@@ -141,7 +141,9 @@ CLASS zcl_abapgit_object_devc IMPLEMENTATION.
            WHERE pgmid = 'R3TR'
            AND NOT ( ( object = 'DEVC' OR object = 'SOTR' ) AND obj_name = iv_package_name )
            AND devclass = iv_package_name.
-    rv_is_empty = xsdbool( sy-subrc <> 0 ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( sy-subrc <> 0 ).
+    rv_is_empty = temp1.
 
   ENDMETHOD.
 
@@ -185,9 +187,10 @@ CLASS zcl_abapgit_object_devc IMPLEMENTATION.
 
   METHOD remove_obsolete_tadir.
 
-    DATA:
+    TYPES temp1 TYPE STANDARD TABLE OF devclass.
+DATA:
       lv_pack  TYPE devclass,
-      lt_pack  TYPE STANDARD TABLE OF devclass,
+      lt_pack  TYPE temp1,
       ls_tadir TYPE zif_abapgit_definitions=>ty_tadir,
       lt_tadir TYPE zif_abapgit_definitions=>ty_tadir_tt,
       ls_item  TYPE zif_abapgit_definitions=>ty_item.
@@ -333,11 +336,12 @@ CLASS zcl_abapgit_object_devc IMPLEMENTATION.
 
 
   METHOD update_pinf_usages.
-    DATA: lt_current_permissions TYPE tpak_permission_to_use_list,
+    TYPES temp2 TYPE SORTED TABLE OF i WITH UNIQUE KEY table_line.
+DATA: lt_current_permissions TYPE tpak_permission_to_use_list,
           li_usage               TYPE REF TO if_package_permission_to_use,
           ls_data_sign           TYPE scomppsign,
           ls_add_permission_data TYPE pkgpermdat,
-          lt_handled             TYPE SORTED TABLE OF i WITH UNIQUE KEY table_line.
+          lt_handled             TYPE temp2.
     FIELD-SYMBOLS: <ls_usage_data> LIKE LINE OF it_usage_data.
 
     " Get the current permissions
