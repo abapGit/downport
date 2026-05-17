@@ -45,7 +45,7 @@ CLASS zcl_abapgit_gui_asset_manager IMPLEMENTATION.
 
 
   METHOD create.
-    ri_asset_manager = NEW zcl_abapgit_gui_asset_manager( ).
+    CREATE OBJECT ri_asset_manager TYPE zcl_abapgit_gui_asset_manager.
   ENDMETHOD.
 
 
