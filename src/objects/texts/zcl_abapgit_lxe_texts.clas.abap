@@ -477,6 +477,7 @@ CLASS zcl_abapgit_lxe_texts IMPLEMENTATION.
   METHOD get_lxe_object_list.
 
     DATA lv_object_name TYPE trobj_name.
+    DATA lt_e071k TYPE STANDARD TABLE OF e071k WITH DEFAULT KEY ##NEEDED.
 
     lv_object_name = iv_object_name.
 
@@ -486,6 +487,7 @@ CLASS zcl_abapgit_lxe_texts IMPLEMENTATION.
         object          = iv_object_type
         obj_name        = lv_object_name
       TABLES
+        in_e071k        = lt_e071k " not optional in 702
         ex_colob        = rt_obj_list
       EXCEPTIONS
         unknown_object  = 1
@@ -670,8 +672,8 @@ CLASS zcl_abapgit_lxe_texts IMPLEMENTATION.
 
     LOOP AT mo_i18n_params->ms_params-translation_languages INTO lv_lang.
       lv_lang = to_lower( lv_lang ).
-      CREATE OBJECT lo_po_file EXPORTING iv_suppress_comments = mo_i18n_params->ms_params-suppress_po_comments
-                                         iv_lang = lv_lang.
+      lo_po_file = NEW #( iv_suppress_comments = mo_i18n_params->ms_params-suppress_po_comments
+                          iv_lang = lv_lang ).
       LOOP AT lt_lxe_texts ASSIGNING <ls_translation>.
         IF iso4_to_iso2( <ls_translation>-target_lang ) = lv_lang.
           lo_po_file->push_text_pairs(
