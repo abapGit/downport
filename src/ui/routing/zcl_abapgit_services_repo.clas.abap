@@ -152,7 +152,7 @@ CLASS zcl_abapgit_services_repo IMPLEMENTATION.
 
     li_repo = zcl_abapgit_repo_srv=>get_instance( )->get( iv_key ).
 
-    CREATE OBJECT lo_browser EXPORTING ii_repo = li_repo.
+    lo_browser = NEW #( ii_repo = li_repo ).
 
     lt_repo_items = lo_browser->list( '/' ).
 
@@ -689,6 +689,9 @@ CLASS zcl_abapgit_services_repo IMPLEMENTATION.
     APPEND INITIAL LINE TO lt_columns ASSIGNING <ls_column>.
     <ls_column>-name = 'DEVCLASS'.
     APPEND INITIAL LINE TO lt_columns ASSIGNING <ls_column>.
+    <ls_column>-name = 'CHANGED_BY'.
+    <ls_column>-text = 'Changed By'.
+    APPEND INITIAL LINE TO lt_columns ASSIGNING <ls_column>.
     <ls_column>-name = 'STATE'.
     <ls_column>-text = 'State'.
     <ls_column>-length = 3.
@@ -1019,7 +1022,7 @@ CLASS zcl_abapgit_services_repo IMPLEMENTATION.
 
     ls_transport_to_branch = zcl_abapgit_ui_factory=>get_popups( )->popup_to_create_transp_branch( lv_trkorr ).
 
-    CREATE OBJECT lo_transport_to_branch.
+    lo_transport_to_branch = NEW #( ).
     lo_transport_to_branch->create(
       ii_repo_online         = li_repo_online
       is_transport_to_branch = ls_transport_to_branch
