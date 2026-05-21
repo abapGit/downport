@@ -131,6 +131,7 @@ CLASS zcl_abapgit_object_shma IMPLEMENTATION.
 
     DATA: lv_area_name       TYPE shm_area_name,
           ls_area_attributes TYPE shma_attributes.
+    DATA lx_root TYPE REF TO cx_root.
 
     lv_area_name = ms_item-obj_name.
 
@@ -151,8 +152,10 @@ CLASS zcl_abapgit_object_shma IMPLEMENTATION.
             no_class_generation = abap_false
             silent_mode         = abap_true.
 
-      CATCH cx_root.
-        zcx_abapgit_exception=>raise( |Error deserializing SHMA { ms_item-obj_name }| ).
+      CATCH cx_root INTO lx_root.
+        zcx_abapgit_exception=>raise(
+          iv_text     = |Error deserializing SHMA { ms_item-obj_name }|
+          ix_previous = lx_root ).
     ENDTRY.
 
   ENDMETHOD.
@@ -167,9 +170,7 @@ CLASS zcl_abapgit_object_shma IMPLEMENTATION.
            INTO lv_area_name
            WHERE area_name = ms_item-obj_name.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -208,9 +209,8 @@ CLASS zcl_abapgit_object_shma IMPLEMENTATION.
 
   METHOD zif_abapgit_object~jump.
 
-    TYPES temp1 TYPE STANDARD TABLE OF bdcdata.
-DATA: ls_bcdata TYPE bdcdata,
-          lt_bcdata TYPE temp1.
+    DATA: ls_bcdata TYPE bdcdata,
+          lt_bcdata TYPE STANDARD TABLE OF bdcdata.
 
     ls_bcdata-program  = 'SAPLSHMA'.
     ls_bcdata-dynpro   = '0100'.
