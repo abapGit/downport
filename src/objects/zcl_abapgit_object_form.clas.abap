@@ -47,7 +47,9 @@ CLASS zcl_abapgit_object_form DEFINITION PUBLIC INHERITING FROM zcl_abapgit_obje
       IMPORTING
         is_header        TYPE ty_s_form_header
       RETURNING
-        VALUE(rv_result) TYPE string.
+        VALUE(rv_result) TYPE string
+      RAISING
+        zcx_abapgit_exception.
 
     METHODS build_extra_from_header_old
       IMPORTING
@@ -115,6 +117,22 @@ CLASS zcl_abapgit_object_form IMPLEMENTATION.
 
     lv_tdspras = zcl_abapgit_convert=>conversion_exit_isola_output( is_header-tdspras ).
 
+    " Refuse to serialize inconsistent text-header data. An empty tdspras
+    " or a tdspras that ISO conversion cannot map (typically because the
+    " language is not maintained in T002) would otherwise produce a file
+    " name without a stable language suffix, leading to an
+    " ITAB_DUPLICATE_KEY dump on the second affected header. See #7714.
+    IF lv_tdspras IS INITIAL.
+      zcx_abapgit_exception=>raise(
+        iv_text     = |Inconsistent SAPscript header data for FORM { mv_form_name }|
+        iv_longtext = |The text header language 'tdspras' is empty or | &&
+                      |not maintained in T002, so ISO conversion | &&
+                      |returned blank and no stable file name suffix | &&
+                      |can be built. Please clean up the affected | &&
+                      |STXH entries (transaction SE71, then Goto -> | &&
+                      |Languages -> Overview) before serializing.| ).
+    ENDIF.
+
     rv_result = c_objectname_tdlines && '_' && lv_tdspras.
 
   ENDMETHOD.
@@ -130,7 +148,7 @@ CLASS zcl_abapgit_object_form IMPLEMENTATION.
     DATA lv_string TYPE string.
     DATA li_xml TYPE REF TO zif_abapgit_xml_output.
 
-    CREATE OBJECT li_xml TYPE zcl_abapgit_xml_output.
+    li_xml = NEW zcl_abapgit_xml_output( ).
     li_xml->add( iv_name = c_objectname_tdlines
                  ig_data = it_lines ).
     lv_string = li_xml->render( ).
@@ -174,7 +192,7 @@ CLASS zcl_abapgit_object_form IMPLEMENTATION.
 
     ENDTRY.
 
-    CREATE OBJECT li_xml TYPE zcl_abapgit_xml_input EXPORTING iv_xml = lv_string.
+    li_xml = NEW zcl_abapgit_xml_input( iv_xml = lv_string ).
     li_xml->read( EXPORTING iv_name = c_objectname_tdlines
                   CHANGING  cg_data = rt_lines ).
 
@@ -329,9 +347,7 @@ CLASS zcl_abapgit_object_form IMPLEMENTATION.
       IMPORTING
         olanguage        = lv_lang.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( lv_lang IS NOT INITIAL ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( lv_lang IS NOT INITIAL ).
 
   ENDMETHOD.
 
@@ -380,8 +396,7 @@ CLASS zcl_abapgit_object_form IMPLEMENTATION.
 
   METHOD zif_abapgit_object~jump.
 
-    TYPES temp1 TYPE TABLE OF bdcdata.
-DATA: lt_bdcdata TYPE temp1.
+    DATA: lt_bdcdata TYPE TABLE OF bdcdata.
 
     FIELD-SYMBOLS: <ls_bdcdata> LIKE LINE OF lt_bdcdata.
 
