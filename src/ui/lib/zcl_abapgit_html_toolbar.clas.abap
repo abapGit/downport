@@ -137,7 +137,7 @@ CLASS ZCL_ABAPGIT_HTML_TOOLBAR IMPLEMENTATION.
 
 
   METHOD create.
-    CREATE OBJECT ro_instance EXPORTING iv_id = iv_id.
+    ro_instance = NEW #( iv_id = iv_id ).
   ENDMETHOD.
 
 
@@ -162,7 +162,7 @@ CLASS ZCL_ABAPGIT_HTML_TOOLBAR IMPLEMENTATION.
 
     DATA: lv_class TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     lv_class = 'nav-container'.
     IF iv_right = abap_true.
@@ -180,7 +180,7 @@ CLASS ZCL_ABAPGIT_HTML_TOOLBAR IMPLEMENTATION.
 
     DATA: lv_class TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     lv_class = 'nav-container'.
     IF iv_right = abap_true.
@@ -218,7 +218,7 @@ CLASS ZCL_ABAPGIT_HTML_TOOLBAR IMPLEMENTATION.
     FIELD-SYMBOLS <ls_item> LIKE LINE OF mt_items.
 
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     IF iv_sort = abap_true.
       SORT mt_items BY txt ASCENDING AS TEXT.

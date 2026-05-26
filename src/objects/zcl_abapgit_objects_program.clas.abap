@@ -129,6 +129,7 @@ CLASS zcl_abapgit_objects_program DEFINITION
       BEGIN OF c_state,
         active   TYPE r3state VALUE 'A',
         inactive TYPE r3state VALUE 'I',
+        off      TYPE r3state VALUE '',
       END OF c_state.
 
     CONSTANTS c_native_dynpro TYPE c LENGTH 2 VALUE 'IN'.
@@ -164,6 +165,7 @@ CLASS zcl_abapgit_objects_program DEFINITION
         !is_progdir TYPE zif_abapgit_sap_report=>ty_progdir
         !it_source  TYPE abaptxt255_tab
         !iv_title   TYPE repti
+        !iv_state   TYPE progdir-state DEFAULT c_state-inactive
       RAISING
         zcx_abapgit_exception .
     METHODS is_exit_include
@@ -320,12 +322,10 @@ CLASS zcl_abapgit_objects_program IMPLEMENTATION.
 
     CONSTANTS lc_rpyty_force_off TYPE c LENGTH 1 VALUE '/'.
 
-    TYPES temp1 TYPE TABLE OF d020s.
-TYPES temp2 TYPE TABLE OF d023s.
-DATA: lv_name            TYPE dwinactiv-obj_name,
-          lt_d020s_to_delete TYPE temp1,
+    DATA: lv_name            TYPE dwinactiv-obj_name,
+          lt_d020s_to_delete TYPE TABLE OF d020s,
           ls_d020s           LIKE LINE OF lt_d020s_to_delete,
-          lt_params          TYPE temp2,
+          lt_params          TYPE TABLE OF d023s,
           ls_dynpro          LIKE LINE OF it_dynpros.
 
     FIELD-SYMBOLS: <ls_field> TYPE rpy_dyfatc.
@@ -359,7 +359,7 @@ DATA: lv_name            TYPE dwinactiv-obj_name,
 
       " todo: kept for compatibility, remove after grace period #3680
       ls_dynpro-flow_logic = uncondense_flow(
-        it_flow = ls_dynpro-flow_logic
+        it_flow   = ls_dynpro-flow_logic
         it_spaces = ls_dynpro-spaces ).
 
       IF ls_dynpro-flow_logic IS INITIAL.
@@ -495,7 +495,8 @@ DATA: lv_name            TYPE dwinactiv-obj_name,
       update_program(
         is_progdir = is_progdir
         it_source  = it_source
-        iv_title   = lv_title ).
+        iv_title   = lv_title
+        iv_state   = c_state-off ).
     ELSE.
       insert_program(
         is_progdir = is_progdir
@@ -736,9 +737,9 @@ DATA: lv_name            TYPE dwinactiv-obj_name,
 
 
   METHOD is_exit_include.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( iv_program CP 'LX*' OR iv_program CP 'SAPLX*' OR iv_program+1 CP '/LX*' OR iv_program+1 CP '/SAPLX*' ).
-    rv_is_exit_include = temp1.
+    rv_is_exit_include = xsdbool(
+      iv_program CP 'LX*' OR iv_program CP 'SAPLX*' OR
+      iv_program+1 CP '/LX*' OR iv_program+1 CP '/SAPLX*' ).
   ENDMETHOD.
 
 
@@ -806,16 +807,13 @@ DATA: lv_name            TYPE dwinactiv-obj_name,
 
 
   METHOD serialize_dynpros.
-    TYPES temp3 TYPE TABLE OF d020s.
-TYPES temp4 TYPE TABLE OF d021t.
-TYPES temp1 TYPE TABLE OF d021s.
-DATA: ls_header               TYPE rpy_dyhead,
+    DATA: ls_header               TYPE rpy_dyhead,
           lt_containers           TYPE dycatt_tab,
           lt_fields_to_containers TYPE dyfatc_tab,
           lt_flow_logic           TYPE swydyflow,
-          lt_d020s                TYPE temp3,
-          lt_texts                TYPE temp4,
-          lt_fieldlist_int        TYPE temp1. "internal format
+          lt_d020s                TYPE TABLE OF d020s,
+          lt_texts                TYPE TABLE OF d021t,
+          lt_fieldlist_int        TYPE TABLE OF d021s. "internal format
 
     FIELD-SYMBOLS: <ls_d020s>       LIKE LINE OF lt_d020s,
                    <lv_outputstyle> TYPE scrpostyle,
@@ -947,13 +945,12 @@ DATA: ls_header               TYPE rpy_dyhead,
 
   METHOD serialize_program.
 
-    TYPES temp6 TYPE TABLE OF abaptxt255.
-DATA: ls_progdir      TYPE zif_abapgit_sap_report=>ty_progdir,
+    DATA: ls_progdir      TYPE zif_abapgit_sap_report=>ty_progdir,
           lv_program_name TYPE syrepid,
           lt_dynpros      TYPE ty_dynpro_tt,
           ls_cua          TYPE ty_cua,
           li_report       TYPE REF TO zif_abapgit_sap_report,
-          lt_source       TYPE temp6,
+          lt_source       TYPE TABLE OF abaptxt255,
           lt_tpool        TYPE textpool_table,
           ls_tpool        LIKE LINE OF lt_tpool,
           li_xml          TYPE REF TO zif_abapgit_xml_output.
@@ -1015,7 +1012,7 @@ DATA: ls_progdir      TYPE zif_abapgit_sap_report=>ty_progdir,
     IF io_xml IS BOUND.
       li_xml = io_xml.
     ELSE.
-      CREATE OBJECT li_xml TYPE zcl_abapgit_xml_output.
+      li_xml = NEW zcl_abapgit_xml_output( ).
     ENDIF.
 
     li_xml->add( iv_name = 'PROGDIR'
@@ -1138,7 +1135,7 @@ DATA: ls_progdir      TYPE zif_abapgit_sap_report=>ty_progdir,
       EXPORTING
         include_name     = is_progdir-name
         title_string     = iv_title
-        save_inactive    = c_state-inactive
+        save_inactive    = iv_state
       TABLES
         source_extended  = it_source
       EXCEPTIONS
