@@ -68,8 +68,10 @@ CLASS zcl_abapgit_gui DEFINITION
 
     DATA mv_rollback_on_error TYPE abap_bool .
     DATA mi_cur_page TYPE REF TO zif_abapgit_gui_renderable .
-    DATA mt_stack             TYPE STANDARD TABLE OF ty_page_stack .
-    DATA mt_event_handlers    TYPE STANDARD TABLE OF REF TO zif_abapgit_gui_event_handler .
+    TYPES temp1_29ae62e17d TYPE STANDARD TABLE OF ty_page_stack.
+DATA mt_stack             TYPE temp1_29ae62e17d .
+    TYPES temp2_29ae62e17d TYPE STANDARD TABLE OF REF TO zif_abapgit_gui_event_handler.
+DATA mt_event_handlers    TYPE temp2_29ae62e17d .
     DATA mi_router TYPE REF TO zif_abapgit_gui_event_handler .
     DATA mi_asset_man TYPE REF TO zif_abapgit_gui_asset_manager .
     DATA mi_hotkey_ctl TYPE REF TO zif_abapgit_gui_hotkey_ctl .
@@ -232,7 +234,7 @@ CLASS zcl_abapgit_gui IMPLEMENTATION.
       ENDIF.
     ENDIF.
 
-    mo_html_parts = NEW #( ).
+    CREATE OBJECT mo_html_parts.
 
     mv_rollback_on_error = iv_rollback_on_error.
     mi_asset_man      = ii_asset_man.
@@ -281,10 +283,10 @@ CLASS zcl_abapgit_gui IMPLEMENTATION.
       li_event     TYPE REF TO zif_abapgit_gui_event,
       ls_handled   TYPE zif_abapgit_gui_event_handler=>ty_handling_result.
 
-    li_event = NEW zcl_abapgit_gui_event( ii_gui_services = me
-                                          iv_action = iv_action
-                                          iv_getdata = iv_getdata
-                                          it_postdata = it_postdata ).
+    CREATE OBJECT li_event TYPE zcl_abapgit_gui_event EXPORTING ii_gui_services = me
+                                                                iv_action = iv_action
+                                                                iv_getdata = iv_getdata
+                                                                it_postdata = it_postdata.
 
     TRY.
         ls_handled = zcl_abapgit_exit=>get_instance( )->on_event( li_event ).
@@ -381,9 +383,9 @@ CLASS zcl_abapgit_gui IMPLEMENTATION.
 
   METHOD is_new_page.
 
-    rv_new_page = xsdbool(
-      iv_state = c_event_state-new_page OR
-      iv_state = c_event_state-new_page_w_bookmark ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( iv_state = c_event_state-new_page OR iv_state = c_event_state-new_page_w_bookmark ).
+    rv_new_page = temp1.
 
   ENDMETHOD.
 
@@ -492,9 +494,11 @@ CLASS zcl_abapgit_gui IMPLEMENTATION.
     TYPES ty_hex TYPE x LENGTH 200.
     TYPES ty_char TYPE c LENGTH 200.
 
-    DATA: lt_xdata TYPE STANDARD TABLE OF ty_hex WITH DEFAULT KEY,
+    TYPES temp3 TYPE STANDARD TABLE OF ty_hex WITH DEFAULT KEY.
+TYPES temp1 TYPE STANDARD TABLE OF ty_char WITH DEFAULT KEY.
+DATA: lt_xdata TYPE temp3,
           lv_size  TYPE i,
-          lt_html  TYPE STANDARD TABLE OF ty_char WITH DEFAULT KEY.
+          lt_html  TYPE temp1.
 
     ASSERT iv_text IS SUPPLIED OR iv_xdata IS SUPPLIED.
 
@@ -574,7 +578,7 @@ CLASS zcl_abapgit_gui IMPLEMENTATION.
   METHOD zif_abapgit_gui_services~get_log.
 
     IF iv_create_new = abap_true OR mi_common_log IS NOT BOUND.
-      mi_common_log = NEW zcl_abapgit_log( ).
+      CREATE OBJECT mi_common_log TYPE zcl_abapgit_log.
     ENDIF.
 
     ri_log = mi_common_log.
