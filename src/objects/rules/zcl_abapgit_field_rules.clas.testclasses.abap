@@ -49,7 +49,7 @@ CLASS zcl_abapgit_field_rules DEFINITION LOCAL FRIENDS ltcl_field_rules.
 CLASS ltcl_field_rules IMPLEMENTATION.
 
   METHOD setup.
-    CREATE OBJECT mo_cut.
+    mo_cut = NEW #( ).
   ENDMETHOD.
 
   METHOD fill_value.
