@@ -121,7 +121,8 @@ CLASS zcl_abapgit_longtexts IMPLEMENTATION.
           line    = ls_longtext-lines.
 
       IF iv_clear_fields = abap_true.
-        CLEAR: ls_longtext-head-tdfuser,
+        CLEAR: ls_longtext-dokil-dokstate,
+               ls_longtext-head-tdfuser,
                ls_longtext-head-tdfreles,
                ls_longtext-head-tdfdate,
                ls_longtext-head-tdftime,
@@ -218,9 +219,7 @@ CLASS zcl_abapgit_longtexts IMPLEMENTATION.
 
     LOOP AT lt_longtexts ASSIGNING <ls_longtext>.
 
-      DATA temp1 TYPE xsdboolean.
-      temp1 = boolc( <ls_longtext>-dokil-masterlang IS INITIAL ).
-      lv_no_main_lang = temp1.
+      lv_no_main_lang = xsdbool( <ls_longtext>-dokil-masterlang IS INITIAL ).
 
       CALL FUNCTION 'DOCU_UPDATE'
         EXPORTING
