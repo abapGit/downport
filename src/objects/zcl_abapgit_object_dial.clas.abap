@@ -30,8 +30,9 @@ CLASS zcl_abapgit_object_dial IMPLEMENTATION.
 
   METHOD zif_abapgit_object~delete.
 
-    DATA: ls_bcdata TYPE bdcdata,
-          lt_bcdata TYPE STANDARD TABLE OF bdcdata.
+    TYPES temp1 TYPE STANDARD TABLE OF bdcdata.
+DATA: ls_bcdata TYPE bdcdata,
+          lt_bcdata TYPE temp1.
 
     ls_bcdata-program  = 'SAPMSDIA'.
     ls_bcdata-dynpro   = '1010'.
@@ -126,7 +127,9 @@ CLASS zcl_abapgit_object_dial IMPLEMENTATION.
 
     ls_tdct = _read_tdct( ).
 
-    rv_bool = xsdbool( ls_tdct IS NOT INITIAL ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( ls_tdct IS NOT INITIAL ).
+    rv_bool = temp1.
 
   ENDMETHOD.
 
@@ -178,7 +181,9 @@ CLASS zcl_abapgit_object_dial IMPLEMENTATION.
         object_not_found = 1
         OTHERS           = 2.
 
-    rv_exit = xsdbool( sy-subrc = 0 ).
+    DATA temp2 TYPE xsdboolean.
+    temp2 = boolc( sy-subrc = 0 ).
+    rv_exit = temp2.
 
   ENDMETHOD.
 
