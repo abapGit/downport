@@ -184,23 +184,22 @@ CLASS zcl_abapgit_object_intf IMPLEMENTATION.
         iv_id          = c_longtext_id-interface
         iv_object_name = lv_object
         iv_language    = mv_language ).
-      RETURN.
-    ENDIF.
-
-    mi_object_oriented_object_fct->create_documentation(
-      it_lines       = is_docu-lines
-      iv_id          = c_longtext_id-interface
-      iv_object_name = lv_object
-      iv_language    = mv_language ).
-
-    LOOP AT is_docu-i18n_lines INTO ls_i18n_lines.
+    ELSE.
       mi_object_oriented_object_fct->create_documentation(
-        it_lines         = ls_i18n_lines-lines
-        iv_id            = c_longtext_id-interface
-        iv_object_name   = lv_object
-        iv_language      = ls_i18n_lines-language
-        iv_no_masterlang = abap_true ).
-    ENDLOOP.
+        it_lines       = is_docu-lines
+        iv_id          = c_longtext_id-interface
+        iv_object_name = lv_object
+        iv_language    = mv_language ).
+
+      LOOP AT is_docu-i18n_lines INTO ls_i18n_lines.
+        mi_object_oriented_object_fct->create_documentation(
+          it_lines         = ls_i18n_lines-lines
+          iv_id            = c_longtext_id-interface
+          iv_object_name   = lv_object
+          iv_language      = ls_i18n_lines-language
+          iv_no_masterlang = abap_true ).
+      ENDLOOP.
+    ENDIF.
 
     deserialize_longtexts(
       ii_xml           = ii_xml
@@ -327,7 +326,7 @@ CLASS zcl_abapgit_object_intf IMPLEMENTATION.
     lv_json_data = mo_files->read_string( 'json' ).
     ls_intf_aff = lcl_aff_metadata_handler=>deserialize( lv_json_data ).
 
-    CREATE OBJECT lo_aff_mapper TYPE lcl_aff_type_mapping.
+    lo_aff_mapper = NEW lcl_aff_type_mapping( ).
     lo_aff_mapper->to_abapgit( EXPORTING iv_data        = ls_intf_aff
                                          iv_object_name = ms_item-obj_name
                                IMPORTING es_data        = rs_intf ).
