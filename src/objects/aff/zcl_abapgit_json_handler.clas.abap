@@ -95,7 +95,7 @@ ENDCLASS.
 
 
 
-CLASS zcl_abapgit_json_handler IMPLEMENTATION.
+CLASS ZCL_ABAPGIT_JSON_HANDLER IMPLEMENTATION.
 
 
   METHOD deserialize.
@@ -217,6 +217,9 @@ CLASS zcl_abapgit_json_handler IMPLEMENTATION.
 
 
     lv_original_language = co_ajson->get_string( '/header/originalLanguage' ).
+    IF lv_original_language IS INITIAL.
+      RETURN.
+    ENDIF.
 
     lv_bcp47_language = zcl_abapgit_convert=>language_sap1_to_bcp47( lv_original_language ).
 
@@ -246,7 +249,7 @@ CLASS zcl_abapgit_json_handler IMPLEMENTATION.
     map2json_custom_enum( EXPORTING it_enum_mappings = iv_enum_mappings
                           CHANGING co_ajson          = lo_ajson ).
 
-    CREATE OBJECT lo_filter EXPORTING iv_skip_paths = iv_skip_paths.
+    lo_filter = NEW #( iv_skip_paths = iv_skip_paths ).
 
     " files end with an empty line (EOF)
     lv_json = lo_ajson->clone( )->filter( lo_filter )->stringify( 2 ) && cl_abap_char_utilities=>newline.
