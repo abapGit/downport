@@ -27,8 +27,8 @@ CLASS lcl_cua_interface IMPLEMENTATION.
       AND object   = 'PROG'
       AND obj_name = sy-cprog.
 
-    ro_instance = NEW #( iv_language = 'E'
-                         is_item = ls_item ).
+    CREATE OBJECT ro_instance EXPORTING iv_language = 'E'
+                                        is_item = ls_item.
 
   ENDMETHOD.
 
@@ -46,7 +46,7 @@ CLASS lcl_cua_interface IMPLEMENTATION.
       is_cua          = is_cua
       iv_program_name = ms_item-obj_name ).
 
-    li_log = NEW zcl_abapgit_log( ).
+    CREATE OBJECT li_log TYPE zcl_abapgit_log.
     zcl_abapgit_objects_activation=>activate( li_log ).
     zcl_abapgit_objects_activation=>clear( ).
 
