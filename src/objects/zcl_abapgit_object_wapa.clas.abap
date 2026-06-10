@@ -270,9 +270,8 @@ CLASS zcl_abapgit_object_wapa IMPLEMENTATION.
 
   METHOD zif_abapgit_object~changed_by.
 
-    TYPES temp1 TYPE STANDARD TABLE OF o2pagdir WITH DEFAULT KEY.
-DATA: lv_name   TYPE o2applname,
-          lt_pages  TYPE temp1,
+    DATA: lv_name   TYPE o2applname,
+          lt_pages  TYPE STANDARD TABLE OF o2pagdir WITH DEFAULT KEY,
           ls_latest LIKE LINE OF lt_pages.
 
 
@@ -551,9 +550,7 @@ DATA: lv_name   TYPE o2applname,
         object_not_existing = 1
         permission_failure  = 2
         error_occured       = 3 ).
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
