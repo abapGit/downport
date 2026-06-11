@@ -85,7 +85,9 @@ CLASS zcl_abapgit_utils IMPLEMENTATION.
 
     FIND ALL OCCURRENCES OF REGEX '[^[:print:]]' IN lv_string_data MATCH COUNT lv_non_printable_chars  ##REGEX_POSIX.
     lv_percentage = lv_non_printable_chars  * 100 / strlen( lv_string_data ).
-    rv_is_binary = xsdbool( lv_percentage > lc_binary_threshold ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( lv_percentage > lc_binary_threshold ).
+    rv_is_binary = temp1.
 
   ENDMETHOD.
 
@@ -101,7 +103,9 @@ CLASS zcl_abapgit_utils IMPLEMENTATION.
       rv_valid = abap_true.
     ELSE.
       FIND REGEX lc_email_regex IN iv_email ##REGEX_POSIX.
-      rv_valid = xsdbool( sy-subrc = 0 ).
+      DATA temp2 TYPE xsdboolean.
+      temp2 = boolc( sy-subrc = 0 ).
+      rv_valid = temp2.
     ENDIF.
 
   ENDMETHOD.
