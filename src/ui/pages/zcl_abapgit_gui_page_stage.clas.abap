@@ -190,11 +190,11 @@ CLASS zcl_abapgit_gui_page_stage IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_stage.
 
-    CREATE OBJECT lo_component EXPORTING ii_repo_online = ii_repo_online
-                                         iv_seed = iv_seed
-                                         iv_sci_result = iv_sci_result
-                                         ii_force_refresh = ii_force_refresh
-                                         ii_obj_filter = ii_obj_filter.
+    lo_component = NEW #( ii_repo_online = ii_repo_online
+                          iv_seed = iv_seed
+                          iv_sci_result = iv_sci_result
+                          ii_force_refresh = ii_force_refresh
+                          ii_obj_filter = ii_obj_filter ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title         = 'Stage'
@@ -344,7 +344,7 @@ CLASS zcl_abapgit_gui_page_stage IMPLEMENTATION.
     DATA: lv_local_count TYPE i,
           lv_add_all_txt TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
     lv_local_count = count_default_files_to_commit( ).
     IF lv_local_count > 0.
       lv_add_all_txt = |Add All and Commit ({ lv_local_count })|.
@@ -391,7 +391,7 @@ CLASS zcl_abapgit_gui_page_stage IMPLEMENTATION.
     DATA ls_event TYPE zcl_abapgit_gui_chunk_lib=>ty_event_signature.
 
     ls_event-method = 'post'.
-    ls_event-name   = 'stage_commit'.
+    ls_event-name   = c_action-stage_commit.
     ri_html = zcl_abapgit_gui_chunk_lib=>render_event_as_form( ls_event ).
     ri_html->set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
 
@@ -403,7 +403,7 @@ CLASS zcl_abapgit_gui_page_stage IMPLEMENTATION.
     DATA: lv_param    TYPE string,
           lv_filename TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     lv_filename = is_file-path && is_file-filename.
     " make sure whitespace is preserved in the DOM
@@ -464,7 +464,7 @@ CLASS zcl_abapgit_gui_page_stage IMPLEMENTATION.
                    <ls_status> LIKE LINE OF ms_files-status,
                    <ls_local>  LIKE LINE OF ms_files-local.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<table id="stageTab" class="stage_tab w100">' ).
 
@@ -586,7 +586,7 @@ CLASS zcl_abapgit_gui_page_stage IMPLEMENTATION.
 
     DATA lv_main_language TYPE spras.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     lv_main_language = mi_repo->get_dot_abapgit( )->get_main_language( ).
 
@@ -601,14 +601,14 @@ CLASS zcl_abapgit_gui_page_stage IMPLEMENTATION.
 
   METHOD render_scripts.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
 
     ri_html->add( 'var gStageParams = {' ).
     ri_html->add( |  seed:            "{ mv_seed }",| ). " Unique page id
     ri_html->add( |  user:            "{ to_lower( sy-uname ) }",| ).
-    ri_html->add( '  formAction:      "stage_commit",' ).
+    ri_html->add( |  formAction:      "{ c_action-stage_commit }",| ).
     ri_html->add( |  patchAction:     "{ zif_abapgit_definitions=>c_action-go_patch }",| ).
     ri_html->add( '  focusFilterKey:  "f",' ).
 
@@ -633,7 +633,7 @@ CLASS zcl_abapgit_gui_page_stage IMPLEMENTATION.
     FIELD-SYMBOLS <ls_remote> LIKE LINE OF ms_files-remote.
     FIELD-SYMBOLS <ls_status> LIKE LINE OF ms_files-status.
 
-    CREATE OBJECT ro_stage.
+    ro_stage = NEW #( ).
 
     LOOP AT ms_files-local ASSIGNING <ls_local>.
       READ TABLE ms_files-status ASSIGNING <ls_status>
@@ -789,7 +789,7 @@ CLASS zcl_abapgit_gui_page_stage IMPLEMENTATION.
 
     register_handlers( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div class="repo">' ).
     ri_html->add( zcl_abapgit_gui_chunk_lib=>render_repo_top(
