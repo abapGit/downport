@@ -102,6 +102,8 @@ CLASS zcl_abapgit_object_wapa IMPLEMENTATION.
 
   METHOD create_new_page.
 
+    DATA lv_exc TYPE string.
+
     cl_o2_api_pages=>create_new_page(
       EXPORTING
         p_pageattrs           = is_page_attributes
@@ -113,8 +115,24 @@ CLASS zcl_abapgit_object_wapa IMPLEMENTATION.
         error_occured         = 3
         o2appl_not_existing   = 4
         OTHERS                = 5 ).
+
     IF sy-subrc <> 0.
-      zcx_abapgit_exception=>raise( |Error { sy-subrc } from CL_O2_API_PAGES=>CREATE_NEW_PAGE| ).
+      CASE sy-subrc.
+        WHEN 1.
+          lv_exc = 'object_already_exists'.
+        WHEN 2.
+          lv_exc = 'invalid_name'.
+        WHEN 3.
+          lv_exc = 'error_occured'.
+        WHEN 4.
+          lv_exc = 'o2appl_not_existing'.
+        WHEN OTHERS.
+          lv_exc = 'unknown_error'.
+      ENDCASE.
+      zcx_abapgit_exception=>raise(
+        |CL_O2_API_PAGES=>CREATE_NEW_PAGE sy-subrc={ sy-subrc } ({ lv_exc })|
+        && | page='{ is_page_attributes-pagename }' pagekey='{ is_page_attributes-pagekey }'|
+        && | applname='{ is_page_attributes-applname }'| ).
     ENDIF.
 
   ENDMETHOD.
@@ -270,9 +288,8 @@ CLASS zcl_abapgit_object_wapa IMPLEMENTATION.
 
   METHOD zif_abapgit_object~changed_by.
 
-    TYPES temp1 TYPE STANDARD TABLE OF o2pagdir WITH DEFAULT KEY.
-DATA: lv_name   TYPE o2applname,
-          lt_pages  TYPE temp1,
+    DATA: lv_name   TYPE o2applname,
+          lt_pages  TYPE STANDARD TABLE OF o2pagdir WITH DEFAULT KEY,
           ls_latest LIKE LINE OF lt_pages.
 
 
@@ -551,9 +568,7 @@ DATA: lv_name   TYPE o2applname,
         object_not_existing = 1
         permission_failure  = 2
         error_occured       = 3 ).
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
