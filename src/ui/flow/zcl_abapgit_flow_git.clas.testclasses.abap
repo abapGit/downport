@@ -97,7 +97,7 @@ CLASS lcl_test_data IMPLEMENTATION.
 
     ls_data-starting_folder = '/'.
 
-    CREATE OBJECT ro_dot EXPORTING is_data = ls_data.
+    ro_dot = NEW #( is_data = ls_data ).
 
   ENDMETHOD.
 
@@ -281,7 +281,7 @@ CLASS lcl_mock_gitv2 IMPLEMENTATION.
     rt_objects = mo_test_data->get_all_objects( ).
   ENDMETHOD.
 
-  METHOD zif_abapgit_gitv2_porcelain~commits_last_year.
+  METHOD zif_abapgit_gitv2_porcelain~commits_last_days.
     rt_objects = mo_test_data->get_commits( ).
   ENDMETHOD.
 
@@ -316,9 +316,9 @@ CLASS ltcl_find_changes_in_git IMPLEMENTATION.
   METHOD setup.
     DATA lo_mock_gitv2 TYPE REF TO lcl_mock_gitv2.
 
-    CREATE OBJECT mo_test_data.
+    mo_test_data = NEW #( ).
 
-    CREATE OBJECT lo_mock_gitv2 EXPORTING io_test_data = mo_test_data.
+    lo_mock_gitv2 = NEW #( io_test_data = mo_test_data ).
 
     zcl_abapgit_git_injector=>set_v2_porcelain( lo_mock_gitv2 ).
   ENDMETHOD.
@@ -523,9 +523,9 @@ CLASS ltcl_find_up_to_date IMPLEMENTATION.
   METHOD setup.
     DATA lo_mock_gitv2 TYPE REF TO lcl_mock_gitv2.
 
-    CREATE OBJECT mo_test_data.
+    mo_test_data = NEW #( ).
 
-    CREATE OBJECT lo_mock_gitv2 EXPORTING io_test_data = mo_test_data.
+    lo_mock_gitv2 = NEW #( io_test_data = mo_test_data ).
 
     zcl_abapgit_git_injector=>set_v2_porcelain( lo_mock_gitv2 ).
   ENDMETHOD.
