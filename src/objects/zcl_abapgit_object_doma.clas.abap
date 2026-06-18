@@ -132,11 +132,13 @@ CLASS zcl_abapgit_object_doma IMPLEMENTATION.
 
   METHOD deserialize_texts.
 
-    DATA: lv_name       TYPE ddobjname,
+    TYPES temp1 TYPE TABLE OF dd07v.
+TYPES temp2 TYPE TABLE OF langu.
+DATA: lv_name       TYPE ddobjname,
           lv_valpos     TYPE dd07v-valpos,
           ls_dd01v_tmp  TYPE dd01v,
-          lt_dd07v_tmp  TYPE TABLE OF dd07v,
-          lt_i18n_langs TYPE TABLE OF langu,
+          lt_dd07v_tmp  TYPE temp1,
+          lt_i18n_langs TYPE temp2,
           lt_dd01_texts TYPE ty_dd01_texts,
           lt_dd07_texts TYPE ty_dd07_texts.
 
@@ -236,11 +238,13 @@ CLASS zcl_abapgit_object_doma IMPLEMENTATION.
 
   METHOD serialize_texts.
 
-    DATA: lv_name            TYPE ddobjname,
+    TYPES temp3 TYPE TABLE OF dd07v.
+TYPES temp4 TYPE TABLE OF langu.
+DATA: lv_name            TYPE ddobjname,
           lv_index           TYPE i,
           ls_dd01v           TYPE dd01v,
-          lt_dd07v           TYPE TABLE OF dd07v,
-          lt_i18n_langs      TYPE TABLE OF langu,
+          lt_dd07v           TYPE temp3,
+          lt_i18n_langs      TYPE temp4,
           lt_dd01_texts      TYPE ty_dd01_texts,
           lt_dd07_texts      TYPE ty_dd07_texts,
           lt_language_filter TYPE zif_abapgit_environment=>ty_system_language_filter.
@@ -370,11 +374,12 @@ CLASS zcl_abapgit_object_doma IMPLEMENTATION.
 * package SEDD
 * package SDIC
 
-    DATA: lv_name  TYPE ddobjname,
+    TYPES temp5 TYPE TABLE OF dd07v.
+DATA: lv_name  TYPE ddobjname,
           lv_done  TYPE abap_bool,
           ls_dd01v TYPE dd01v,
           ls_extra TYPE ty_extra,
-          lt_dd07v TYPE TABLE OF dd07v,
+          lt_dd07v TYPE temp5,
           lv_json  TYPE xstring.
 
     FIELD-SYMBOLS <ls_dd07v> TYPE dd07v.
@@ -481,7 +486,9 @@ CLASS zcl_abapgit_object_doma IMPLEMENTATION.
 
     SELECT SINGLE domname FROM dd01l INTO lv_domname
       WHERE domname = ms_item-obj_name.
-    rv_bool = xsdbool( sy-subrc = 0 ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( sy-subrc = 0 ).
+    rv_bool = temp1.
 
   ENDMETHOD.
 
@@ -536,12 +543,13 @@ CLASS zcl_abapgit_object_doma IMPLEMENTATION.
 
   METHOD zif_abapgit_object~serialize.
 
-    DATA: lv_name    TYPE ddobjname,
+    TYPES temp6 TYPE TABLE OF dd07v.
+DATA: lv_name    TYPE ddobjname,
           lv_state   TYPE ddgotstate,
           ls_dd01v   TYPE dd01v,
           ls_extra   TYPE ty_extra,
           lv_masklen TYPE c LENGTH 4,
-          lt_dd07v   TYPE TABLE OF dd07v,
+          lt_dd07v   TYPE temp6,
           lv_json    TYPE xstring.
 
     FIELD-SYMBOLS <ls_dd07v> TYPE dd07v.
