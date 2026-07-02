@@ -86,8 +86,8 @@ CLASS zcl_abapgit_object_sxci IMPLEMENTATION.
 
     lv_package = iv_package.
 
-    CREATE OBJECT lo_filter_values_object EXPORTING filter_object = lo_filter_object
-                                                    filter_values = ls_classic_badi_implementation-filters.
+    lo_filter_values_object = NEW #( filter_object = lo_filter_object
+                                     filter_values = ls_classic_badi_implementation-filters ).
 
     CALL FUNCTION 'SXO_IMPL_SAVE'
       EXPORTING
@@ -148,9 +148,7 @@ CLASS zcl_abapgit_object_sxci IMPLEMENTATION.
         data_inconsistency = 2
         OTHERS             = 3.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
