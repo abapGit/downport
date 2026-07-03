@@ -236,8 +236,7 @@ CLASS zcl_abapgit_lxe_texts IMPLEMENTATION.
 
   METHOD check_langs_versus_installed.
 
-    TYPES temp1 TYPE HASHED TABLE OF laiso WITH UNIQUE KEY table_line.
-DATA lt_installed_hash TYPE temp1.
+    DATA lt_installed_hash TYPE HASHED TABLE OF laiso WITH UNIQUE KEY table_line.
     FIELD-SYMBOLS <lv_lang> LIKE LINE OF it_languages.
 
     CLEAR: et_intersection, et_missfits.
@@ -525,8 +524,7 @@ DATA lt_installed_hash TYPE temp1.
   METHOD get_lang_iso4.
 
     DATA ls_lang LIKE LINE OF gt_lxe_lang_cache.
-    TYPES temp2 TYPE STANDARD TABLE OF lxe_t002.
-DATA lt_lang TYPE temp2.
+    DATA lt_lang TYPE STANDARD TABLE OF lxe_t002.
 
     FIELD-SYMBOLS <ls_lang> LIKE LINE OF lt_lang.
 
@@ -565,8 +563,7 @@ DATA lt_lang TYPE temp2.
   METHOD get_lxe_object_list.
 
     DATA lv_object_name TYPE trobj_name.
-    TYPES temp3 TYPE STANDARD TABLE OF e071k WITH DEFAULT KEY.
-DATA lt_e071k TYPE temp3 ##NEEDED.
+    DATA lt_e071k TYPE STANDARD TABLE OF e071k WITH DEFAULT KEY ##NEEDED.
 
     lv_object_name = iv_object_name.
 
@@ -630,9 +627,7 @@ DATA lt_e071k TYPE temp3 ##NEEDED.
 
     TRY.
         li_cts_api = zcl_abapgit_factory=>get_cts_api( ).
-        DATA temp1 TYPE xsdboolean.
-        temp1 = boolc( li_cts_api->is_chrec_possible_for_package( |{ iv_package }| ) = abap_false ).
-        rv_result = temp1.
+        rv_result = xsdbool( li_cts_api->is_chrec_possible_for_package( |{ iv_package }| ) = abap_false ).
       CATCH zcx_abapgit_exception ##NO_HANDLER.
     ENDTRY.
 
@@ -824,8 +819,8 @@ DATA lt_e071k TYPE temp3 ##NEEDED.
 
     LOOP AT mo_i18n_params->ms_params-translation_languages INTO lv_lang.
       lv_lang = to_lower( lv_lang ).
-      CREATE OBJECT lo_po_file EXPORTING iv_suppress_comments = mo_i18n_params->ms_params-suppress_po_comments
-                                         iv_lang = lv_lang.
+      lo_po_file = NEW #( iv_suppress_comments = mo_i18n_params->ms_params-suppress_po_comments
+                          iv_lang = lv_lang ).
       LOOP AT lt_lxe_texts ASSIGNING <ls_translation>.
         IF iso4_to_iso2( <ls_translation>-target_lang ) = lv_lang.
           lo_po_file->push_text_pairs(
@@ -932,9 +927,7 @@ DATA lt_e071k TYPE temp3 ##NEEDED.
     mi_xml_in      = ii_xml.
     mo_files       = io_files.
 
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( iv_object_type = 'DEVC' AND is_local_package( iv_object_name ) = abap_true ).
-    mv_local_package = temp2.
+    mv_local_package = xsdbool( iv_object_type = 'DEVC' AND is_local_package( iv_object_name ) = abap_true ).
 
     " MAYBE TODO: see comment in serialize
 
@@ -965,9 +958,7 @@ DATA lt_e071k TYPE temp3 ##NEEDED.
     mi_xml_out     = ii_xml.
     mo_files       = io_files.
 
-    DATA temp3 TYPE xsdboolean.
-    temp3 = boolc( iv_object_type = 'DEVC' AND is_local_package( iv_object_name ) = abap_true ).
-    mv_local_package = temp3.
+    mv_local_package = xsdbool( iv_object_type = 'DEVC' AND is_local_package( iv_object_name ) = abap_true ).
 
     " MAYBE TODO
     " if other formats are needed, including the old in-XML approach

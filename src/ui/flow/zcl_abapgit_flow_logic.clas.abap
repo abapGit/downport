@@ -46,6 +46,8 @@ CLASS zcl_abapgit_flow_logic DEFINITION PUBLIC.
   PROTECTED SECTION.
   PRIVATE SECTION.
 
+    CONSTANTS c_max_missing_files TYPE i VALUE 1000.
+
     TYPES: BEGIN OF ty_transport,
              trkorr     TYPE trkorr,
              title      TYPE string,
@@ -309,9 +311,7 @@ CLASS zcl_abapgit_flow_logic IMPLEMENTATION.
 
     LOOP AT it_local ASSIGNING <ls_local> WHERE file-filename <> zif_abapgit_definitions=>c_dot_abapgit.
       READ TABLE ct_main_expanded WITH KEY name = <ls_local>-file-filename ASSIGNING <ls_expanded>.
-      DATA temp1 TYPE xsdboolean.
-      temp1 = boolc( sy-subrc = 0 ).
-      lv_found_main = temp1.
+      lv_found_main = xsdbool( sy-subrc = 0 ).
 
       lv_found_branch = abap_false.
       LOOP AT it_features INTO ls_feature.
@@ -410,6 +410,9 @@ CLASS zcl_abapgit_flow_logic IMPLEMENTATION.
     DATA ls_result   LIKE LINE OF lt_features.
     DATA lt_all_transports TYPE ty_transports_tt.
     DATA lv_filename TYPE string.
+    DATA lv_warning TYPE string.
+    DATA lv_count   TYPE i.
+    DATA ls_missing_remote LIKE LINE OF cs_information-missing_remote.
 
 
     FIELD-SYMBOLS <ls_tadir> LIKE LINE OF lt_tadir.
@@ -461,7 +464,7 @@ CLASS zcl_abapgit_flow_logic IMPLEMENTATION.
       INSERT <ls_tadir> INTO TABLE lt_filter.
 
       IF lines( lt_filter ) >= 500.
-        CREATE OBJECT lo_filter EXPORTING it_filter = lt_filter.
+        lo_filter = NEW #( it_filter = lt_filter ).
         lt_local = li_repo->get_files_local_filtered( lo_filter ).
         CLEAR lt_filter.
         check_files(
@@ -471,14 +474,11 @@ CLASS zcl_abapgit_flow_logic IMPLEMENTATION.
           CHANGING
             ct_main_expanded  = lt_main_expanded
             ct_missing_remote = cs_information-missing_remote ).
-        IF lines( cs_information-missing_remote ) > 1000.
-          INSERT `Only first 1000 missing files shown` INTO TABLE cs_information-warnings.
-        ENDIF.
       ENDIF.
     ENDLOOP.
 
     IF lines( lt_filter ) > 0.
-      CREATE OBJECT lo_filter EXPORTING it_filter = lt_filter.
+      lo_filter = NEW #( it_filter = lt_filter ).
       lt_local = li_repo->get_files_local_filtered( lo_filter ).
       CLEAR lt_filter.
       check_files(
@@ -488,6 +488,20 @@ CLASS zcl_abapgit_flow_logic IMPLEMENTATION.
         CHANGING
           ct_main_expanded  = lt_main_expanded
           ct_missing_remote = cs_information-missing_remote ).
+    ENDIF.
+
+    IF lines( cs_information-missing_remote ) > c_max_missing_files.
+      lv_warning = |Only first { c_max_missing_files } missing files shown, {
+        lines( cs_information-missing_remote ) } total|.
+      INSERT lv_warning INTO TABLE cs_information-warnings.
+
+      lv_count = 0.
+      LOOP AT cs_information-missing_remote INTO ls_missing_remote.
+        lv_count = lv_count + 1.
+        IF lv_count > c_max_missing_files.
+          DELETE TABLE cs_information-missing_remote FROM ls_missing_remote.
+        ENDIF.
+      ENDLOOP.
     ENDIF.
 
 * todo: double check, there might have been changes while consolidation is running
@@ -531,13 +545,9 @@ CLASS zcl_abapgit_flow_logic IMPLEMENTATION.
           AND ls_next-obj_name = ls_transport-obj_name.
 
         READ TABLE cs_information-features WITH KEY transport-trkorr = ls_transport-trkorr TRANSPORTING NO FIELDS.
-        DATA temp2 TYPE xsdboolean.
-        temp2 = boolc( sy-subrc = 0 ).
-        lv_found1 = temp2.
+        lv_found1 = xsdbool( sy-subrc = 0 ).
         READ TABLE cs_information-features WITH KEY transport-trkorr = ls_next-trkorr TRANSPORTING NO FIELDS.
-        DATA temp3 TYPE xsdboolean.
-        temp3 = boolc( sy-subrc = 0 ).
-        lv_found2 = temp3.
+        lv_found2 = xsdbool( sy-subrc = 0 ).
         IF lv_found1 = abap_false AND lv_found2 = abap_false.
           " not in any favorite flow enabled repo
           CONTINUE.
@@ -905,8 +915,8 @@ CLASS zcl_abapgit_flow_logic IMPLEMENTATION.
           regex = '\.git$'
           with = '' ) ##REGEX_POSIX.
 
-        CREATE OBJECT lo_github EXPORTING iv_user_and_repo = |{ lv_user }/{ lv_repo }|
-                                          ii_http_agent = zcl_abapgit_http_agent=>create( ).
+        lo_github = NEW #( iv_user_and_repo = |{ lv_user }/{ lv_repo }|
+                           ii_http_agent = zcl_abapgit_http_agent=>create( ) ).
         lv_previous_key = ls_feature-repo-key.
       ENDIF.
 
@@ -1006,7 +1016,7 @@ CLASS zcl_abapgit_flow_logic IMPLEMENTATION.
     SORT lt_filter BY object obj_name.
     DELETE ADJACENT DUPLICATES FROM lt_filter COMPARING object obj_name.
 
-    CREATE OBJECT lo_filter EXPORTING it_filter = lt_filter.
+    lo_filter = NEW #( it_filter = lt_filter ).
     rt_local = ii_repo->get_files_local_filtered( lo_filter ).
 
   ENDMETHOD.
