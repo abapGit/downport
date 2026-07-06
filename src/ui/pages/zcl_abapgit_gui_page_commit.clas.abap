@@ -45,7 +45,8 @@ CLASS zcl_abapgit_gui_page_commit DEFINITION
 
     CONSTANTS:
       BEGIN OF c_event,
-        commit TYPE string VALUE 'commit',
+        commit         TYPE string VALUE 'commit',
+        adjust_message TYPE string VALUE 'adjust_message',
       END OF c_event.
 
     DATA mo_form TYPE REF TO zcl_abapgit_html_form.
@@ -135,8 +136,8 @@ CLASS zcl_abapgit_gui_page_commit IMPLEMENTATION.
     " Get settings from DB
     mo_settings = zcl_abapgit_persist_factory=>get_settings( )->read( ).
 
-    CREATE OBJECT mo_validation_log.
-    CREATE OBJECT mo_form_data.
+    mo_validation_log = NEW #( ).
+    mo_form_data = NEW #( ).
     mo_form = get_form_schema( ).
     mo_form_util = zcl_abapgit_html_form_utils=>create( mo_form ).
 
@@ -147,9 +148,9 @@ CLASS zcl_abapgit_gui_page_commit IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_commit.
 
-    CREATE OBJECT lo_component EXPORTING ii_repo_online = ii_repo_online
-                                         io_stage = io_stage
-                                         iv_sci_result = iv_sci_result.
+    lo_component = NEW #( ii_repo_online = ii_repo_online
+                          io_stage = io_stage
+                          iv_sci_result = iv_sci_result ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Commit'
@@ -298,6 +299,7 @@ CLASS zcl_abapgit_gui_page_commit IMPLEMENTATION.
   METHOD get_form_schema.
 
     DATA lv_commitmsg_comment_length TYPE i.
+    DATA lv_button_text TYPE string.
     CONSTANTS lc_commitmsg_comment_min_len TYPE i VALUE 1.
     CONSTANTS lc_commitmsg_comment_max_len TYPE i VALUE 255.
 
@@ -349,8 +351,16 @@ CLASS zcl_abapgit_gui_page_commit IMPLEMENTATION.
     ro_form->command(
       iv_label       = 'Commit'
       iv_cmd_type    = zif_abapgit_html_form=>c_cmd_type-input_main
-      iv_action      = c_event-commit
-    )->command(
+      iv_action      = c_event-commit ).
+
+    lv_button_text = zcl_abapgit_exit=>get_instance( )->enable_adjust_commit_message( mi_repo_online ).
+    IF lv_button_text IS NOT INITIAL.
+      ro_form->command(
+        iv_label  = lv_button_text
+        iv_action = c_event-adjust_message ).
+    ENDIF.
+
+    ro_form->command(
       iv_label       = 'Back'
       iv_action      = zif_abapgit_definitions=>c_action-go_back ).
 
@@ -361,7 +371,7 @@ CLASS zcl_abapgit_gui_page_commit IMPLEMENTATION.
 
     FIELD-SYMBOLS <ls_stage> LIKE LINE OF mt_stage.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<table class="stage_tab">' ).
     ri_html->add( '<thead>' ).
@@ -404,7 +414,7 @@ CLASS zcl_abapgit_gui_page_commit IMPLEMENTATION.
 
     FIELD-SYMBOLS <ls_stage> LIKE LINE OF mt_stage.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     LOOP AT mt_stage ASSIGNING <ls_stage>.
       ls_sum-method = <ls_stage>-method.
@@ -477,10 +487,34 @@ CLASS zcl_abapgit_gui_page_commit IMPLEMENTATION.
 
   METHOD zif_abapgit_gui_event_handler~on_event.
     DATA lv_new_branch_name   TYPE string.
+    DATA lv_comment           TYPE string.
+    DATA lv_body              TYPE string.
+    DATA li_exit              TYPE REF TO zif_abapgit_exit.
 
     mo_form_data = mo_form_util->normalize( ii_event->form_data( ) ).
 
     CASE ii_event->mv_action.
+      WHEN c_event-adjust_message.
+        lv_comment = mo_form_data->get( c_id-comment ).
+        lv_body    = mo_form_data->get( c_id-body ).
+
+        li_exit = zcl_abapgit_exit=>get_instance( ).
+        li_exit->adjust_commit_message(
+          EXPORTING
+            ii_repo_online = mi_repo_online
+            io_stage       = mo_stage
+          CHANGING
+            cv_comment     = lv_comment
+            cv_body        = lv_body ).
+
+        mo_form_data->set(
+          iv_key = c_id-comment
+          iv_val = lv_comment ).
+        mo_form_data->set(
+          iv_key = c_id-body
+          iv_val = lv_body ).
+
+        rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
       WHEN c_event-commit.
         " Validate form entries before committing
         mo_validation_log = validate_form( mo_form_data ).
@@ -532,7 +566,7 @@ CLASS zcl_abapgit_gui_page_commit IMPLEMENTATION.
       get_defaults( ).
     ENDIF.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div class="repo">' ).
     ri_html->add( '<div id="top" class="paddings">' ).
