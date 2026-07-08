@@ -192,7 +192,9 @@ CLASS zcl_abapgit_object_xslt IMPLEMENTATION.
     lv_name = ms_item-obj_name.
 
     rv_bool = cl_o2_api_xsltdesc=>exists( lv_name ).
-    rv_bool = xsdbool( rv_bool = '1' ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( rv_bool = '1' ).
+    rv_bool = temp1.
 
   ENDMETHOD.
 
