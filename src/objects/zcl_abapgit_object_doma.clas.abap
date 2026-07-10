@@ -83,20 +83,6 @@ ENDCLASS.
 CLASS zcl_abapgit_object_doma IMPLEMENTATION.
 
 
-  METHOD constructor.
-
-
-    super->constructor(
-      is_item        = is_item
-      iv_language    = iv_language
-      io_files       = io_files
-      io_i18n_params = io_i18n_params ).
-
-    mv_aff_enabled = zcl_abapgit_aff_factory=>get_registry( )->is_supported_object_type( 'DOMA' ).
-
-  ENDMETHOD.
-
-
   METHOD adjust_exit.
 
     DATA lv_function TYPE funcname.
@@ -130,15 +116,27 @@ CLASS zcl_abapgit_object_doma IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD constructor.
+
+
+    super->constructor(
+      is_item        = is_item
+      iv_language    = iv_language
+      io_files       = io_files
+      io_i18n_params = io_i18n_params ).
+
+    mv_aff_enabled = zcl_abapgit_aff_factory=>get_registry( )->is_supported_object_type( 'DOMA' ).
+
+  ENDMETHOD.
+
+
   METHOD deserialize_texts.
 
-    TYPES temp1 TYPE TABLE OF dd07v.
-TYPES temp2 TYPE TABLE OF langu.
-DATA: lv_name       TYPE ddobjname,
+    DATA: lv_name       TYPE ddobjname,
           lv_valpos     TYPE dd07v-valpos,
           ls_dd01v_tmp  TYPE dd01v,
-          lt_dd07v_tmp  TYPE temp1,
-          lt_i18n_langs TYPE temp2,
+          lt_dd07v_tmp  TYPE TABLE OF dd07v,
+          lt_i18n_langs TYPE TABLE OF langu,
           lt_dd01_texts TYPE ty_dd01_texts,
           lt_dd07_texts TYPE ty_dd07_texts.
 
@@ -238,13 +236,11 @@ DATA: lv_name       TYPE ddobjname,
 
   METHOD serialize_texts.
 
-    TYPES temp3 TYPE TABLE OF dd07v.
-TYPES temp4 TYPE TABLE OF langu.
-DATA: lv_name            TYPE ddobjname,
+    DATA: lv_name            TYPE ddobjname,
           lv_index           TYPE i,
           ls_dd01v           TYPE dd01v,
-          lt_dd07v           TYPE temp3,
-          lt_i18n_langs      TYPE temp4,
+          lt_dd07v           TYPE TABLE OF dd07v,
+          lt_i18n_langs      TYPE TABLE OF langu,
           lt_dd01_texts      TYPE ty_dd01_texts,
           lt_dd07_texts      TYPE ty_dd07_texts,
           lt_language_filter TYPE zif_abapgit_environment=>ty_system_language_filter.
@@ -328,16 +324,14 @@ DATA: lv_name            TYPE ddobjname,
     SORT lt_dd01_texts BY ddlanguage ASCENDING.
     SORT lt_dd07_texts BY valpos ASCENDING ddlanguage ASCENDING.
 
-    IF lines( lt_i18n_langs ) > 0.
-      ii_xml->add( iv_name = 'I18N_LANGS'
-                   ig_data = lt_i18n_langs ).
+    ii_xml->add( iv_name = 'I18N_LANGS'
+                 ig_data = lt_i18n_langs ).
 
-      ii_xml->add( iv_name = 'DD01_TEXTS'
-                   ig_data = lt_dd01_texts ).
+    ii_xml->add( iv_name = 'DD01_TEXTS'
+                 ig_data = lt_dd01_texts ).
 
-      ii_xml->add( iv_name = 'DD07_TEXTS'
-                   ig_data = lt_dd07_texts ).
-    ENDIF.
+    ii_xml->add( iv_name = 'DD07_TEXTS'
+                 ig_data = lt_dd07_texts ).
 
   ENDMETHOD.
 
@@ -374,12 +368,11 @@ DATA: lv_name            TYPE ddobjname,
 * package SEDD
 * package SDIC
 
-    TYPES temp5 TYPE TABLE OF dd07v.
-DATA: lv_name  TYPE ddobjname,
+    DATA: lv_name  TYPE ddobjname,
           lv_done  TYPE abap_bool,
           ls_dd01v TYPE dd01v,
           ls_extra TYPE ty_extra,
-          lt_dd07v TYPE temp5,
+          lt_dd07v TYPE TABLE OF dd07v,
           lv_json  TYPE xstring.
 
     FIELD-SYMBOLS <ls_dd07v> TYPE dd07v.
@@ -486,9 +479,7 @@ DATA: lv_name  TYPE ddobjname,
 
     SELECT SINGLE domname FROM dd01l INTO lv_domname
       WHERE domname = ms_item-obj_name.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -543,13 +534,12 @@ DATA: lv_name  TYPE ddobjname,
 
   METHOD zif_abapgit_object~serialize.
 
-    TYPES temp6 TYPE TABLE OF dd07v.
-DATA: lv_name    TYPE ddobjname,
+    DATA: lv_name    TYPE ddobjname,
           lv_state   TYPE ddgotstate,
           ls_dd01v   TYPE dd01v,
           ls_extra   TYPE ty_extra,
           lv_masklen TYPE c LENGTH 4,
-          lt_dd07v   TYPE temp6,
+          lt_dd07v   TYPE TABLE OF dd07v,
           lv_json    TYPE xstring.
 
     FIELD-SYMBOLS <ls_dd07v> TYPE dd07v.

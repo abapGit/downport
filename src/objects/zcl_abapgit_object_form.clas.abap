@@ -148,7 +148,7 @@ CLASS zcl_abapgit_object_form IMPLEMENTATION.
     DATA lv_string TYPE string.
     DATA li_xml TYPE REF TO zif_abapgit_xml_output.
 
-    CREATE OBJECT li_xml TYPE zcl_abapgit_xml_output.
+    li_xml = NEW zcl_abapgit_xml_output( ).
     li_xml->add( iv_name = c_objectname_tdlines
                  ig_data = it_lines ).
     lv_string = li_xml->render( ).
@@ -192,7 +192,7 @@ CLASS zcl_abapgit_object_form IMPLEMENTATION.
 
     ENDTRY.
 
-    CREATE OBJECT li_xml TYPE zcl_abapgit_xml_input EXPORTING iv_xml = lv_string.
+    li_xml = NEW zcl_abapgit_xml_input( iv_xml = lv_string ).
     li_xml->read( EXPORTING iv_name = c_objectname_tdlines
                   CHANGING  cg_data = rt_lines ).
 
@@ -347,9 +347,7 @@ CLASS zcl_abapgit_object_form IMPLEMENTATION.
       IMPORTING
         olanguage        = lv_lang.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( lv_lang IS NOT INITIAL ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( lv_lang IS NOT INITIAL ).
 
   ENDMETHOD.
 
@@ -398,8 +396,7 @@ CLASS zcl_abapgit_object_form IMPLEMENTATION.
 
   METHOD zif_abapgit_object~jump.
 
-    TYPES temp1 TYPE TABLE OF bdcdata.
-DATA: lt_bdcdata TYPE temp1.
+    DATA: lt_bdcdata TYPE TABLE OF bdcdata.
 
     FIELD-SYMBOLS: <ls_bdcdata> LIKE LINE OF lt_bdcdata.
 
@@ -451,9 +448,9 @@ DATA: lt_bdcdata TYPE temp1.
       CLEAR ls_form_data.
 
       _read_form( EXPORTING is_text_header = <ls_text_header>
-                  IMPORTING ev_form_found = lv_form_found
-                            es_form_data  = ls_form_data
-                            et_lines      = lt_lines ).
+                  IMPORTING ev_form_found  = lv_form_found
+                            es_form_data   = ls_form_data
+                            et_lines       = lt_lines ).
 
       IF lv_form_found = abap_true.
 
@@ -468,12 +465,8 @@ DATA: lt_bdcdata TYPE temp1.
 
     ENDLOOP.
 
-    IF lt_form_data IS NOT INITIAL.
-
-      io_xml->add( iv_name = c_objectname_form
-                   ig_data = lt_form_data ).
-
-    ENDIF.
+    io_xml->add( iv_name = c_objectname_form
+                 ig_data = lt_form_data ).
 
   ENDMETHOD.
 
