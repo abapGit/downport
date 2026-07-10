@@ -152,7 +152,7 @@ CLASS zcl_abapgit_services_repo IMPLEMENTATION.
 
     li_repo = zcl_abapgit_repo_srv=>get_instance( )->get( iv_key ).
 
-    CREATE OBJECT lo_browser EXPORTING ii_repo = li_repo.
+    lo_browser = NEW #( ii_repo = li_repo ).
 
     lt_repo_items = lo_browser->list( '/' ).
 
@@ -298,7 +298,9 @@ CLASS zcl_abapgit_services_repo IMPLEMENTATION.
               EXIT.
             ENDIF.
           WHEN 'INTF'.
-            IF <ls_overwrite>-obj_name = 'ZIF_ABAPGIT_DEFINITIONS'.
+            IF <ls_overwrite>-obj_name = 'ZIF_ABAPGIT_DEFINITIONS'
+              OR <ls_overwrite>-obj_name = 'ZIF_ABAPGIT_CTS_API'
+              OR <ls_overwrite>-obj_name = 'ZIF_ABAPGIT_PERSISTENCE'.
               lv_will_dump = abap_true.
               EXIT.
             ENDIF.
@@ -1028,7 +1030,7 @@ CLASS zcl_abapgit_services_repo IMPLEMENTATION.
 
     ls_transport_to_branch = zcl_abapgit_ui_factory=>get_popups( )->popup_to_create_transp_branch( lv_trkorr ).
 
-    CREATE OBJECT lo_transport_to_branch.
+    lo_transport_to_branch = NEW #( ).
     lo_transport_to_branch->create(
       ii_repo_online         = li_repo_online
       is_transport_to_branch = ls_transport_to_branch
