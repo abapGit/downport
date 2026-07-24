@@ -253,15 +253,15 @@ CLASS zcl_abapgit_gui_page_data IMPLEMENTATION.
 
     super->constructor( ).
 
-    mo_validation_log = NEW #( ).
-    mo_form_data = NEW #( ).
+    CREATE OBJECT mo_validation_log.
+    CREATE OBJECT mo_form_data.
 
     mo_form = get_form_schema( ).
     mo_form_util = zcl_abapgit_html_form_utils=>create( mo_form ).
 
     mi_repo = zcl_abapgit_repo_srv=>get_instance( )->get( iv_key ).
 
-    mi_config = NEW zcl_abapgit_data_config( ).
+    CREATE OBJECT mi_config TYPE zcl_abapgit_data_config.
     config_load( ).
 
   ENDMETHOD.
@@ -271,7 +271,7 @@ CLASS zcl_abapgit_gui_page_data IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_data.
 
-    lo_component = NEW #( iv_key = iv_key ).
+    CREATE OBJECT lo_component EXPORTING iv_key = iv_key.
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title         = 'Data Config'
@@ -354,7 +354,7 @@ CLASS zcl_abapgit_gui_page_data IMPLEMENTATION.
     DATA ls_config LIKE LINE OF lt_configs.
     DATA lv_form_id TYPE string.
 
-    ri_html = NEW zcl_abapgit_html( ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
 
     lt_configs = mi_config->get_configs( ).
 
@@ -365,7 +365,7 @@ CLASS zcl_abapgit_gui_page_data IMPLEMENTATION.
         with = '_'
         occ  = 0 ).
       lo_form = zcl_abapgit_html_form=>create( iv_form_id = lv_form_id ).
-      lo_form_data = NEW #( ).
+      CREATE OBJECT lo_form_data.
 
       lo_form_data->set(
         iv_key = c_id-table
@@ -413,7 +413,7 @@ CLASS zcl_abapgit_gui_page_data IMPLEMENTATION.
 
   METHOD render_for_new_config.
 
-    ri_html = NEW zcl_abapgit_html( ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
 
     IF mv_validation_tab IS INITIAL.
       ri_html->add( mo_form->render(
@@ -569,7 +569,7 @@ CLASS zcl_abapgit_gui_page_data IMPLEMENTATION.
 
     register_handlers( ).
 
-    ri_html = NEW zcl_abapgit_html( ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
 
     ri_html->add( '<div class="repo">' ).
     ri_html->add( render_for_existing_config( ) ).
