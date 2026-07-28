@@ -27,7 +27,7 @@ CLASS ltcl_xml_output IMPLEMENTATION.
     ls_input-foo = '2'.
     ls_input-bar = 'A'.
 
-    lo_output = NEW #( ).
+    CREATE OBJECT lo_output.
     lo_output->zif_abapgit_xml_output~add( iv_name = 'DATA'
                     ig_data = ls_input ).
 
@@ -67,7 +67,7 @@ CLASS ltcl_xml_output IMPLEMENTATION.
 
     REPLACE ALL OCCURRENCES OF '#' IN lv_expected WITH cl_abap_char_utilities=>newline.
 
-    lo_output = NEW #( ).
+    CREATE OBJECT lo_output.
     lo_output->zif_abapgit_xml_output~add( iv_name = 'DATA'
                                            ig_data = ls_input ).
 
@@ -113,7 +113,7 @@ CLASS ltcl_xml_output IMPLEMENTATION.
 * write a bad value into the NUMC field,
     ls_foo = '0009'.
 
-    lo_output = NEW #( ).
+    CREATE OBJECT lo_output.
     lo_output->zif_abapgit_xml_output~add(
       iv_name = 'DATA'
       ig_data = ls_foo ).
