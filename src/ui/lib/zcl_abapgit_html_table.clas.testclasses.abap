@@ -89,7 +89,7 @@ CLASS ltcl_test_simple_table IMPLEMENTATION.
       iv_css_class = 'tabclass'
       it_data      = test_data_set( ) )->render( ).
 
-    CREATE OBJECT li_html_exp TYPE zcl_abapgit_html.
+    li_html_exp = NEW zcl_abapgit_html( ).
 
     li_html_exp->add(
       '<table id="simple" class="tabclass">' )->add(
@@ -142,7 +142,7 @@ CLASS ltcl_test_simple_table IMPLEMENTATION.
       iv_with_cids = abap_true
       it_data      = test_data_set( ) )->render( ).
 
-    CREATE OBJECT li_html_exp TYPE zcl_abapgit_html.
+    li_html_exp = NEW zcl_abapgit_html( ).
 
     li_html_exp->add(
       '<table id="with-cids">' )->add(
@@ -197,15 +197,16 @@ CLASS ltcl_test_simple_table IMPLEMENTATION.
       iv_id        = 'with-sort'
       it_data      = test_data_set( ) )->render( ).
 
-    CREATE OBJECT li_html_exp TYPE zcl_abapgit_html.
+    li_html_exp = NEW zcl_abapgit_html( ).
 
     li_html_exp->add(
       '<table id="with-sort">' )->add(
       '<thead>' )->add(
       '<tr>' )->add(
-      '<th><a href="sapevent:sort_by:col1:dsc">Col 1</a>' &&
+      '<th><a href="sapevent:sort_by:col1:dsc" data-sapevent="sort_by:col1:dsc">Col 1</a>' &&
         '<span class="sort-arrow sort-active">&#x25BE;</span></th>' )->add(
-      '<th><a href="sapevent:sort_by:col2:asc">Col 2</a><span class="sort-arrow">&#x25BE;</span></th>' )->add(
+      '<th><a href="sapevent:sort_by:col2:asc" data-sapevent="sort_by:col2:asc">Col 2</a>' &&
+        '<span class="sort-arrow">&#x25BE;</span></th>' )->add(
       '<th>Col 3</th>' )->add(
       '</tr>' )->add(
       '</thead>' ).
@@ -260,7 +261,7 @@ CLASS ltcl_test_simple_table IMPLEMENTATION.
       iv_id        = 'with-sort'
       it_data      = test_data_set( ) )->render( ).
 
-    CREATE OBJECT li_html_exp TYPE zcl_abapgit_html.
+    li_html_exp = NEW zcl_abapgit_html( ).
 
     li_html_exp->add(
       '<table id="with-sort">' )->add(
@@ -271,9 +272,10 @@ CLASS ltcl_test_simple_table IMPLEMENTATION.
       '</tr>' ).
     li_html_exp->add(
       '<tr>' )->add(
-      '<th><a href="sapevent:sort_by:col1:dsc">Col 1</a>' &&
+      '<th><a href="sapevent:sort_by:col1:dsc" data-sapevent="sort_by:col1:dsc">Col 1</a>' &&
         '<span class="sort-arrow sort-active">&#x25BE;</span></th>' )->add(
-      '<th><a href="sapevent:sort_by:col2:asc">Col 2</a><span class="sort-arrow">&#x25BE;</span></th>' )->add(
+      '<th><a href="sapevent:sort_by:col2:asc" data-sapevent="sort_by:col2:asc">Col 2</a>' &&
+        '<span class="sort-arrow">&#x25BE;</span></th>' )->add(
       '<th>Col 3</th>' )->add(
       '</tr>' )->add(
       '</thead>' ).
