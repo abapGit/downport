@@ -42,7 +42,7 @@ CLASS zcl_abapgit_html_toolbar_lib IMPLEMENTATION.
 
   METHOD build_repo_settings_dropdown.
 
-    CREATE OBJECT ro_toolbar.
+    ro_toolbar = NEW #( ).
 
     ro_toolbar->add(
       iv_txt   = 'Repository'
