@@ -21,6 +21,6 @@ CLASS zcl_abapgit_ajson_ref_init_lib IMPLEMENTATION.
 
 
   METHOD create_path_refs_init.
-    CREATE OBJECT ri_refs_init TYPE lcl_path_refs_init EXPORTING it_data_refs = it_data_refs.
+    ri_refs_init = NEW lcl_path_refs_init( it_data_refs = it_data_refs ).
   ENDMETHOD.
 ENDCLASS.
