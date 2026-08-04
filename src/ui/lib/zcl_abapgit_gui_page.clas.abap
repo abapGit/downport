@@ -82,6 +82,11 @@ CLASS zcl_abapgit_gui_page DEFINITION PUBLIC ABSTRACT
         !ii_html TYPE REF TO zif_abapgit_html
       RAISING
         zcx_abapgit_exception .
+    METHODS render_back_navigation
+      IMPORTING
+        !ii_html TYPE REF TO zif_abapgit_html
+      RAISING
+        zcx_abapgit_exception .
     METHODS render_command_palettes
       IMPORTING
         !ii_html TYPE REF TO zif_abapgit_html
@@ -126,7 +131,7 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
 
   METHOD footer.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div id="footer">' ).
     ri_html->add( '<table class="w100"><tr>' ).
@@ -215,7 +220,7 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
 
   METHOD html_head.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<head>' ).
 
@@ -265,9 +270,9 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
         li_frontend_services = zcl_abapgit_ui_factory=>get_frontend_services( ).
         li_frontend_services->get_gui_version(
           IMPORTING
-            ev_gui_release        = lv_gui_release
-            ev_gui_sp             = lv_gui_sp
-            ev_gui_patch          = lv_gui_patch ).
+            ev_gui_release = lv_gui_release
+            ev_gui_sp      = lv_gui_sp
+            ev_gui_patch   = lv_gui_patch ).
 
       CATCH zcx_abapgit_exception.
         RETURN.
@@ -282,16 +287,26 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD render_back_navigation.
+
+    ii_html->add( 'addHotkey({' ).
+    ii_html->add( '  toggleKey: "F3",' ).
+    ii_html->add( '  hotkeyDescription: "Go back"' ).
+    ii_html->add( '});' ).
+
+  ENDMETHOD.
+
+
   METHOD render_browser_control_warning.
 
     DATA li_documentation_link TYPE REF TO zif_abapgit_html.
 
-    CREATE OBJECT li_documentation_link TYPE zcl_abapgit_html.
+    li_documentation_link = NEW zcl_abapgit_html( ).
 
     li_documentation_link->add_a(
-        iv_txt = 'Documentation'
-        iv_typ = zif_abapgit_html=>c_action_type-url
-        iv_act = 'https://docs.abapgit.org/guide-sapgui.html#sap-gui-for-windows' ).
+      iv_txt = 'Documentation'
+      iv_typ = zif_abapgit_html=>c_action_type-url
+      iv_act = 'https://docs.abapgit.org/guide-sapgui.html#sap-gui-for-windows' ).
 
     ii_html->add( '<div id="browser-control-warning" class="browser-control-warning">' ).
     ii_html->add( zcl_abapgit_gui_chunk_lib=>render_warning_banner(
@@ -331,7 +346,7 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
     " You should remember that the we have to instantiate ro_html even
     " it's overwritten further down. Because ADD checks whether it's
     " bound.
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     " You should remember that we render the message panel only
     " if we have an error.
@@ -343,7 +358,7 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
 
     " You should remember that the exception viewer dispatches the events of
     " error message panel
-    CREATE OBJECT mo_exception_viewer EXPORTING ix_error = mx_error.
+    mo_exception_viewer = NEW #( ix_error = mx_error ).
 
     " You should remember that we render the message panel just once
     " for each exception/error text.
@@ -382,17 +397,19 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
 
   METHOD scripts.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
+
+    render_link_hints( ri_html ).
+    render_command_palettes( ri_html ).
 
     render_deferred_parts(
       ii_html          = ri_html
       iv_part_category = c_html_parts-scripts ).
 
-    render_link_hints( ri_html ).
-    render_command_palettes( ri_html ).
     ri_html->add( |toggleBrowserControlWarning();| ).
     ri_html->add( |displayBrowserControlFooter();| ).
     ri_html->add( |redirectBrowserBackToSapEvent();| ).
+    render_back_navigation( ri_html ).
 
   ENDMETHOD.
 
@@ -414,7 +431,7 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
       lv_page_title = ms_control-page_title_provider->get_page_title( ).
     ENDIF.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div id="header">' ).
 
@@ -482,9 +499,7 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
 
 
   METHOD zif_abapgit_gui_modal~is_modal.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( ms_control-show_as_modal = abap_true ).
-    rv_yes = temp1.
+    rv_yes = xsdbool( ms_control-show_as_modal = abap_true ).
   ENDMETHOD.
 
 
@@ -499,7 +514,7 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
     lo_timer = zcl_abapgit_timer=>create( )->start( ).
 
     " Real page
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<!DOCTYPE html>' ).
     ri_html->add( '<html lang="en">' ).
