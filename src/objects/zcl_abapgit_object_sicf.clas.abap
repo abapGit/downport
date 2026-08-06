@@ -95,8 +95,9 @@ CLASS zcl_abapgit_object_sicf IMPLEMENTATION.
 
   METHOD change_sicf.
 
-    DATA: lt_icfhndlist TYPE icfhndlist,
-          lt_existing   TYPE TABLE OF icfhandler,
+    TYPES temp1 TYPE TABLE OF icfhandler.
+DATA: lt_icfhndlist TYPE icfhndlist,
+          lt_existing   TYPE temp1,
           ls_icfserdesc TYPE icfserdesc.
 
     FIELD-SYMBOLS: <ls_existing> LIKE LINE OF lt_existing.
@@ -502,12 +503,13 @@ CLASS zcl_abapgit_object_sicf IMPLEMENTATION.
 
   METHOD zif_abapgit_object~deserialize.
 
-    DATA: ls_icfservice TYPE icfservice,
+    TYPES temp2 TYPE TABLE OF icfhandler.
+DATA: ls_icfservice TYPE icfservice,
           ls_read       TYPE icfservice,
           ls_icfdocu    TYPE icfdocu,
           lv_url        TYPE string,
           lv_exists     TYPE abap_bool,
-          lt_icfhandler TYPE TABLE OF icfhandler.
+          lt_icfhandler TYPE temp2.
 
     io_xml->read( EXPORTING iv_name = 'URL'
                   CHANGING  cg_data = lv_url ).
@@ -549,7 +551,9 @@ CLASS zcl_abapgit_object_sicf IMPLEMENTATION.
     SELECT SINGLE icfaltnme FROM icfservice INTO ls_key-icf_name
       WHERE icf_name = ms_item-obj_name(15)
       AND icfparguid = ms_item-obj_name+15.
-    rv_bool = xsdbool( sy-subrc = 0 ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( sy-subrc = 0 ).
+    rv_bool = temp1.
 
   ENDMETHOD.
 
@@ -594,8 +598,9 @@ CLASS zcl_abapgit_object_sicf IMPLEMENTATION.
 
   METHOD zif_abapgit_object~jump.
 
-    DATA: ls_bcdata TYPE bdcdata,
-          lt_bcdata TYPE STANDARD TABLE OF bdcdata.
+    TYPES temp3 TYPE STANDARD TABLE OF bdcdata.
+DATA: ls_bcdata TYPE bdcdata,
+          lt_bcdata TYPE temp3.
 
     ls_bcdata-program  = 'RSICFTREE'.
     ls_bcdata-dynpro   = '1000'.
@@ -658,10 +663,11 @@ CLASS zcl_abapgit_object_sicf IMPLEMENTATION.
 
   METHOD zif_abapgit_object~serialize.
 
-    DATA: ls_icfservice TYPE icfservice,
+    TYPES temp4 TYPE TABLE OF icfhandler.
+DATA: ls_icfservice TYPE icfservice,
           ls_icfdocu    TYPE icfdocu,
           lv_url        TYPE string,
-          lt_icfhandler TYPE TABLE OF icfhandler.
+          lt_icfhandler TYPE temp4.
 
     read( IMPORTING es_icfservice = ls_icfservice
                     es_icfdocu    = ls_icfdocu
