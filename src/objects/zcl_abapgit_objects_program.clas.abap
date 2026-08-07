@@ -56,6 +56,37 @@ CLASS zcl_abapgit_objects_program DEFINITION
     TYPES:
       ty_dynpro_tt TYPE STANDARD TABLE OF ty_dynpro WITH DEFAULT KEY .
 
+    TYPES:
+      ty_varikey_tt        TYPE STANDARD TABLE OF rsvarkey WITH DEFAULT KEY,
+      ty_vari_dynnr_tt     TYPE STANDARD TABLE OF rsdynnr WITH DEFAULT KEY,
+      ty_vari_value_tt     TYPE STANDARD TABLE OF rsparamsl_255 WITH DEFAULT KEY,
+      ty_vari_text_crea_tt TYPE STANDARD TABLE OF varit WITH DEFAULT KEY,
+      ty_vari_object_tt    TYPE STANDARD TABLE OF vanz WITH DEFAULT KEY.
+    TYPES:
+      BEGIN OF ty_vari_text,
+        langu TYPE langu,
+        vtext TYPE rvart_vtxt,
+      END OF ty_vari_text,
+      ty_vari_text_tt TYPE STANDARD TABLE OF ty_vari_text WITH DEFAULT KEY.
+    TYPES:
+      BEGIN OF ty_vari,
+        variant     TYPE varid-variant,
+        flag1       TYPE varid-flag1,
+        flag2       TYPE varid-flag2,
+        transport   TYPE varid-transport,
+        environmnt  TYPE varid-environmnt,
+        protected   TYPE varid-protected,
+        secu        TYPE varid-secu,
+        xflag1      TYPE varid-xflag1,
+        xflag2      TYPE varid-xflag2,
+        variscreens TYPE ty_vari_dynnr_tt,
+        objects     TYPE STANDARD TABLE OF vanz WITH DEFAULT KEY,
+        values      TYPE ty_vari_value_tt,
+        texts       TYPE STANDARD TABLE OF ty_vari_text WITH DEFAULT KEY,
+      END OF ty_vari.
+    TYPES:
+      ty_vari_tt TYPE STANDARD TABLE OF ty_vari WITH DEFAULT KEY.
+
     METHODS strip_generation_comments
       CHANGING
         ct_source TYPE STANDARD TABLE. " tab of string or charX
@@ -71,6 +102,13 @@ CLASS zcl_abapgit_objects_program DEFINITION
         !iv_program_name TYPE syrepid
       RETURNING
         VALUE(rs_cua)    TYPE ty_cua
+      RAISING
+        zcx_abapgit_exception .
+    METHODS serialize_varis
+      IMPORTING
+        !iv_program_name TYPE syrepid
+      RETURNING
+        VALUE(rt_varis)  TYPE ty_vari_tt
       RAISING
         zcx_abapgit_exception .
     METHODS deserialize_dynpros
@@ -90,6 +128,12 @@ CLASS zcl_abapgit_objects_program DEFINITION
       IMPORTING
         !iv_program_name TYPE syrepid
         !is_cua          TYPE ty_cua
+      RAISING
+        zcx_abapgit_exception .
+    METHODS deserialize_varis
+      IMPORTING
+        !iv_program_name TYPE syrepid
+        !it_varis        TYPE ty_vari_tt
       RAISING
         zcx_abapgit_exception .
     METHODS is_any_dynpro_locked
@@ -133,6 +177,10 @@ CLASS zcl_abapgit_objects_program DEFINITION
       END OF c_state.
 
     CONSTANTS c_native_dynpro TYPE c LENGTH 2 VALUE 'IN'.
+
+    CONSTANTS c_sysvari_clnt        TYPE mandt      VALUE '000'.
+    CONSTANTS c_sysvari_pattern_sap TYPE c LENGTH 5 VALUE 'SAP&*'.
+    CONSTANTS c_sysvari_pattern_cus TYPE c LENGTH 5 VALUE 'CUS&*'.
 
     METHODS:
       uncondense_flow
@@ -181,6 +229,50 @@ CLASS zcl_abapgit_objects_program DEFINITION
         !iv_package TYPE devclass
       RAISING
         zcx_abapgit_exception.
+    METHODS get_varis_for_report
+      IMPORTING
+        iv_repid        TYPE repid
+      RETURNING
+        VALUE(rt_varis) TYPE ty_varikey_tt
+      RAISING
+        zcx_abapgit_exception.
+    METHODS get_vari_screens
+      IMPORTING
+        is_vari                TYPE rsvarkey
+      RETURNING
+        VALUE(rt_vari_screens) TYPE ty_vari_dynnr_tt
+      RAISING
+        zcx_abapgit_exception.
+    METHODS get_vari_data
+      IMPORTING
+        is_vari    TYPE rsvarkey
+      EXPORTING
+        es_varid   TYPE varid
+        et_values  TYPE ty_vari_value_tt
+        et_objects TYPE ty_vari_object_tt
+        et_texts   TYPE ty_vari_text_tt
+      RAISING
+        zcx_abapgit_exception.
+    METHODS create_vari
+      IMPORTING
+        is_varid   TYPE varid
+        it_screens TYPE ty_vari_dynnr_tt
+        it_values  TYPE ty_vari_value_tt
+        it_objects TYPE ty_vari_object_tt
+        it_texts   TYPE ty_vari_text_crea_tt
+      RAISING
+        zcx_abapgit_exception.
+    METHODS delete_vari
+      IMPORTING
+        is_vari TYPE rsvarkey
+      RAISING
+        zcx_abapgit_exception.
+    METHODS set_vari_protection
+      IMPORTING
+        is_vari                 TYPE rsvarkey
+        iv_protect              TYPE abap_bool
+      RETURNING
+        VALUE(rv_was_protected) TYPE abap_bool.
 ENDCLASS.
 
 
@@ -242,6 +334,71 @@ CLASS zcl_abapgit_objects_program IMPLEMENTATION.
         cs_adm-pfkcode = <ls_pfk>-code.
       ENDIF.
     ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD create_vari.
+
+    CALL FUNCTION 'RS_CREATE_VARIANT_255'
+      EXPORTING
+        curr_report    = is_varid-report
+        curr_variant   = is_varid-variant
+        vari_desc      = is_varid
+      TABLES
+        vari_contents  = it_values
+        vari_text      = it_texts
+        vscreens       = it_screens
+      EXCEPTIONS
+        variant_exists = 0
+        OTHERS         = 1.
+    IF sy-subrc <> 0.
+      zcx_abapgit_exception=>raise_t100( ).
+    ENDIF.
+
+    CALL FUNCTION 'RS_CHANGE_CREATED_VARIANT_255'
+      EXPORTING
+        curr_report   = is_varid-report
+        curr_variant  = is_varid-variant
+        vari_desc     = is_varid
+      TABLES
+        vari_contents = it_values
+        vari_text     = it_texts
+        objects       = it_objects
+      EXCEPTIONS
+        OTHERS        = 1.
+    IF sy-subrc <> 0.
+      zcx_abapgit_exception=>raise_t100( ).
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD delete_vari.
+
+    TRY.
+        CALL FUNCTION 'RS_VARIANT_DELETE'
+          EXPORTING
+            report                = is_vari-report
+            variant               = is_vari-variant
+            flag_confirmscreen    = abap_true " true = No confirm screen
+            " suppress parameters do not exist in older releases
+            suppress_message      = abap_true
+            suppress_input_dialog = abap_true
+          EXCEPTIONS
+            OTHERS                = 1 ##FM_SUBRC_OK.
+      CATCH cx_sy_dyn_call_param_not_found.
+        CALL FUNCTION 'RS_VARIANT_DELETE'
+          EXPORTING
+            report             = is_vari-report
+            variant            = is_vari-variant
+            flag_confirmscreen = abap_true " true = No confirm screen
+          EXCEPTIONS
+            OTHERS             = 1 ##FM_SUBRC_OK.
+    ENDTRY.
+    IF sy-subrc <> 0.
+      zcx_abapgit_exception=>raise_t100( ).
+    ENDIF.
 
   ENDMETHOD.
 
@@ -322,12 +479,10 @@ CLASS zcl_abapgit_objects_program IMPLEMENTATION.
 
     CONSTANTS lc_rpyty_force_off TYPE c LENGTH 1 VALUE '/'.
 
-    TYPES temp1 TYPE TABLE OF d020s.
-TYPES temp2 TYPE TABLE OF d023s.
-DATA: lv_name            TYPE dwinactiv-obj_name,
-          lt_d020s_to_delete TYPE temp1,
+    DATA: lv_name            TYPE dwinactiv-obj_name,
+          lt_d020s_to_delete TYPE TABLE OF d020s,
           ls_d020s           LIKE LINE OF lt_d020s_to_delete,
-          lt_params          TYPE temp2,
+          lt_params          TYPE TABLE OF d023s,
           ls_dynpro          LIKE LINE OF it_dynpros.
 
     FIELD-SYMBOLS: <ls_field> TYPE rpy_dyfatc.
@@ -613,6 +768,92 @@ DATA: lv_name            TYPE dwinactiv-obj_name,
   ENDMETHOD.
 
 
+  METHOD deserialize_varis.
+
+    DATA: lt_local_varis      TYPE ty_varikey_tt,
+          ls_varikey          LIKE LINE OF lt_local_varis,
+          lt_vari_text        TYPE STANDARD TABLE OF varit WITH DEFAULT KEY,
+          ls_vari_text_create LIKE LINE OF lt_vari_text,
+          ls_varid            TYPE varid,
+          lv_recreate         TYPE abap_bool,
+          lv_was_protected    TYPE abap_bool,
+          lv_exists_locally   TYPE abap_bool.
+
+    FIELD-SYMBOLS: <ls_vari>             LIKE LINE OF it_varis,
+                   <ls_vari_text_remote> TYPE ty_vari_text.
+
+    lt_local_varis = get_varis_for_report( iv_program_name ).
+
+    ls_varikey-report = iv_program_name.
+
+    LOOP AT it_varis ASSIGNING <ls_vari>.
+      CLEAR: lt_vari_text,
+             ls_varid,
+             lv_recreate,
+             lv_was_protected,
+             lv_exists_locally.
+
+      ls_varikey-variant = <ls_vari>-variant.
+
+      DELETE lt_local_varis WHERE variant = <ls_vari>-variant.
+      lv_exists_locally = xsdbool( sy-subrc = 0 ).
+
+      lv_was_protected = set_vari_protection( is_vari    = ls_varikey
+                                              iv_protect = abap_false ).
+
+      TRY.
+          IF lv_exists_locally = abap_true.
+            delete_vari( ls_varikey ).
+          ENDIF.
+
+          MOVE-CORRESPONDING <ls_vari> TO ls_varid.
+          ls_varid-mandt  = c_sysvari_clnt.
+          ls_varid-report = iv_program_name.
+
+          " Assemble text table
+          LOOP AT <ls_vari>-texts ASSIGNING <ls_vari_text_remote>.
+            ls_vari_text_create-mandt   = c_sysvari_clnt.
+            ls_vari_text_create-report  = iv_program_name.
+            ls_vari_text_create-variant = <ls_vari>-variant.
+            ls_vari_text_create-langu   = <ls_vari_text_remote>-langu.
+            ls_vari_text_create-vtext   = <ls_vari_text_remote>-vtext.
+            INSERT ls_vari_text_create INTO TABLE lt_vari_text.
+          ENDLOOP.
+
+          create_vari( is_varid   = ls_varid
+                       it_values  = <ls_vari>-values
+                       it_texts   = lt_vari_text
+                       it_screens = <ls_vari>-variscreens
+                       it_objects = <ls_vari>-objects ).
+
+          set_vari_protection( is_vari    = ls_varikey
+                               iv_protect = ls_varid-protected ).
+
+        CLEANUP.
+          set_vari_protection( is_vari    = ls_varikey
+                               iv_protect = lv_was_protected ).
+      ENDTRY.
+    ENDLOOP.
+
+    " remaining variants have been deleted on remote
+    " => delete
+    LOOP AT lt_local_varis INTO ls_varikey.
+      CLEAR lv_was_protected.
+
+      lv_was_protected = set_vari_protection( is_vari    = ls_varikey
+                                              iv_protect = abap_false ).
+
+      TRY.
+          delete_vari( ls_varikey ).
+        CLEANUP.
+          set_vari_protection( is_vari    = ls_varikey
+                               iv_protect = lv_was_protected ).
+      ENDTRY.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
   METHOD get_program_title.
 
     DATA ls_tpool LIKE LINE OF it_tpool.
@@ -630,6 +871,128 @@ DATA: lv_name            TYPE dwinactiv-obj_name,
 
       rv_title = ls_tpool-entry.
     ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD get_varis_for_report.
+
+    DATA: ls_catalog TYPE rsvcat,
+          ls_vari    LIKE LINE OF rt_varis.
+
+    FIELD-SYMBOLS <ls_cat> TYPE cat_var.
+
+    CALL FUNCTION 'RS_ALL_VARIANTS_4_1_REPORT'
+      EXPORTING
+        program = iv_repid
+      IMPORTING
+        cat     = ls_catalog
+      EXCEPTIONS
+        OTHERS  = 1.
+    IF sy-subrc <> 0.
+      zcx_abapgit_exception=>raise_t100( ).
+    ENDIF.
+
+    ls_vari-report = iv_repid.
+    LOOP AT ls_catalog-cat ASSIGNING <ls_cat>
+         WHERE variant CP c_sysvari_pattern_sap
+         OR variant CP c_sysvari_pattern_cus.
+      ls_vari-variant = <ls_cat>-variant.
+      INSERT ls_vari INTO TABLE rt_varis.
+    ENDLOOP.
+
+    SORT rt_varis.
+
+  ENDMETHOD.
+
+
+  METHOD get_vari_data.
+
+    DATA: lt_language_filter TYPE zif_abapgit_environment=>ty_system_language_filter,
+          ls_language_filter LIKE LINE OF lt_language_filter.
+
+    CLEAR: es_varid,
+           et_values,
+           et_objects,
+           et_texts.
+
+    CALL FUNCTION 'RS_VARIANT_VALUES_TECH_DAT_255'
+      EXPORTING
+        report         = is_vari-report
+        variant        = is_vari-variant
+        sorted         = abap_true
+      IMPORTING
+        techn_data     = es_varid
+      TABLES
+        variant_values = et_values " is ignored
+      EXCEPTIONS
+        OTHERS         = 1.
+    IF sy-subrc <> 0.
+      zcx_abapgit_exception=>raise_t100( ).
+    ENDIF.
+
+    " Use variant values from CONTENTS call
+    " both calls have this parameter as non-optional
+    CLEAR et_values.
+
+    IF mo_i18n_params->ms_params-main_language_only <> abap_true.
+      lt_language_filter = mo_i18n_params->build_language_filter( ).
+    ENDIF.
+    ls_language_filter-sign   = 'I'.
+    ls_language_filter-option = 'EQ'.
+    ls_language_filter-low    = mv_language.
+    CLEAR ls_language_filter-high.
+    INSERT ls_language_filter INTO TABLE lt_language_filter.
+
+    " SELECT because RS_VARIANT_TEXT and related FMs cannot list available languages
+    SELECT langu vtext FROM varit CLIENT SPECIFIED
+      INTO CORRESPONDING FIELDS OF TABLE et_texts
+      WHERE mandt = c_sysvari_clnt
+        AND report = is_vari-report
+        AND variant = is_vari-variant
+        AND langu IN lt_language_filter
+      ORDER BY langu.
+
+    CALL FUNCTION 'RS_VARIANT_CONTENTS_255'
+      EXPORTING
+        report         = is_vari-report
+        variant        = is_vari-variant
+        execute_direct = abap_true
+      TABLES
+        valutab        = et_values
+        objects        = et_objects
+      EXCEPTIONS
+        OTHERS         = 1.
+    IF sy-subrc <> 0.
+      zcx_abapgit_exception=>raise_t100( ).
+    ENDIF.
+
+    " reproducible order
+    SORT et_values.
+    SORT et_objects.
+    SORT et_texts.
+
+  ENDMETHOD.
+
+
+  METHOD get_vari_screens.
+
+    DATA lt_dynnr LIKE rt_vari_screens ##NEEDED.
+
+    CALL FUNCTION 'RS_GET_SCREENS_4_1_VARIANT'
+      EXPORTING
+        program     = is_vari-report
+        variant     = is_vari-variant
+      TABLES
+        dynnr       = lt_dynnr
+        variscreens = rt_vari_screens
+      EXCEPTIONS
+        OTHERS      = 1.
+    IF sy-subrc <> 0.
+      zcx_abapgit_exception=>raise_t100( ).
+    ENDIF.
+
+    SORT rt_vari_screens.
 
   ENDMETHOD.
 
@@ -739,9 +1102,9 @@ DATA: lv_name            TYPE dwinactiv-obj_name,
 
 
   METHOD is_exit_include.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( iv_program CP 'LX*' OR iv_program CP 'SAPLX*' OR iv_program+1 CP '/LX*' OR iv_program+1 CP '/SAPLX*' ).
-    rv_is_exit_include = temp1.
+    rv_is_exit_include = xsdbool(
+      iv_program CP 'LX*' OR iv_program CP 'SAPLX*' OR
+      iv_program+1 CP '/LX*' OR iv_program+1 CP '/SAPLX*' ).
   ENDMETHOD.
 
 
@@ -809,16 +1172,13 @@ DATA: lv_name            TYPE dwinactiv-obj_name,
 
 
   METHOD serialize_dynpros.
-    TYPES temp3 TYPE TABLE OF d020s.
-TYPES temp4 TYPE TABLE OF d021t.
-TYPES temp1 TYPE TABLE OF d021s.
-DATA: ls_header               TYPE rpy_dyhead,
+    DATA: ls_header               TYPE rpy_dyhead,
           lt_containers           TYPE dycatt_tab,
           lt_fields_to_containers TYPE dyfatc_tab,
           lt_flow_logic           TYPE swydyflow,
-          lt_d020s                TYPE temp3,
-          lt_texts                TYPE temp4,
-          lt_fieldlist_int        TYPE temp1. "internal format
+          lt_d020s                TYPE TABLE OF d020s,
+          lt_texts                TYPE TABLE OF d021t,
+          lt_fieldlist_int        TYPE TABLE OF d021s. "internal format
 
     FIELD-SYMBOLS: <ls_d020s>       LIKE LINE OF lt_d020s,
                    <lv_outputstyle> TYPE scrpostyle,
@@ -950,13 +1310,13 @@ DATA: ls_header               TYPE rpy_dyhead,
 
   METHOD serialize_program.
 
-    TYPES temp6 TYPE TABLE OF abaptxt255.
-DATA: ls_progdir      TYPE zif_abapgit_sap_report=>ty_progdir,
+    DATA: ls_progdir      TYPE zif_abapgit_sap_report=>ty_progdir,
           lv_program_name TYPE syrepid,
           lt_dynpros      TYPE ty_dynpro_tt,
           ls_cua          TYPE ty_cua,
+          lt_varis        TYPE ty_vari_tt,
           li_report       TYPE REF TO zif_abapgit_sap_report,
-          lt_source       TYPE temp6,
+          lt_source       TYPE TABLE OF abaptxt255,
           lt_tpool        TYPE textpool_table,
           ls_tpool        LIKE LINE OF lt_tpool,
           li_xml          TYPE REF TO zif_abapgit_xml_output.
@@ -1018,7 +1378,7 @@ DATA: ls_progdir      TYPE zif_abapgit_sap_report=>ty_progdir,
     IF io_xml IS BOUND.
       li_xml = io_xml.
     ELSE.
-      CREATE OBJECT li_xml TYPE zcl_abapgit_xml_output.
+      li_xml = NEW zcl_abapgit_xml_output( ).
     ENDIF.
 
     li_xml->add( iv_name = 'PROGDIR'
@@ -1031,6 +1391,10 @@ DATA: ls_progdir      TYPE zif_abapgit_sap_report=>ty_progdir,
       ls_cua = serialize_cua( lv_program_name ).
       li_xml->add( iv_name = 'CUA'
                    ig_data = ls_cua ).
+
+      lt_varis = serialize_varis( lv_program_name ).
+      li_xml->add( iv_name = 'VARIS'
+                   ig_data = lt_varis ).
     ENDIF.
 
     READ TABLE lt_tpool WITH KEY id = 'R' INTO ls_tpool.
@@ -1050,6 +1414,68 @@ DATA: ls_progdir      TYPE zif_abapgit_sap_report=>ty_progdir,
 
     io_files->add_abap( iv_extra = iv_extra
                         it_abap  = lt_source ).
+
+  ENDMETHOD.
+
+
+  METHOD serialize_varis.
+
+    DATA: ls_vari  TYPE ty_vari,
+          ls_varid TYPE varid,
+          lt_varis TYPE ty_varikey_tt.
+
+    FIELD-SYMBOLS: <ls_varikey> LIKE LINE OF lt_varis,
+                   <ls_object>  LIKE LINE OF ls_vari-objects.
+
+    lt_varis = get_varis_for_report( iv_program_name ).
+
+    LOOP AT lt_varis ASSIGNING <ls_varikey>.
+      CLEAR: ls_vari,
+             ls_varid.
+
+      get_vari_data( EXPORTING is_vari    = <ls_varikey>
+                     IMPORTING es_varid   = ls_varid
+                               et_values  = ls_vari-values
+                               et_objects = ls_vari-objects
+                               et_texts   = ls_vari-texts ).
+
+      MOVE-CORRESPONDING ls_varid TO ls_vari.
+
+      " Clear texts - they will be provided in TEXTPOOL section
+      LOOP AT ls_vari-objects ASSIGNING <ls_object>.
+        CLEAR <ls_object>-text.
+      ENDLOOP.
+
+      ls_vari-variscreens = get_vari_screens( <ls_varikey> ).
+
+      INSERT ls_vari INTO TABLE rt_varis.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD set_vari_protection.
+
+    SELECT SINGLE FOR UPDATE protected
+      FROM varid CLIENT SPECIFIED
+      INTO rv_was_protected
+      WHERE mandt   = c_sysvari_clnt
+        AND report  = is_vari-report
+        AND variant = is_vari-variant
+        AND flag1   = space
+        AND flag2   = space.
+
+    IF sy-subrc <> 0 OR rv_was_protected = iv_protect.
+      RETURN.
+    ENDIF.
+
+    UPDATE varid CLIENT SPECIFIED
+      SET protected = iv_protect
+      WHERE mandt   = c_sysvari_clnt
+        AND report  = is_vari-report
+        AND variant = is_vari-variant
+        AND flag1   = space
+        AND flag2   = space.
 
   ENDMETHOD.
 
