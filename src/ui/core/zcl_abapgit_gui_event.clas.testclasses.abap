@@ -21,8 +21,8 @@ CLASS ltcl_event IMPLEMENTATION.
     DATA li_cut TYPE REF TO zif_abapgit_gui_event.
     DATA lo_map TYPE REF TO zcl_abapgit_string_map.
 
-    CREATE OBJECT li_cut TYPE zcl_abapgit_gui_event EXPORTING iv_action = 'XXX'
-                                                              iv_getdata = 'not_a_param'.
+    li_cut = NEW zcl_abapgit_gui_event( iv_action = 'XXX'
+                                        iv_getdata = 'not_a_param' ).
 
     lo_map = li_cut->query( ).
     cl_abap_unit_assert=>assert_equals(
@@ -36,7 +36,7 @@ CLASS ltcl_event IMPLEMENTATION.
     DATA li_cut TYPE REF TO zif_abapgit_gui_event.
     DATA lo_map TYPE REF TO zcl_abapgit_string_map.
 
-    CREATE OBJECT li_cut TYPE zcl_abapgit_gui_event EXPORTING iv_action = 'XXX'.
+    li_cut = NEW zcl_abapgit_gui_event( iv_action = 'XXX' ).
 
     lo_map = li_cut->form_data( ).
     cl_abap_unit_assert=>assert_equals(
@@ -50,8 +50,8 @@ CLASS ltcl_event IMPLEMENTATION.
     DATA li_cut TYPE REF TO zif_abapgit_gui_event.
     DATA lo_map TYPE REF TO zcl_abapgit_string_map.
 
-    CREATE OBJECT li_cut TYPE zcl_abapgit_gui_event EXPORTING iv_action = 'XXX'
-                                                              iv_getdata = 'a=b&b=c'.
+    li_cut = NEW zcl_abapgit_gui_event( iv_action = 'XXX'
+                                        iv_getdata = 'a=b&b=c' ).
 
     " Cross check just in case
     cl_abap_unit_assert=>assert_equals(
@@ -87,8 +87,8 @@ CLASS ltcl_event IMPLEMENTATION.
     DATA lt_postdata TYPE zif_abapgit_html_viewer=>ty_post_data.
 
     APPEND 'a=b&b=c' TO lt_postdata.
-    CREATE OBJECT li_cut TYPE zcl_abapgit_gui_event EXPORTING iv_action = 'XXX'
-                                                              it_postdata = lt_postdata.
+    li_cut = NEW zcl_abapgit_gui_event( iv_action = 'XXX'
+                                        it_postdata = lt_postdata ).
 
     " Cross check just in case
     cl_abap_unit_assert=>assert_equals(
@@ -125,8 +125,8 @@ CLASS ltcl_event IMPLEMENTATION.
     DATA li_cut TYPE REF TO zif_abapgit_gui_event.
     DATA lo_x TYPE REF TO zcx_abapgit_exception.
 
-    CREATE OBJECT li_cut TYPE zcl_abapgit_gui_event EXPORTING iv_getdata = 'a=b&b=c'
-                                                              iv_action = 'XXX'.
+    li_cut = NEW zcl_abapgit_gui_event( iv_getdata = 'a=b&b=c'
+                                        iv_action = 'XXX' ).
 
     TRY.
         li_cut->form_data( )->set(
@@ -168,6 +168,7 @@ CLASS ltcl_html_action_utils DEFINITION FOR TESTING RISK LEVEL HARMLESS
     METHODS parse_fields_wrong_format FOR TESTING.
     METHODS parse_post_form_data FOR TESTING.
     METHODS parse_fields_webgui FOR TESTING.
+    METHODS parse_fields_webgui_namespace FOR TESTING.
     METHODS parse_fields_special_chars FOR TESTING.
 
   PRIVATE SECTION.
@@ -495,6 +496,26 @@ CLASS ltcl_html_action_utils IMPLEMENTATION.
       iv_index = 3
       iv_name  = 'FILENAME'
       iv_value = '/nsp/test_ddls_bug2.ddls.asddls' ).
+
+  ENDMETHOD.
+
+  METHOD parse_fields_webgui_namespace.
+
+    " A namespace ends up as # in the file name, which is escaped in the url
+    _given_string_is( `KEY=000000000019&PATH=%2fsrc%2f%23nsp%23tax%2f`
+                   && `&FILENAME=%23nsp%23tax_sm30.fugr.screen_0001.abap` ).
+    _when_fields_are_parsed( ).
+    _then_field_count_should_be( 3 ).
+
+    _then_fields_should_be(
+      iv_index = 2
+      iv_name  = 'PATH'
+      iv_value = '/src/#nsp#tax/' ).
+
+    _then_fields_should_be(
+      iv_index = 3
+      iv_name  = 'FILENAME'
+      iv_value = '#nsp#tax_sm30.fugr.screen_0001.abap' ).
 
   ENDMETHOD.
 
