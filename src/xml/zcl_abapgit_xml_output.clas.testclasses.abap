@@ -7,6 +7,7 @@ CLASS ltcl_xml_output DEFINITION FOR TESTING DURATION SHORT RISK LEVEL HARMLESS.
     METHODS render_xml_string FOR TESTING RAISING zcx_abapgit_exception.
     METHODS add_simple_object FOR TESTING RAISING zcx_abapgit_exception.
     METHODS long_numc FOR TESTING RAISING zcx_abapgit_exception.
+    METHODS invalid_transformation FOR TESTING RAISING zcx_abapgit_exception.
 
     TYPES: BEGIN OF ty_old,
              foo TYPE i,
@@ -27,9 +28,9 @@ CLASS ltcl_xml_output IMPLEMENTATION.
     ls_input-foo = '2'.
     ls_input-bar = 'A'.
 
-    CREATE OBJECT lo_output.
+    lo_output = NEW #( ).
     lo_output->zif_abapgit_xml_output~add( iv_name = 'DATA'
-                    ig_data = ls_input ).
+                                           ig_data = ls_input ).
 
     li_xml_element = lo_output->mi_xml_doc->find_from_name( 'FOO' ).
     lv_value = li_xml_element->get_value( ).
@@ -67,7 +68,7 @@ CLASS ltcl_xml_output IMPLEMENTATION.
 
     REPLACE ALL OCCURRENCES OF '#' IN lv_expected WITH cl_abap_char_utilities=>newline.
 
-    CREATE OBJECT lo_output.
+    lo_output = NEW #( ).
     lo_output->zif_abapgit_xml_output~add( iv_name = 'DATA'
                                            ig_data = ls_input ).
 
@@ -110,10 +111,10 @@ CLASS ltcl_xml_output IMPLEMENTATION.
     DATA lo_output TYPE REF TO zcl_abapgit_xml_output.
     DATA lv_xml TYPE string.
 
-* write a bad value into the NUMC field,
+    " write a bad value into the NUMC field,
     ls_foo = '0009'.
 
-    CREATE OBJECT lo_output.
+    lo_output = NEW #( ).
     lo_output->zif_abapgit_xml_output~add(
       iv_name = 'DATA'
       ig_data = ls_foo ).
@@ -123,6 +124,29 @@ CLASS ltcl_xml_output IMPLEMENTATION.
     cl_abap_unit_assert=>assert_char_cp(
       act = lv_xml
       exp = '*>0009<*' ).
+
+  ENDMETHOD.
+
+  METHOD invalid_transformation.
+
+    CONSTANTS lc_raw TYPE x LENGTH 10 VALUE '12A456789012345C'.
+    DATA lv_amount TYPE p LENGTH 8 DECIMALS 2.
+    FIELD-SYMBOLS <lv_raw> TYPE x.
+
+    DATA lo_output TYPE REF TO zcl_abapgit_xml_output.
+
+    "Corrupt the packed-number bytes: Nibble 'A' is not a valid BCD digit
+    ASSIGN lv_amount TO <lv_raw> CASTING.
+    <lv_raw> = lc_raw.
+
+    TRY.
+        lo_output = NEW #( ).
+        lo_output->zif_abapgit_xml_output~add(
+          iv_name = 'DATA'
+          ig_data = lv_amount ).
+        cl_abap_unit_assert=>fail( 'Expect transformation error' ).
+      CATCH zcx_abapgit_exception ##NO_HANDLER.
+    ENDTRY.
 
   ENDMETHOD.
 
