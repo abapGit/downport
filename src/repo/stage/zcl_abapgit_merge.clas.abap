@@ -92,7 +92,7 @@ CLASS zcl_abapgit_merge IMPLEMENTATION.
 
     lt_files = all_files( ).
 
-    CREATE OBJECT ms_merge-stage EXPORTING iv_merge_source = ms_merge-source-sha1.
+    ms_merge-stage = NEW #( iv_merge_source = ms_merge-source-sha1 ).
 
     LOOP AT lt_files ASSIGNING <ls_file>.
 
@@ -110,15 +110,9 @@ CLASS zcl_abapgit_merge IMPLEMENTATION.
         WITH KEY path_name
         COMPONENTS path = <ls_file>-path name = <ls_file>-name. "#EC CI_SUBRC
 
-      DATA temp1 TYPE xsdboolean.
-      temp1 = boolc( <ls_source> IS ASSIGNED ).
-      lv_found_source = temp1.
-      DATA temp2 TYPE xsdboolean.
-      temp2 = boolc( <ls_target> IS ASSIGNED ).
-      lv_found_target = temp2.
-      DATA temp3 TYPE xsdboolean.
-      temp3 = boolc( <ls_common> IS ASSIGNED ).
-      lv_found_common = temp3.
+      lv_found_source = xsdbool( <ls_source> IS ASSIGNED ).
+      lv_found_target = xsdbool( <ls_target> IS ASSIGNED ).
+      lv_found_common = xsdbool( <ls_common> IS ASSIGNED ).
 
       IF lv_found_source = abap_false
           AND lv_found_target = abap_false.
@@ -375,9 +369,7 @@ CLASS zcl_abapgit_merge IMPLEMENTATION.
 
   METHOD zif_abapgit_merge~has_conflicts.
 
-    DATA temp4 TYPE xsdboolean.
-    temp4 = boolc( lines( mt_conflicts ) > 0 ).
-    rv_conflicts_exists = temp4.
+    rv_conflicts_exists = xsdbool( lines( mt_conflicts ) > 0 ).
 
   ENDMETHOD.
 
