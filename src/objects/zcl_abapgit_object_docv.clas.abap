@@ -155,7 +155,9 @@ CLASS zcl_abapgit_object_docv IMPLEMENTATION.
        WHERE id     = mv_id
          AND object = mv_doc_object.    "#EC CI_GENBUFF "#EC CI_NOORDER
 
-    rv_bool = xsdbool( sy-subrc = 0 ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( sy-subrc = 0 ).
+    rv_bool = temp1.
 
   ENDMETHOD.
 
