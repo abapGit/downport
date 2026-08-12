@@ -132,8 +132,8 @@ CLASS zcl_abapgit_gui_page_db_entry IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_db_entry.
 
-    CREATE OBJECT lo_component EXPORTING iv_edit_mode = iv_edit_mode
-                                         is_key = is_key.
+    lo_component = NEW #( iv_edit_mode = iv_edit_mode
+                          is_key = is_key ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_extra_css_url       = c_css_url
@@ -174,7 +174,7 @@ CLASS zcl_abapgit_gui_page_db_entry IMPLEMENTATION.
 
     DATA lo_buf TYPE REF TO zcl_abapgit_string_buffer.
 
-    CREATE OBJECT lo_buf.
+    lo_buf = NEW #( ).
 
     " @@abapmerge include zabapgit_css_page_db_entry.w3mi.data.css > lo_buf->add( '$$' ).
     gui_services( )->register_page_asset(
@@ -190,15 +190,21 @@ CLASS zcl_abapgit_gui_page_db_entry IMPLEMENTATION.
 
     DATA lv_formatted TYPE string.
 
-    lv_formatted = escape(
-      val    = zcl_abapgit_xml_pretty=>print( iv_raw_db_value )
-      format = cl_abap_format=>e_html_attr ).
+    IF iv_raw_db_value CS '<?xml'.
+      lv_formatted = escape(
+        val    = zcl_abapgit_xml_pretty=>print( iv_raw_db_value )
+        format = cl_abap_format=>e_html_attr ).
+    ELSE.
+      lv_formatted = escape(
+        val    = iv_raw_db_value
+        format = cl_abap_format=>e_html_attr ).
+    ENDIF.
 
     " Form
     ii_html->add( |<form id="{ c_edit_form_id }" method="post" action="sapevent:{ c_action-update }">| ).
     ii_html->add( |<input type="hidden" name="type" value="{ ms_key-type }">| ).
     ii_html->add( |<input type="hidden" name="value" value="{ ms_key-value }">| ).
-    ii_html->add( |<textarea rows="20" cols="100" name="xmldata">{ lv_formatted }</textarea>| ).
+    ii_html->add( |<textarea rows="34" cols="100" name="xmldata">{ lv_formatted }</textarea>| ).
     ii_html->add( '</form>' ).
 
   ENDMETHOD.
@@ -263,9 +269,7 @@ CLASS zcl_abapgit_gui_page_db_entry IMPLEMENTATION.
 
     CASE ii_event->mv_action.
       WHEN c_action-switch_mode.
-        DATA temp1 TYPE xsdboolean.
-        temp1 = boolc( mv_edit_mode = abap_false ).
-        mv_edit_mode = temp1.
+        mv_edit_mode = xsdbool( mv_edit_mode = abap_false ).
         rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
       WHEN c_action-update.
         do_update( dbcontent_decode( ii_event->form_data( ) ) ).
@@ -299,7 +303,7 @@ CLASS zcl_abapgit_gui_page_db_entry IMPLEMENTATION.
       CATCH zcx_abapgit_not_found ##NO_HANDLER.
     ENDTRY.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div class="db-entry">' ).
 
