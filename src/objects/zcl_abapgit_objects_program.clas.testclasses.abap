@@ -34,8 +34,8 @@ CLASS ltcl_test IMPLEMENTATION.
 
     " case 1, not FUGR, should skip
     ls_item-obj_type = 'PROG'.
-    lo_cut = NEW #( iv_language = 'E'
-                    is_item = ls_item ).
+    CREATE OBJECT lo_cut EXPORTING iv_language = 'E'
+                                   is_item = ls_item.
 
     lt_src_act = lt_src_orig.
     lo_cut->strip_generation_comments( CHANGING ct_source = lt_src_act ).
@@ -45,8 +45,8 @@ CLASS ltcl_test IMPLEMENTATION.
 
     " case 2, FUGR
     ls_item-obj_type = 'FUGR'.
-    lo_cut = NEW #( iv_language = 'E'
-                    is_item = ls_item ).
+    CREATE OBJECT lo_cut EXPORTING iv_language = 'E'
+                                   is_item = ls_item.
 
     lt_src_act = lt_src_orig.
     lo_cut->strip_generation_comments( CHANGING ct_source = lt_src_act ).
@@ -66,8 +66,8 @@ CLASS ltcl_test IMPLEMENTATION.
     APPEND 'some code starts here' TO lt_src_orig.
 
     ls_item-obj_type = 'FUGR'.
-    lo_cut = NEW #( iv_language = 'E'
-                    is_item = ls_item ).
+    CREATE OBJECT lo_cut EXPORTING iv_language = 'E'
+                                   is_item = ls_item.
 
     lt_src_act = lt_src_orig.
     lo_cut->strip_generation_comments( CHANGING ct_source = lt_src_act ).
@@ -101,8 +101,8 @@ CLASS ltcl_test IMPLEMENTATION.
 
     " case 1, not FUGR, should skip
     ls_item-obj_type = 'FUGR'.
-    lo_cut = NEW #( iv_language = 'E'
-                    is_item = ls_item ).
+    CREATE OBJECT lo_cut EXPORTING iv_language = 'E'
+                                   is_item = ls_item.
 
     lt_src_act = lt_src_orig.
     lo_cut->strip_generation_comments( CHANGING ct_source = lt_src_act ).
