@@ -177,7 +177,7 @@ CLASS zcl_abapgit_html_table IMPLEMENTATION.
 
 
   METHOD create.
-    ro_instance = NEW #( ).
+    CREATE OBJECT ro_instance.
     ro_instance->mi_renderer = ii_renderer.
     ro_instance->ms_sorting_state = is_initial_sorting_state.
   ENDMETHOD.
@@ -234,7 +234,9 @@ CLASS zcl_abapgit_html_table IMPLEMENTATION.
         sub  = c_sort_by_event_prefix
         with = '' ) ##REGEX_POSIX.
       SPLIT lv_req AT ':' INTO rs_sorting_request-column_id lv_req.
-      rs_sorting_request-descending = xsdbool( lv_req = 'dsc' ).
+      DATA temp1 TYPE xsdboolean.
+      temp1 = boolc( lv_req = 'dsc' ).
+      rs_sorting_request-descending = temp1.
 
     ENDIF.
 
@@ -299,7 +301,7 @@ CLASS zcl_abapgit_html_table IMPLEMENTATION.
       lv_attrs = lv_attrs && | class="{ iv_css_class }"|.
     ENDIF.
 
-    mi_html = NEW zcl_abapgit_html( ).
+    CREATE OBJECT mi_html TYPE zcl_abapgit_html.
     ri_html = mi_html.
 
     IF iv_wrap_in_div IS NOT INITIAL.

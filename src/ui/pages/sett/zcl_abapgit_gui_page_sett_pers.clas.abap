@@ -86,8 +86,8 @@ CLASS zcl_abapgit_gui_page_sett_pers IMPLEMENTATION.
   METHOD constructor.
 
     super->constructor( ).
-    mo_validation_log = NEW #( ).
-    mo_form_data = NEW #( ).
+    CREATE OBJECT mo_validation_log.
+    CREATE OBJECT mo_form_data.
     mo_form = get_form_schema( ).
     mo_form_data = read_settings( ).
 
@@ -98,7 +98,7 @@ CLASS zcl_abapgit_gui_page_sett_pers IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_sett_pers.
 
-    lo_component = NEW #( ).
+    CREATE OBJECT lo_component.
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Personal Settings'
@@ -220,12 +220,14 @@ CLASS zcl_abapgit_gui_page_sett_pers IMPLEMENTATION.
     " Get settings from DB
     mo_settings = zcl_abapgit_persist_factory=>get_settings( )->read( ).
     ms_settings = mo_settings->get_user_settings( ).
-    ro_form_data = NEW #( ).
+    CREATE OBJECT ro_form_data.
 
     " Startup
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( ms_settings-show_default_repo = abap_true ).
     ro_form_data->set(
       iv_key = c_id-show_default_repo
-      iv_val = xsdbool( ms_settings-show_default_repo = abap_true ) ) ##TYPE.
+      iv_val = temp1 ) ##TYPE.
 
     " UI
     ro_form_data->set(
@@ -242,23 +244,31 @@ CLASS zcl_abapgit_gui_page_sett_pers IMPLEMENTATION.
       iv_val = ms_settings-label_colors ).
 
     " Interaction
+    DATA temp2 TYPE xsdboolean.
+    temp2 = boolc( ms_settings-activate_wo_popup = abap_true ).
     ro_form_data->set(
       iv_key = c_id-activate_wo_popup
-      iv_val = xsdbool( ms_settings-activate_wo_popup = abap_true ) ) ##TYPE.
+      iv_val = temp2 ) ##TYPE.
+    DATA temp3 TYPE xsdboolean.
+    temp3 = boolc( ms_settings-adt_jump_enabled = abap_true ).
     ro_form_data->set(
       iv_key = c_id-adt_jump_enabled
-      iv_val = xsdbool( ms_settings-adt_jump_enabled = abap_true ) ) ##TYPE.
+      iv_val = temp3 ) ##TYPE.
+    DATA temp4 TYPE xsdboolean.
+    temp4 = boolc( ms_settings-link_hints_enabled = abap_true ).
     ro_form_data->set(
       iv_key = c_id-link_hints_enabled
-      iv_val = xsdbool( ms_settings-link_hints_enabled = abap_true ) ) ##TYPE.
+      iv_val = temp4 ) ##TYPE.
     ro_form_data->set(
       iv_key = c_id-link_hint_key
       iv_val = |{ ms_settings-link_hint_key }| ).
 
     " Resources
+    DATA temp5 TYPE xsdboolean.
+    temp5 = boolc( ms_settings-parallel_proc_disabled = abap_true ).
     ro_form_data->set(
       iv_key = c_id-parallel_proc_disabled
-      iv_val = xsdbool( ms_settings-parallel_proc_disabled = abap_true ) ) ##TYPE.
+      iv_val = temp5 ) ##TYPE.
 
     " Git Default Values
     ro_form_data->set(
@@ -421,7 +431,7 @@ CLASS zcl_abapgit_gui_page_sett_pers IMPLEMENTATION.
 
     register_handlers( ).
 
-    ri_html = NEW zcl_abapgit_html( ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
     ri_html->add( '<div class="form-container">' ).
     ri_html->add( mo_form->render(
       io_values         = mo_form_data
