@@ -126,7 +126,9 @@ CLASS zcl_abapgit_object_cus2 IMPLEMENTATION.
         attributes_exists_not = 1
         OTHERS                = 2.
 
-    rv_bool = xsdbool( sy-subrc = 0 ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( sy-subrc = 0 ).
+    rv_bool = temp1.
 
   ENDMETHOD.
 
