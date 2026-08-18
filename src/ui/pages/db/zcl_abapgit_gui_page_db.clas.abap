@@ -17,10 +17,6 @@ CLASS zcl_abapgit_gui_page_db DEFINITION
       RAISING
         zcx_abapgit_exception.
 
-    METHODS constructor
-      RAISING
-        zcx_abapgit_exception.
-
   PROTECTED SECTION.
   PRIVATE SECTION.
 
@@ -36,7 +32,6 @@ CLASS zcl_abapgit_gui_page_db DEFINITION
         cancel                   TYPE string VALUE 'cancel',
       END OF c_action.
 
-    CONSTANTS c_css_url TYPE string VALUE 'css/page_db.css'.
     CONSTANTS c_toc_filename TYPE string VALUE '#_Table_of_Content_#.txt'.
 
     TYPES:
@@ -46,10 +41,6 @@ CLASS zcl_abapgit_gui_page_db DEFINITION
       END OF ty_explanation.
 
     DATA mt_methods TYPE zcl_abapgit_background=>ty_methods.
-
-    METHODS register_stylesheet
-      RAISING
-        zcx_abapgit_exception.
 
     METHODS render_stats
       IMPORTING
@@ -127,21 +118,14 @@ ENDCLASS.
 CLASS zcl_abapgit_gui_page_db IMPLEMENTATION.
 
 
-  METHOD constructor.
-    super->constructor( ).
-    register_stylesheet( ).
-  ENDMETHOD.
-
-
   METHOD create.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_db.
 
-    CREATE OBJECT lo_component.
+    lo_component = NEW #( ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title         = 'Database Utility'
-      iv_extra_css_url      = c_css_url
       ii_page_menu_provider = lo_component
       ii_child_component    = lo_component ).
 
@@ -172,7 +156,7 @@ CLASS zcl_abapgit_gui_page_db IMPLEMENTATION.
     lv_text = |\n|.
     INSERT lv_text INTO TABLE lt_toc.
 
-    CREATE OBJECT lo_zip.
+    lo_zip = NEW #( ).
 
     LOOP AT lt_data ASSIGNING <ls_data>.
       IF <ls_data>-type = zcl_abapgit_persistence_db=>c_type_repo_csum.
@@ -272,7 +256,7 @@ CLASS zcl_abapgit_gui_page_db IMPLEMENTATION.
 
     lv_zip = li_fe_serv->file_upload( lv_path ).
 
-    CREATE OBJECT lo_zip.
+    lo_zip = NEW #( ).
 
     lo_zip->load(
       EXPORTING
@@ -529,22 +513,6 @@ CLASS zcl_abapgit_gui_page_db IMPLEMENTATION.
       CATCH zcx_abapgit_exception.
         rv_text = 'n/a'.
     ENDTRY.
-
-  ENDMETHOD.
-
-
-  METHOD register_stylesheet.
-
-    DATA lo_buf TYPE REF TO zcl_abapgit_string_buffer.
-
-    CREATE OBJECT lo_buf.
-
-    " @@abapmerge include zabapgit_css_page_db.w3mi.data.css > lo_buf->add( '$$' ).
-    gui_services( )->register_page_asset(
-      iv_url       = c_css_url
-      iv_type      = 'text/css'
-      iv_mime_name = 'ZABAPGIT_CSS_PAGE_DB'
-      iv_inline    = lo_buf->join_w_newline_and_flush( ) ).
 
   ENDMETHOD.
 
