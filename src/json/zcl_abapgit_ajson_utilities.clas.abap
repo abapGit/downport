@@ -325,27 +325,28 @@ CLASS zcl_abapgit_ajson_utilities IMPLEMENTATION.
         eo_delete = li_del
         eo_change = li_mod ).
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( li_ins->is_empty( ) = abap_true AND li_del->is_empty( ) = abap_true AND li_mod->is_empty( ) = abap_true ).
-    rv_yes = temp1.
+    rv_yes = xsdbool(
+      li_ins->is_empty( ) = abap_true AND
+      li_del->is_empty( ) = abap_true AND
+      li_mod->is_empty( ) = abap_true ).
 
   ENDMETHOD.
 
 
   METHOD iterate_array.
 
-    CREATE OBJECT ri_iterator TYPE lcl_node_iterator EXPORTING iv_node_type = zif_abapgit_ajson_types=>node_type-array
-                                                               ii_json = ii_json
-                                                               iv_path = iv_path.
+    ri_iterator = NEW lcl_node_iterator( iv_node_type = zif_abapgit_ajson_types=>node_type-array
+                                         ii_json = ii_json
+                                         iv_path = iv_path ).
 
   ENDMETHOD.
 
 
   METHOD iterate_object.
 
-    CREATE OBJECT ri_iterator TYPE lcl_node_iterator EXPORTING iv_node_type = zif_abapgit_ajson_types=>node_type-object
-                                                               ii_json = ii_json
-                                                               iv_path = iv_path.
+    ri_iterator = NEW lcl_node_iterator( iv_node_type = zif_abapgit_ajson_types=>node_type-object
+                                         ii_json = ii_json
+                                         iv_path = iv_path ).
 
   ENDMETHOD.
 
@@ -376,17 +377,13 @@ CLASS zcl_abapgit_ajson_utilities IMPLEMENTATION.
 
 
   METHOD new.
-    CREATE OBJECT ro_instance.
+    ro_instance = NEW #( ).
   ENDMETHOD.
 
 
   METHOD normalize_input.
 
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( iv_json IS INITIAL ).
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( io_json IS INITIAL ).
-    IF temp2 = temp1.
+    IF xsdbool( iv_json IS INITIAL ) = xsdbool( io_json IS INITIAL ).
       zcx_abapgit_ajson_error=>raise( 'Either supply JSON string or instance, but not both' ).
     ENDIF.
 

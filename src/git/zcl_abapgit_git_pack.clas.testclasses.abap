@@ -282,7 +282,7 @@ CLASS ltcl_pack IMPLEMENTATION.
 
   METHOD setup.
     DATA lo_progress_double TYPE REF TO ltcl_progress_double.
-    CREATE OBJECT lo_progress_double TYPE ltcl_progress_double.
+    lo_progress_double = NEW ltcl_progress_double( ).
 
     zcl_abapgit_progress=>set_instance( lo_progress_double ).
   ENDMETHOD.
