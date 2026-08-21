@@ -62,7 +62,7 @@ ENDCLASS.
 CLASS lcl_persist_settings IMPLEMENTATION.
 
   METHOD constructor.
-    CREATE OBJECT mo_settings.
+    mo_settings = NEW #( ).
   ENDMETHOD.
 
   METHOD zif_abapgit_persist_settings~modify.
@@ -130,10 +130,10 @@ ENDCLASS.
 CLASS ltcl_abap_language_version IMPLEMENTATION.
 
   METHOD setup.
-    CREATE OBJECT mo_environment.
+    mo_environment = NEW #( ).
     zcl_abapgit_injector=>set_environment( mo_environment ).
 
-    CREATE OBJECT mi_persistency TYPE lcl_persist_settings.
+    mi_persistency = NEW lcl_persist_settings( ).
     zcl_abapgit_persist_injector=>set_settings( mi_persistency ).
 
     APPEND zif_abapgit_dot_abapgit=>c_abap_language_version-undefined TO mt_versions.
@@ -149,7 +149,7 @@ CLASS ltcl_abap_language_version IMPLEMENTATION.
     mo_dot_abapgit = zcl_abapgit_dot_abapgit=>build_default( ).
     mo_dot_abapgit->set_abap_language_version( iv_abap_language_version ).
 
-    CREATE OBJECT mo_cut EXPORTING io_dot_abapgit = mo_dot_abapgit.
+    mo_cut = NEW #( io_dot_abapgit = mo_dot_abapgit ).
   ENDMETHOD.
 
   METHOD set_environment.
@@ -421,6 +421,15 @@ CLASS ltcl_abap_language_version IMPLEMENTATION.
     " Does not throw
     zcl_abapgit_abap_language_vers=>check_abap_language_version(
       iv_abap_language_version = zif_abapgit_aff_types_v1=>co_abap_language_version-standard
+      is_item                  = ls_item ).
+
+    ls_item-obj_type              = 'DEVC'.
+    ls_item-obj_name              = 'ZTEST'.
+    ls_item-abap_language_version = zif_abapgit_aff_types_v1=>co_abap_language_version-standard.
+
+    " Does not throw
+    zcl_abapgit_abap_language_vers=>check_abap_language_version(
+      iv_abap_language_version = zif_abapgit_aff_types_v1=>co_abap_language_version_src-standard
       is_item                  = ls_item ).
 
   ENDMETHOD.
