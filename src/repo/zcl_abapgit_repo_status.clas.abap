@@ -70,8 +70,8 @@ CLASS zcl_abapgit_repo_status IMPLEMENTATION.
 
     IF ii_log IS BOUND.
       " This method just adds messages to the log. No log, nothing to do here
-      CREATE OBJECT lo_consistency_checks EXPORTING iv_root_package = ii_repo->get_package( )
-                                                    io_dot = ii_repo->get_dot_abapgit( ).
+      lo_consistency_checks = NEW #( iv_root_package = ii_repo->get_package( )
+                                     io_dot = ii_repo->get_dot_abapgit( ) ).
       ii_log->merge_with( lo_consistency_checks->run_checks( rt_results ) ).
     ENDIF.
 
