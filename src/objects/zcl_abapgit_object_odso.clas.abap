@@ -98,10 +98,11 @@ CLASS zcl_abapgit_object_odso IMPLEMENTATION.
 
   METHOD zif_abapgit_object~delete.
 
-    DATA: lv_odsonam    TYPE c LENGTH 30,
+    TYPES temp1 TYPE STANDARD TABLE OF bal_s_msg.
+DATA: lv_odsonam    TYPE c LENGTH 30,
           lv_objname    TYPE sobj_name,
           lo_collection TYPE REF TO object,
-          lt_msg        TYPE STANDARD TABLE OF bal_s_msg,
+          lt_msg        TYPE temp1,
           ls_msg        TYPE bal_s_msg.
 
     CREATE OBJECT lo_collection TYPE ('CL_RSD_ODSO_COLLECTION').
@@ -137,13 +138,14 @@ CLASS zcl_abapgit_object_odso IMPLEMENTATION.
 
   METHOD zif_abapgit_object~deserialize.
 
-    DATA: lv_dsonam      TYPE c LENGTH 30,
+    TYPES temp2 TYPE STANDARD TABLE OF bapiret2.
+DATA: lv_dsonam      TYPE c LENGTH 30,
           lr_details     TYPE REF TO data,
           lr_infoobjects TYPE REF TO data,
           lr_navigation  TYPE REF TO data,
           lr_indexes     TYPE REF TO data,
           lr_index_iobj  TYPE REF TO data,
-          lt_return      TYPE STANDARD TABLE OF bapiret2,
+          lt_return      TYPE temp2,
           ls_return      TYPE bapiret2.
 
     FIELD-SYMBOLS:
@@ -246,7 +248,9 @@ CLASS zcl_abapgit_object_odso IMPLEMENTATION.
     INTO lv_iobjnm
     WHERE odsobject = ms_item-obj_name.
 
-    rv_bool = xsdbool( sy-subrc = 0 ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( sy-subrc = 0 ).
+    rv_bool = temp1.
 
   ENDMETHOD.
 
