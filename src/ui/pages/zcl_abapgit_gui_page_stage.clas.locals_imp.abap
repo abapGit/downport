@@ -67,7 +67,7 @@ CLASS lcl_selected IMPLEMENTATION.
 
     check_selected( lo_files ).
 
-    CREATE OBJECT ro_stage.
+    ro_stage = NEW #( ).
 
     LOOP AT lo_files->mt_entries ASSIGNING <ls_item>
       "Ignore Files that we don't want to stage, so any errors don't stop the staging process
@@ -166,7 +166,7 @@ CLASS lcl_selected IMPLEMENTATION.
   METHOD get_instance.
 
     IF gi_instance IS INITIAL.
-      CREATE OBJECT gi_instance TYPE lcl_selected.
+      gi_instance = NEW lcl_selected( ).
     ENDIF.
 
     ro_instance = gi_instance.
