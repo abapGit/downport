@@ -98,10 +98,8 @@ CLASS lcl_json_path IMPLEMENTATION.
 
   METHOD path_contains_array.
     DATA lv_array_pattern TYPE string VALUE `.*\[.*\].*`.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( matches( val = iv_path
-                            regex = lv_array_pattern ) ).
-    rv_result = temp1 ##REGEX_POSIX.
+    rv_result = xsdbool( matches( val   = iv_path
+                                regex = lv_array_pattern ) ) ##REGEX_POSIX.
   ENDMETHOD.
 
   METHOD build_json.
@@ -172,9 +170,7 @@ CLASS lcl_json_path IMPLEMENTATION.
   METHOD is_primitiv.
 
     FIND REGEX `^.\w+` IN iv_string ##REGEX_POSIX. " string start with .
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( sy-subrc = 0 ).
-    rv_result = temp2.
+    rv_result = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -204,21 +200,15 @@ CLASS lcl_json_path IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD is_array.
-    DATA temp3 TYPE xsdboolean.
-    temp3 = boolc( io_reader->name = 'array' ).
-    rv_result = temp3.
+    rv_result = xsdbool( io_reader->name = 'array' ).
   ENDMETHOD.
 
   METHOD is_string_open.
-    DATA temp4 TYPE xsdboolean.
-    temp4 = boolc( io_reader->name = 'str' AND io_reader->node_type = if_sxml_node=>co_nt_element_open ).
-    rv_result = temp4.
+    rv_result = xsdbool( io_reader->name = 'str' AND io_reader->node_type = if_sxml_node=>co_nt_element_open ).
   ENDMETHOD.
 
   METHOD is_object.
-    DATA temp5 TYPE xsdboolean.
-    temp5 = boolc( io_reader->name = 'object' ).
-    rv_result = temp5.
+    rv_result = xsdbool( io_reader->name = 'object' ).
   ENDMETHOD.
 
   METHOD serialize_rec.
