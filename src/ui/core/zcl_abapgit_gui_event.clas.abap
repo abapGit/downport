@@ -27,6 +27,7 @@ CLASS zcl_abapgit_gui_event DEFINITION
   PRIVATE SECTION.
     DATA mo_query TYPE REF TO zcl_abapgit_string_map.
     DATA mo_form_data TYPE REF TO zcl_abapgit_string_map.
+    DATA mv_current_page_name TYPE string.
 
     CLASS-DATA gv_non_breaking_space TYPE string .
 
@@ -112,7 +113,7 @@ CLASS zcl_abapgit_gui_event IMPLEMENTATION.
     zif_abapgit_gui_event~mt_postdata     = it_postdata.
 
     IF ii_gui_services IS BOUND.
-      zif_abapgit_gui_event~mv_current_page_name = ii_gui_services->get_current_page_name( ).
+      mv_current_page_name = ii_gui_services->get_current_page_name( ).
     ENDIF.
 
   ENDMETHOD.
@@ -121,7 +122,7 @@ CLASS zcl_abapgit_gui_event IMPLEMENTATION.
   METHOD fields_to_map.
     FIELD-SYMBOLS <ls_field> LIKE LINE OF it_fields.
 
-    CREATE OBJECT ro_string_map EXPORTING iv_case_insensitive = abap_true.
+    ro_string_map = NEW #( iv_case_insensitive = abap_true ).
     LOOP AT it_fields ASSIGNING <ls_field>.
       ro_string_map->set(
         iv_key = <ls_field>-name
@@ -142,10 +143,10 @@ CLASS zcl_abapgit_gui_event IMPLEMENTATION.
 
 
   METHOD new.
-    CREATE OBJECT ro_instance EXPORTING ii_gui_services = ii_gui_services
-                                        iv_action = iv_action
-                                        iv_getdata = iv_getdata
-                                        it_postdata = it_postdata.
+    ro_instance = NEW #( ii_gui_services = ii_gui_services
+                         iv_action = iv_action
+                         iv_getdata = iv_getdata
+                         it_postdata = it_postdata ).
   ENDMETHOD.
 
 
@@ -253,6 +254,11 @@ CLASS zcl_abapgit_gui_event IMPLEMENTATION.
     REPLACE ALL OCCURRENCES OF '%26' IN rv_string WITH '&' IGNORING CASE.
     REPLACE ALL OCCURRENCES OF gv_non_breaking_space IN rv_string WITH ` `.
 
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_gui_event~current_page_name.
+    rv_page_name = mv_current_page_name.
   ENDMETHOD.
 
 

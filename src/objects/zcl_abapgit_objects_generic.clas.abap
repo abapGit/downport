@@ -37,20 +37,19 @@ CLASS zcl_abapgit_objects_generic DEFINITION
   PROTECTED SECTION.
 
     TYPES:
+      ty_numc3 TYPE n LENGTH 3,
       BEGIN OF ty_s_objkey,
-        num   TYPE n LENGTH 3,
+        num   TYPE ty_numc3,
         value TYPE c LENGTH 128,
       END OF ty_s_objkey .
     TYPES:
       ty_t_objkey TYPE SORTED TABLE OF ty_s_objkey WITH UNIQUE KEY num .
 
     DATA ms_object_header TYPE objh .
-    TYPES temp1_c6f892cf3d TYPE STANDARD TABLE OF objsl WITH DEFAULT KEY.
-DATA:
-      mt_object_table TYPE temp1_c6f892cf3d .
-    TYPES temp2_c6f892cf3d TYPE STANDARD TABLE OF objm WITH DEFAULT KEY.
-DATA:
-      mt_object_method TYPE temp2_c6f892cf3d .
+    DATA:
+      mt_object_table TYPE STANDARD TABLE OF objsl WITH DEFAULT KEY .
+    DATA:
+      mt_object_method TYPE STANDARD TABLE OF objm WITH DEFAULT KEY .
     DATA ms_item TYPE zif_abapgit_definitions=>ty_item .
     DATA mv_language TYPE spras .
 
@@ -74,7 +73,7 @@ DATA:
       CHANGING
         !ct_objkey        TYPE ty_t_objkey
         !cs_objkey        TYPE ty_s_objkey
-        !cv_non_value_pos TYPE numc3 .
+        !cv_non_value_pos TYPE ty_numc3.
     METHODS get_key_fields
       IMPORTING
         !iv_table      TYPE objsl-tobj_name
@@ -105,7 +104,7 @@ DATA:
       CHANGING
         !ct_objkey        TYPE ty_t_objkey
         !cs_objkey        TYPE ty_s_objkey
-        !cv_non_value_pos TYPE numc3 .
+        !cv_non_value_pos TYPE ty_numc3.
     METHODS validate
       IMPORTING
         !io_xml TYPE REF TO zif_abapgit_xml_input
@@ -135,11 +134,9 @@ CLASS zcl_abapgit_objects_generic IMPLEMENTATION.
 
   METHOD after_import.
 
-    TYPES temp3 TYPE STANDARD TABLE OF e071 WITH DEFAULT KEY.
-TYPES temp1 TYPE STANDARD TABLE OF e071k WITH DEFAULT KEY.
-DATA: lt_cts_object_entry TYPE temp3,
+    DATA: lt_cts_object_entry TYPE STANDARD TABLE OF e071 WITH DEFAULT KEY,
           ls_cts_object_entry LIKE LINE OF lt_cts_object_entry,
-          lt_cts_key          TYPE temp1.
+          lt_cts_key          TYPE STANDARD TABLE OF e071k WITH DEFAULT KEY.
 
     FIELD-SYMBOLS <ls_object_method> LIKE LINE OF mt_object_method.
 
@@ -191,11 +188,9 @@ DATA: lt_cts_object_entry TYPE temp3,
 
   METHOD before_export.
 
-    TYPES temp5 TYPE STANDARD TABLE OF e071 WITH DEFAULT KEY.
-TYPES temp2 TYPE STANDARD TABLE OF e071k WITH DEFAULT KEY.
-DATA: lt_cts_object_entry TYPE temp5,
+    DATA: lt_cts_object_entry TYPE STANDARD TABLE OF e071 WITH DEFAULT KEY,
           ls_cts_object_entry LIKE LINE OF lt_cts_object_entry,
-          lt_cts_key          TYPE temp2,
+          lt_cts_key          TYPE STANDARD TABLE OF e071k WITH DEFAULT KEY,
           lv_client           TYPE trclient.
 
     FIELD-SYMBOLS <ls_object_method> LIKE LINE OF mt_object_method.
@@ -435,9 +430,7 @@ DATA: lt_cts_object_entry TYPE temp5,
     ASSIGN lr_table_line->* TO <lg_table_line>.
 
     SELECT SINGLE * FROM (lv_primary) INTO <lg_table_line> WHERE (lv_where_clause).
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-dbcnt > 0 ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( sy-dbcnt > 0 ).
 
   ENDMETHOD.
 
@@ -499,7 +492,7 @@ DATA: lt_cts_object_entry TYPE temp5,
           lv_objkey_length   TYPE i,
           lt_objkey          TYPE ty_t_objkey,
           ls_objkey          LIKE LINE OF lt_objkey,
-          lv_non_value_pos   TYPE numc3,
+          lv_non_value_pos   TYPE ty_numc3,
           lt_key_fields      TYPE ddfields.
 
     DATA: lv_is_asterix      TYPE abap_bool,

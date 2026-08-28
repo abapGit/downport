@@ -92,6 +92,11 @@ CLASS zcl_abapgit_gui_page DEFINITION PUBLIC ABSTRACT
         !ii_html TYPE REF TO zif_abapgit_html
       RAISING
         zcx_abapgit_exception .
+    CLASS-METHODS render_environment
+      IMPORTING
+        !ii_html TYPE REF TO zif_abapgit_html
+      RAISING
+        zcx_abapgit_exception .
     METHODS render_hotkey_overview
       RETURNING
         VALUE(ro_html) TYPE REF TO zif_abapgit_html
@@ -113,6 +118,11 @@ CLASS zcl_abapgit_gui_page DEFINITION PUBLIC ABSTRACT
     METHODS is_edge_control_warning_needed
       RETURNING
         VALUE(rv_result) TYPE abap_bool.
+    CLASS-METHODS js_bool
+      IMPORTING
+        !iv_value    TYPE abap_bool
+      RETURNING
+        VALUE(rv_js) TYPE string.
 ENDCLASS.
 
 
@@ -131,7 +141,7 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
 
   METHOD footer.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div id="footer">' ).
     ri_html->add( '<table class="w100"><tr>' ).
@@ -225,7 +235,7 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
 
   METHOD html_head.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<head>' ).
 
@@ -292,6 +302,17 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD js_bool.
+
+    IF iv_value = abap_true.
+      rv_js = 'true'.
+    ELSE.
+      rv_js = 'false'.
+    ENDIF.
+
+  ENDMETHOD.
+
+
   METHOD render_back_navigation.
 
     ii_html->add( 'addHotkey({' ).
@@ -306,7 +327,7 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
 
     DATA li_documentation_link TYPE REF TO zif_abapgit_html.
 
-    CREATE OBJECT li_documentation_link TYPE zcl_abapgit_html.
+    li_documentation_link = NEW zcl_abapgit_html( ).
 
     li_documentation_link->add_a(
       iv_txt = 'Documentation'
@@ -346,12 +367,35 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD render_environment.
+
+    DATA li_frontend_services TYPE REF TO zif_abapgit_frontend_services.
+
+    li_frontend_services = zcl_abapgit_ui_factory=>get_frontend_services( ).
+
+    " Tell the frontend which GUI it is rendered into. JS can only infer that
+    " from the DOM and the user agent and has inferred it wrongly before (the
+    " footer reported "IE" for a user on Chrome), while we know it from SAP's
+    " own APIs. Whatever a browser can establish for itself - which browser
+    " control is embedded, which URL scheme its sapevents need - it still finds
+    " out on its own, see gEnv in common.js.
+    "
+    " Only the facts common.js reads are passed; extending this means extending
+    " gEnv as well.
+    ii_html->add( 'setEnvironment({' ).
+    ii_html->add( |  isWebGui: { js_bool( li_frontend_services->is_webgui( ) ) },| ).
+    ii_html->add( |  isSapGuiForWindows: { js_bool( li_frontend_services->is_sapgui_for_windows( ) ) }| ).
+    ii_html->add( '});' ).
+
+  ENDMETHOD.
+
+
   METHOD render_error_message_box.
 
     " You should remember that the we have to instantiate ro_html even
     " it's overwritten further down. Because ADD checks whether it's
     " bound.
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     " You should remember that we render the message panel only
     " if we have an error.
@@ -363,7 +407,7 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
 
     " You should remember that the exception viewer dispatches the events of
     " error message panel
-    CREATE OBJECT mo_exception_viewer EXPORTING ix_error = mx_error.
+    mo_exception_viewer = NEW #( ix_error = mx_error ).
 
     " You should remember that we render the message panel just once
     " for each exception/error text.
@@ -402,7 +446,10 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
 
   METHOD scripts.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
+
+    " First, so everything rendered below already runs in a known environment
+    render_environment( ri_html ).
 
     render_link_hints( ri_html ).
     render_command_palettes( ri_html ).
@@ -436,7 +483,7 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
       lv_page_title = ms_control-page_title_provider->get_page_title( ).
     ENDIF.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div id="header">' ).
 
@@ -504,9 +551,7 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
 
 
   METHOD zif_abapgit_gui_modal~is_modal.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( ms_control-show_as_modal = abap_true ).
-    rv_yes = temp1.
+    rv_yes = xsdbool( ms_control-show_as_modal = abap_true ).
   ENDMETHOD.
 
 
@@ -521,7 +566,7 @@ CLASS zcl_abapgit_gui_page IMPLEMENTATION.
     lo_timer = zcl_abapgit_timer=>create( )->start( ).
 
     " Real page
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<!DOCTYPE html>' ).
     ri_html->add( '<html lang="en">' ).

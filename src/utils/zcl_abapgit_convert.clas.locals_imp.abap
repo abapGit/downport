@@ -28,9 +28,7 @@ CLASS lcl_in IMPLEMENTATION.
               instance = go_conv_new.
         CATCH cx_sy_dyn_call_illegal_class.
 * ignore conversion errors on non-unicode systems
-          DATA temp1 TYPE xsdboolean.
-          temp1 = boolc( cl_abap_char_utilities=>charsize = 1 ).
-          lv_ignore_cerr = temp1.
+          lv_ignore_cerr = xsdbool( cl_abap_char_utilities=>charsize = 1 ).
 
           lv_class = 'CL_ABAP_CONV_IN_CE'.
           CALL METHOD (lv_class)=>create
@@ -134,7 +132,6 @@ CLASS lcl_bcp47_language_table DEFINITION CREATE PRIVATE.
              text       TYPE string,
            END OF ty_language_mapping,
            ty_language_mappings TYPE STANDARD TABLE OF ty_language_mapping WITH DEFAULT KEY.
-    CLASS-DATA gt_language_mappings TYPE ty_language_mappings.
     CLASS-METHODS:
       sap1_to_text
         IMPORTING
@@ -171,6 +168,8 @@ CLASS lcl_bcp47_language_table DEFINITION CREATE PRIVATE.
           zcx_abapgit_exception.
   PROTECTED SECTION.
   PRIVATE SECTION.
+    CLASS-DATA gt_language_mappings TYPE ty_language_mappings.
+
     CLASS-METHODS fill_language_mappings.
     CLASS-METHODS
       fill_language_mapping

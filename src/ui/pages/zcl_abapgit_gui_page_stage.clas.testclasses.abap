@@ -85,7 +85,7 @@ CLASS lcl_mock_event IMPLEMENTATION.
 
   METHOD constructor.
 
-    CREATE OBJECT mo_files.
+    mo_files = NEW #( ).
 
   ENDMETHOD.
 
@@ -100,6 +100,9 @@ CLASS lcl_mock_event IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD zif_abapgit_gui_event~current_page_name.
+
+  ENDMETHOD.
 
   METHOD set_file.
 
@@ -116,7 +119,7 @@ CLASS ltcl_stage IMPLEMENTATION.
 
   METHOD setup.
 
-    CREATE OBJECT mo_mock_event TYPE lcl_mock_event.
+    mo_mock_event = NEW lcl_mock_event( ).
 
   ENDMETHOD.
 

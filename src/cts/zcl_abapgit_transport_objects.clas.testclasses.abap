@@ -1,6 +1,7 @@
 CLASS ltcl_transport_objects DEFINITION FOR TESTING DURATION SHORT RISK LEVEL HARMLESS.
 
   PRIVATE SECTION.
+    TYPES ty_char1 TYPE c LENGTH 1.
     METHODS:
       add_new_to_local_files         FOR TESTING RAISING cx_static_check,
       modified_to_new_local_files    FOR TESTING RAISING cx_static_check,
@@ -23,7 +24,7 @@ CLASS ltcl_transport_objects DEFINITION FOR TESTING DURATION SHORT RISK LEVEL HA
           iv_obj_type TYPE string OPTIONAL
           iv_filename TYPE string OPTIONAL
           iv_path     TYPE string OPTIONAL
-          iv_lstate   TYPE char1,
+          iv_lstate   TYPE ty_char1,
       given_the_local_file
         IMPORTING iv_obj_name          TYPE string
                   iv_obj_type          TYPE string
@@ -57,7 +58,7 @@ ENDCLASS.
 CLASS ltcl_transport_objects IMPLEMENTATION.
 
   METHOD setup.
-    CREATE OBJECT mo_stage.
+    mo_stage = NEW #( ).
   ENDMETHOD.
 
   METHOD add_new_to_local_files.
@@ -308,7 +309,7 @@ CLASS ltcl_transport_objects IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD when_staging.
-    CREATE OBJECT mo_transport_objects EXPORTING it_transport_objects = mt_transport_objects.
+    mo_transport_objects = NEW #( it_transport_objects = mt_transport_objects ).
     mo_transport_objects->to_stage(
       io_stage           = mo_stage
       is_stage_objects   = ms_stage_objects

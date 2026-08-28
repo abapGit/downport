@@ -345,7 +345,7 @@ CLASS zcl_abapgit_object_ueno IMPLEMENTATION.
 
     DATA ls_docu LIKE LINE OF it_docu.
     DATA lv_objname TYPE lxeobjname.
-    DATA lv_change_flag TYPE char1.
+    DATA lv_change_flag TYPE c LENGTH 1.
     DATA lv_error_status  TYPE lxestatprc.
 
     LOOP AT it_docu INTO ls_docu.
@@ -451,9 +451,9 @@ CLASS zcl_abapgit_object_ueno IMPLEMENTATION.
 
   METHOD get_generic.
 
-    CREATE OBJECT ro_generic EXPORTING io_field_rules = get_field_rules( )
-                                       is_item = ms_item
-                                       iv_language = mv_language.
+    ro_generic = NEW #( io_field_rules = get_field_rules( )
+                        is_item = ms_item
+                        iv_language = mv_language ).
 
   ENDMETHOD.
 
