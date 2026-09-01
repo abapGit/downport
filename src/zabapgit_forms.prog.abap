@@ -18,57 +18,14 @@ CLASS lcl_startup DEFINITION FINAL.
       RETURNING
         VALUE(rv_package) TYPE devclass.
 
-    CLASS-METHODS check_sapgui
-      RAISING
-        zcx_abapgit_exception.
 ENDCLASS.
 
 CLASS lcl_startup IMPLEMENTATION.
-
-  METHOD check_sapgui.
-
-    CONSTANTS:
-      lc_hide_sapgui_hint TYPE string VALUE '2'.
-
-    DATA:
-      lv_answer           TYPE c LENGTH 1,
-      ls_settings         TYPE zif_abapgit_persist_user=>ty_s_user_settings,
-      li_user_persistence TYPE REF TO zif_abapgit_persist_user.
-
-    li_user_persistence = zcl_abapgit_persist_factory=>get_user( ).
-
-    ls_settings = li_user_persistence->get_settings( ).
-
-    IF ls_settings-hide_sapgui_hint = abap_true.
-      RETURN.
-    ENDIF.
-
-    IF zcl_abapgit_ui_factory=>get_frontend_services( )->is_sapgui_for_java( ) = abap_false.
-      RETURN.
-    ENDIF.
-
-    lv_answer = zcl_abapgit_ui_factory=>get_popups( )->popup_to_confirm(
-                    iv_titlebar              = 'Not supported SAPGUI'
-                    iv_text_question         = 'SAPGUI for Java is not supported! There might be some issues.'
-                    iv_text_button_1         = 'Got it'
-                    iv_icon_button_1         = |{ icon_okay }|
-                    iv_text_button_2         = 'Hide'
-                    iv_icon_button_2         = |{ icon_set_state }|
-                    iv_display_cancel_button = abap_false ).
-
-    IF lv_answer = lc_hide_sapgui_hint.
-      ls_settings-hide_sapgui_hint = abap_true.
-      li_user_persistence->set_settings( ls_settings ).
-    ENDIF.
-
-  ENDMETHOD.
 
   METHOD prepare_gui_startup.
     DATA: lv_repo_key    TYPE zif_abapgit_persistence=>ty_value,
           lv_package     TYPE devclass,
           lv_package_adt TYPE devclass.
-
-    check_sapgui( ).
 
     IF zcl_abapgit_persist_factory=>get_settings( )->read( )->get_show_default_repo( ) = abap_false.
       " Don't show the last seen repo at startup
@@ -103,9 +60,8 @@ CLASS lcl_startup IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD set_start_repo_from_package.
-    TYPES temp1 TYPE RANGE OF devclass.
-DATA: li_repo          TYPE REF TO zif_abapgit_repo,
-          lt_r_package     TYPE temp1,
+    DATA: li_repo          TYPE REF TO zif_abapgit_repo,
+          lt_r_package     TYPE RANGE OF devclass,
           ls_r_package     LIKE LINE OF lt_r_package,
           lt_superpackages TYPE zif_abapgit_sap_package=>ty_devclass_tt,
           li_package       TYPE REF TO zif_abapgit_sap_package,
@@ -247,9 +203,7 @@ FORM open_gui RAISING zcx_abapgit_exception.
         lv_action = zif_abapgit_definitions=>c_action-go_home.
     ENDCASE.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( lv_mode = 'HREF' ).
-    zcl_abapgit_html=>set_debug_mode( temp1 ).
+    zcl_abapgit_html=>set_debug_mode( xsdbool( lv_mode = 'HREF' ) ).
 
     lcl_startup=>prepare_gui_startup( ).
     zcl_abapgit_ui_factory=>get_gui( )->go_home( lv_action ).
@@ -261,9 +215,8 @@ ENDFORM.
 
 FORM output.
 
-  TYPES temp2 TYPE TABLE OF sy-ucomm.
-DATA: lx_error TYPE REF TO zcx_abapgit_exception,
-        lt_ucomm TYPE temp2.
+  DATA: lx_error TYPE REF TO zcx_abapgit_exception,
+        lt_ucomm TYPE TABLE OF sy-ucomm.
 
   PERFORM set_pf_status IN PROGRAM rsdbrunt IF FOUND.
 
@@ -343,9 +296,8 @@ FORM adjust_toolbar USING pv_dynnr TYPE sy-dynnr.
 
   " Remove toolbar on html screen but re-insert toolbar for variant maintenance.
   " Because otherwise important buttons are missing and variant maintenance is not possible.
-  DATA temp2 TYPE xsdboolean.
-  temp2 = boolc( zcl_abapgit_factory=>get_environment( )->is_variant_maintenance( ) = abap_false ).
-  lv_no_toolbar = temp2.
+  lv_no_toolbar = xsdbool( zcl_abapgit_factory=>get_environment(
+                                           )->is_variant_maintenance( ) = abap_false ).
 
   IF ls_header-no_toolbar = lv_no_toolbar.
     RETURN. " No change required
