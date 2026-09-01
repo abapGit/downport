@@ -17,12 +17,10 @@ CLASS zcl_abapgit_object_nrob IMPLEMENTATION.
 
   METHOD delete_intervals.
 
-    TYPES temp1 TYPE STANDARD TABLE OF inriv WITH DEFAULT KEY.
-TYPES temp2 TYPE STANDARD TABLE OF inriv WITH DEFAULT KEY.
-DATA: lv_error    TYPE c LENGTH 1,
+    DATA: lv_error    TYPE c LENGTH 1,
           ls_error    TYPE inrer,
-          lt_list     TYPE temp1,
-          lt_error_iv TYPE temp2.
+          lt_list     TYPE STANDARD TABLE OF inriv WITH DEFAULT KEY,
+          lt_error_iv TYPE STANDARD TABLE OF inriv WITH DEFAULT KEY.
 
     FIELD-SYMBOLS: <ls_list> LIKE LINE OF lt_list.
 
@@ -148,8 +146,7 @@ DATA: lv_error    TYPE c LENGTH 1,
 
   METHOD zif_abapgit_object~deserialize.
 
-    TYPES temp3 TYPE TABLE OF inoer.
-DATA: lt_errors     TYPE temp3,
+    DATA: lt_errors     TYPE TABLE OF inoer,
           ls_attributes TYPE tnro,
           ls_text       TYPE tnrot.
 
@@ -252,9 +249,7 @@ DATA: lt_errors     TYPE temp3,
 
     SELECT SINGLE object FROM tnro INTO lv_object
       WHERE object = ms_item-obj_name.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -292,9 +287,8 @@ DATA: lt_errors     TYPE temp3,
 
   METHOD zif_abapgit_object~jump.
 
-    TYPES temp4 TYPE STANDARD TABLE OF bdcdata.
-DATA: ls_bcdata TYPE bdcdata,
-          lt_bcdata TYPE temp4.
+    DATA: ls_bcdata TYPE bdcdata,
+          lt_bcdata TYPE STANDARD TABLE OF bdcdata.
 
     ls_bcdata-program  = 'SAPMSNRO'.
     ls_bcdata-dynpro   = '0150'.
