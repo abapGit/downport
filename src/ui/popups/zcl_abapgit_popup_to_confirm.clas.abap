@@ -119,7 +119,7 @@ CLASS zcl_abapgit_popup_to_confirm IMPLEMENTATION.
     mv_action_cancel         = iv_action_cancel.
     mv_popup_type            = iv_popup_type.
 
-    CREATE OBJECT mo_form_data.
+    mo_form_data = NEW #( ).
     mo_form = get_form_schema( ).
 
   ENDMETHOD.
@@ -127,16 +127,16 @@ CLASS zcl_abapgit_popup_to_confirm IMPLEMENTATION.
 
   METHOD create.
 
-    CREATE OBJECT ro_popup EXPORTING iv_titlebar = iv_titlebar
-                                     iv_text_question = iv_text_question
-                                     iv_text_button_1 = iv_text_button_1
-                                     iv_action_button_1 = iv_action_button_1
-                                     iv_text_button_2 = iv_text_button_2
-                                     iv_action_button_2 = iv_action_button_2
-                                     iv_default_button = iv_default_button
-                                     iv_display_cancel_button = iv_display_cancel_button
-                                     iv_action_cancel = iv_action_cancel
-                                     iv_popup_type = iv_popup_type.
+    ro_popup = NEW #( iv_titlebar = iv_titlebar
+                      iv_text_question = iv_text_question
+                      iv_text_button_1 = iv_text_button_1
+                      iv_action_button_1 = iv_action_button_1
+                      iv_text_button_2 = iv_text_button_2
+                      iv_action_button_2 = iv_action_button_2
+                      iv_default_button = iv_default_button
+                      iv_display_cancel_button = iv_display_cancel_button
+                      iv_action_cancel = iv_action_cancel
+                      iv_popup_type = iv_popup_type ).
 
   ENDMETHOD.
 
