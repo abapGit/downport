@@ -28,7 +28,7 @@ CLASS zcl_abapgit_gui_page_flowtsht IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_flowtsht.
 
-    CREATE OBJECT lo_component.
+    lo_component = NEW #( ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title         = 'Flow Troubleshooting'
@@ -49,7 +49,7 @@ CLASS zcl_abapgit_gui_page_flowtsht IMPLEMENTATION.
 
   METHOD zif_abapgit_gui_renderable~render.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div class="repo-overview">' ).
 
