@@ -112,7 +112,7 @@ CLASS lcl_aff_type_mapping IMPLEMENTATION.
 
     ls_data_aff = iv_data.
 
-    CREATE OBJECT lo_doma_data.
+    lo_doma_data = NEW #( ).
 
     " Map header
     lo_doma_data->ms_dd01v-domname = to_upper( iv_object_name ).
@@ -378,11 +378,11 @@ CLASS lcl_aff_metadata_handler IMPLEMENTATION.
     DATA lt_skip_paths TYPE zcl_abapgit_json_handler=>ty_skip_paths.
     DATA ls_skip_path  TYPE zcl_abapgit_json_handler=>ty_path_value_pair.
 
-    CREATE OBJECT lo_doma_data.
+    lo_doma_data = NEW #( ).
     lo_doma_data->ms_dd01v = is_dd01v.
     lo_doma_data->ms_dd07v = it_dd07v.
 
-    CREATE OBJECT lo_aff_mapper TYPE lcl_aff_type_mapping.
+    lo_aff_mapper = NEW lcl_aff_type_mapping( ).
     lo_aff_mapper->to_aff(
       EXPORTING
         iv_data = lo_doma_data
@@ -398,7 +398,7 @@ CLASS lcl_aff_metadata_handler IMPLEMENTATION.
     ls_skip_path-value = '00'.
     APPEND ls_skip_path TO lt_skip_paths.
 
-    CREATE OBJECT lo_aff_handler.
+    lo_aff_handler = NEW #( ).
 
     TRY.
         rv_json = lo_aff_handler->serialize(
@@ -424,7 +424,7 @@ CLASS lcl_aff_metadata_handler IMPLEMENTATION.
 
     lv_json_string = zcl_abapgit_convert=>xstring_to_string_utf8( iv_json ).
 
-    CREATE OBJECT lo_json_handler.
+    lo_json_handler = NEW #( ).
 
     TRY.
         lo_json_handler->deserialize(
@@ -437,7 +437,7 @@ CLASS lcl_aff_metadata_handler IMPLEMENTATION.
         zcx_abapgit_exception=>raise_with_text( lx_exception ).
     ENDTRY.
 
-    CREATE OBJECT lo_aff_mapper TYPE lcl_aff_type_mapping.
+    lo_aff_mapper = NEW lcl_aff_type_mapping( ).
     lo_aff_mapper->to_abapgit(
       EXPORTING
         iv_data        = ls_data_aff
