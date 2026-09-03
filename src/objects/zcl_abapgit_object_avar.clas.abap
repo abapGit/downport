@@ -153,9 +153,7 @@ CLASS zcl_abapgit_object_avar IMPLEMENTATION.
     lo_aab = create_object( ).
 
     lo_aab->get_state( IMPORTING ex_state = lv_state ).
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( lv_state = abap_true ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( lv_state = abap_true ).
 
   ENDMETHOD.
 
