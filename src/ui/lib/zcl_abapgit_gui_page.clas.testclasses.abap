@@ -125,12 +125,12 @@ CLASS ltcl_render_environment IMPLEMENTATION.
     DATA li_html TYPE REF TO zif_abapgit_html.
     DATA lv_act TYPE string.
 
-    li_frontend_services = NEW ltd_frontend_services( iv_is_webgui = iv_is_webgui
-                                                      iv_is_sapgui_for_windows = iv_is_sapgui_for_windows ).
+    CREATE OBJECT li_frontend_services TYPE ltd_frontend_services EXPORTING iv_is_webgui = iv_is_webgui
+                                                                            iv_is_sapgui_for_windows = iv_is_sapgui_for_windows.
 
     zcl_abapgit_ui_injector=>set_frontend_services( li_frontend_services ).
 
-    li_html = NEW zcl_abapgit_html( ).
+    CREATE OBJECT li_html TYPE zcl_abapgit_html.
 
     zcl_abapgit_gui_page=>render_environment( li_html ).
 

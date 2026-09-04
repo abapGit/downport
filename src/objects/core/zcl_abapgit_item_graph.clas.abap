@@ -26,10 +26,10 @@ CLASS zcl_abapgit_item_graph DEFINITION
              to   TYPE zif_abapgit_definitions=>ty_item,
            END OF ty_edge.
 
-    DATA mt_vertices TYPE STANDARD TABLE OF zif_abapgit_definitions=>ty_item WITH DEFAULT KEY.
-    DATA mt_edges TYPE STANDARD TABLE OF ty_edge WITH DEFAULT KEY
-      WITH NON-UNIQUE SORTED KEY sec_to COMPONENTS to
-      WITH NON-UNIQUE SORTED KEY sec_from COMPONENTS from.
+    TYPES temp1_90785a0d00 TYPE STANDARD TABLE OF zif_abapgit_definitions=>ty_item WITH DEFAULT KEY.
+DATA mt_vertices TYPE temp1_90785a0d00.
+    TYPES temp2_90785a0d00 TYPE STANDARD TABLE OF ty_edge WITH DEFAULT KEY WITH NON-UNIQUE SORTED KEY sec_to COMPONENTS to WITH NON-UNIQUE SORTED KEY sec_from COMPONENTS from.
+DATA mt_edges TYPE temp2_90785a0d00.
     DATA mv_warning TYPE abap_bool.
 
     METHODS remove_vertex IMPORTING iv_index TYPE i.
@@ -88,7 +88,9 @@ CLASS ZCL_ABAPGIT_ITEM_GRAPH IMPLEMENTATION.
 
 
   METHOD has_vertices.
-    rv_bool = xsdbool( lines( mt_vertices ) > 0 ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( lines( mt_vertices ) > 0 ).
+    rv_bool = temp1.
   ENDMETHOD.
 
 
