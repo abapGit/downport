@@ -50,8 +50,8 @@ CLASS ltcl_supporter IMPLEMENTATION.
     DATA lv_act TYPE abap_bool.
 
     " Mock sets table T005 to be supported
-    CREATE OBJECT lo_mock.
-    CREATE OBJECT lo_inject.
+    lo_mock = NEW #( ).
+    lo_inject = NEW #( ).
     lo_inject->set_supporter( lo_mock ).
 
     lv_act = zcl_abapgit_data_factory=>get_supporter( )->is_object_supported(
