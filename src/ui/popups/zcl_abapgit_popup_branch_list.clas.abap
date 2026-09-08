@@ -50,9 +50,9 @@ CLASS zcl_abapgit_popup_branch_list IMPLEMENTATION.
 
 
   METHOD create.
-    ri_popup = NEW zcl_abapgit_popup_branch_list( iv_url = iv_url
-                                                  iv_default_branch = iv_default_branch
-                                                  iv_show_new_option = iv_show_new_option ).
+    CREATE OBJECT ri_popup TYPE zcl_abapgit_popup_branch_list EXPORTING iv_url = iv_url
+                                                                        iv_default_branch = iv_default_branch
+                                                                        iv_show_new_option = iv_show_new_option.
   ENDMETHOD.
 
 
@@ -111,9 +111,9 @@ CLASS zcl_abapgit_popup_branch_list IMPLEMENTATION.
 
   METHOD zif_abapgit_html_popup~create_picklist.
 
-    ro_picklist = NEW #( iv_title = 'Choose Branch'
-                         it_list = fetch_branch_list( )
-                         ii_item_renderer = me ).
+    CREATE OBJECT ro_picklist EXPORTING iv_title = 'Choose Branch'
+                                        it_list = fetch_branch_list( )
+                                        ii_item_renderer = me.
 
   ENDMETHOD.
 ENDCLASS.
