@@ -52,11 +52,9 @@ CLASS zcl_abapgit_object_chdo IMPLEMENTATION.
 
   METHOD after_import.
 
-    TYPES temp1 TYPE STANDARD TABLE OF e071 WITH DEFAULT KEY.
-TYPES temp2 TYPE STANDARD TABLE OF sprot_u WITH DEFAULT KEY.
-DATA: lt_cts_object_entry TYPE temp1,
+    DATA: lt_cts_object_entry TYPE STANDARD TABLE OF e071 WITH DEFAULT KEY,
           ls_cts_object_entry LIKE LINE OF lt_cts_object_entry,
-          lt_errormsg         TYPE temp2.
+          lt_errormsg         TYPE STANDARD TABLE OF sprot_u WITH DEFAULT KEY.
 
     ls_cts_object_entry-pgmid    = 'R3TR'.
     ls_cts_object_entry-object   = ms_item-obj_type.
@@ -155,11 +153,9 @@ DATA: lt_cts_object_entry TYPE temp1,
 
   METHOD zif_abapgit_object~delete.
 
-    TYPES temp3 TYPE STANDARD TABLE OF cdnames.
-TYPES temp4 TYPE STANDARD TABLE OF tcdrs.
-DATA: lt_cdnames TYPE temp3,
+    DATA: lt_cdnames TYPE STANDARD TABLE OF cdnames,
           ls_cdnames TYPE cdnames,
-          lt_tcdrs   TYPE temp4,
+          lt_tcdrs   TYPE STANDARD TABLE OF tcdrs,
           ls_tcdrs   TYPE tcdrs,
           lv_msg     TYPE symsgv.
 
@@ -247,9 +243,7 @@ DATA: lt_cdnames TYPE temp3,
       FROM tcdrp
       WHERE object = mv_object.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -287,8 +281,7 @@ DATA: lt_cdnames TYPE temp3,
 
   METHOD zif_abapgit_object~jump.
 
-    TYPES temp5 TYPE STANDARD TABLE OF bdcdata.
-DATA: lt_bdcdata TYPE temp5,
+    DATA: lt_bdcdata TYPE STANDARD TABLE OF bdcdata,
           ls_bdcdata LIKE LINE OF lt_bdcdata.
 
     CLEAR: ls_bdcdata.
@@ -328,13 +321,10 @@ DATA: lt_bdcdata TYPE temp5,
 
   METHOD zif_abapgit_object~serialize.
 
-    TYPES temp6 TYPE STANDARD TABLE OF tcdrp.
-TYPES temp5 TYPE STANDARD TABLE OF tcdob.
-TYPES temp1 TYPE STANDARD TABLE OF tcdobt.
-DATA: ls_change_object TYPE ty_change_document,
-          lt_tcdrp         TYPE temp6,
-          lt_tcdob         TYPE temp5,
-          lt_tcdobt        TYPE temp1,
+    DATA: ls_change_object TYPE ty_change_document,
+          lt_tcdrp         TYPE STANDARD TABLE OF tcdrp,
+          lt_tcdob         TYPE STANDARD TABLE OF tcdob,
+          lt_tcdobt        TYPE STANDARD TABLE OF tcdobt,
           BEGIN OF ls_nulldatetime, " hack ro reset fields when they exist without syntax errors when they don't
             udate TYPE sy-datum,
             utime TYPE sy-uzeit,
