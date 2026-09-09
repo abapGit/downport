@@ -43,7 +43,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_DIFF_FILE IMPLEMENTATION.
     ASSERT is_local IS NOT INITIAL.
     ASSERT is_remote IS NOT INITIAL.
 
-    CREATE OBJECT lo_component.
+    lo_component = NEW #( ).
 
     lo_component->do_diff(
       iv_obj_type  = iv_obj_type
