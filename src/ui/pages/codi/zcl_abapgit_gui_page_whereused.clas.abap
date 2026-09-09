@@ -92,8 +92,8 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_WHEREUSED IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_whereused.
 
-    lo_component = NEW #( ii_repo = ii_repo
-                          iv_package = iv_package ).
+    CREATE OBJECT lo_component EXPORTING ii_repo = ii_repo
+                                         iv_package = iv_package.
 
     ri_page = zcl_abapgit_gui_page_hoc=>create( lo_component ).
 
@@ -206,10 +206,14 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_WHEREUSED IMPLEMENTATION.
         run_where_used( ).
         rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
       WHEN c_action-show_used_obj.
-        mv_show_used_obj = xsdbool( mv_show_used_obj = abap_false ).
+        DATA temp1 TYPE xsdboolean.
+        temp1 = boolc( mv_show_used_obj = abap_false ).
+        mv_show_used_obj = temp1.
         rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
       WHEN c_action-show_root_pkg.
-        mv_show_root_pkg = xsdbool( mv_show_root_pkg = abap_false ).
+        DATA temp2 TYPE xsdboolean.
+        temp2 = boolc( mv_show_root_pkg = abap_false ).
+        mv_show_root_pkg = temp2.
         CLEAR mi_table. " To reinit structure
         rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
     ENDCASE.
