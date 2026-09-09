@@ -283,7 +283,7 @@ CLASS zcl_abapgit_html_form IMPLEMENTATION.
 
     DATA lv_ts TYPE timestampl.
 
-    CREATE OBJECT ro_form.
+    ro_form = NEW #( ).
     ro_form->mv_form_id = iv_form_id.
     ro_form->mv_help_page = iv_help_page.
 
@@ -437,7 +437,7 @@ CLASS zcl_abapgit_html_form IMPLEMENTATION.
       EXIT.
     ENDLOOP.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( |<div class="dialog { iv_form_class }">| ). " to center use 'dialog-form-center'
     ri_html->add( |<form method="post"{ ls_form_id }{ ls_form_action }>| ).
@@ -576,13 +576,11 @@ CLASS zcl_abapgit_html_form IMPLEMENTATION.
     IF mv_webgui = abap_true AND is_cmd-cmd_type <> zif_abapgit_html_form=>c_cmd_type-link.
       lv_action = escape( val    = is_cmd-action
                           format = cl_abap_format=>e_html_attr ).
-      lv_js = |submitSapeventForm(\{ \}, '{ lv_action }', 'post', |
+      lv_js = |submitSapeventForm(\{ \}, this.getAttribute('data-sapevent'), 'post', |
            && |document.getElementById('{ mv_form_id }'))|.
-      ii_html->add_a(
-        iv_txt   = is_cmd-label
-        iv_act   = lv_js
-        iv_typ   = zif_abapgit_html=>c_action_type-onclick
-        iv_class = lv_class ).
+      " Keep the action discoverable by hotkeys even though the link uses onclick
+      ii_html->add( |<a href="#" data-sapevent="{ lv_action }" onclick="{ lv_js }"|
+                 && | class="{ lv_class }">{ is_cmd-label }</a>| ).
       RETURN.
     ENDIF.
 
@@ -982,7 +980,8 @@ CLASS zcl_abapgit_html_form IMPLEMENTATION.
         lv_side_action = escape( val    = is_field-side_action
                                  format = cl_abap_format=>e_html_attr ).
         ii_html->add( |<input type="button" value="&#x2026;" title="{ is_field-label }"|
-                   && | onclick="submitSapeventForm(\{ \}, '{ lv_side_action }', 'post', |
+                   && | data-sapevent="{ lv_side_action }"|
+                   && | onclick="submitSapeventForm(\{ \}, this.getAttribute('data-sapevent'), 'post', |
                    && |document.getElementById('{ mv_form_id }'))">| ).
       ELSE.
         ii_html->add( |<input type="submit" value="&#x2026;" formaction="sapevent:{ is_field-side_action }"|
