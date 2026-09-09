@@ -194,7 +194,7 @@ CLASS ltcl_serialize IMPLEMENTATION.
     ls_item-obj_type = 'INTF'.
     ls_item-obj_name = 'IF_BADI_TADIR_CHANGED'.
 
-    CREATE OBJECT li_aff_registry TYPE ltd_aff_supported_true.
+    li_aff_registry = NEW ltd_aff_supported_true( ).
     zcl_abapgit_aff_injector=>set_registry( li_aff_registry ).
 
     APPEND `DE` TO lt_target_langu.

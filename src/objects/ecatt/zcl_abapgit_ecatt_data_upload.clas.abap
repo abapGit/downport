@@ -77,8 +77,8 @@ CLASS zcl_abapgit_ecatt_data_upload IMPLEMENTATION.
         IF ex_ecatt_object->object_type <> ms_current_object-s_obj_type OR
            ex_ecatt_object->object_name <> ms_current_object-d_obj_name OR
            ex_ecatt_object->object_version <> ms_current_object-d_obj_ver.
-          CREATE OBJECT mx_ecatt_apl EXPORTING textid = cx_ecatt_apl=>any_text
-                                               free_text = 'Unexpected object in save sequence'.
+          mx_ecatt_apl = NEW #( textid = cx_ecatt_apl=>any_text
+                                free_text = 'Unexpected object in save sequence' ).
           RETURN.
         ENDIF.
 
