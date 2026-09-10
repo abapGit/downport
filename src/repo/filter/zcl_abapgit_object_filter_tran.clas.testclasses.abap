@@ -22,7 +22,7 @@ ENDCLASS.
 CLASS ltcl_adjust_filter IMPLEMENTATION.
 
   METHOD setup.
-    mo_cut = NEW #( ).
+    CREATE OBJECT mo_cut.
   ENDMETHOD.
 
   METHOD teardown.
