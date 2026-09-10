@@ -42,6 +42,10 @@ CLASS ltcl_sap_package IMPLEMENTATION.
     RETURN.
   ENDMETHOD.
 
+  METHOD zif_abapgit_sap_package~read_namespace.
+    RETURN.
+  ENDMETHOD.
+
   METHOD zif_abapgit_sap_package~check_object_type.
     RETURN.
   ENDMETHOD.
@@ -192,7 +196,7 @@ CLASS ltcl_resolve_packages IMPLEMENTATION.
 
     DATA: lo_mock_sap_package TYPE REF TO ltcl_sap_package.
 
-    CREATE OBJECT lo_mock_sap_package EXPORTING iv_package = 'Z_MAIN'.
+    lo_mock_sap_package = NEW #( iv_package = 'Z_MAIN' ).
 
     lo_mock_sap_package->set_sub_packages( mt_sub_packages ).
 
