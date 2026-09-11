@@ -125,9 +125,7 @@ CLASS zcl_abapgit_status_calc IMPLEMENTATION.
     rs_result-path     = is_local-file-path.
     rs_result-filename = is_local-file-filename.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( is_local-file-sha1 = is_remote-sha1 ).
-    rs_result-match    = temp1.
+    rs_result-match    = xsdbool( is_local-file-sha1 = is_remote-sha1 ).
     IF rs_result-match = abap_true.
       RETURN.
     ENDIF.
@@ -286,8 +284,8 @@ CLASS zcl_abapgit_status_calc IMPLEMENTATION.
 
   METHOD get_instance.
 
-    CREATE OBJECT ri_instance TYPE zcl_abapgit_status_calc EXPORTING iv_root_package = iv_root_package
-                                                                     io_dot = io_dot.
+    ri_instance = NEW zcl_abapgit_status_calc( iv_root_package = iv_root_package
+                                               io_dot = io_dot ).
 
   ENDMETHOD.
 
@@ -312,13 +310,12 @@ CLASS zcl_abapgit_status_calc IMPLEMENTATION.
 
   METHOD process_items.
 
-    TYPES temp1 TYPE SORTED TABLE OF devclass WITH UNIQUE KEY table_line.
-DATA:
+    DATA:
       ls_item         LIKE LINE OF ct_items,
       lv_is_xml       TYPE abap_bool,
       lv_is_json      TYPE abap_bool,
       lv_sub_fetched  TYPE abap_bool,
-      lt_sub_packages TYPE temp1.
+      lt_sub_packages TYPE SORTED TABLE OF devclass WITH UNIQUE KEY table_line.
 
     FIELD-SYMBOLS <ls_remote> LIKE LINE OF it_unprocessed_remote.
 
