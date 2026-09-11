@@ -34,7 +34,7 @@ CLASS zcl_abapgit_gui_page_flowuns IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_flowuns.
 
-    lo_component = NEW #( ).
+    CREATE OBJECT lo_component.
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title         = 'Flow Unsupported Object Types'
@@ -66,7 +66,7 @@ CLASS zcl_abapgit_gui_page_flowuns IMPLEMENTATION.
     FIELD-SYMBOLS <ls_tadir>       LIKE LINE OF lt_tadir.
     FIELD-SYMBOLS <ls_unsupported> LIKE LINE OF lt_unsupported.
 
-    ri_html = NEW zcl_abapgit_html( ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
 
     ri_html->add( '<div class="repo-overview">' ).
     ri_html->add( '<h1>Flow Unsupported Object Types</h1>' ).
