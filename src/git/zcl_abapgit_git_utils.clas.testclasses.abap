@@ -14,7 +14,7 @@ ENDCLASS.
 CLASS ltcl_git_utils IMPLEMENTATION.
 
   METHOD setup.
-    mo_cut = NEW #( ).
+    CREATE OBJECT mo_cut.
   ENDMETHOD.
 
   METHOD get_null.
