@@ -75,10 +75,13 @@ CLASS zcl_abapgit_object_vcls IMPLEMENTATION.
 
   METHOD zif_abapgit_object~deserialize.
 
-    DATA: ls_vcldir_entry TYPE v_vcldir,
-          lt_vclstruc     TYPE TABLE OF v_vclstruc,
-          lt_vclstrudep   TYPE TABLE OF v_vclstdep,
-          lt_vclmf        TYPE TABLE OF v_vclmf,
+    TYPES temp1 TYPE TABLE OF v_vclstruc.
+TYPES temp2 TYPE TABLE OF v_vclstdep.
+TYPES temp3 TYPE TABLE OF v_vclmf.
+DATA: ls_vcldir_entry TYPE v_vcldir,
+          lt_vclstruc     TYPE temp1,
+          lt_vclstrudep   TYPE temp2,
+          lt_vclmf        TYPE temp3,
           lv_objectname   TYPE ob_object.
 
 
@@ -133,7 +136,9 @@ CLASS zcl_abapgit_object_vcls IMPLEMENTATION.
     SELECT SINGLE changedate INTO lv_changedate FROM vcldir
       WHERE vclname = ms_item-obj_name.
 
-    rv_bool = xsdbool( sy-subrc = 0 ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( sy-subrc = 0 ).
+    rv_bool = temp1.
 
   ENDMETHOD.
 
@@ -166,7 +171,9 @@ CLASS zcl_abapgit_object_vcls IMPLEMENTATION.
       WHERE vclname = ms_item-obj_name.
 
 * see logic in function module VIEWCLUSTER_GET_DEFINITION
-    rv_active = xsdbool( lv_changedate IS NOT INITIAL ).
+    DATA temp2 TYPE xsdboolean.
+    temp2 = boolc( lv_changedate IS NOT INITIAL ).
+    rv_active = temp2.
 
   ENDMETHOD.
 
@@ -200,8 +207,9 @@ CLASS zcl_abapgit_object_vcls IMPLEMENTATION.
 
   METHOD zif_abapgit_object~jump.
 
-    DATA: ls_bcdata TYPE bdcdata,
-          lt_bcdata TYPE STANDARD TABLE OF bdcdata.
+    TYPES temp4 TYPE STANDARD TABLE OF bdcdata.
+DATA: ls_bcdata TYPE bdcdata,
+          lt_bcdata TYPE temp4.
 
     ls_bcdata-program  = 'SAPMSVIM'.
     ls_bcdata-dynpro   = '0050'.
@@ -260,11 +268,14 @@ CLASS zcl_abapgit_object_vcls IMPLEMENTATION.
 
   METHOD zif_abapgit_object~serialize.
 
-    DATA: lv_vclname      TYPE vcl_name,
+    TYPES temp5 TYPE TABLE OF v_vclstruc.
+TYPES temp4 TYPE TABLE OF v_vclstdep.
+TYPES temp6 TYPE TABLE OF v_vclmf.
+DATA: lv_vclname      TYPE vcl_name,
           ls_vcldir_entry TYPE v_vcldir,
-          lt_vclstruc     TYPE TABLE OF v_vclstruc,
-          lt_vclstrudep   TYPE TABLE OF v_vclstdep,
-          lt_vclmf        TYPE TABLE OF v_vclmf.
+          lt_vclstruc     TYPE temp5,
+          lt_vclstrudep   TYPE temp4,
+          lt_vclmf        TYPE temp6.
 
 
     IF zif_abapgit_object~exists( ) = abap_false.
