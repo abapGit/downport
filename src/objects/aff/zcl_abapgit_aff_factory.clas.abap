@@ -12,7 +12,7 @@ CLASS zcl_abapgit_aff_factory IMPLEMENTATION.
 
   METHOD get_registry.
     IF gi_registry IS NOT BOUND.
-      gi_registry = NEW zcl_abapgit_aff_registry( ).
+      CREATE OBJECT gi_registry TYPE zcl_abapgit_aff_registry.
     ENDIF.
     ri_registry = gi_registry.
   ENDMETHOD.
