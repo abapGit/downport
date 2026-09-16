@@ -33,9 +33,8 @@ CLASS zcl_abapgit_syntax_highlighter DEFINITION
       END OF ty_rule .
 
     CONSTANTS c_token_none TYPE c VALUE '.' ##NO_TEXT.
-    TYPES temp1_fcfa3a189b TYPE STANDARD TABLE OF ty_rule.
-DATA:
-      mt_rules TYPE temp1_fcfa3a189b .
+    DATA:
+      mt_rules TYPE STANDARD TABLE OF ty_rule .
     DATA mv_hidden_chars TYPE abap_bool .
 
     METHODS add_rule
@@ -94,8 +93,8 @@ CLASS zcl_abapgit_syntax_highlighter IMPLEMENTATION.
     DATA ls_rule LIKE LINE OF mt_rules.
 
     IF NOT iv_regex IS INITIAL.
-      CREATE OBJECT ls_rule-regex EXPORTING pattern = iv_regex
-                                            ignore_case = abap_true.
+      ls_rule-regex = NEW #( pattern = iv_regex
+                             ignore_case = abap_true ).
     ENDIF.
 
     ls_rule-token         = iv_token.
@@ -193,9 +192,7 @@ CLASS zcl_abapgit_syntax_highlighter IMPLEMENTATION.
     "/^\s+$/
     lv_whitespace = ` ` && cl_abap_char_utilities=>horizontal_tab && cl_abap_char_utilities=>cr_lf.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( iv_string CO lv_whitespace ).
-    rv_result = temp1.
+    rv_result = xsdbool( iv_string CO lv_whitespace ).
 
   ENDMETHOD.
 
