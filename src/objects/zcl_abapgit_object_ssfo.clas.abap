@@ -245,7 +245,8 @@ CLASS zcl_abapgit_object_ssfo IMPLEMENTATION.
 
   METHOD sort_texts.
 
-    DATA: li_node      TYPE REF TO if_ixml_node,
+    TYPES temp1 TYPE STANDARD TABLE OF stxfobjt.
+DATA: li_node      TYPE REF TO if_ixml_node,
           li_item      TYPE REF TO if_ixml_node,
           li_field     TYPE REF TO if_ixml_node,
           li_item_list TYPE REF TO if_ixml_node_list,
@@ -254,7 +255,7 @@ CLASS zcl_abapgit_object_ssfo IMPLEMENTATION.
           lv_index     TYPE i,
           lv_field     TYPE fieldname,
           ls_item      TYPE stxfobjt,
-          lt_items     TYPE STANDARD TABLE OF stxfobjt.
+          lt_items     TYPE temp1.
 
     FIELD-SYMBOLS <lv_field> TYPE any.
 
@@ -368,7 +369,7 @@ CLASS zcl_abapgit_object_ssfo IMPLEMENTATION.
       lx_error    TYPE REF TO cx_ssf_fb,
       lv_text     TYPE string.
 
-    lo_sf = NEW #( ).
+    CREATE OBJECT lo_sf.
 
 * set "created by" and "changed by" to current user
     li_iterator = io_xml->get_raw( )->get_root_element( )->create_iterator( ).
@@ -427,7 +428,9 @@ CLASS zcl_abapgit_object_ssfo IMPLEMENTATION.
 
     SELECT SINGLE formname FROM stxfadm INTO lv_formname
       WHERE formname = ms_item-obj_name.
-    rv_bool = xsdbool( sy-subrc = 0 ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( sy-subrc = 0 ).
+    rv_bool = temp1.
 
   ENDMETHOD.
 
@@ -465,7 +468,9 @@ CLASS zcl_abapgit_object_ssfo IMPLEMENTATION.
       IMPORTING
         o_inactive = lv_inactive.
 
-    rv_active = xsdbool( lv_inactive = abap_false ).
+    DATA temp2 TYPE xsdboolean.
+    temp2 = boolc( lv_inactive = abap_false ).
+    rv_active = temp2.
 
   ENDMETHOD.
 
@@ -480,7 +485,8 @@ CLASS zcl_abapgit_object_ssfo IMPLEMENTATION.
 
   METHOD zif_abapgit_object~jump.
 
-    DATA: lt_bdcdata  TYPE TABLE OF bdcdata,
+    TYPES temp2 TYPE TABLE OF bdcdata.
+DATA: lt_bdcdata  TYPE temp2,
           lv_formtype TYPE stxfadm-formtype.
 
     FIELD-SYMBOLS: <ls_bdcdata> LIKE LINE OF lt_bdcdata.
@@ -558,7 +564,7 @@ CLASS zcl_abapgit_object_ssfo IMPLEMENTATION.
     li_ixml = cl_ixml=>create( ).
     li_xml_doc = li_ixml->create_document( ).
 
-    lo_sf = NEW #( ).
+    CREATE OBJECT lo_sf.
     lv_formname = ms_item-obj_name. " convert type
     TRY.
         lo_sf->load( im_formname = lv_formname
