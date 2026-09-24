@@ -21,7 +21,9 @@ CLASS ZCL_ABAPGIT_SAP_NAMESPACE IMPLEMENTATION.
     FIELD-SYMBOLS <lg_obj> TYPE any.
     TRY.
         SELECT SINGLE editflag FROM ('TRNSPACE') INTO lv_editflag WHERE namespace = iv_namespace.
-        rv_yes = xsdbool( sy-subrc = 0 ).
+        DATA temp1 TYPE xsdboolean.
+        temp1 = boolc( sy-subrc = 0 ).
+        rv_yes = temp1.
       CATCH cx_sy_dynamic_osql_error.
         ASSIGN ('XCO_CP_SYSTEM=>NAMESPACE') TO <lg_obj>.
         lo_obj = <lg_obj>.
@@ -44,7 +46,9 @@ CLASS ZCL_ABAPGIT_SAP_NAMESPACE IMPLEMENTATION.
     FIELD-SYMBOLS <lg_obj> TYPE any.
     TRY.
         SELECT SINGLE editflag FROM ('TRNSPACE') INTO lv_editflag WHERE namespace = iv_namespace.
-        rv_yes = xsdbool( sy-subrc = 0 AND lv_editflag = 'X' ).
+        DATA temp2 TYPE xsdboolean.
+        temp2 = boolc( sy-subrc = 0 AND lv_editflag = 'X' ).
+        rv_yes = temp2.
       CATCH cx_sy_dynamic_osql_error.
         ASSIGN ('XCO_CP_SYSTEM=>NAMESPACE') TO <lg_obj>.
         lo_obj = <lg_obj>.
