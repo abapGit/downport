@@ -88,7 +88,7 @@ CLASS zcl_abapgit_gui_page_pull IMPLEMENTATION.
     mi_repo       = ii_repo.
     mi_obj_filter = ii_obj_filter.
 
-    mo_form_data = NEW #( ).
+    CREATE OBJECT mo_form_data.
     mo_form_data->set(
       iv_key = c_id-transport_request
       iv_val = iv_trkorr ).
@@ -100,9 +100,9 @@ CLASS zcl_abapgit_gui_page_pull IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_pull.
 
-    lo_component = NEW #( ii_repo = ii_repo
-                          iv_trkorr = iv_trkorr
-                          ii_obj_filter = ii_obj_filter ).
+    CREATE OBJECT lo_component EXPORTING ii_repo = ii_repo
+                                         iv_trkorr = iv_trkorr
+                                         ii_obj_filter = ii_obj_filter.
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title         = 'Pull'
@@ -244,7 +244,7 @@ CLASS zcl_abapgit_gui_page_pull IMPLEMENTATION.
 
     register_handlers( ).
 
-    ri_html = NEW zcl_abapgit_html( ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
     ri_html->add( '<div class="repo-overview">' ).
 
     ms_checks = mi_repo->deserialize_checks( ).
