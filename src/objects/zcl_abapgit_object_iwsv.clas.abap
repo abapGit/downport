@@ -55,9 +55,9 @@ CLASS zcl_abapgit_object_iwsv IMPLEMENTATION.
 
   METHOD get_generic.
 
-    ro_generic = NEW #( io_field_rules = get_field_rules( )
-                        is_item = ms_item
-                        iv_language = mv_language ).
+    CREATE OBJECT ro_generic EXPORTING io_field_rules = get_field_rules( )
+                                       is_item = ms_item
+                                       iv_language = mv_language.
 
   ENDMETHOD.
 
