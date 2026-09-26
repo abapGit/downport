@@ -82,9 +82,7 @@ CLASS zcl_abapgit_object_fdt0 IMPLEMENTATION.
         WHERE object_type = 'AP'
         AND id = lv_application_id
         AND deleted = ''.
-      DATA temp1 TYPE xsdboolean.
-      temp1 = boolc( lv_count = 0 ).
-      ev_create = temp1.
+      ev_create = xsdbool( lv_count = 0 ).
     ENDIF.
 
     " Fill in user/time/system-specific fields
@@ -396,8 +394,7 @@ CLASS zcl_abapgit_object_fdt0 IMPLEMENTATION.
   METHOD zif_abapgit_object~delete.
 
     DATA lv_is_local TYPE abap_bool.
-    TYPES temp1 TYPE TABLE OF fdt_admn_0000s-application_id.
-DATA lt_application_id TYPE temp1.
+    DATA lt_application_id TYPE TABLE OF fdt_admn_0000s-application_id.
     DATA ls_object_category_sel TYPE if_fdt_query=>s_object_category_sel.
     DATA lv_failure TYPE abap_bool.
     DATA lx_fdt_input TYPE REF TO cx_fdt_input.
@@ -591,9 +588,7 @@ DATA lt_application_id TYPE temp1.
       AND name = ms_item-obj_name
       AND deleted = ''.
 
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( lv_count > 0 ).
-    rv_bool = temp2.
+    rv_bool = xsdbool( lv_count > 0 ).
 
   ENDMETHOD.
 
@@ -649,9 +644,7 @@ DATA lt_application_id TYPE temp1.
     lv_index = lines( lt_version ).
     READ TABLE lt_version ASSIGNING <ls_version> INDEX lv_index.
 
-    DATA temp3 TYPE xsdboolean.
-    temp3 = boolc( <ls_version>-state = 'A' ).
-    rv_active = temp3.
+    rv_active = xsdbool( <ls_version>-state = 'A' ).
 
   ENDMETHOD.
 
