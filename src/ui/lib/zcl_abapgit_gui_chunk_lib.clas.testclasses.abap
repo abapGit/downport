@@ -67,7 +67,7 @@ CLASS ltcl_normalize_program_name IMPLEMENTATION.
 
   METHOD setup.
 
-    mo_chunk_lib = NEW #( ).
+    CREATE OBJECT mo_chunk_lib.
 
   ENDMETHOD.
 
@@ -101,7 +101,7 @@ CLASS ltd_repo_srv IMPLEMENTATION.
   METHOD add_repository.
     DATA lo_new_repo TYPE REF TO ltd_repo.
 
-    lo_new_repo = NEW #( ).
+    CREATE OBJECT lo_new_repo.
     lo_new_repo->set_display_name( iv_display_name ).
 
     APPEND lo_new_repo TO mt_repositories.
@@ -294,10 +294,10 @@ ENDCLASS.
 CLASS ltcl_render_repo IMPLEMENTATION.
 
   METHOD setup.
-    mo_repo_srv = NEW #( ).
+    CREATE OBJECT mo_repo_srv.
     zcl_abapgit_repo_srv=>inject_instance( mo_repo_srv ).
 
-    mo_chunk_lib = NEW #( ).
+    CREATE OBJECT mo_chunk_lib.
   ENDMETHOD.
 
 
