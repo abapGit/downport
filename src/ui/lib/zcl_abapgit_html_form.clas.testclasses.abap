@@ -17,7 +17,7 @@ ENDCLASS.
 CLASS ltcl_webgui_actions IMPLEMENTATION.
 
   METHOD setup.
-    mo_form = NEW #( ).
+    CREATE OBJECT mo_form.
     mo_form->mv_webgui = abap_true.
     mo_form->mv_form_id = 'test_form'.
     mi_html = zcl_abapgit_html=>create( ).
