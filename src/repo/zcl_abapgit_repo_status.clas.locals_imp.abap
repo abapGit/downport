@@ -65,7 +65,7 @@ CLASS lcl_status_consistency_checks IMPLEMENTATION.
 
   METHOD run_checks.
 
-    CREATE OBJECT mi_log TYPE zcl_abapgit_log.
+    mi_log = NEW zcl_abapgit_log( ).
 
     " Find all objects which were assigned to a different package
     check_package_move( it_results ).

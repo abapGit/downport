@@ -85,7 +85,7 @@ CLASS lcl_mock_event IMPLEMENTATION.
 
   METHOD constructor.
 
-    CREATE OBJECT mo_files.
+    mo_files = NEW #( ).
 
   ENDMETHOD.
 
@@ -119,7 +119,7 @@ CLASS ltcl_stage IMPLEMENTATION.
 
   METHOD setup.
 
-    CREATE OBJECT mo_mock_event TYPE lcl_mock_event.
+    mo_mock_event = NEW lcl_mock_event( ).
 
   ENDMETHOD.
 
