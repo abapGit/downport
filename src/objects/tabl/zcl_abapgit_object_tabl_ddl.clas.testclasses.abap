@@ -39,7 +39,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lv_result TYPE string.
 
     lv_text = |hello ' world|.
-    lo_cut = NEW #( ).
+    CREATE OBJECT lo_cut.
     lv_result = lo_cut->escape_string( lv_text ).
 
     cl_abap_unit_assert=>assert_equals(
@@ -67,7 +67,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lv_roundtrip    TYPE string.
 
 
-    lo_format = NEW #( ).
+    CREATE OBJECT lo_format.
 
     CALL TRANSFORMATION id
       OPTIONS value_handling = 'accept_data_loss'
@@ -617,7 +617,7 @@ CLASS ltcl_test IMPLEMENTATION.
       `  key : abap.char(1);` && |\n| &&
       `}`.
 
-    lo_format = NEW #( ).
+    CREATE OBJECT lo_format.
     ls_data = lo_format->deserialize( lv_ddl ).
 
     cl_abap_unit_assert=>assert_equals(
@@ -774,7 +774,7 @@ CLASS ltcl_test IMPLEMENTATION.
       `` && |\n| &&
       `}`.
 
-    lo_format = NEW #( ).
+    CREATE OBJECT lo_format.
     lv_roundtrip = lo_format->serialize( lo_format->deserialize( lv_ddl ) ).
     lv_expected = |key include zbase not null\n|.
     FIND lv_expected IN lv_roundtrip.
@@ -858,7 +858,7 @@ CLASS ltcl_test IMPLEMENTATION.
       `      where code = 'X';` && |\n| &&
       `}`.
 
-    lo_format = NEW #( ).
+    CREATE OBJECT lo_format.
     ls_data = lo_format->deserialize( lv_ddl ).
 
     cl_abap_unit_assert=>assert_equals(
@@ -1037,7 +1037,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA ls_field LIKE LINE OF ls_data-dd03p.
     DATA lv_ddl TYPE string.
 
-    lo_format = NEW #( ).
+    CREATE OBJECT lo_format.
     ls_data-dd02v-tabname = 'ZFLTP'.
     ls_data-dd02v-exclass = '0'.
     ls_data-dd02v-tabclass = 'TRANSP'.
@@ -1088,7 +1088,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lv_ddl TYPE string.
     DATA lv_matches TYPE i.
 
-    lo_format = NEW #( ).
+    CREATE OBJECT lo_format.
     ls_data-dd02v-tabname = 'ZSEM'.
     ls_data-dd02v-exclass = '0'.
     ls_data-dd02v-tabclass = 'TRANSP'.
@@ -1247,7 +1247,7 @@ CLASS ltcl_test IMPLEMENTATION.
     APPEND `KEY;CHAR;1;` TO lt_specs.
     APPEND `KEY_FIELD;CHAR;1;` TO lt_specs.
 
-    lo_format = NEW #( ).
+    CREATE OBJECT lo_format.
     ls_data = lo_format->deserialize( lv_ddl ).
     cl_abap_unit_assert=>assert_equals(
       exp = lines( lt_specs )
@@ -1311,7 +1311,7 @@ CLASS ltcl_test IMPLEMENTATION.
     APPEND `[1..*,];N;N` TO lt_cards.
     APPEND `[1..*,0..1];C;N` TO lt_cards.
 
-    lo_format = NEW #( ).
+    CREATE OBJECT lo_format.
     LOOP AT lt_cards INTO lv_card.
       SPLIT lv_card AT ';' INTO lv_token lv_left lv_right.
       CLEAR ls_foreign_key.
@@ -1422,7 +1422,7 @@ CLASS ltcl_test IMPLEMENTATION.
       `      where code = zfkey.field;` && |\n| &&
       `}`.
 
-    lo_format = NEW #( ).
+    CREATE OBJECT lo_format.
     ls_data = lo_format->deserialize( lv_ddl ).
     READ TABLE ls_data-dd08v INTO ls_foreign_key WITH KEY fieldname = 'FIELD'.
     cl_abap_unit_assert=>assert_equals(
@@ -1491,7 +1491,7 @@ CLASS ltcl_test IMPLEMENTATION.
       `        and y = zpositions.y;` && |\n| &&
       `}`.
 
-    lo_format = NEW #( ).
+    CREATE OBJECT lo_format.
     ls_data = lo_format->deserialize( lv_ddl ).
 
     " Positions have to be consecutive, they are not a running total of the
@@ -1528,7 +1528,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA ls_field LIKE LINE OF ls_data-dd03p.
     DATA lv_ddl TYPE string.
 
-    lo_format = NEW #( ).
+    CREATE OBJECT lo_format.
     ls_data-dd02v-tabname = 'ZDRAFT'.
     ls_data-dd02v-ddtext = 'Draft'.
     ls_data-dd02v-exclass = '0'.
@@ -1590,7 +1590,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lv_again TYPE string.
     DATA lv_parsed TYPE abap_bool.
 
-    lo_format = NEW #( ).
+    CREATE OBJECT lo_format.
     ls_data-dd02v-tabname = 'ZPROBE'.
     ls_data-dd02v-ddtext = 'Probe'.
     ls_data-dd02v-exclass = '0'.
@@ -1673,7 +1673,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lo_format TYPE REF TO zcl_abapgit_object_tabl_ddl.
     DATA lx_error TYPE REF TO zcx_abapgit_exception.
 
-    lo_format = NEW #( ).
+    CREATE OBJECT lo_format.
 
     TRY.
         lo_format->deserialize( `define view zbad { }` ).
