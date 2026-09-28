@@ -81,7 +81,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lv_result TYPE string.
 
     lv_text = |hello ' world|.
-    CREATE OBJECT lo_cut.
+    lo_cut = NEW #( ).
     lv_result = lo_cut->escape_string( lv_text ).
 
     cl_abap_unit_assert=>assert_equals(
@@ -109,7 +109,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lv_roundtrip    TYPE string.
 
 
-    CREATE OBJECT lo_format.
+    lo_format = NEW #( ).
 
     CALL TRANSFORMATION id
       OPTIONS value_handling = 'accept_data_loss'
@@ -659,7 +659,7 @@ CLASS ltcl_test IMPLEMENTATION.
       `  key : abap.char(1);` && |\n| &&
       `}`.
 
-    CREATE OBJECT lo_format.
+    lo_format = NEW #( ).
     ls_data = lo_format->deserialize( lv_ddl ).
 
     cl_abap_unit_assert=>assert_equals(
@@ -816,7 +816,7 @@ CLASS ltcl_test IMPLEMENTATION.
       `` && |\n| &&
       `}`.
 
-    CREATE OBJECT lo_format.
+    lo_format = NEW #( ).
     lv_roundtrip = lo_format->serialize( lo_format->deserialize( lv_ddl ) ).
     lv_expected = |key include zbase not null\n|.
     FIND lv_expected IN lv_roundtrip.
@@ -866,6 +866,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lv_inverted_index_found TYPE abap_bool.
     DATA lv_exclass TYPE c LENGTH 1.
     FIELD-SYMBOLS <lv_is_gtt> TYPE abap_bool.
+    FIELD-SYMBOLS <lv_viewref> TYPE any.
     FIELD-SYMBOLS <lv_invhash> TYPE c.
     FIELD-SYMBOLS <lv_outputstyle> TYPE zif_abapgit_aff_doma_v1=>ty_output_style.
 
@@ -899,9 +900,9 @@ CLASS ltcl_test IMPLEMENTATION.
       `      where code = 'X';` && |\n| &&
       `}`.
 
-    CREATE OBJECT lo_format.
-    CREATE OBJECT lo_format->mi_replacement_mapping TYPE ltd_replacement_mapping EXPORTING iv_view_name = 'ZANNOTATIONS_V'
-                                                                                           iv_entityname = 'ZANNOTATIONS_ENTITY'.
+    lo_format = NEW #( ).
+    lo_format->mi_replacement_mapping = NEW ltd_replacement_mapping( iv_view_name = 'ZANNOTATIONS_V'
+                                                                     iv_entityname = 'ZANNOTATIONS_ENTITY' ).
     ls_data = lo_format->deserialize( lv_ddl ).
 
     cl_abap_unit_assert=>assert_equals(
@@ -925,9 +926,13 @@ CLASS ltcl_test IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
       exp = 'Temporary table'
       act = ls_data-dd02v-ddtext ).
-    cl_abap_unit_assert=>assert_equals(
-      exp = 'ZANNOTATIONS_V'
-      act = ls_data-dd02v-viewref ).
+    " DD02V-VIEWREF does not exist before 7.40
+    ASSIGN COMPONENT 'VIEWREF' OF STRUCTURE ls_data-dd02v TO <lv_viewref>.
+    IF sy-subrc = 0.
+      cl_abap_unit_assert=>assert_equals(
+        exp = 'ZANNOTATIONS_V'
+        act = <lv_viewref> ).
+    ENDIF.
 
     ASSIGN COMPONENT 'IS_GTT' OF STRUCTURE ls_data-dd02v TO <lv_is_gtt>.
     IF sy-subrc = 0.
@@ -1005,9 +1010,12 @@ CLASS ltcl_test IMPLEMENTATION.
 
     ls_data-dd02v-ddtext = 'Temporary table'.
     lv_roundtrip = lo_format->serialize( ls_data ).
-    cl_abap_unit_assert=>assert_char_cp(
-      exp = `*@AbapCatalog.replacementObject : 'zannotations_entity'*`
-      act = lv_roundtrip ).
+    ASSIGN COMPONENT 'VIEWREF' OF STRUCTURE ls_data-dd02v TO <lv_viewref>.
+    IF sy-subrc = 0.
+      cl_abap_unit_assert=>assert_char_cp(
+        exp = `*@AbapCatalog.replacementObject : 'zannotations_entity'*`
+        act = lv_roundtrip ).
+    ENDIF.
     IF lv_roundtrip CS `@AbapCatalog.primaryKey.invertedIndividualIndex : true`.
       lv_inverted_index_found = abap_true.
     ENDIF.
@@ -1021,9 +1029,13 @@ CLASS ltcl_test IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
       exp = 5
       act = lines( ls_data-dd03p ) ).
-    cl_abap_unit_assert=>assert_equals(
-      exp = 'ZANNOTATIONS_V'
-      act = ls_data-dd02v-viewref ).
+    " DD02V-VIEWREF does not exist before 7.40
+    ASSIGN COMPONENT 'VIEWREF' OF STRUCTURE ls_data-dd02v TO <lv_viewref>.
+    IF sy-subrc = 0.
+      cl_abap_unit_assert=>assert_equals(
+        exp = 'ZANNOTATIONS_V'
+        act = <lv_viewref> ).
+    ENDIF.
 
     DO 5 TIMES.
       CLEAR ls_data.
@@ -1082,7 +1094,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA ls_field LIKE LINE OF ls_data-dd03p.
     DATA lv_ddl TYPE string.
 
-    CREATE OBJECT lo_format.
+    lo_format = NEW #( ).
     ls_data-dd02v-tabname = 'ZFLTP'.
     ls_data-dd02v-exclass = '0'.
     ls_data-dd02v-tabclass = 'TRANSP'.
@@ -1133,7 +1145,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lv_ddl TYPE string.
     DATA lv_matches TYPE i.
 
-    CREATE OBJECT lo_format.
+    lo_format = NEW #( ).
     ls_data-dd02v-tabname = 'ZSEM'.
     ls_data-dd02v-exclass = '0'.
     ls_data-dd02v-tabclass = 'TRANSP'.
@@ -1292,7 +1304,7 @@ CLASS ltcl_test IMPLEMENTATION.
     APPEND `KEY;CHAR;1;` TO lt_specs.
     APPEND `KEY_FIELD;CHAR;1;` TO lt_specs.
 
-    CREATE OBJECT lo_format.
+    lo_format = NEW #( ).
     ls_data = lo_format->deserialize( lv_ddl ).
     cl_abap_unit_assert=>assert_equals(
       exp = lines( lt_specs )
@@ -1356,7 +1368,7 @@ CLASS ltcl_test IMPLEMENTATION.
     APPEND `[1..*,];N;N` TO lt_cards.
     APPEND `[1..*,0..1];C;N` TO lt_cards.
 
-    CREATE OBJECT lo_format.
+    lo_format = NEW #( ).
     LOOP AT lt_cards INTO lv_card.
       SPLIT lv_card AT ';' INTO lv_token lv_left lv_right.
       CLEAR ls_foreign_key.
@@ -1467,7 +1479,7 @@ CLASS ltcl_test IMPLEMENTATION.
       `      where code = zfkey.field;` && |\n| &&
       `}`.
 
-    CREATE OBJECT lo_format.
+    lo_format = NEW #( ).
     ls_data = lo_format->deserialize( lv_ddl ).
     READ TABLE ls_data-dd08v INTO ls_foreign_key WITH KEY fieldname = 'FIELD'.
     cl_abap_unit_assert=>assert_equals(
@@ -1536,7 +1548,7 @@ CLASS ltcl_test IMPLEMENTATION.
       `        and y = zpositions.y;` && |\n| &&
       `}`.
 
-    CREATE OBJECT lo_format.
+    lo_format = NEW #( ).
     ls_data = lo_format->deserialize( lv_ddl ).
 
     " Positions have to be consecutive, they are not a running total of the
@@ -1573,7 +1585,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA ls_field LIKE LINE OF ls_data-dd03p.
     DATA lv_ddl TYPE string.
 
-    CREATE OBJECT lo_format.
+    lo_format = NEW #( ).
     ls_data-dd02v-tabname = 'ZDRAFT'.
     ls_data-dd02v-ddtext = 'Draft'.
     ls_data-dd02v-exclass = '0'.
@@ -1635,7 +1647,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lv_again TYPE string.
     DATA lv_parsed TYPE abap_bool.
 
-    CREATE OBJECT lo_format.
+    lo_format = NEW #( ).
     ls_data-dd02v-tabname = 'ZPROBE'.
     ls_data-dd02v-ddtext = 'Probe'.
     ls_data-dd02v-exclass = '0'.
@@ -1718,7 +1730,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lo_format TYPE REF TO zcl_abapgit_object_tabl_ddl.
     DATA lx_error TYPE REF TO zcx_abapgit_exception.
 
-    CREATE OBJECT lo_format.
+    lo_format = NEW #( ).
 
     TRY.
         lo_format->deserialize( `define view zbad { }` ).
@@ -1737,9 +1749,9 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lo_format TYPE REF TO zcl_abapgit_object_tabl_ddl.
     DATA lx_error TYPE REF TO zcx_abapgit_exception.
 
-    CREATE OBJECT lo_format.
-    CREATE OBJECT lo_format->mi_replacement_mapping TYPE ltd_replacement_mapping EXPORTING iv_view_name = 'ZANNOTATIONS_V'
-                                                                                           iv_entityname = 'ZANNOTATIONS_ENTITY'.
+    lo_format = NEW #( ).
+    lo_format->mi_replacement_mapping = NEW ltd_replacement_mapping( iv_view_name = 'ZANNOTATIONS_V'
+                                                                     iv_entityname = 'ZANNOTATIONS_ENTITY' ).
 
     TRY.
         lo_format->deserialize(

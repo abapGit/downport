@@ -141,7 +141,7 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
 
   METHOD get_instance.
     IF gi_ref IS INITIAL.
-      CREATE OBJECT gi_ref TYPE zcl_abapgit_repo_srv.
+      gi_ref = NEW zcl_abapgit_repo_srv( ).
     ENDIF.
     ri_srv = gi_ref.
   ENDMETHOD.
@@ -155,9 +155,9 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
   METHOD instantiate_and_add.
 
     IF is_repo_meta-offline = abap_false.
-      CREATE OBJECT ri_repo TYPE zcl_abapgit_repo_online EXPORTING is_data = is_repo_meta.
+      ri_repo = NEW zcl_abapgit_repo_online( is_data = is_repo_meta ).
     ELSE.
-      CREATE OBJECT ri_repo TYPE zcl_abapgit_repo_offline EXPORTING is_data = is_repo_meta.
+      ri_repo = NEW zcl_abapgit_repo_offline( is_data = is_repo_meta ).
     ENDIF.
     add( ri_repo ).
 
@@ -728,6 +728,41 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
     ELSE.
       zif_abapgit_repo_srv~delete( ii_repo ).
     ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_repo_srv~reload.
+
+    DATA li_repo TYPE REF TO zif_abapgit_repo.
+    DATA li_old TYPE REF TO zif_abapgit_repo.
+    DATA ls_repo TYPE zif_abapgit_persistence=>ty_repo.
+    DATA ls_meta TYPE zif_abapgit_persistence=>ty_repo_xml.
+
+    li_repo = zif_abapgit_repo_srv~get( iv_key ).
+
+    TRY.
+        ls_repo = zcl_abapgit_persist_factory=>get_repo( )->read( iv_key ).
+      CATCH zcx_abapgit_not_found.
+        zcx_abapgit_exception=>raise( |Repository not found in database. Key: REPO, { iv_key }| ).
+    ENDTRY.
+
+    " Metadata can be changed outside of this session, e.g. branch switched via API
+    IF ls_repo <> li_repo->ms_data.
+      li_old = li_repo.
+      MOVE-CORRESPONDING ls_repo TO ls_meta.
+      reinstantiate_repo(
+        iv_key  = iv_key
+        is_meta = ls_meta ).
+      li_repo = zif_abapgit_repo_srv~get( iv_key ).
+
+      " Offline repos have no remote to fetch from, keep the imported files
+      IF li_old->is_offline( ) = abap_true AND li_repo->is_offline( ) = abap_true.
+        li_repo->set_files_remote( li_old->get_files_remote( ) ).
+      ENDIF.
+    ENDIF.
+
+    ri_repo = li_repo.
 
   ENDMETHOD.
 

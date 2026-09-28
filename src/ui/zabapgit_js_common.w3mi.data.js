@@ -11,7 +11,8 @@
  **********************************************************/
 
 /* exported confirmInitialized
-   -- zcl_abapgit_gui_page->zif_abapgit_gui_renderable~render */
+   -- zcl_abapgit_gui_page->zif_abapgit_gui_renderable~render,
+      which also renders the js-error-banner it hides */
 
 /* exported setEnvironment
    -- zcl_abapgit_gui_page->render_environment */
@@ -410,11 +411,6 @@ function clickSapEvent(element) {
   element.click();
 }
 
-// Set focus to a control
-function setInitialFocus(id) {
-  document.getElementById(id).focus();
-}
-
 // Set focus to an element with query selector
 function setInitialFocusWithQuerySelector(sSelector, bFocusParent) {
   var oSelected = document.querySelector(sSelector);
@@ -445,6 +441,41 @@ function submitForm(form) {
 function submitFormById(id) {
   submitForm(document.getElementById(id));
 }
+
+// The error banner only reports a page that failed to initialize: once
+// confirmInitialized has hidden it, an error in an event handler would go
+// unnoticed. Show it again with the error, so a user on a browser control we
+// cannot test ourselves can tell us what broke.
+//
+// Only errors of this script and of the inline page scripts count. Others are
+// not ours to report - on WebGUI, ITS runs scripts of its own - and a script
+// of another origin reports nothing but "Script error." anyway. The first
+// error is the one worth reporting, later ones are mostly its consequences.
+var gScriptErrorReported = false;
+var gCommonJsUrlPattern  = /(^|\/)js\/common\.js(\?|$)/;
+
+function isOwnScript(url) {
+  var page = String(window.location && window.location.href).replace(/#.*$/, "");
+  return gCommonJsUrlPattern.test(url) || url.replace(/#.*$/, "") === page;
+}
+
+function reportScriptError(message, url, line) {
+  var errorBanner = document.getElementById("js-error-banner");
+  if (gScriptErrorReported || !errorBanner || !url || !isOwnScript(url)) return;
+  gScriptErrorReported = true;
+
+  var icon = errorBanner.querySelector("i");
+  var file = gCommonJsUrlPattern.test(url) ? "common.js" : "page script";
+  while (errorBanner.firstChild) errorBanner.removeChild(errorBanner.firstChild);
+  if (icon) errorBanner.appendChild(icon);
+  errorBanner.appendChild(document.createTextNode(" JavaScript error: " + message
+    + " (" + file + (line ? ":" + line : "") + "), please log an issue"));
+  errorBanner.style.display = "";
+}
+
+window.addEventListener("error", function(event) {
+  reportScriptError(event.message, event.filename, event.lineno);
+});
 
 // Confirm JS initialization
 function confirmInitialized() {
@@ -580,7 +611,10 @@ RepoOverViewHelper.prototype.onPageLoad = function() {
 RepoOverViewHelper.prototype.registerKeyboardShortcuts = function() {
   var self = this;
   document.addEventListener("keypress", function(event) {
-    if (document.activeElement.id === "filter") {
+    // Leave keys typed elsewhere alone: in the filter or the command palette,
+    // or as a link hint code - its digits would otherwise move the selection,
+    // and the action links with it, before the hint activates one of them
+    if (event.defaultPrevented || LinkHints.areHintsDisplayed || !Hotkeys.isHotkeyCallPossible()) {
       return;
     }
     if (self.focusFilterKey && event.key === self.focusFilterKey && !CommandPalette.isVisible()) {
@@ -1290,13 +1324,9 @@ CheckListWrapper.prototype.onClick = function(e) {
 
 // Diff helper constructor
 function DiffHelper(params) {
-  this.pageSeed    = params.seed;
-  this.stageAction = params.stageAction;
-
   // DOM nodes
   this.dom = {
-    diffList   : document.getElementById(params.ids.diffList),
-    stageButton: document.getElementById(params.ids.stageButton)
+    diffList: document.getElementById(params.ids.diffList)
   };
 
   this.repoKey = this.dom.diffList.getAttribute("data-repo-key");
@@ -1309,12 +1339,6 @@ function DiffHelper(params) {
   if (document.getElementById(params.ids.filterMenu)) {
     this.checkList        = new CheckListWrapper(params.ids.filterMenu, this.onFilter.bind(this), this.onFilterOnlyMyChanges.bind(this));
     this.dom.filterButton = document.getElementById(params.ids.filterMenu).parentNode;
-  }
-
-  // Hijack stage command
-  if (this.dom.stageButton) {
-    this.dom.stageButton.href    = "#";
-    this.dom.stageButton.onclick = this.onStage.bind(this);
   }
 }
 
@@ -1399,25 +1423,6 @@ DiffHelper.prototype.refreshFilters = function() {
     });
   });
   this.highlightButton();
-};
-
-// Action on stage -> save visible diffs as state for stage page
-DiffHelper.prototype.onStage = function(e) { // eslint-disable-line no-unused-vars
-  writeStoredState("sessionStorage", this.pageSeed, this.buildStageCache());
-  var getParams = { key: this.repoKey, seed: this.pageSeed };
-  submitSapeventForm(getParams, this.stageAction, "get");
-};
-
-// Collect visible diffs
-DiffHelper.prototype.buildStageCache = function() {
-  var list = {};
-  this.iterateDiffList(function(div) {
-    var filename = div.getAttribute("data-file");
-    if (!div.style.display && filename) { // No display override - visible !!
-      list[filename] = "A"; // Add
-    }
-  });
-  return list;
 };
 
 // Table iterator
@@ -1861,14 +1866,15 @@ LinkHints.prototype.handleKey = function(event) {
 
   } else if (this.areHintsDisplayed) {
 
-    // the user tries to reach a hint
+    // the user tries to reach a hint - the key is consumed here, so page
+    // shortcuts listening after us must not act on it as well
+    event.preventDefault();
     this.pendingPath += event.key;
 
     var hint = this.hintsMap[this.pendingPath];
 
     if (hint) { // we are there, we have a fully specified tooltip. Let us activate or yank it
       this.displayHints(false);
-      event.preventDefault();
       if (this.yankModeActive) {
         var yankText = this.getYankText(hint.parent);
         // The backend rejects an empty clipboard with an error popup
@@ -1907,8 +1913,14 @@ LinkHints.prototype.closeActivatedDropdown = function() {
   this.activatedDropdown = null;
 };
 
+// Are hints displayed, i.e. is the user typing a hint code? Page shortcuts
+// registered before the link hints cannot rely on the key being marked as
+// consumed. A page has at most one LinkHints instance (activateLinkHints).
+LinkHints.areHintsDisplayed = false;
+
 LinkHints.prototype.displayHints = function(isActivate) {
-  this.areHintsDisplayed = isActivate;
+  this.areHintsDisplayed      = isActivate;
+  LinkHints.areHintsDisplayed = isActivate;
   for (var i = this.hintsMap.first; i <= this.hintsMap.last; i++) {
     var hint = this.hintsMap[i];
     if (isActivate) {
@@ -2024,8 +2036,9 @@ function Hotkeys(oKeyMap) {
     // the hotkey execution
     this.oKeyMap[sKey] = function(oEvent) {
 
-      // gHelper is only valid for diff page
-      var diffHelper = (window.gHelper || {});
+      // The helper object of the page, if it has one: the diff, stage and
+      // repository overview pages create it as gHelper
+      var pageHelper = (window.gHelper || {});
 
       // We have either a js function on this
       if (this[action]) {
@@ -2033,9 +2046,9 @@ function Hotkeys(oKeyMap) {
         return;
       }
 
-      // Or a method of the helper object for the diff page
-      if (diffHelper[action]) {
-        diffHelper[action].call(diffHelper);
+      // Or a method of the page helper (e.g. submitCommit on the stage page)
+      if (pageHelper[action]) {
+        pageHelper[action].call(pageHelper);
         return;
       }
 
@@ -2754,9 +2767,11 @@ function enumerateUiActions() {
     var anchor = item[0];
     var prefix = item[1];
     // title is re-read on each palette open, some labels change dynamically
-    // (e.g. commit/patch buttons on the stage page)
+    // (e.g. commit/patch buttons on the stage page). Not from innerText: link
+    // hints stay in the DOM once deployed, and for a link that is not rendered
+    // - one in a closed dropdown - innerText includes their hidden codes.
     var getTitle = function() {
-      return (prefix ? prefix + ": " : "") + anchor.innerText.trim();
+      return (prefix ? prefix + ": " : "") + getTextWithoutLinkHints(anchor).replace(/\s+/g, " ").trim();
     };
     return {
       // Clicking the wired anchor routes on every browser control (desktop and
@@ -3080,10 +3095,9 @@ function trapFocus() {
   var firstElement = focusable[0];
   var lastElement = focusable[focusable.length - 1];
 
-  // Focus the main button when modal opens, if it exists
-  if (document.querySelector(".main-button")) {
-    setInitialFocus("main-button");
-  }
+  // No initial focus on the main button: while a button has focus, link hints
+  // and letter hotkeys are off (Hotkeys.isHotkeyCallPossible), and letting them
+  // through would make Enter fire both the button and its Enter hotkey.
 
   modal.onkeydown = function(e) {
     var keyCode = e.keyCode || e.which;
@@ -3142,7 +3156,7 @@ SourceViewer.prototype.getStylesheetSource = function(url) {
 
     try {
       rules = styleSheets[index].cssRules || styleSheets[index].rules;
-    } catch (error) {
+    } catch (error) { // eslint-disable-line no-unused-vars
       this.reportError("Could not access " + url + " from the document stylesheets.");
       return "";
     }
