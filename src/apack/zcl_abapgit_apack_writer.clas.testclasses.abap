@@ -21,16 +21,22 @@ CLASS ltcl_apack_manifest_writer IMPLEMENTATION.
     lv_actual_xml = lo_manifest_writer->serialize( ).
     cl_abap_unit_assert=>assert_not_initial( lv_actual_xml ).
 
-    lv_bool = xsdbool( contains( val = lv_actual_xml
-                               sub = '<ARTIFACT_ID>abapGit</ARTIFACT_ID>' ) ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( contains( val = lv_actual_xml
+                             sub = '<ARTIFACT_ID>abapGit</ARTIFACT_ID>' ) ).
+    lv_bool = temp1.
     cl_abap_unit_assert=>assert_equals( act = lv_bool
                                         exp = abap_true ).
-    lv_bool = xsdbool( contains( val = lv_actual_xml
-                               sub = '<GROUP_ID>github.com/larshp</GROUP_ID>' ) ).
+    DATA temp2 TYPE xsdboolean.
+    temp2 = boolc( contains( val = lv_actual_xml
+                             sub = '<GROUP_ID>github.com/larshp</GROUP_ID>' ) ).
+    lv_bool = temp2.
     cl_abap_unit_assert=>assert_equals( act = lv_bool
                                         exp = abap_true ).
-    lv_bool = xsdbool( contains( val = lv_actual_xml
-                               sub = '<REPOSITORY_TYPE>abapGit</REPOSITORY_TYPE>' ) ).
+    DATA temp3 TYPE xsdboolean.
+    temp3 = boolc( contains( val = lv_actual_xml
+                             sub = '<REPOSITORY_TYPE>abapGit</REPOSITORY_TYPE>' ) ).
+    lv_bool = temp3.
     cl_abap_unit_assert=>assert_equals( act = lv_bool
                                         exp = abap_true ).
   ENDMETHOD.
