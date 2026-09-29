@@ -175,11 +175,11 @@ CLASS ltcl_read_metadata IMPLEMENTATION.
     DATA li_registry TYPE REF TO zif_abapgit_aff_registry.
 
     IF iv_supported = abap_true.
-      CREATE OBJECT li_registry TYPE ltd_aff_supported_true.
+      li_registry = NEW ltd_aff_supported_true( ).
     ELSEIF iv_experimental = abap_true.
-      CREATE OBJECT li_registry TYPE ltd_aff_experimental.
+      li_registry = NEW ltd_aff_experimental( ).
     ELSE.
-      CREATE OBJECT li_registry TYPE ltd_aff_supported_false.
+      li_registry = NEW ltd_aff_supported_false( ).
     ENDIF.
 
     zcl_abapgit_aff_injector=>set_registry( li_registry ).
@@ -373,7 +373,7 @@ CLASS ltcl_serialize IMPLEMENTATION.
     ls_item-obj_type = 'INTF'.
     ls_item-obj_name = 'IF_BADI_TADIR_CHANGED'.
 
-    CREATE OBJECT li_aff_registry TYPE ltd_aff_supported_true.
+    li_aff_registry = NEW ltd_aff_supported_true( ).
     zcl_abapgit_aff_injector=>set_registry( li_aff_registry ).
 
     APPEND `DE` TO lt_target_langu.
