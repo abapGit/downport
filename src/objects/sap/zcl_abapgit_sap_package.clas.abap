@@ -47,9 +47,7 @@ CLASS zcl_abapgit_sap_package IMPLEMENTATION.
         rv_are_changes_rec_in_tr_req = li_package->wbo_korr_flag.
       WHEN 1.
         " For new packages, derive from package name
-        DATA temp1 TYPE xsdboolean.
-        temp1 = boolc( mv_package(1) <> '$' AND mv_package(1) <> 'T' ).
-        rv_are_changes_rec_in_tr_req = temp1.
+        rv_are_changes_rec_in_tr_req = xsdbool( mv_package(1) <> '$' AND mv_package(1) <> 'T' ).
       WHEN OTHERS.
         zcx_abapgit_exception=>raise_t100( ).
     ENDCASE.
@@ -111,10 +109,15 @@ CLASS zcl_abapgit_sap_package IMPLEMENTATION.
 
     MOVE-CORRESPONDING is_package TO ls_package.
 
-    " Set software component to 'HOME' if none is set at this point.
+    " Set software component to HOME or ZCUSTOM_DEVELOPMENT (ABAP Cloud) if none is set at this point.
     " Otherwise SOFTWARE_COMPONENT_INVALID will be raised.
     IF ls_package-dlvunit IS INITIAL.
-      ls_package-dlvunit = 'HOME'.
+      IF ls_package-packkind = zif_abapgit_aff_types_v1=>co_abap_language_version-cloud_development.
+        ls_package-parentcl = 'ZCUSTOM_DEVELOPMENT'.
+        ls_package-dlvunit  = 'ZCUSTOM_DEVELOPMENT'.
+      ELSE.
+        ls_package-dlvunit = 'HOME'.
+      ENDIF.
     ENDIF.
 
     " For transportable packages, get default transport and layer
@@ -137,7 +140,7 @@ CLASS zcl_abapgit_sap_package IMPLEMENTATION.
     cl_package_factory=>create_new_package(
       EXPORTING
         i_reuse_deleted_object     = abap_true
-*        i_suppress_dialog          = abap_true " does not exist in 730
+*       i_suppress_dialog          = abap_true " does not exist in 730
       IMPORTING
         e_package                  = li_package
       CHANGING
@@ -160,10 +163,10 @@ CLASS zcl_abapgit_sap_package IMPLEMENTATION.
         unexpected_error           = 15
         intern_err                 = 16
         no_access                  = 17
-*        invalid_translation_depth  = 18
-*        wrong_mainpack_value       = 19
-*        superpackage_invalid       = 20
-*        error_in_cts_checks        = 21
+*       invalid_translation_depth  = 18
+*       wrong_mainpack_value       = 19
+*       superpackage_invalid       = 20
+*       error_in_cts_checks        = 21
         OTHERS                     = 18 ).
     IF sy-subrc <> 0.
       zcx_abapgit_exception=>raise_t100( ).
@@ -246,8 +249,13 @@ CLASS zcl_abapgit_sap_package IMPLEMENTATION.
 
     ls_package-devclass = mv_package.
     ls_package-ctext    = mv_package.
-    ls_package-parentcl = '$TMP'.
-    ls_package-dlvunit  = 'LOCAL'.
+    IF iv_abap_language_version = zif_abapgit_aff_types_v1=>co_abap_language_version-cloud_development.
+      ls_package-parentcl = 'ZLOCAL'.
+      ls_package-dlvunit  = 'ZLOCAL'.
+    ELSE.
+      ls_package-parentcl = '$TMP'.
+      ls_package-dlvunit  = 'LOCAL'.
+    ENDIF.
     ls_package-as4user  = sy-uname.
     ls_package-packkind = iv_abap_language_version.
 
@@ -267,9 +275,7 @@ CLASS zcl_abapgit_sap_package IMPLEMENTATION.
         intern_err                 = 3
         no_access                  = 4
         object_locked_and_modified = 5 ).
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( sy-subrc <> 1 ).
-    rv_bool = temp2.
+    rv_bool = xsdbool( sy-subrc <> 1 ).
 
   ENDMETHOD.
 
@@ -303,6 +309,7 @@ CLASS zcl_abapgit_sap_package IMPLEMENTATION.
     rs_package-pdevclass = li_package->transport_layer.
     rs_package-as4user   = li_package->changed_by.
     rs_package-korrflag  = li_package->wbo_korr_flag.
+    rs_package-packkind  = li_package->package_kind. " ABAP language version
 
   ENDMETHOD.
 
@@ -323,7 +330,7 @@ CLASS zcl_abapgit_sap_package IMPLEMENTATION.
             cts_initialization_failure = 3
             OTHERS                     = 4.
         IF sy-subrc <> 0.
-      " Return empty layer (i.e. "local workbench request" for the package)
+          " Return empty layer (i.e. "local workbench request" for the package)
           CLEAR rv_transport_layer.
         ENDIF.
       CATCH cx_sy_dyn_call_illegal_func.
@@ -457,6 +464,13 @@ CLASS zcl_abapgit_sap_package IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD zif_abapgit_sap_package~read_namespace.
+    SELECT SINGLE namespace FROM tdevc
+      INTO rv_namespace
+      WHERE devclass = mv_package ##SUBRC_OK.           "#EC CI_GENBUFF
+  ENDMETHOD.
+
+
   METHOD zif_abapgit_sap_package~read_parent.
 
     SELECT SINGLE parentcl FROM tdevc INTO rv_parentcl
@@ -471,13 +485,6 @@ CLASS zcl_abapgit_sap_package IMPLEMENTATION.
   METHOD zif_abapgit_sap_package~read_responsible.
     SELECT SINGLE as4user FROM tdevc
       INTO rv_responsible
-      WHERE devclass = mv_package ##SUBRC_OK.           "#EC CI_GENBUFF
-  ENDMETHOD.
-
-
-  METHOD zif_abapgit_sap_package~read_namespace.
-    SELECT SINGLE namespace FROM tdevc
-      INTO rv_namespace
       WHERE devclass = mv_package ##SUBRC_OK.           "#EC CI_GENBUFF
   ENDMETHOD.
 

@@ -141,9 +141,7 @@ CLASS zcl_abapgit_object_devc IMPLEMENTATION.
            WHERE pgmid = 'R3TR'
            AND NOT ( ( object = 'DEVC' OR object = 'SOTR' ) AND obj_name = iv_package_name )
            AND devclass = iv_package_name.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc <> 0 ).
-    rv_is_empty = temp1.
+    rv_is_empty = xsdbool( sy-subrc <> 0 ).
 
   ENDMETHOD.
 
@@ -151,11 +149,14 @@ CLASS zcl_abapgit_object_devc IMPLEMENTATION.
   METHOD is_local.
 
     DATA lv_dlvunit TYPE tdevc-dlvunit.
+    DATA lv_comp_type TYPE c LENGTH 1.
 
     SELECT SINGLE dlvunit FROM tdevc INTO lv_dlvunit
         WHERE devclass = iv_package_name AND intsys <> 'SAP'.
-    IF sy-subrc = 0 AND lv_dlvunit = 'LOCAL'.
-      rv_is_local = abap_true.
+    IF sy-subrc = 0.
+      " Look up type of software component (typically LOCAL or ZLOCAL but others are possible)
+      SELECT SINGLE comp_type FROM cvers INTO lv_comp_type WHERE component = lv_dlvunit.
+      rv_is_local = xsdbool( sy-subrc = 0 AND lv_comp_type CA 'LJZ' ).
     ENDIF.
 
   ENDMETHOD.
@@ -187,10 +188,9 @@ CLASS zcl_abapgit_object_devc IMPLEMENTATION.
 
   METHOD remove_obsolete_tadir.
 
-    TYPES temp1 TYPE STANDARD TABLE OF devclass.
-DATA:
+    DATA:
       lv_pack  TYPE devclass,
-      lt_pack  TYPE temp1,
+      lt_pack  TYPE STANDARD TABLE OF devclass,
       ls_tadir TYPE zif_abapgit_definitions=>ty_tadir,
       lt_tadir TYPE zif_abapgit_definitions=>ty_tadir_tt,
       ls_item  TYPE zif_abapgit_definitions=>ty_item.
@@ -338,12 +338,11 @@ DATA:
 
 
   METHOD update_pinf_usages.
-    TYPES temp2 TYPE SORTED TABLE OF i WITH UNIQUE KEY table_line.
-DATA: lt_current_permissions TYPE tpak_permission_to_use_list,
+    DATA: lt_current_permissions TYPE tpak_permission_to_use_list,
           li_usage               TYPE REF TO if_package_permission_to_use,
           ls_data_sign           TYPE scomppsign,
           ls_add_permission_data TYPE pkgpermdat,
-          lt_handled             TYPE temp2.
+          lt_handled             TYPE SORTED TABLE OF i WITH UNIQUE KEY table_line.
     FIELD-SYMBOLS: <ls_usage_data> LIKE LINE OF it_usage_data.
 
     " Get the current permissions
@@ -416,7 +415,7 @@ DATA: lt_current_permissions TYPE tpak_permission_to_use_list,
         EXCEPTIONS
           object_not_changeable = 1
           object_invalid        = 2
-*          deletion_not_allowed  = 3 downport, does not exist in 7.30
+*         deletion_not_allowed  = 3 downport, does not exist in 7.30
           intern_err            = 4
           OTHERS                = 5 ).
       IF sy-subrc <> 0.
@@ -649,8 +648,8 @@ DATA: lt_current_permissions TYPE tpak_permission_to_use_list,
           prefix_in_use              = 13
           unexpected_error           = 14
           intern_err                 = 15
-*          wrong_mainpack_value       = 16  downport, does not exist in 7.30
-*          superpackage_invalid       = 17  downport, does not exist in 7.30
+*         wrong_mainpack_value       = 16  downport, does not exist in 7.30
+*         superpackage_invalid       = 17  downport, does not exist in 7.30
           OTHERS                     = 18 ).
       IF sy-subrc <> 0.
         unlock_and_raise_error( li_package ).
@@ -682,10 +681,10 @@ DATA: lt_current_permissions TYPE tpak_permission_to_use_list,
           unexpected_error           = 15
           intern_err                 = 16
           no_access                  = 17
-*          invalid_translation_depth  = 18 downport, does not exist in 7.30
-*          wrong_mainpack_value       = 19 downport, does not exist in 7.30
-*          superpackage_invalid       = 20 downport, does not exist in 7.30
-*          error_in_cts_checks        = 21 downport, does not exist in 7.31
+*         invalid_translation_depth  = 18 downport, does not exist in 7.30
+*         wrong_mainpack_value       = 19 downport, does not exist in 7.30
+*         superpackage_invalid       = 20 downport, does not exist in 7.30
+*         error_in_cts_checks        = 21 downport, does not exist in 7.31
           OTHERS                     = 22 ).
       IF sy-subrc <> 0.
         zcx_abapgit_exception=>raise_t100( ).
@@ -743,12 +742,12 @@ DATA: lt_current_permissions TYPE tpak_permission_to_use_list,
     ELSE.
       cl_package_helper=>check_package_existence(
         EXPORTING
-          i_package_name          = mv_local_devclass
+          i_package_name   = mv_local_devclass
         IMPORTING
-          e_package_exists        = rv_bool
+          e_package_exists = rv_bool
         EXCEPTIONS
-          intern_err              = 1
-          OTHERS                  = 2 ).
+          intern_err       = 1
+          OTHERS           = 2 ).
       IF sy-subrc <> 0.
         zcx_abapgit_exception=>raise_t100( ).
       ENDIF.
