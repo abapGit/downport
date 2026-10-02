@@ -72,14 +72,11 @@ CLASS zcl_abapgit_object_ssst IMPLEMENTATION.
   METHOD zif_abapgit_object~deserialize.
 * see fm SSF_UPLOAD_STYLE
 
-    TYPES temp1 TYPE TABLE OF ssfparas.
-TYPES temp2 TYPE TABLE OF ssfstrings.
-TYPES temp3 TYPE TABLE OF stxstab.
-DATA: ls_header     TYPE ssfcats,
+    DATA: ls_header     TYPE ssfcats,
           ls_new_header TYPE ssfcats,
-          lt_paragraphs TYPE temp1,
-          lt_strings    TYPE temp2,
-          lt_tabstops   TYPE temp3.
+          lt_paragraphs TYPE TABLE OF ssfparas,
+          lt_strings    TYPE TABLE OF ssfstrings,
+          lt_tabstops   TYPE TABLE OF stxstab.
 
     FIELD-SYMBOLS: <lv_spras> TYPE spras.
 
@@ -151,9 +148,7 @@ DATA: ls_header     TYPE ssfcats,
       WHERE active    = c_style_active
         AND stylename = ms_item-obj_name
         AND vari      = ''.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -191,9 +186,8 @@ DATA: ls_header     TYPE ssfcats,
 
   METHOD zif_abapgit_object~jump.
 
-    TYPES temp4 TYPE STANDARD TABLE OF bdcdata.
-DATA: ls_bcdata TYPE bdcdata,
-          lt_bcdata TYPE temp4.
+    DATA: ls_bcdata TYPE bdcdata,
+          lt_bcdata TYPE STANDARD TABLE OF bdcdata.
 
     ls_bcdata-program  = 'SAPMSSFS'.
     ls_bcdata-dynpro   = '0100'.
@@ -232,14 +226,11 @@ DATA: ls_bcdata TYPE bdcdata,
   METHOD zif_abapgit_object~serialize.
 * see fm SSF_DOWNLOAD_STYLE
 
-    TYPES temp5 TYPE TABLE OF ssfparas.
-TYPES temp4 TYPE TABLE OF ssfstrings.
-TYPES temp6 TYPE TABLE OF stxstab.
-DATA: lv_style_name TYPE tdssname,
+    DATA: lv_style_name TYPE tdssname,
           ls_header     TYPE ssfcats,
-          lt_paragraphs TYPE temp5,
-          lt_strings    TYPE temp4,
-          lt_tabstops   TYPE temp6.
+          lt_paragraphs TYPE TABLE OF ssfparas,
+          lt_strings    TYPE TABLE OF ssfstrings,
+          lt_tabstops   TYPE TABLE OF stxstab.
 
 
     lv_style_name = ms_item-obj_name.
