@@ -91,7 +91,7 @@ CLASS zcl_abapgit_gui_page_debuginfo IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_debuginfo.
 
-    CREATE OBJECT lo_component.
+    lo_component = NEW #( ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Debug Info'
@@ -106,7 +106,7 @@ CLASS zcl_abapgit_gui_page_debuginfo IMPLEMENTATION.
     DATA lv_encode TYPE string.
     DATA li_html TYPE REF TO zif_abapgit_html.
 
-    CREATE OBJECT li_html TYPE zcl_abapgit_html.
+    li_html = NEW zcl_abapgit_html( ).
 
     lv_encode = zcl_abapgit_html_action_utils=>jump_encode( iv_obj_type = |{ iv_obj_type }|
                                                             iv_obj_name = |{ iv_obj_name }| ).
@@ -135,7 +135,7 @@ CLASS zcl_abapgit_gui_page_debuginfo IMPLEMENTATION.
 
     lv_gui_type = lo_frontend_serv->get_gui_type( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     IF zcl_abapgit_factory=>get_environment( )->is_merged( ) = abap_true.
       ri_html->add( '<h2>abapGit - Standalone Version</h2>' ).
@@ -189,7 +189,7 @@ CLASS zcl_abapgit_gui_page_debuginfo IMPLEMENTATION.
     DATA lo_oo_serializer TYPE REF TO zcl_abapgit_oo_serializer.
     DATA lo_class TYPE REF TO cl_oo_class.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<h2>User Exits</h2>' ).
 
@@ -217,7 +217,7 @@ CLASS zcl_abapgit_gui_page_debuginfo IMPLEMENTATION.
       TRY.
           ls_class_key-clsname = c_exit_class.
           DO.
-            CREATE OBJECT lo_oo_serializer.
+            lo_oo_serializer = NEW #( ).
             lt_source = lo_oo_serializer->serialize_abap_clif_source( ls_class_key ).
 
             ri_html->add( '<div>' ).
@@ -228,7 +228,7 @@ CLASS zcl_abapgit_gui_page_debuginfo IMPLEMENTATION.
                             iv_clsname = ls_class_key-clsname ) ).
 
             " Is there a super class of exit?
-            CREATE OBJECT lo_class EXPORTING clsname = ls_class_key-clsname.
+            lo_class = NEW #( clsname = ls_class_key-clsname ).
             ls_class_key-clsname = lo_class->get_superclass( ).
             IF ls_class_key-clsname IS INITIAL.
               EXIT.
@@ -255,7 +255,7 @@ CLASS zcl_abapgit_gui_page_debuginfo IMPLEMENTATION.
       lv_source  TYPE string,
       lv_rest    TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<table border="1px"><thead><tr>' ).
     ri_html->add( '<td>Exit</td><td class="center">Implemented?</td>' ).
@@ -303,7 +303,7 @@ CLASS zcl_abapgit_gui_page_debuginfo IMPLEMENTATION.
 
   METHOD render_scripts.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
     ri_html->add( 'debugOutput("<table><tr><td>Browser:</td><td>" + navigator.userAgent + ' &&
@@ -317,27 +317,18 @@ CLASS zcl_abapgit_gui_page_debuginfo IMPLEMENTATION.
 
     DATA: lv_list     TYPE string,
           li_html     TYPE REF TO zif_abapgit_html,
-          lt_types    TYPE zif_abapgit_objects=>ty_types_tt,
-          lv_type     LIKE LINE OF lt_types,
-          lt_obj      TYPE STANDARD TABLE OF ko100 WITH DEFAULT KEY,
+          lt_details  TYPE zif_abapgit_objects=>ty_type_details_tt,
+          ls_details  LIKE LINE OF lt_details,
           lv_class    TYPE seoclsname,
           li_object   TYPE REF TO zif_abapgit_object,
           ls_item     TYPE zif_abapgit_definitions=>ty_item,
           ls_metadata TYPE zif_abapgit_definitions=>ty_metadata,
           lv_step     TYPE zif_abapgit_objects=>ty_deserialization_step,
-          lt_steps    TYPE zif_abapgit_objects=>ty_deserialization_step_tt,
-          lt_descr    TYPE zif_abapgit_oo_object_fnc=>ty_seoclasstx_tt,
-          ls_descr    LIKE LINE OF lt_descr.
+          lt_steps    TYPE zif_abapgit_objects=>ty_deserialization_step_tt.
 
-    FIELD-SYMBOLS: <ls_obj> TYPE ko100.
+    lt_details = zcl_abapgit_objects=>supported_list_details( ).
 
-    CALL FUNCTION 'TR_OBJECT_TABLE'
-      TABLES
-        wt_object_text = lt_obj.
-
-    lt_types = zcl_abapgit_objects=>supported_list( ).
-
-    CREATE OBJECT li_html TYPE zcl_abapgit_html.
+    li_html = NEW zcl_abapgit_html( ).
 
     rv_html = '<h2>Object Types</h2>'.
 
@@ -350,36 +341,24 @@ CLASS zcl_abapgit_gui_page_debuginfo IMPLEMENTATION.
 
     rv_html = rv_html && |<table border="1px"><thead><tr>|.
     rv_html = rv_html && |<td>Object</td><td>Description</td><td>Class</td><td>Version</td>|.
-    rv_html = rv_html && |<td>Steps</td>|.
+    rv_html = rv_html && |<td>Steps</td><td>AFF</td>|.
     rv_html = rv_html && |</tr></thead><tbody>|.
 
-    LOOP AT lt_types INTO lv_type.
-      lv_class = 'ZCL_ABAPGIT_OBJECT_' && lv_type.
+    LOOP AT lt_details INTO ls_details.
+      lv_class = 'ZCL_ABAPGIT_OBJECT_' && ls_details-obj_type.
 
       rv_html = rv_html && |<tr>|.
 
-      rv_html = rv_html && |<td>{ lv_type }</td>|.
+      rv_html = rv_html && |<td>{ ls_details-obj_type }</td>|.
 
-      READ TABLE lt_obj ASSIGNING <ls_obj> WITH KEY pgmid = 'R3TR' object = lv_type.
-      IF sy-subrc = 0.
-        rv_html = rv_html && |<td>{ <ls_obj>-text }</td>|.
+      IF ls_details-description IS INITIAL.
+        rv_html = rv_html && |<td><span class="warning">No description</span></td>|.
       ELSE.
-        lt_descr = zcl_abapgit_oo_factory=>get_by_type( 'CLAS' )->read_descriptions_class( lv_class ).
-
-        READ TABLE lt_descr INTO ls_descr WITH KEY langu = sy-langu.
-        IF sy-subrc = 0.
-          ls_descr-descript = replace(
-            val  = ls_descr-descript
-            sub  = 'abapGit - '
-            with = '' ).
-        ELSE.
-          ls_descr-descript = '<span class="warning">No description</span>'.
-        ENDIF.
-        rv_html = rv_html && |<td>abapGit Enhancement: { ls_descr-descript }</td>|.
+        rv_html = rv_html && |<td>{ ls_details-description }</td>|.
       ENDIF.
 
       TRY.
-          ls_item-obj_type = lv_type.
+          ls_item-obj_type = ls_details-obj_type.
           ls_item-obj_name = 'TEST'.
 
           CREATE OBJECT li_object TYPE (lv_class)
@@ -391,9 +370,9 @@ CLASS zcl_abapgit_gui_page_debuginfo IMPLEMENTATION.
 
         CATCH cx_sy_create_object_error zcx_abapgit_exception.
           TRY. " 2nd step, try looking for plugins
-              CREATE OBJECT li_object TYPE zcl_abapgit_objects_bridge EXPORTING is_item = ls_item.
+              li_object = NEW zcl_abapgit_objects_bridge( is_item = ls_item ).
             CATCH cx_sy_create_object_error zcx_abapgit_exception.
-              rv_html = rv_html && |<td class="error" colspan="5">{ lv_class } - error instantiating class</td>|.
+              rv_html = rv_html && |<td class="error" colspan="4">{ lv_class } - error instantiating class</td>|.
               CONTINUE.
           ENDTRY.
 
@@ -430,6 +409,18 @@ CLASS zcl_abapgit_gui_page_debuginfo IMPLEMENTATION.
       ENDLOOP.
 
       rv_html = rv_html && |<td>{ lv_list }</td>|.
+
+      IF ls_details-aff_experimental = abap_true.
+        IF ls_details-aff_supported = abap_true.
+          rv_html = rv_html && |<td>Experimental (enabled)</td>|.
+        ELSE.
+          rv_html = rv_html && |<td>Experimental (disabled)</td>|.
+        ENDIF.
+      ELSEIF ls_details-aff_supported = abap_true.
+        rv_html = rv_html && |<td>Yes</td>|.
+      ELSE.
+        rv_html = rv_html && |<td></td>|.
+      ENDIF.
 
       rv_html = rv_html && |</tr>|.
 
@@ -505,7 +496,7 @@ CLASS zcl_abapgit_gui_page_debuginfo IMPLEMENTATION.
 
     register_handlers( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div id="debug_info" class="debug_container">' ).
     ri_html->add( render_debug_info( ) ).
