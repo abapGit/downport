@@ -20,7 +20,7 @@ CLASS ltcl_create_branch IMPLEMENTATION.
     ls_data-key = '1'.
     ls_data-url = 'https://github.com/abapGit/abapGit.git'.
 
-    mi_cut = NEW zcl_abapgit_repo_online( is_data = ls_data ).
+    CREATE OBJECT mi_cut TYPE zcl_abapgit_repo_online EXPORTING is_data = ls_data.
 
   ENDMETHOD.
 
