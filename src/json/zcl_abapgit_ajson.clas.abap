@@ -145,9 +145,9 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
 
 
   METHOD create_empty.
-    CREATE OBJECT ro_instance EXPORTING iv_to_abap_corresponding_only = iv_to_abap_corresponding_only
-                                        iv_format_datetime = iv_format_datetime
-                                        iv_keep_item_order = iv_keep_item_order.
+    ro_instance = NEW #( iv_to_abap_corresponding_only = iv_to_abap_corresponding_only
+                         iv_format_datetime = iv_format_datetime
+                         iv_keep_item_order = iv_keep_item_order ).
     ro_instance->mi_custom_mapping = ii_custom_mapping.
   ENDMETHOD.
 
@@ -160,14 +160,14 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
       zcx_abapgit_ajson_error=>raise( 'Source not bound' ).
     ENDIF.
 
-    CREATE OBJECT ro_instance EXPORTING iv_to_abap_corresponding_only = ii_source_json->opts( )-to_abap_corresponding_only
-                                        iv_format_datetime = ii_source_json->opts( )-format_datetime
-                                        iv_keep_item_order = ii_source_json->opts( )-keep_item_order.
+    ro_instance = NEW #( iv_to_abap_corresponding_only = ii_source_json->opts( )-to_abap_corresponding_only
+                         iv_format_datetime = ii_source_json->opts( )-format_datetime
+                         iv_keep_item_order = ii_source_json->opts( )-keep_item_order ).
 
     IF ii_filter IS NOT BOUND AND ii_mapper IS NOT BOUND.
       ro_instance->mt_json_tree = ii_source_json->mt_json_tree.
     ELSE.
-      CREATE OBJECT lo_mutator_queue.
+      lo_mutator_queue = NEW #( ).
       IF ii_mapper IS BOUND.
         " Mapping goes first. But maybe it should be a freely definable queue of processors ?
         lo_mutator_queue->add( lcl_mapper_runner=>new( ii_mapper ) ).
@@ -233,9 +233,9 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
 
 
   METHOD new.
-    CREATE OBJECT ro_instance EXPORTING iv_to_abap_corresponding_only = iv_to_abap_corresponding_only
-                                        iv_format_datetime = iv_format_datetime
-                                        iv_keep_item_order = iv_keep_item_order.
+    ro_instance = NEW #( iv_to_abap_corresponding_only = iv_to_abap_corresponding_only
+                         iv_format_datetime = iv_format_datetime
+                         iv_keep_item_order = iv_keep_item_order ).
   ENDMETHOD.
 
 
@@ -248,8 +248,8 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
 
     DATA lo_parser TYPE REF TO lcl_json_parser.
 
-    CREATE OBJECT ro_instance.
-    CREATE OBJECT lo_parser.
+    ro_instance = NEW #( ).
+    lo_parser = NEW #( ).
     ro_instance->mt_json_tree = lo_parser->parse(
       iv_json            = iv_json
       iv_keep_item_order = iv_keep_item_order ).
@@ -381,9 +381,7 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
 
 
   METHOD zif_abapgit_ajson~exists.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( get_item( iv_path ) IS NOT INITIAL ).
-    rv_exists = temp1.
+    rv_exists = xsdbool( get_item( iv_path ) IS NOT INITIAL ).
   ENDMETHOD.
 
 
@@ -423,9 +421,7 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
     IF lr_item IS INITIAL OR lr_item->type = zif_abapgit_ajson_types=>node_type-null.
       RETURN.
     ELSEIF lr_item->type = zif_abapgit_ajson_types=>node_type-boolean.
-      DATA temp2 TYPE xsdboolean.
-      temp2 = boolc( lr_item->value = 'true' ).
-      rv_value = temp2.
+      rv_value = xsdbool( lr_item->value = 'true' ).
     ELSEIF lr_item->value IS NOT INITIAL.
       rv_value = abap_true.
     ENDIF.
@@ -507,7 +503,7 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    CREATE OBJECT lo_to_abap.
+    lo_to_abap = NEW #( ).
 
     TRY.
         rv_value = lo_to_abap->to_timestamp( lr_item->value ).
@@ -529,7 +525,7 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    CREATE OBJECT lo_to_abap.
+    lo_to_abap = NEW #( ).
 
     TRY.
         rv_value = lo_to_abap->to_timestampl( lr_item->value ).
@@ -541,9 +537,7 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
 
 
   METHOD zif_abapgit_ajson~is_empty.
-    DATA temp3 TYPE xsdboolean.
-    temp3 = boolc( lines( mt_json_tree ) = 0 ).
-    rv_yes = temp3.
+    rv_yes = xsdbool( lines( mt_json_tree ) = 0 ).
   ENDMETHOD.
 
 
@@ -736,7 +730,7 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
     ENDIF.
 
     IF go_float_regex IS NOT BOUND.
-      CREATE OBJECT go_float_regex EXPORTING pattern = '^([1-9][0-9]*|0)\.[0-9]+$'.
+      go_float_regex = NEW #( pattern = '^([1-9][0-9]*|0)\.[0-9]+$' ).
       " expects fractional, because ints are detected separately
     ENDIF.
 
@@ -790,9 +784,7 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
     ri_json = me.
 
     DATA lv_bool TYPE abap_bool.
-    DATA temp4 TYPE xsdboolean.
-    temp4 = boolc( iv_val IS NOT INITIAL ).
-    lv_bool = temp4.
+    lv_bool = xsdbool( iv_val IS NOT INITIAL ).
     zif_abapgit_ajson~set(
       iv_ignore_empty = abap_false
       iv_path = iv_path
@@ -899,7 +891,7 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
     DATA lv_path_len        TYPE i.
     DATA lv_path_pattern    TYPE string.
 
-    CREATE OBJECT lo_section.
+    lo_section = NEW #( ).
     lo_section->mi_custom_mapping = mi_custom_mapping.
 
     lv_normalized_path = lcl_utils=>normalize_path( iv_path ).
@@ -1002,11 +994,9 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
     DATA lo_to_abap TYPE REF TO lcl_json_to_abap.
 
     CLEAR ev_container.
-    DATA temp5 TYPE xsdboolean.
-    temp5 = boolc( iv_corresponding = abap_true OR ms_opts-to_abap_corresponding_only = abap_true ).
-    CREATE OBJECT lo_to_abap EXPORTING iv_corresponding = temp5
-                                       ii_custom_mapping = mi_custom_mapping
-                                       ii_refs_initiator = ii_refs_initiator.
+    lo_to_abap = NEW #( iv_corresponding = xsdbool( iv_corresponding = abap_true OR ms_opts-to_abap_corresponding_only = abap_true )
+                        ii_custom_mapping = mi_custom_mapping
+                        ii_refs_initiator = ii_refs_initiator ).
 
     lo_to_abap->to_abap(
       EXPORTING
