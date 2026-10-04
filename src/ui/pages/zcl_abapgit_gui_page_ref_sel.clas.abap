@@ -78,9 +78,9 @@ CLASS zcl_abapgit_gui_page_ref_sel IMPLEMENTATION.
 
   METHOD create_in_page.
 
-    CREATE OBJECT ro_component EXPORTING iv_key = iv_key
-                                         iv_action = iv_action
-                                         iv_in_page = abap_true.
+    ro_component = NEW #( iv_key = iv_key
+                          iv_action = iv_action
+                          iv_in_page = abap_true ).
 
   ENDMETHOD.
 
@@ -89,8 +89,8 @@ CLASS zcl_abapgit_gui_page_ref_sel IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_ref_sel.
 
-    CREATE OBJECT lo_component EXPORTING iv_key = iv_key
-                                         iv_action = iv_action.
+    lo_component = NEW #( iv_key = iv_key
+                          iv_action = iv_action ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       ii_child_component = lo_component
