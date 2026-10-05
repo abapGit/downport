@@ -107,9 +107,8 @@ CLASS zcl_abapgit_object_smim IMPLEMENTATION.
 
   METHOD get_filename.
 
-    TYPES temp1 TYPE TABLE OF string.
-DATA: lv_lines   TYPE i,
-          lt_strings TYPE temp1.
+    DATA: lv_lines   TYPE i,
+          lt_strings TYPE TABLE OF string.
 
 
     SPLIT iv_url AT '/' INTO TABLE lt_strings.
@@ -124,8 +123,7 @@ DATA: lv_lines   TYPE i,
   METHOD get_filename_and_mimetype.
 
     DATA ls_phio TYPE skwf_io.
-    TYPES temp2 TYPE STANDARD TABLE OF skwf_io WITH DEFAULT KEY.
-DATA lt_phios TYPE temp2.
+    DATA lt_phios TYPE STANDARD TABLE OF skwf_io WITH DEFAULT KEY.
 
     " Get file name with extension which is important for importing object correctly
     CALL FUNCTION 'SKWF_LOIO_ALL_PHIOS_GET'
@@ -152,8 +150,7 @@ DATA lt_phios TYPE temp2.
   METHOD get_properties.
 
     DATA ls_loio_prop TYPE sdokpropty.
-    TYPES temp3 TYPE STANDARD TABLE OF sdokpropty WITH DEFAULT KEY.
-DATA lt_loio_props TYPE temp3.
+    DATA lt_loio_props TYPE STANDARD TABLE OF sdokpropty WITH DEFAULT KEY.
 
     CALL FUNCTION 'SKWF_IO_PROPERTIES_GET'
       EXPORTING
@@ -213,8 +210,7 @@ DATA lt_loio_props TYPE temp3.
   METHOD set_filename_and_mimetype.
 
     DATA ls_phio TYPE skwf_io.
-    TYPES temp4 TYPE STANDARD TABLE OF skwf_io WITH DEFAULT KEY.
-DATA lt_phios TYPE temp4.
+    DATA lt_phios TYPE STANDARD TABLE OF skwf_io WITH DEFAULT KEY.
 
     IF is_extra-mimetype IS INITIAL OR is_extra-file_name IS INITIAL.
       RETURN.
@@ -240,8 +236,7 @@ DATA lt_phios TYPE temp4.
   METHOD set_properties.
 
     DATA ls_property TYPE sdokpropty.
-    TYPES temp5 TYPE STANDARD TABLE OF sdokpropty WITH DEFAULT KEY.
-DATA lt_properties TYPE temp5.
+    DATA lt_properties TYPE STANDARD TABLE OF sdokpropty WITH DEFAULT KEY.
     DATA lv_abap_language_version TYPE uccheck.
 
     ls_property-name  = c_prop_description.
@@ -408,9 +403,7 @@ DATA lt_properties TYPE temp5.
 
     SELECT SINGLE loio_id FROM smimloio INTO lv_loio
       WHERE loio_id = lv_loio.                          "#EC CI_GENBUFF
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
