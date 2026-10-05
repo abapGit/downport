@@ -221,8 +221,8 @@ CLASS ltcl_aff_settings_deserialize IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    lo_cut = NEW #( is_item = ls_item
-                    iv_language = 'E' ).
+    CREATE OBJECT lo_cut EXPORTING is_item = ls_item
+                                   iv_language = 'E'.
 
     TRY.
         lo_settings_deserialize = lo_cut->create_aff_setting_deserialize( ).
