@@ -162,9 +162,9 @@ CLASS zcl_abapgit_gui_page_merge_res IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_merge_res.
 
-    CREATE OBJECT lo_component EXPORTING ii_repo_online = ii_repo_online
-                                         io_merge_page = io_merge_page
-                                         io_merge = io_merge.
+    lo_component = NEW #( ii_repo_online = ii_repo_online
+                          io_merge_page = io_merge_page
+                          io_merge = io_merge ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title         = 'Resolve Merge Conflicts'
@@ -194,7 +194,7 @@ CLASS zcl_abapgit_gui_page_merge_res IMPLEMENTATION.
     DATA: lv_beacon  TYPE string,
           lt_beacons TYPE zif_abapgit_definitions=>ty_string_tt.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     IF is_diff_line-beacon > 0.
       lt_beacons = is_diff-o_diff->get_beacons( ).
@@ -203,14 +203,12 @@ CLASS zcl_abapgit_gui_page_merge_res IMPLEMENTATION.
       lv_beacon = '---'.
     ENDIF.
 
-    ri_html->add( '<thead class="nav_line">' ).
-    ri_html->add( '<tr>' ).
+    ri_html->add( '<tr class="nav_line">' ).
 
     ri_html->add( '<th class="num"></th>' ).
     ri_html->add( |<th colspan="3">@@ { is_diff_line-new_num } @@ { lv_beacon }</th>| ).
 
     ri_html->add( '</tr>' ).
-    ri_html->add( '</thead>' ).
 
   ENDMETHOD.
 
@@ -221,7 +219,7 @@ CLASS zcl_abapgit_gui_page_merge_res IMPLEMENTATION.
 
     FIELD-SYMBOLS <ls_conflict> TYPE zif_abapgit_merge=>ty_merge_conflict.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( |<div class="diff" data-type="{ is_diff-type
       }" data-changed-by="{ is_diff-changed_by
@@ -299,7 +297,7 @@ CLASS zcl_abapgit_gui_page_merge_res IMPLEMENTATION.
 
     DATA ls_stats TYPE zif_abapgit_definitions=>ty_count.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div class="diff_head">' ).
 
@@ -325,7 +323,7 @@ CLASS zcl_abapgit_gui_page_merge_res IMPLEMENTATION.
     FIELD-SYMBOLS <ls_diff>  LIKE LINE OF lt_diffs.
 
     lo_highlighter = zcl_abapgit_syntax_factory=>create( is_diff-filename ).
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     lt_diffs = is_diff-o_diff->get( ).
 
@@ -368,7 +366,7 @@ CLASS zcl_abapgit_gui_page_merge_res IMPLEMENTATION.
           lv_mark TYPE string,
           lv_bg   TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     " New line
     lv_mark = ` `.
@@ -379,7 +377,7 @@ CLASS zcl_abapgit_gui_page_merge_res IMPLEMENTATION.
       lv_bg = ' diff_ins'.
       lv_mark = `+`.
     ENDIF.
-    lv_new = |<td class="num" line-num="{ is_diff_line-new_num }"></td>|
+    lv_new = |<td class="num" data-num="{ is_diff_line-new_num }"></td>|
           && |<td class="code{ lv_bg }">{ lv_mark }{ is_diff_line-new }</td>|.
 
     " Old line
@@ -392,7 +390,7 @@ CLASS zcl_abapgit_gui_page_merge_res IMPLEMENTATION.
       lv_bg = ' diff_del'.
       lv_mark = `-`.
     ENDIF.
-    lv_old = |<td class="num" line-num="{ is_diff_line-old_num }"></td>|
+    lv_old = |<td class="num" data-num="{ is_diff_line-old_num }"></td>|
           && |<td class="code{ lv_bg }">{ lv_mark }{ is_diff_line-old }</td>|.
 
     " render line, inverse sides if remote is newer
@@ -406,7 +404,7 @@ CLASS zcl_abapgit_gui_page_merge_res IMPLEMENTATION.
 
   METHOD render_table_head.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<thead class="header">' ).
     ri_html->add( '<tr>' ).
@@ -567,7 +565,7 @@ CLASS zcl_abapgit_gui_page_merge_res IMPLEMENTATION.
       zcx_abapgit_exception=>raise( 'no conflict found' ).
     ENDIF.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
     ri_html->add( |<div id="diff-list" data-repo-key="{ li_repo->get_key( ) }">| ).
     ri_html->add( render_diff( ms_diff_file ) ).
     ri_html->add( '</div>' ).

@@ -53,14 +53,14 @@ ENDCLASS.
 CLASS ltcl_aff_type_mapping IMPLEMENTATION.
 
   METHOD setup.
-    CREATE OBJECT mi_cut TYPE lcl_aff_type_mapping.
+    mi_cut = NEW lcl_aff_type_mapping( ).
   ENDMETHOD.
 
   METHOD assert_to_aff.
     DATA lo_source TYPE REF TO lcl_doma_data.
     DATA ls_aff TYPE zif_abapgit_aff_doma_v1=>ty_main.
 
-    CREATE OBJECT lo_source.
+    lo_source = NEW #( ).
     lo_source->ms_dd01v-datatype = iv_ddic.
     lo_source->ms_dd01v-leng = iv_length.
 
@@ -153,7 +153,7 @@ CLASS ltcl_aff_type_mapping IMPLEMENTATION.
     DATA ls_aff TYPE zif_abapgit_aff_doma_v1=>ty_main.
     DATA ls_dd07v TYPE dd07v.
 
-    CREATE OBJECT lo_source.
+    lo_source = NEW #( ).
     " DDIC leaves the upper limit of a single fixed value empty
     ls_dd07v-domvalue_l = 'A'.
     ls_dd07v-ddtext = 'Active'.
