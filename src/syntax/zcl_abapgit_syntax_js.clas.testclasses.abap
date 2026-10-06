@@ -26,7 +26,7 @@ ENDCLASS.
 CLASS ltcl_syntax_js IMPLEMENTATION.
 
   METHOD setup.
-    mo_cut = NEW #( ).
+    CREATE OBJECT mo_cut.
   ENDMETHOD.
 
   METHOD language_keywords.
@@ -162,7 +162,7 @@ CLASS ltcl_syntax_js IMPLEMENTATION.
     DATA lv_line TYPE string.
 
     lv_line = mo_cut->process_line( '/* start' ).
-    lo_other = NEW #( ).
+    CREATE OBJECT lo_other.
     cl_abap_unit_assert=>assert_equals(
       act = lo_other->process_line( 'const' )
       exp = '<span class="keyword">const</span>' ).
