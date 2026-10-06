@@ -12,7 +12,7 @@ CLASS lcl_memory_settings IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD zif_abapgit_persist_settings~read.
-    ro_settings = NEW #( ).
+    CREATE OBJECT ro_settings.
   ENDMETHOD.
 ENDCLASS.
 
@@ -46,7 +46,7 @@ CLASS ltcl_run_checks IMPLEMENTATION.
     " Assume for unit tests that starting folder is /src/ with prefix logic
     mo_dot = zcl_abapgit_dot_abapgit=>build_default( ).
 
-    li_memory = NEW #( ).
+    CREATE OBJECT li_memory.
     zcl_abapgit_persist_injector=>set_settings( li_memory ).
 
   ENDMETHOD.
