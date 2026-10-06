@@ -122,7 +122,7 @@ CLASS zcl_abapgit_gui_page_db IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_db.
 
-    CREATE OBJECT lo_component.
+    lo_component = NEW #( ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title         = 'Database Utility'
@@ -156,7 +156,7 @@ CLASS zcl_abapgit_gui_page_db IMPLEMENTATION.
     lv_text = |\n|.
     INSERT lv_text INTO TABLE lt_toc.
 
-    CREATE OBJECT lo_zip.
+    lo_zip = NEW #( ).
 
     LOOP AT lt_data ASSIGNING <ls_data>.
       IF <ls_data>-type = zcl_abapgit_persistence_db=>c_type_repo_csum.
@@ -256,7 +256,7 @@ CLASS zcl_abapgit_gui_page_db IMPLEMENTATION.
 
     lv_zip = li_fe_serv->file_upload( lv_path ).
 
-    CREATE OBJECT lo_zip.
+    lo_zip = NEW #( ).
 
     lo_zip->load(
       EXPORTING
@@ -644,6 +644,7 @@ CLASS zcl_abapgit_gui_page_db IMPLEMENTATION.
   METHOD zif_abapgit_gui_renderable~render.
 
     DATA lt_db_entries TYPE zif_abapgit_persistence=>ty_contents.
+    DATA lo_script TYPE REF TO zif_abapgit_html.
 
     register_handlers( ).
 
@@ -660,6 +661,10 @@ CLASS zcl_abapgit_gui_page_db IMPLEMENTATION.
     ri_html->add( '</div>' ).
 
     ri_html->add( lcl_popup_to_confirm=>render( ) ).
+
+    lo_script = zcl_abapgit_html=>create( ).
+    lo_script->add( 'rememberScrollPosition("db-list");' ).
+    register_deferred_script( lo_script ).
 
   ENDMETHOD.
 

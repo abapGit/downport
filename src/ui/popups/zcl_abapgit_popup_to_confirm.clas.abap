@@ -86,12 +86,6 @@ CLASS zcl_abapgit_popup_to_confirm DEFINITION
       RAISING
         zcx_abapgit_exception.
 
-    METHODS render_scripts
-      RETURNING
-        VALUE(ri_html) TYPE REF TO zif_abapgit_html
-      RAISING
-        zcx_abapgit_exception.
-
 ENDCLASS.
 
 
@@ -119,7 +113,7 @@ CLASS zcl_abapgit_popup_to_confirm IMPLEMENTATION.
     mv_action_cancel         = iv_action_cancel.
     mv_popup_type            = iv_popup_type.
 
-    CREATE OBJECT mo_form_data.
+    mo_form_data = NEW #( ).
     mo_form = get_form_schema( ).
 
   ENDMETHOD.
@@ -127,16 +121,16 @@ CLASS zcl_abapgit_popup_to_confirm IMPLEMENTATION.
 
   METHOD create.
 
-    CREATE OBJECT ro_popup EXPORTING iv_titlebar = iv_titlebar
-                                     iv_text_question = iv_text_question
-                                     iv_text_button_1 = iv_text_button_1
-                                     iv_action_button_1 = iv_action_button_1
-                                     iv_text_button_2 = iv_text_button_2
-                                     iv_action_button_2 = iv_action_button_2
-                                     iv_default_button = iv_default_button
-                                     iv_display_cancel_button = iv_display_cancel_button
-                                     iv_action_cancel = iv_action_cancel
-                                     iv_popup_type = iv_popup_type.
+    ro_popup = NEW #( iv_titlebar = iv_titlebar
+                      iv_text_question = iv_text_question
+                      iv_text_button_1 = iv_text_button_1
+                      iv_action_button_1 = iv_action_button_1
+                      iv_text_button_2 = iv_text_button_2
+                      iv_action_button_2 = iv_action_button_2
+                      iv_default_button = iv_default_button
+                      iv_display_cancel_button = iv_display_cancel_button
+                      iv_action_cancel = iv_action_cancel
+                      iv_popup_type = iv_popup_type ).
 
   ENDMETHOD.
 
@@ -209,12 +203,6 @@ CLASS zcl_abapgit_popup_to_confirm IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD render_scripts.
-    " Prevent keyboard navigation to elements outside the modal popup
-    ri_html = zcl_abapgit_html=>create( )->set_title( 'popup_to_confirm' )->add( 'trapFocus();' ).
-  ENDMETHOD.
-
-
   METHOD was_closed.
     rv_yes = mv_closed.
   ENDMETHOD.
@@ -237,8 +225,6 @@ CLASS zcl_abapgit_popup_to_confirm IMPLEMENTATION.
     register_handlers( ).
 
     ri_html = zcl_abapgit_html=>create( mo_form->render( mo_form_data ) ).
-
-    register_deferred_script( render_scripts( ) ).
 
   ENDMETHOD.
 ENDCLASS.

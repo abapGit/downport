@@ -44,7 +44,7 @@ CLASS zcl_abapgit_json_path IMPLEMENTATION.
 
     APPEND `$` TO lt_root_path.
 
-    CREATE OBJECT lo_json_path.
+    lo_json_path = NEW #( ).
     lo_json_path->serialize_rec( EXPORTING io_reader     = lo_reader
                                            it_path       = lt_root_path
                                  CHANGING  ct_json_paths = rt_result ).
