@@ -347,7 +347,7 @@ CLASS ZCL_ABAPGIT_OBJECT_TABL_DDL IMPLEMENTATION.
 
 
   METHOD constructor.
-    mi_replacement_mapping = NEW lcl_replacement_mapping( ).
+    CREATE OBJECT mi_replacement_mapping TYPE lcl_replacement_mapping.
   ENDMETHOD.
 
 
