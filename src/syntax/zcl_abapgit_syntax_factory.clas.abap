@@ -24,19 +24,19 @@ CLASS ZCL_ABAPGIT_SYNTAX_FACTORY IMPLEMENTATION.
 
     " Create instance of highlighter dynamically dependent on syntax type
     IF iv_filename CP '*.abap'.
-      CREATE OBJECT ro_instance TYPE zcl_abapgit_syntax_abap.
+      ro_instance = NEW zcl_abapgit_syntax_abap( ).
     ELSEIF iv_filename CP '*.xml' OR iv_filename CP '*.html' OR iv_filename CP '*.xdp'.
-      CREATE OBJECT ro_instance TYPE zcl_abapgit_syntax_xml.
+      ro_instance = NEW zcl_abapgit_syntax_xml( ).
     ELSEIF iv_filename CP '*.css'.
-      CREATE OBJECT ro_instance TYPE zcl_abapgit_syntax_css.
+      ro_instance = NEW zcl_abapgit_syntax_css( ).
     ELSEIF iv_filename CP '*.js'.
-      CREATE OBJECT ro_instance TYPE zcl_abapgit_syntax_js.
+      ro_instance = NEW zcl_abapgit_syntax_js( ).
     ELSEIF iv_filename CP '*.json' OR iv_filename CP '*.jsonc'.
-      CREATE OBJECT ro_instance TYPE zcl_abapgit_syntax_json.
+      ro_instance = NEW zcl_abapgit_syntax_json( ).
     ELSEIF iv_filename CP '*.txt' OR iv_filename CP '*.ini'  OR iv_filename CP '*.text'.
-      CREATE OBJECT ro_instance TYPE zcl_abapgit_syntax_txt.
+      ro_instance = NEW zcl_abapgit_syntax_txt( ).
     ELSEIF iv_filename CP '*.po'.
-      CREATE OBJECT ro_instance TYPE zcl_abapgit_syntax_po.
+      ro_instance = NEW zcl_abapgit_syntax_po( ).
     ELSE.
       CLEAR ro_instance.
     ENDIF.
