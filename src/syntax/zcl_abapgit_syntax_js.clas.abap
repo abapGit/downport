@@ -188,8 +188,7 @@ CLASS zcl_abapgit_syntax_js IMPLEMENTATION.
 
   METHOD insert_keywords.
 
-    TYPES temp1 TYPE STANDARD TABLE OF string.
-DATA: lt_keywords TYPE temp1,
+    DATA: lt_keywords TYPE STANDARD TABLE OF string,
           ls_keyword  TYPE ty_keyword.
 
     FIELD-SYMBOLS: <lv_keyword> TYPE any.
@@ -209,9 +208,7 @@ DATA: lt_keywords TYPE temp1,
   METHOD is_keyword.
 
     READ TABLE gt_keywords WITH TABLE KEY keyword = iv_chunk TRANSPORTING NO FIELDS.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_yes = temp1.
+    rv_yes = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
