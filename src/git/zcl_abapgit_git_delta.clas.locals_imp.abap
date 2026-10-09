@@ -17,9 +17,7 @@ CLASS lcl_stream IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD has_data.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( mv_position < mv_length ).
-    rv_data = temp1.
+    rv_data = xsdbool( mv_position < mv_length ).
   ENDMETHOD.
 
   METHOD eat_offset_and_length.
