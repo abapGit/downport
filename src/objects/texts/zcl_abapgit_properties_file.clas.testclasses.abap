@@ -15,7 +15,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
     DATA: lo_cut TYPE REF TO zcl_abapgit_properties_file.
     DATA: lv_act TYPE laiso.
-    CREATE OBJECT lo_cut EXPORTING iv_lang = 'DE'.
+    lo_cut = NEW #( iv_lang = 'DE' ).
     lv_act = lo_cut->zif_abapgit_i18n_file~lang( ).
 
     cl_abap_unit_assert=>assert_equals(
