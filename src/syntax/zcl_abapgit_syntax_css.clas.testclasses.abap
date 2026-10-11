@@ -26,7 +26,7 @@ ENDCLASS.
 CLASS ltcl_syntax_css IMPLEMENTATION.
 
   METHOD setup.
-    mo_cut = NEW #( ).
+    CREATE OBJECT mo_cut.
   ENDMETHOD.
 
   METHOD properties_and_values.
