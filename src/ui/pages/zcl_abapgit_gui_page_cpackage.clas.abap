@@ -72,8 +72,8 @@ CLASS zcl_abapgit_gui_page_cpackage IMPLEMENTATION.
 
     super->constructor( ).
 
-    CREATE OBJECT mo_validation_log.
-    CREATE OBJECT mo_form_data.
+    mo_validation_log = NEW #( ).
+    mo_form_data = NEW #( ).
 
     mo_form = get_form_schema( ).
     mo_form_util = zcl_abapgit_html_form_utils=>create( mo_form ).
@@ -134,7 +134,7 @@ CLASS zcl_abapgit_gui_page_cpackage IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_cpackage.
 
-    CREATE OBJECT lo_component.
+    lo_component = NEW #( ).
     lo_component->mv_default_name = iv_name.
     lo_component->mo_caller_form = io_caller_form.
     lo_component->mv_caller_field = iv_caller_field.
@@ -208,7 +208,7 @@ CLASS zcl_abapgit_gui_page_cpackage IMPLEMENTATION.
       get_defaults( ).
     ENDIF.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div class="form-container">' ).
     ri_html->add( mo_form->render(

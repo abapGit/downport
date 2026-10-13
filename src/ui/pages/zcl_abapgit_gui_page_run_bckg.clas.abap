@@ -40,7 +40,7 @@ CLASS zcl_abapgit_gui_page_run_bckg IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_run_bckg.
 
-    CREATE OBJECT lo_component.
+    lo_component = NEW #( ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Background Run'
@@ -88,7 +88,7 @@ CLASS zcl_abapgit_gui_page_run_bckg IMPLEMENTATION.
 
     run( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div id="toc">' ).
     LOOP AT mt_text INTO lv_text.
