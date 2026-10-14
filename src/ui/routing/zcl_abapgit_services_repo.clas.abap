@@ -145,7 +145,7 @@ CLASS zcl_abapgit_services_repo IMPLEMENTATION.
 
     li_repo = zcl_abapgit_repo_srv=>get_instance( )->get( iv_key ).
 
-    CREATE OBJECT lo_browser EXPORTING ii_repo = li_repo.
+    lo_browser = NEW #( ii_repo = li_repo ).
 
     lt_repo_items = lo_browser->list( '/' ).
 
@@ -314,7 +314,7 @@ CLASS zcl_abapgit_services_repo IMPLEMENTATION.
     DATA ls_checks TYPE zif_abapgit_definitions=>ty_deserialize_checks.
 
     " find troublesome objects
-    li_pull = zcl_abapgit_factory=>get_repo_pull( ii_repo ).
+    li_pull = zcl_abapgit_repo_factory=>get_repo_pull( ii_repo ).
 
     ls_checks = li_pull->checks( ).
 
@@ -839,7 +839,7 @@ CLASS zcl_abapgit_services_repo IMPLEMENTATION.
     DATA li_log TYPE REF TO zif_abapgit_log.
     DATA lv_msg TYPE string.
 
-    li_pull = zcl_abapgit_factory=>get_repo_pull( ii_repo ).
+    li_pull = zcl_abapgit_repo_factory=>get_repo_pull( ii_repo ).
 
     li_log = li_pull->pull( is_checks ).
 
@@ -979,7 +979,7 @@ CLASS zcl_abapgit_services_repo IMPLEMENTATION.
 
     ls_transport_to_branch = zcl_abapgit_ui_factory=>get_popups( )->popup_to_create_transp_branch( lv_trkorr ).
 
-    CREATE OBJECT lo_transport_to_branch.
+    lo_transport_to_branch = NEW #( ).
     lo_transport_to_branch->create(
       ii_repo_online         = li_repo_online
       is_transport_to_branch = ls_transport_to_branch

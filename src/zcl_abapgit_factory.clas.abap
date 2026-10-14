@@ -37,11 +37,6 @@ CLASS zcl_abapgit_factory DEFINITION
     CLASS-METHODS get_function_module
       RETURNING
         VALUE(ri_function_module) TYPE REF TO zif_abapgit_function_module.
-    CLASS-METHODS get_repo_pull
-      IMPORTING
-        !ii_repo            TYPE REF TO zif_abapgit_repo
-      RETURNING
-        VALUE(ri_repo_pull) TYPE REF TO zif_abapgit_repo_pull.
   PROTECTED SECTION.
   PRIVATE SECTION.
 
@@ -63,7 +58,6 @@ CLASS zcl_abapgit_factory DEFINITION
     CLASS-DATA gi_sap_namespace TYPE REF TO zif_abapgit_sap_namespace .
     CLASS-DATA gi_sap_report TYPE REF TO zif_abapgit_sap_report.
     CLASS-DATA gi_function_module TYPE REF TO zif_abapgit_function_module.
-    CLASS-DATA gi_repo_pull TYPE REF TO zif_abapgit_repo_pull.
     CLASS-DATA gi_default_transport TYPE REF TO zif_abapgit_default_transport .
 ENDCLASS.
 
@@ -74,7 +68,7 @@ CLASS zcl_abapgit_factory IMPLEMENTATION.
 
   METHOD get_cts_api.
     IF gi_cts_api IS NOT BOUND.
-      CREATE OBJECT gi_cts_api TYPE zcl_abapgit_cts_api.
+      gi_cts_api = NEW zcl_abapgit_cts_api( ).
     ENDIF.
 
     ri_cts_api = gi_cts_api.
@@ -84,7 +78,7 @@ CLASS zcl_abapgit_factory IMPLEMENTATION.
   METHOD get_default_transport.
 
     IF gi_default_transport IS NOT BOUND.
-      CREATE OBJECT gi_default_transport TYPE zcl_abapgit_default_transport.
+      gi_default_transport = NEW zcl_abapgit_default_transport( ).
     ENDIF.
 
     ri_default_transport = gi_default_transport.
@@ -94,7 +88,7 @@ CLASS zcl_abapgit_factory IMPLEMENTATION.
 
   METHOD get_environment.
     IF gi_environment IS NOT BOUND.
-      CREATE OBJECT gi_environment TYPE zcl_abapgit_environment.
+      gi_environment = NEW zcl_abapgit_environment( ).
     ENDIF.
     ri_environment = gi_environment.
   ENDMETHOD.
@@ -103,7 +97,7 @@ CLASS zcl_abapgit_factory IMPLEMENTATION.
   METHOD get_function_module.
 
     IF gi_function_module IS NOT BOUND.
-      CREATE OBJECT gi_function_module TYPE zcl_abapgit_function_module.
+      gi_function_module = NEW zcl_abapgit_function_module( ).
     ENDIF.
 
     ri_function_module = gi_function_module.
@@ -114,7 +108,7 @@ CLASS zcl_abapgit_factory IMPLEMENTATION.
   METHOD get_longtexts.
 
     IF gi_longtext IS NOT BOUND.
-      CREATE OBJECT gi_longtext TYPE zcl_abapgit_longtexts.
+      gi_longtext = NEW zcl_abapgit_longtexts( ).
     ENDIF.
     ri_longtexts = gi_longtext.
 
@@ -124,21 +118,9 @@ CLASS zcl_abapgit_factory IMPLEMENTATION.
   METHOD get_lxe_texts.
 
     IF gi_lxe_texts IS NOT BOUND.
-      CREATE OBJECT gi_lxe_texts TYPE zcl_abapgit_lxe_texts.
+      gi_lxe_texts = NEW zcl_abapgit_lxe_texts( ).
     ENDIF.
     ri_lxe_texts = gi_lxe_texts.
-
-  ENDMETHOD.
-
-
-  METHOD get_repo_pull.
-
-    " bound to one repository, so a new instance unless a test double is injected
-    IF gi_repo_pull IS BOUND.
-      ri_repo_pull = gi_repo_pull.
-    ELSE.
-      CREATE OBJECT ri_repo_pull TYPE zcl_abapgit_repo_pull EXPORTING ii_repo = ii_repo.
-    ENDIF.
 
   ENDMETHOD.
 
@@ -146,7 +128,7 @@ CLASS zcl_abapgit_factory IMPLEMENTATION.
   METHOD get_sap_namespace.
 
     IF gi_sap_namespace IS NOT BOUND.
-      CREATE OBJECT gi_sap_namespace TYPE zcl_abapgit_sap_namespace.
+      gi_sap_namespace = NEW zcl_abapgit_sap_namespace( ).
     ENDIF.
 
     ri_namespace = gi_sap_namespace.
@@ -166,7 +148,7 @@ CLASS zcl_abapgit_factory IMPLEMENTATION.
     IF sy-subrc <> 0.
 
       ls_sap_package-package = iv_package.
-      CREATE OBJECT ls_sap_package-instance TYPE zcl_abapgit_sap_package EXPORTING iv_package = iv_package.
+      ls_sap_package-instance = NEW zcl_abapgit_sap_package( iv_package = iv_package ).
 
       INSERT ls_sap_package
              INTO TABLE gt_sap_package
@@ -182,7 +164,7 @@ CLASS zcl_abapgit_factory IMPLEMENTATION.
   METHOD get_sap_report.
 
     IF gi_sap_report IS NOT BOUND.
-      CREATE OBJECT gi_sap_report TYPE zcl_abapgit_sap_report.
+      gi_sap_report = NEW zcl_abapgit_sap_report( ).
     ENDIF.
 
     ri_report = gi_sap_report.
@@ -193,7 +175,7 @@ CLASS zcl_abapgit_factory IMPLEMENTATION.
   METHOD get_tadir.
 
     IF gi_tadir IS NOT BOUND.
-      CREATE OBJECT gi_tadir TYPE zcl_abapgit_tadir.
+      gi_tadir = NEW zcl_abapgit_tadir( ).
     ENDIF.
 
     ri_tadir = gi_tadir.

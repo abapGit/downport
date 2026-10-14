@@ -77,7 +77,7 @@ CLASS zcl_abapgit_background_push_fi IMPLEMENTATION.
     ASSERT lines( ls_files-local ) > 0
         OR lines( ls_files-remote ) > 0.
 
-    CREATE OBJECT lo_stage.
+    lo_stage = NEW #( ).
 
     LOOP AT ls_files-local ASSIGNING <ls_local>.
       mi_log->add_info( |stage: { <ls_local>-file-path } { <ls_local>-file-filename }| ).
@@ -99,8 +99,9 @@ CLASS zcl_abapgit_background_push_fi IMPLEMENTATION.
     ls_comment-committer-email = iv_email.
     ls_comment-comment         = build_comment( ls_files ).
 
-    ii_repo_online->push( is_comment = ls_comment
-                          io_stage   = lo_stage ).
+    zcl_abapgit_repo_factory=>get_repo_push( ii_repo_online )->push(
+      is_comment = ls_comment
+      io_stage   = lo_stage ).
 
   ENDMETHOD.
 

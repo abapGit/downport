@@ -48,7 +48,7 @@ CLASS zcl_abapgit_transport_2_branch IMPLEMENTATION.
 
     ii_repo_online->create_branch( lv_branch_name ).
 
-    CREATE OBJECT lo_stage.
+    lo_stage = NEW #( ).
 
     ls_stage_objects = zcl_abapgit_stage_logic=>get_stage_logic( )->get( ii_repo_online ).
 
@@ -62,8 +62,9 @@ CLASS zcl_abapgit_transport_2_branch IMPLEMENTATION.
 
     ls_comment = generate_commit_message( is_transport_to_branch ).
 
-    ii_repo_online->push( is_comment = ls_comment
-                          io_stage   = lo_stage ).
+    zcl_abapgit_repo_factory=>get_repo_push( ii_repo_online )->push(
+      is_comment = ls_comment
+      io_stage   = lo_stage ).
   ENDMETHOD.
 
 
@@ -76,7 +77,7 @@ CLASS zcl_abapgit_transport_2_branch IMPLEMENTATION.
 
   METHOD stage_transport_objects.
     DATA lo_transport_objects TYPE REF TO zcl_abapgit_transport_objects.
-    CREATE OBJECT lo_transport_objects EXPORTING it_transport_objects = it_transport_objects.
+    lo_transport_objects = NEW #( it_transport_objects = it_transport_objects ).
 
     lo_transport_objects->to_stage(
       io_stage           = io_stage
