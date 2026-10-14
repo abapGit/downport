@@ -51,11 +51,12 @@ CLASS zcl_abapgit_object_shi5 IMPLEMENTATION.
 
   METHOD zif_abapgit_object~delete.
 
-    DATA:
+    TYPES temp1 TYPE TABLE OF treenamesp.
+DATA:
       ls_msg              TYPE hier_mess,
       lv_found_users      TYPE hier_yesno,
       ls_check_extensions TYPE treenamesp,
-      lt_check_extensions TYPE TABLE OF treenamesp,
+      lt_check_extensions TYPE temp1,
       lv_obj_name         TYPE ko200-obj_name.
 
     " STREE_EXTENSION_DELETE shows a popup so do the same here
@@ -174,7 +175,9 @@ CLASS zcl_abapgit_object_shi5 IMPLEMENTATION.
       IMPORTING
         extension_header = ls_extension_header.
 
-    rv_bool = xsdbool( ls_extension_header IS NOT INITIAL ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( ls_extension_header IS NOT INITIAL ).
+    rv_bool = temp1.
 
   ENDMETHOD.
 
@@ -211,7 +214,8 @@ CLASS zcl_abapgit_object_shi5 IMPLEMENTATION.
 
 
   METHOD zif_abapgit_object~jump.
-    DATA: lt_extension TYPE STANDARD TABLE OF ttree_ext.
+    TYPES temp2 TYPE STANDARD TABLE OF ttree_ext.
+DATA: lt_extension TYPE temp2.
     FIELD-SYMBOLS: <ls_extension> LIKE LINE OF lt_extension.
 
     INSERT INITIAL LINE INTO TABLE lt_extension ASSIGNING <ls_extension>.
