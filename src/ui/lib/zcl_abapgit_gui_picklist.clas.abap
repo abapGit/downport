@@ -111,8 +111,8 @@ CLASS zcl_abapgit_gui_picklist IMPLEMENTATION.
       zcx_abapgit_exception=>raise( 'Renderer or attr name required' ).
     ENDIF.
 
-    CREATE OBJECT mo_form_data.
-    CREATE OBJECT mo_validation_log.
+    mo_form_data = NEW #( ).
+    mo_validation_log = NEW #( ).
     mo_form = get_form_schema( ).
     mo_form_util = zcl_abapgit_html_form_utils=>create( mo_form ).
 
@@ -131,12 +131,11 @@ CLASS zcl_abapgit_gui_picklist IMPLEMENTATION.
 
     ASSIGN mr_list->* TO <lt_list>.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( lines( <lt_list> ) <= 15 ).
     ro_form->radio(
-      iv_name     = c_radio_name
-      iv_label    = mv_title
-      iv_condense = temp1 ).
+      iv_name          = c_radio_name
+      iv_label         = mv_title
+      iv_default_value = '1'
+      iv_condense      = xsdbool( lines( <lt_list> ) <= 15 ) ).
 
     LOOP AT <lt_list> ASSIGNING <ls_row>.
       lv_index = sy-tabix.
@@ -265,9 +264,13 @@ CLASS zcl_abapgit_gui_picklist IMPLEMENTATION.
 
     register_handlers( ).
 
-    ri_html = zcl_abapgit_html=>create( mo_form->render(
+    ri_html = zcl_abapgit_html=>create( '<div class="picklist">' ).
+    ri_html->add( mo_form->render(
       io_values         = mo_form_data
       io_validation_log = mo_validation_log ) ).
+    ri_html->add( '</div>' ).
+
+    register_deferred_script( zcl_abapgit_html=>create( 'enablePicklistNavigation();' ) ).
 
   ENDMETHOD.
 ENDCLASS.
