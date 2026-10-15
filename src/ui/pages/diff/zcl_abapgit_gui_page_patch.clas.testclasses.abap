@@ -450,7 +450,7 @@ ENDCLASS.
 
 CLASS lcl_continue_settings IMPLEMENTATION.
   METHOD zif_abapgit_persist_settings~read.
-    ro_settings = NEW #( ).
+    CREATE OBJECT ro_settings.
     ro_settings->set_defaults( ).
   ENDMETHOD.
   METHOD zif_abapgit_persist_settings~modify.
@@ -517,24 +517,24 @@ CLASS ltcl_continue_patching IMPLEMENTATION.
     mi_previous_srv = zcl_abapgit_repo_srv=>get_instance( ).
     mi_previous_user = zcl_abapgit_persist_factory=>get_user( ).
     mi_previous_settings = zcl_abapgit_persist_factory=>get_settings( ).
-    lo_settings = NEW #( ).
+    CREATE OBJECT lo_settings.
     zcl_abapgit_persist_injector=>set_settings( lo_settings ).
-    lo_user = NEW #( ).
+    CREATE OBJECT lo_user.
     zcl_abapgit_persist_injector=>set_current_user( lo_user ).
-    lo_srv = NEW #( ).
+    CREATE OBJECT lo_srv.
     ls_repo-key = '1'.
     ls_repo-url = 'https://github.com/abapGit/abapGit.git'.
     ls_repo-branch_name = 'refs/heads/main'.
     ls_repo-package = '$TMP'.
     ls_repo-dot_abapgit = zcl_abapgit_dot_abapgit=>build_default( )->get_data( ).
     ls_repo-dot_abapgit-folder_logic = zif_abapgit_dot_abapgit=>c_folder_logic-full.
-    lo_srv->mi_repo = NEW lcl_continue_repo( is_data = ls_repo ).
+    CREATE OBJECT lo_srv->mi_repo TYPE lcl_continue_repo EXPORTING is_data = ls_repo.
     mo_repo ?= lo_srv->mi_repo.
     zcl_abapgit_repo_srv=>inject_instance( lo_srv ).
     ls_file-path = '/'.
     ls_file-filename = 'test.abap'.
-    mo_fixture = NEW #( iv_key = ls_repo-key
-                        is_file = ls_file ).
+    CREATE OBJECT mo_fixture EXPORTING iv_key = ls_repo-key
+                                       is_file = ls_file.
     mo_patch = mo_fixture.
   ENDMETHOD.
 
@@ -550,7 +550,7 @@ CLASS ltcl_continue_patching IMPLEMENTATION.
     DATA lo_stage TYPE REF TO zcl_abapgit_stage.
     DATA lt_postdata TYPE zif_abapgit_html_viewer=>ty_post_data.
 
-    lo_stage = NEW #( ).
+    CREATE OBJECT lo_stage.
     lo_page ?= zcl_abapgit_gui_page_commit=>create(
       ii_repo_online = mo_repo
       io_stage = lo_stage
@@ -611,8 +611,10 @@ CLASS ltcl_continue_patching IMPLEMENTATION.
     ls_handled = commit_patch( ).
     " MESSAGE with a free text fills these fields on SAP, but not in open-abap
     CONCATENATE sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4 INTO lv_message.
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( lv_message CS 'Commit was successful, but continuing patching failed' ).
     cl_abap_unit_assert=>assert_equals(
-      act = xsdbool( lv_message CS 'Commit was successful, but continuing patching failed' )
+      act = temp1
       exp = abap_true ).
   ENDMETHOD.
 
@@ -679,7 +681,7 @@ CLASS ltcl_continue_patching IMPLEMENTATION.
     DATA ls_handled TYPE zif_abapgit_gui_event_handler=>ty_handling_result.
 
     li_repo ?= zcl_abapgit_repo_srv=>get_instance( )->get( '1' ).
-    lo_stage = NEW #( ).
+    CREATE OBJECT lo_stage.
     lo_page ?= zcl_abapgit_gui_page_commit=>create(
         ii_repo_online = li_repo
         io_stage       = lo_stage
@@ -703,7 +705,7 @@ CLASS ltcl_continue_patching IMPLEMENTATION.
     DATA lx_error TYPE REF TO zcx_abapgit_exception.
 
     li_repo ?= zcl_abapgit_repo_srv=>get_instance( )->get( '1' ).
-    lo_stage = NEW #( ).
+    CREATE OBJECT lo_stage.
     lo_page ?= zcl_abapgit_gui_page_commit=>create(
         ii_repo_online = li_repo
         io_stage       = lo_stage
