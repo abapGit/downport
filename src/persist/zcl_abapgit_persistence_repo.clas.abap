@@ -20,7 +20,8 @@ CLASS zcl_abapgit_persistence_repo DEFINITION
 
   PRIVATE SECTION.
 
-    DATA mt_meta_fields TYPE STANDARD TABLE OF abap_compname.
+    TYPES temp1_ad823f8588 TYPE STANDARD TABLE OF abap_compname.
+DATA mt_meta_fields TYPE temp1_ad823f8588.
     DATA mo_db TYPE REF TO zcl_abapgit_persistence_db .
 
     METHODS from_xml
@@ -288,7 +289,9 @@ CLASS zcl_abapgit_persistence_repo IMPLEMENTATION.
       it_keys = lt_keys
       iv_type = zcl_abapgit_persistence_db=>c_type_repo ).
 
-    rv_yes = xsdbool( lines( lt_content ) > 0 ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( lines( lt_content ) > 0 ).
+    rv_yes = temp1.
 
   ENDMETHOD.
 
