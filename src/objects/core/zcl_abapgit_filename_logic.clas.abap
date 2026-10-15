@@ -127,12 +127,8 @@ CLASS zcl_abapgit_filename_logic IMPLEMENTATION.
 
   METHOD detect_obj_definition.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( iv_ext = to_upper( c_package_file-extension ) AND strlen( iv_type ) = 4 ).
-    ev_is_xml  = temp1.
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( iv_ext = to_upper( c_json_file-extension ) AND strlen( iv_type ) = 4 ).
-    ev_is_json = temp2.
+    ev_is_xml  = xsdbool( iv_ext = to_upper( c_package_file-extension ) AND strlen( iv_type ) = 4 ).
+    ev_is_json = xsdbool( iv_ext = to_upper( c_json_file-extension ) AND strlen( iv_type ) = 4 ).
 
   ENDMETHOD.
 
@@ -208,8 +204,8 @@ CLASS zcl_abapgit_filename_logic IMPLEMENTATION.
         IF ev_ext = `po`.
           ev_lang = to_lower( lv_lang_suffix ).
         ELSEIF ev_ext = `properties`.
-          lv_sap1 = zcl_abapgit_convert=>language_bcp47_to_sap1( lv_lang_suffix ).
-          ev_lang = zcl_abapgit_convert=>language_sap1_to_sap2( lv_sap1 ). " actually it is to_upper( ISO-639 )
+          lv_sap1 = zcl_abapgit_convert_language=>bcp47_to_sap1( lv_lang_suffix ).
+          ev_lang = zcl_abapgit_convert_language=>sap1_to_sap2( lv_sap1 ). " actually it is to_upper( ISO-639 )
         ELSE.
           zcx_abapgit_exception=>raise( |Unexpected translation file format { iv_filename }| ).
         ENDIF.
@@ -267,9 +263,7 @@ CLASS zcl_abapgit_filename_logic IMPLEMENTATION.
         ev_is_xml  = lv_xml
         ev_is_json = lv_json ).
 
-    DATA temp3 TYPE xsdboolean.
-    temp3 = boolc( lv_json = abap_true OR lv_xml = abap_true ).
-    rv_yes = temp3.
+    rv_yes = xsdbool( lv_json = abap_true OR lv_xml = abap_true ).
 
   ENDMETHOD.
 
