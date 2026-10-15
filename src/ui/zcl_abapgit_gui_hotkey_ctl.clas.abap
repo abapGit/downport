@@ -68,7 +68,7 @@ CLASS zcl_abapgit_gui_hotkey_ctl IMPLEMENTATION.
 
     lv_json = lv_json && `}`.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
     ri_html->set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
     ri_html->add( |setKeyBindings({ lv_json });| ).
 
@@ -148,7 +148,7 @@ CLASS zcl_abapgit_gui_hotkey_ctl IMPLEMENTATION.
 
     register_handlers( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     lt_registered_hotkeys = zif_abapgit_gui_hotkey_ctl~get_registered_hotkeys( ).
     SORT lt_registered_hotkeys BY ui_component description.
@@ -158,8 +158,12 @@ CLASS zcl_abapgit_gui_hotkey_ctl IMPLEMENTATION.
     " Render hotkeys
     ri_html->add( '<ul class="hotkeys">' ).
     LOOP AT lt_registered_hotkeys ASSIGNING <ls_hotkey>.
+      lv_hotkey = <ls_hotkey>-hotkey.
+      IF lv_hotkey CP '^*'.
+        lv_hotkey = |Ctrl+{ lv_hotkey+1 }|.
+      ENDIF.
       ri_html->add( |<li>|
-        && |<span class="key-id">{ <ls_hotkey>-hotkey }</span>|
+        && |<span class="key-id">{ lv_hotkey }</span>|
         && |<span class="key-descr">{ <ls_hotkey>-description }</span>|
         && |</li>| ).
     ENDLOOP.

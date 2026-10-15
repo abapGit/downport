@@ -706,7 +706,7 @@ CLASS ltcl_calculate_patch IMPLEMENTATION.
     lo_diff->set_patch_new( iv_line_new   = 3
                             iv_patch_flag = abap_true ).
 
-    CREATE OBJECT lo_patch EXPORTING it_diff = lo_diff->get( ).
+    lo_patch = NEW #( it_diff = lo_diff->get( ) ).
     lv_patched = zcl_abapgit_convert=>xstring_to_string_utf8( lo_patch->get_patch_binary( ) ).
 
     cl_abap_unit_assert=>assert_equals(
@@ -737,7 +737,7 @@ CLASS ltcl_calculate_patch IMPLEMENTATION.
 
     DATA: lo_git_add_patch TYPE REF TO zcl_abapgit_git_add_patch.
 
-    CREATE OBJECT lo_git_add_patch EXPORTING it_diff = mt_diff.
+    lo_git_add_patch = NEW #( it_diff = mt_diff ).
 
     TRY.
         mt_patch = lo_git_add_patch->get_patch( ).
