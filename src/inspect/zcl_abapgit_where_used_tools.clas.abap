@@ -530,7 +530,7 @@ CLASS zcl_abapgit_where_used_tools IMPLEMENTATION.
 
 
   METHOD new.
-    CREATE OBJECT ro_instance.
+    ro_instance = NEW #( ).
   ENDMETHOD.
 
 
