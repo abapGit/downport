@@ -90,10 +90,10 @@ ENDCLASS.
 CLASS ltcl_feature IMPLEMENTATION.
 
   METHOD setup.
-    mo_cut = NEW #( ).
+    CREATE OBJECT mo_cut.
     mo_settings = zcl_abapgit_persist_factory=>get_settings( )->read( ).
 
-    mo_env = NEW #( ).
+    CREATE OBJECT mo_env.
     zcl_abapgit_injector=>set_environment( mo_env ).
   ENDMETHOD.
 
