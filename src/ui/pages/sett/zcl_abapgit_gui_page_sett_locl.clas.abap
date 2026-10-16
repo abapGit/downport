@@ -2,12 +2,12 @@ CLASS zcl_abapgit_gui_page_sett_locl DEFINITION
   PUBLIC
   INHERITING FROM zcl_abapgit_gui_component
   FINAL
-  CREATE PRIVATE .
+  CREATE PRIVATE.
 
   PUBLIC SECTION.
 
-    INTERFACES zif_abapgit_gui_event_handler .
-    INTERFACES zif_abapgit_gui_renderable .
+    INTERFACES zif_abapgit_gui_event_handler.
+    INTERFACES zif_abapgit_gui_renderable.
 
     CLASS-METHODS create
       IMPORTING
@@ -15,12 +15,12 @@ CLASS zcl_abapgit_gui_page_sett_locl DEFINITION
       RETURNING
         VALUE(ri_page) TYPE REF TO zif_abapgit_gui_renderable
       RAISING
-        zcx_abapgit_exception .
+        zcx_abapgit_exception.
     METHODS constructor
       IMPORTING
         !ii_repo TYPE REF TO zif_abapgit_repo
       RAISING
-        zcx_abapgit_exception .
+        zcx_abapgit_exception.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -44,7 +44,7 @@ CLASS zcl_abapgit_gui_page_sett_locl DEFINITION
         block_commit                 TYPE string VALUE 'block_commit',
         flow                         TYPE string VALUE 'flow',
         exclude_remote_paths         TYPE string VALUE 'exclude_remote_paths',
-      END OF c_id .
+      END OF c_id.
     CONSTANTS:
       BEGIN OF c_event,
         save                       TYPE string VALUE 'save',
@@ -52,12 +52,12 @@ CLASS zcl_abapgit_gui_page_sett_locl DEFINITION
         choose_customizing_request TYPE string VALUE 'choose_customizing_request',
         choose_labels              TYPE string VALUE 'choose-labels',
         choose_check_variant       TYPE string VALUE 'choose_check_variant',
-      END OF c_event .
-    DATA mo_form TYPE REF TO zcl_abapgit_html_form .
-    DATA mo_form_data TYPE REF TO zcl_abapgit_string_map .
-    DATA mo_validation_log TYPE REF TO zcl_abapgit_string_map .
-    DATA mi_repo TYPE REF TO zif_abapgit_repo .
-    DATA ms_settings TYPE zif_abapgit_persistence=>ty_repo-local_settings .
+      END OF c_event.
+    DATA mo_form TYPE REF TO zcl_abapgit_html_form.
+    DATA mo_form_data TYPE REF TO zcl_abapgit_string_map.
+    DATA mo_validation_log TYPE REF TO zcl_abapgit_string_map.
+    DATA mi_repo TYPE REF TO zif_abapgit_repo.
+    DATA ms_settings TYPE zif_abapgit_persistence=>ty_repo-local_settings.
 
     METHODS validate_form
       IMPORTING
@@ -65,47 +65,47 @@ CLASS zcl_abapgit_gui_page_sett_locl DEFINITION
       RETURNING
         VALUE(ro_validation_log) TYPE REF TO zcl_abapgit_string_map
       RAISING
-        zcx_abapgit_exception .
+        zcx_abapgit_exception.
     METHODS get_form_schema
       RETURNING
         VALUE(ro_form) TYPE REF TO zcl_abapgit_html_form
       RAISING
-        zcx_abapgit_exception .
+        zcx_abapgit_exception.
     METHODS read_settings
       RETURNING
         VALUE(ro_form_data) TYPE REF TO zcl_abapgit_string_map
       RAISING
-        zcx_abapgit_exception .
+        zcx_abapgit_exception.
     METHODS save_settings
       RAISING
-        zcx_abapgit_exception .
+        zcx_abapgit_exception.
     METHODS choose_labels
       RAISING
-        zcx_abapgit_exception .
+        zcx_abapgit_exception.
     METHODS choose_check_variant
       IMPORTING
         iv_is_return TYPE abap_bool DEFAULT abap_false
       RAISING
-        zcx_abapgit_exception .
+        zcx_abapgit_exception.
     METHODS choose_transport_request
       RAISING
-        zcx_abapgit_exception .
+        zcx_abapgit_exception.
     METHODS choose_customizing_request
       RAISING
-        zcx_abapgit_exception .
+        zcx_abapgit_exception.
     METHODS is_customizing_included
       RETURNING
         VALUE(rv_result) TYPE abap_bool
       RAISING
-        zcx_abapgit_exception .
+        zcx_abapgit_exception.
     METHODS handle_picklist_state
       RAISING
-        zcx_abapgit_exception .
+        zcx_abapgit_exception.
 ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_LOCL IMPLEMENTATION.
+CLASS zcl_abapgit_gui_page_sett_locl IMPLEMENTATION.
 
 
   METHOD choose_check_variant.
@@ -192,8 +192,8 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_LOCL IMPLEMENTATION.
   METHOD constructor.
 
     super->constructor( ).
-    CREATE OBJECT mo_validation_log.
-    CREATE OBJECT mo_form_data.
+    mo_validation_log = NEW #( ).
+    mo_form_data = NEW #( ).
     mi_repo = ii_repo.
     mo_form = get_form_schema( ).
     mo_form_data = read_settings( ).
@@ -205,13 +205,15 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_LOCL IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_sett_locl.
 
-    CREATE OBJECT lo_component EXPORTING ii_repo = ii_repo.
+    lo_component = NEW #( ii_repo = ii_repo ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Local Settings & Checks'
       io_page_menu       = zcl_abapgit_gui_menus=>repo_settings(
                              iv_key = ii_repo->get_key( )
-                             iv_act = zif_abapgit_definitions=>c_action-repo_local_settings )
+                             iv_act = zif_abapgit_definitions=>c_action-repo_local_settings
+                             iv_with_back = abap_true
+                             iv_form_id   = 'repo-local-settings-form' )
       ii_child_component = lo_component ).
 
   ENDMETHOD.
@@ -278,18 +280,16 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_LOCL IMPLEMENTATION.
       iv_label       = 'Suppress comments in LXE PO files'
       iv_hint        = 'Generate "clean" PO files for translation, don''t add metadata comments' ).
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( li_package->are_changes_recorded_in_tr_req( ) = abap_false ).
     ro_form->checkbox(
       iv_name     = c_id-flow
-      iv_readonly = temp1
+      iv_readonly = xsdbool( li_package->are_changes_recorded_in_tr_req( ) = abap_false )
       iv_label    = 'BETA: Enable abapGit flow for this repository (requires transported packages)' ).
 
     ro_form->textarea(
-      iv_name        = c_id-exclude_remote_paths
-      iv_label       = 'Exclude Paths'
-      iv_hint        = 'List of files patterns (CP operator) to exclude from' &&
-                       ' syncronization (e.g. unwanted parts of the package, examples...)' ).
+      iv_name  = c_id-exclude_remote_paths
+      iv_label = 'Exclude Paths'
+      iv_hint  = 'List of files patterns (CP operator) to exclude from' &&
+                 ' syncronization (e.g. unwanted parts of the package, examples...)' ).
 
     ro_form->start_group(
       iv_name        = c_id-checks
@@ -358,7 +358,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_LOCL IMPLEMENTATION.
 
     " Get settings from DB
     ms_settings = mi_repo->get_local_settings( ).
-    CREATE OBJECT ro_form_data.
+    ro_form_data = NEW #( ).
 
     " Local Settings
     ro_form_data->set(
@@ -380,44 +380,30 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_LOCL IMPLEMENTATION.
     ro_form_data->set(
       iv_key = c_id-labels
       iv_val = ms_settings-labels ).
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( ms_settings-ignore_subpackages = abap_true ).
     ro_form_data->set(
       iv_key = c_id-ignore_subpackages
-      iv_val = temp2 ) ##TYPE.
-    DATA temp3 TYPE xsdboolean.
-    temp3 = boolc( ms_settings-main_language_only = abap_true ).
+      iv_val = xsdbool( ms_settings-ignore_subpackages = abap_true ) ) ##TYPE.
     ro_form_data->set(
       iv_key = c_id-main_language_only
-      iv_val = temp3 ) ##TYPE.
-    DATA temp4 TYPE xsdboolean.
-    temp4 = boolc( ms_settings-suppress_lxe_po_comments = abap_true ).
+      iv_val = xsdbool( ms_settings-main_language_only = abap_true ) ) ##TYPE.
     ro_form_data->set(
       iv_key = c_id-suppress_lxe_po_comments
-      iv_val = temp4 ) ##TYPE.
-    DATA temp5 TYPE xsdboolean.
-    temp5 = boolc( ms_settings-flow = abap_true ).
+      iv_val = xsdbool( ms_settings-suppress_lxe_po_comments = abap_true ) ) ##TYPE.
     ro_form_data->set(
       iv_key = c_id-flow
-      iv_val = temp5 ) ##TYPE.
-    DATA temp6 TYPE xsdboolean.
-    temp6 = boolc( ms_settings-write_protected = abap_true ).
+      iv_val = xsdbool( ms_settings-flow = abap_true ) ) ##TYPE.
     ro_form_data->set(
       iv_key = c_id-write_protected
-      iv_val = temp6 ) ##TYPE.
-    DATA temp7 TYPE xsdboolean.
-    temp7 = boolc( ms_settings-only_local_objects = abap_true ).
+      iv_val = xsdbool( ms_settings-write_protected = abap_true ) ) ##TYPE.
     ro_form_data->set(
       iv_key = c_id-only_local_objects
-      iv_val = temp7 ) ##TYPE.
+      iv_val = xsdbool( ms_settings-only_local_objects = abap_true ) ) ##TYPE.
     ro_form_data->set(
       iv_key = c_id-code_inspector_check_variant
       iv_val = |{ ms_settings-code_inspector_check_variant }| ).
-    DATA temp8 TYPE xsdboolean.
-    temp8 = boolc( ms_settings-block_commit = abap_true ).
     ro_form_data->set(
       iv_key = c_id-block_commit
-      iv_val = temp8 ) ##TYPE.
+      iv_val = xsdbool( ms_settings-block_commit = abap_true ) ) ##TYPE.
 
     lv_excl_rem = concat_lines_of(
       table = ms_settings-exclude_remote_paths
@@ -569,7 +555,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_LOCL IMPLEMENTATION.
         rs_handled-state = zcl_abapgit_gui=>c_event_state-re_render.
       ELSE.
         rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page.
-        rs_handled-page  = zcl_abapgit_gui_page_hoc=>create(
+        rs_handled-page = zcl_abapgit_gui_page_hoc=>create(
           ii_child_component = mo_popup_picklist
           iv_show_as_modal   = abap_true ).
       ENDIF.
@@ -582,7 +568,7 @@ CLASS ZCL_ABAPGIT_GUI_PAGE_SETT_LOCL IMPLEMENTATION.
 
     handle_picklist_state( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( `<div class="repo">` ).
 

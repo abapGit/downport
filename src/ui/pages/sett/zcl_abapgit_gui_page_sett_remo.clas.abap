@@ -2,12 +2,12 @@ CLASS zcl_abapgit_gui_page_sett_remo DEFINITION
   PUBLIC
   INHERITING FROM zcl_abapgit_gui_component
   FINAL
-  CREATE PRIVATE .
+  CREATE PRIVATE.
 
   PUBLIC SECTION.
 
-    INTERFACES zif_abapgit_gui_event_handler .
-    INTERFACES zif_abapgit_gui_renderable .
+    INTERFACES zif_abapgit_gui_event_handler.
+    INTERFACES zif_abapgit_gui_renderable.
     INTERFACES zif_abapgit_gui_hotkeys.
 
     CLASS-METHODS create
@@ -16,7 +16,7 @@ CLASS zcl_abapgit_gui_page_sett_remo DEFINITION
       RETURNING
         VALUE(ri_page) TYPE REF TO zif_abapgit_gui_renderable
       RAISING
-        zcx_abapgit_exception .
+        zcx_abapgit_exception.
     METHODS constructor
       IMPORTING
         !ii_repo TYPE REF TO zif_abapgit_repo
@@ -55,13 +55,13 @@ CLASS zcl_abapgit_gui_page_sett_remo DEFINITION
         choose_commit       TYPE string VALUE 'choose_commit',
         choose_pull_request TYPE string VALUE 'choose_pull_request',
         change_head_type    TYPE string VALUE 'change_head_type',
-      END OF c_event .
+      END OF c_event.
 
-    DATA mi_repo TYPE REF TO zif_abapgit_repo .
+    DATA mi_repo TYPE REF TO zif_abapgit_repo.
     DATA ms_settings_snapshot TYPE ty_remote_settings.
-    DATA mo_form TYPE REF TO zcl_abapgit_html_form .
-    DATA mo_form_data TYPE REF TO zcl_abapgit_string_map .
-    DATA mo_validation_log TYPE REF TO zcl_abapgit_string_map .
+    DATA mo_form TYPE REF TO zcl_abapgit_html_form.
+    DATA mo_form_data TYPE REF TO zcl_abapgit_string_map.
+    DATA mo_validation_log TYPE REF TO zcl_abapgit_string_map.
     DATA mv_refresh_on_back TYPE abap_bool.
     DATA mv_offline_switch_saved_url TYPE string.
 
@@ -350,7 +350,7 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
     ms_settings_snapshot = get_remote_settings_from_repo( mi_repo ).
     mo_form              = get_form_schema( ).
     mo_form_data         = initialize_form_data( ).
-    CREATE OBJECT mo_validation_log.
+    mo_validation_log = NEW #( ).
 
   ENDMETHOD.
 
@@ -359,13 +359,15 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_sett_remo.
 
-    CREATE OBJECT lo_component EXPORTING ii_repo = ii_repo.
+    lo_component = NEW #( ii_repo = ii_repo ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Remote Settings'
       io_page_menu       = zcl_abapgit_gui_menus=>repo_settings(
                              iv_key = ii_repo->get_key( )
-                             iv_act = zif_abapgit_definitions=>c_action-repo_remote_settings )
+                             iv_act = zif_abapgit_definitions=>c_action-repo_remote_settings
+                             iv_with_back = abap_true
+                             iv_form_id   = 'repo-remote-settings-form' )
       ii_child_component = lo_component ).
 
   ENDMETHOD.
@@ -561,7 +563,7 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
       lv_type TYPE string,
       lv_head TYPE string.
 
-    CREATE OBJECT ro_form_data.
+    ro_form_data = NEW #( ).
 
     IF ms_settings_snapshot-offline = abap_true.
       lv_type = c_repo_type-offline.
@@ -648,7 +650,7 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
 
   METHOD render_content.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( zcl_abapgit_gui_chunk_lib=>render_repo_top(
       ii_repo               = mi_repo
@@ -723,9 +725,7 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
           lv_url         TYPE ty_remote_settings-url,
           lv_branch      TYPE ty_remote_settings-branch.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( mo_form_data->get( c_id-offline ) = abap_false ).
-    lv_offline_new = temp1.
+    lv_offline_new = xsdbool( mo_form_data->get( c_id-offline ) = abap_false ).
     mo_form_data->set(
       iv_key = c_id-offline
       iv_val = lv_offline_new ).
@@ -851,7 +851,7 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
             iv_validate = abap_true ).
 
           " Provider-specific URL check
-          CREATE OBJECT lo_url.
+          lo_url = NEW #( ).
           lo_url->validate_url( lv_url ).
         CATCH zcx_abapgit_exception INTO lx_error.
           ro_validation_log->set(
@@ -1083,7 +1083,7 @@ CLASS zcl_abapgit_gui_page_sett_remo IMPLEMENTATION.
 
     handle_picklist_state( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->wrap(
       iv_tag     = 'div'
