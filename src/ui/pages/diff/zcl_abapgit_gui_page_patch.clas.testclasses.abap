@@ -199,8 +199,8 @@ CLASS ltcl_is_patch_line_possible IMPLEMENTATION.
   METHOD then_patch_shd_be_possible.
 
     cl_abap_unit_assert=>assert_not_initial(
-        act = mv_is_patch_line_possible
-        msg = |Patch should be possible| ).
+      act = mv_is_patch_line_possible
+      msg = |Patch should be possible| ).
 
   ENDMETHOD.
 
@@ -208,8 +208,8 @@ CLASS ltcl_is_patch_line_possible IMPLEMENTATION.
   METHOD then_patch_shd_not_be_possible.
 
     cl_abap_unit_assert=>assert_initial(
-        act = mv_is_patch_line_possible
-        msg = |Patch should not be possible| ).
+      act = mv_is_patch_line_possible
+      msg = |Patch should not be possible| ).
 
   ENDMETHOD.
 
@@ -281,7 +281,7 @@ CLASS ltcl_continue_patching DEFINITION FINAL FOR TESTING
     METHODS commit_refresh_warning FOR TESTING RAISING cx_static_check.
     METHODS commit_patch
       RETURNING VALUE(rs_handled) TYPE zif_abapgit_gui_event_handler=>ty_handling_result
-      RAISING cx_static_check.
+      RAISING   cx_static_check.
 ENDCLASS.
 
 
@@ -450,7 +450,7 @@ ENDCLASS.
 
 CLASS lcl_continue_settings IMPLEMENTATION.
   METHOD zif_abapgit_persist_settings~read.
-    CREATE OBJECT ro_settings.
+    ro_settings = NEW #( ).
     ro_settings->set_defaults( ).
   ENDMETHOD.
   METHOD zif_abapgit_persist_settings~modify.
@@ -517,24 +517,24 @@ CLASS ltcl_continue_patching IMPLEMENTATION.
     mi_previous_srv = zcl_abapgit_repo_srv=>get_instance( ).
     mi_previous_user = zcl_abapgit_persist_factory=>get_user( ).
     mi_previous_settings = zcl_abapgit_persist_factory=>get_settings( ).
-    CREATE OBJECT lo_settings.
+    lo_settings = NEW #( ).
     zcl_abapgit_persist_injector=>set_settings( lo_settings ).
-    CREATE OBJECT lo_user.
+    lo_user = NEW #( ).
     zcl_abapgit_persist_injector=>set_current_user( lo_user ).
-    CREATE OBJECT lo_srv.
+    lo_srv = NEW #( ).
     ls_repo-key = '1'.
     ls_repo-url = 'https://github.com/abapGit/abapGit.git'.
     ls_repo-branch_name = 'refs/heads/main'.
     ls_repo-package = '$TMP'.
     ls_repo-dot_abapgit = zcl_abapgit_dot_abapgit=>build_default( )->get_data( ).
     ls_repo-dot_abapgit-folder_logic = zif_abapgit_dot_abapgit=>c_folder_logic-full.
-    CREATE OBJECT lo_srv->mi_repo TYPE lcl_continue_repo EXPORTING is_data = ls_repo.
+    lo_srv->mi_repo = NEW lcl_continue_repo( is_data = ls_repo ).
     mo_repo ?= lo_srv->mi_repo.
     zcl_abapgit_repo_srv=>inject_instance( lo_srv ).
     ls_file-path = '/'.
     ls_file-filename = 'test.abap'.
-    CREATE OBJECT mo_fixture EXPORTING iv_key = ls_repo-key
-                                       is_file = ls_file.
+    mo_fixture = NEW #( iv_key = ls_repo-key
+                        is_file = ls_file ).
     mo_patch = mo_fixture.
   ENDMETHOD.
 
@@ -550,11 +550,11 @@ CLASS ltcl_continue_patching IMPLEMENTATION.
     DATA lo_stage TYPE REF TO zcl_abapgit_stage.
     DATA lt_postdata TYPE zif_abapgit_html_viewer=>ty_post_data.
 
-    CREATE OBJECT lo_stage.
+    lo_stage = NEW #( ).
     lo_page ?= zcl_abapgit_gui_page_commit=>create(
       ii_repo_online = mo_repo
-      io_stage = lo_stage
-      io_patch = mo_patch ).
+      io_stage       = lo_stage
+      io_patch       = mo_patch ).
     lo_commit ?= lo_page->get_child( ).
     APPEND 'comment=Test&committer_name=Committer&committer_email=test@example.org' TO lt_postdata.
     rs_handled = lo_commit->zif_abapgit_gui_event_handler~on_event(
@@ -607,14 +607,14 @@ CLASS ltcl_continue_patching IMPLEMENTATION.
   METHOD commit_refresh_warning.
     DATA ls_handled TYPE zif_abapgit_gui_event_handler=>ty_handling_result.
     DATA lv_message TYPE string.
+    DATA lv_act TYPE abap_bool.
     mo_fixture->mv_fail_refresh = abap_true.
     ls_handled = commit_patch( ).
     " MESSAGE with a free text fills these fields on SAP, but not in open-abap
     CONCATENATE sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4 INTO lv_message.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( lv_message CS 'Commit was successful, but continuing patching failed' ).
+    lv_act = xsdbool( lv_message CS 'Commit was successful, but continuing patching failed' ).
     cl_abap_unit_assert=>assert_equals(
-      act = temp1
+      act = lv_act
       exp = abap_true ).
   ENDMETHOD.
 
@@ -630,7 +630,7 @@ CLASS ltcl_continue_patching IMPLEMENTATION.
     READ TABLE lt_files INTO ls_file INDEX 1.
     cl_abap_unit_assert=>assert_subrc( ).
     ls_file-o_diff->set_patch_new(
-      iv_line_new = 2
+      iv_line_new   = 2
       iv_patch_flag = abap_true ).
     ls_commit-committer_name = 'Committer'.
     ls_commit-committer_email = 'committer@example.org'.
@@ -681,12 +681,12 @@ CLASS ltcl_continue_patching IMPLEMENTATION.
     DATA ls_handled TYPE zif_abapgit_gui_event_handler=>ty_handling_result.
 
     li_repo ?= zcl_abapgit_repo_srv=>get_instance( )->get( '1' ).
-    CREATE OBJECT lo_stage.
+    lo_stage = NEW #( ).
     lo_page ?= zcl_abapgit_gui_page_commit=>create(
-        ii_repo_online = li_repo
-        io_stage       = lo_stage
-        io_patch       = mo_patch
-        iv_sci_result  = zif_abapgit_definitions=>c_sci_result-no_run ).
+      ii_repo_online = li_repo
+      io_stage       = lo_stage
+      io_patch       = mo_patch
+      iv_sci_result  = zif_abapgit_definitions=>c_sci_result-no_run ).
     lo_commit ?= lo_page->get_child( ).
     " Missing required fields: no push or patch reset may happen
     ls_handled = lo_commit->zif_abapgit_gui_event_handler~on_event(
@@ -705,11 +705,11 @@ CLASS ltcl_continue_patching IMPLEMENTATION.
     DATA lx_error TYPE REF TO zcx_abapgit_exception.
 
     li_repo ?= zcl_abapgit_repo_srv=>get_instance( )->get( '1' ).
-    CREATE OBJECT lo_stage.
+    lo_stage = NEW #( ).
     lo_page ?= zcl_abapgit_gui_page_commit=>create(
-        ii_repo_online = li_repo
-        io_stage       = lo_stage
-        iv_sci_result  = zif_abapgit_definitions=>c_sci_result-no_run ).
+      ii_repo_online = li_repo
+      io_stage       = lo_stage
+      iv_sci_result  = zif_abapgit_definitions=>c_sci_result-no_run ).
     lo_commit ?= lo_page->get_child( ).
     TRY.
         lo_commit->zif_abapgit_gui_event_handler~on_event(
