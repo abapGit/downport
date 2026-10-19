@@ -12,7 +12,7 @@ CLASS zcl_abapgit_env_factory IMPLEMENTATION.
 
   METHOD get_user_record.
     IF gi_user_record IS NOT BOUND.
-      CREATE OBJECT gi_user_record TYPE zcl_abapgit_user_record.
+      gi_user_record = NEW zcl_abapgit_user_record( ).
     ENDIF.
 
     ri_user_record = gi_user_record.
