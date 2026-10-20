@@ -51,14 +51,14 @@ CLASS ZCL_ABAPGIT_HTTP_AGENT IMPLEMENTATION.
 
   METHOD constructor.
 
-    CREATE OBJECT mo_global_headers.
+    mo_global_headers = NEW #( ).
 
   ENDMETHOD.
 
 
   METHOD create.
 
-    CREATE OBJECT ri_instance TYPE zcl_abapgit_http_agent.
+    ri_instance = NEW zcl_abapgit_http_agent( ).
 
   ENDMETHOD.
 
@@ -78,7 +78,7 @@ CLASS ZCL_ABAPGIT_HTTP_AGENT IMPLEMENTATION.
     DATA lv_message TYPE string.
     FIELD-SYMBOLS <ls_entry> LIKE LINE OF io_query->mt_entries.
 
-    CREATE OBJECT lo_proxy_configuration.
+    lo_proxy_configuration = NEW #( ).
 
     cl_http_client=>create_by_url(
       EXPORTING
