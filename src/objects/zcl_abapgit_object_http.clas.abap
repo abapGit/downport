@@ -53,15 +53,16 @@ ENDCLASS.
 
 CLASS zcl_abapgit_object_http IMPLEMENTATION.
 
+
   METHOD constructor.
 
     DATA: lr_dummy TYPE REF TO data.
 
     super->constructor(
-        is_item        = is_item
-        iv_language    = iv_language
-        io_files       = io_files
-        io_i18n_params = io_i18n_params ).
+      is_item        = is_item
+      iv_language    = iv_language
+      io_files       = io_files
+      io_i18n_params = io_i18n_params ).
 
     TRY.
         CREATE DATA lr_dummy TYPE ('UCONHTTPSERVHEAD').
@@ -98,9 +99,8 @@ CLASS zcl_abapgit_object_http IMPLEMENTATION.
 
   METHOD zif_abapgit_object~deserialize.
 
-    TYPES temp1 TYPE TABLE OF ty_handler.
-DATA: lv_http_servid       TYPE c LENGTH 30,
-          lt_handler           TYPE temp1,
+    DATA: lv_http_servid       TYPE c LENGTH 30,
+          lt_handler           TYPE TABLE OF ty_handler,
           ls_handler           LIKE LINE OF lt_handler,
           ls_description       TYPE ty_uconhttpservtext,
           lv_check_object_name TYPE c LENGTH 40,
@@ -112,20 +112,32 @@ DATA: lv_http_servid       TYPE c LENGTH 30,
 
     TRY.
         io_xml->read(
-          EXPORTING iv_name = 'HTTPID'
-          CHANGING  cg_data = lv_http_servid ).
+          EXPORTING
+            iv_name = 'HTTPID'
+          CHANGING
+            cg_data = lv_http_servid ).
         io_xml->read(
-          EXPORTING iv_name = 'HTTPTEXT'
-          CHANGING  cg_data = ls_description ).
+          EXPORTING
+            iv_name = 'HTTPTEXT'
+          CHANGING
+            cg_data = ls_description ).
         io_xml->read(
-          EXPORTING iv_name = 'HTTPHDL'
-          CHANGING  cg_data = lt_handler ).
+          EXPORTING
+            iv_name = 'HTTPHDL'
+          CHANGING
+            cg_data = lt_handler ).
+
+        IF lv_http_servid <> ms_item-obj_name.
+          zcx_abapgit_exception=>raise( 'Invalid HTTP Service ID' ).
+        ENDIF.
 
         TRY.
             "link to icf node (in releases older than 757, a http service requires a icf node to function)
             io_xml->read(
-              EXPORTING iv_name = 'HTTPICFNODE'
-              CHANGING  cg_data = lv_icfnode ).
+              EXPORTING
+                iv_name = 'HTTPICFNODE'
+              CHANGING
+                cg_data = lv_icfnode ).
           CATCH cx_root.
         ENDTRY.
 
@@ -204,9 +216,7 @@ DATA: lv_http_servid       TYPE c LENGTH 30,
   METHOD zif_abapgit_object~exists.
 
     SELECT COUNT(*) FROM ('UCONHTTPSERVHEAD') WHERE id = ms_item-obj_name.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-dbcnt > 0 ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( sy-dbcnt > 0 ).
 
   ENDMETHOD.
 
@@ -257,10 +267,9 @@ DATA: lv_http_servid       TYPE c LENGTH 30,
 
   METHOD zif_abapgit_object~serialize.
 
-    TYPES temp2 TYPE TABLE OF ty_uconservhttphandler.
-DATA: lv_http_srv_id TYPE c LENGTH 30,
+    DATA: lv_http_srv_id TYPE c LENGTH 30,
           lo_serv        TYPE REF TO object, "if_ucon_api_http_service
-          lt_handler     TYPE temp2,
+          lt_handler     TYPE TABLE OF ty_uconservhttphandler,
           ls_description TYPE ty_uconhttpservtext,
           lx_root        TYPE REF TO cx_root,
           lv_icfnode     TYPE ty_icf_node,
