@@ -18,7 +18,7 @@ ENDCLASS.
 CLASS ltcl_tests IMPLEMENTATION.
 
   METHOD setup.
-    mo_cut = NEW #( ).
+    CREATE OBJECT mo_cut.
   ENDMETHOD.
 
   METHOD is_active.
