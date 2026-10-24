@@ -41,7 +41,7 @@ ENDCLASS.
 CLASS ltcl_repo_settings_exit IMPLEMENTATION.
   METHOD setup.
     mi_previous_exit = zcl_abapgit_exit=>get_instance( ).
-    mo_exit = NEW #( ).
+    CREATE OBJECT mo_exit.
     zcl_abapgit_injector=>set_exit( mo_exit ).
   ENDMETHOD.
 
