@@ -13,6 +13,7 @@ CLASS zcl_abapgit_gui_page_patch DEFINITION
         !is_file       TYPE zif_abapgit_git_definitions=>ty_file OPTIONAL
         !is_object     TYPE zif_abapgit_definitions=>ty_item OPTIONAL
         !it_files      TYPE zif_abapgit_definitions=>ty_stage_tt OPTIONAL
+        !iv_changed_by TYPE syuname OPTIONAL
         !iv_sci_result TYPE zif_abapgit_definitions=>ty_sci_result DEFAULT zif_abapgit_definitions=>c_sci_result-no_run
       RETURNING
         VALUE(ri_page) TYPE REF TO zif_abapgit_gui_renderable
@@ -25,6 +26,7 @@ CLASS zcl_abapgit_gui_page_patch DEFINITION
         !is_file       TYPE zif_abapgit_git_definitions=>ty_file OPTIONAL
         !is_object     TYPE zif_abapgit_definitions=>ty_item OPTIONAL
         !it_files      TYPE zif_abapgit_definitions=>ty_stage_tt OPTIONAL
+        !iv_changed_by TYPE syuname OPTIONAL
         !iv_sci_result TYPE zif_abapgit_definitions=>ty_sci_result DEFAULT zif_abapgit_definitions=>c_sci_result-no_run
       RAISING
         zcx_abapgit_exception.
@@ -220,7 +222,7 @@ CLASS zcl_abapgit_gui_page_patch IMPLEMENTATION.
 
       lv_something_patched = abap_true.
 
-      CREATE OBJECT lo_git_add_patch EXPORTING it_diff = <ls_diff_file>-o_diff->get( ).
+      lo_git_add_patch = NEW #( it_diff = <ls_diff_file>-o_diff->get( ) ).
 
       lv_patch = lo_git_add_patch->get_patch_binary( ).
 
@@ -346,9 +348,7 @@ CLASS zcl_abapgit_gui_page_patch IMPLEMENTATION.
       lv_patch_count = lv_patch_count + 1.
     ENDLOOP.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( lv_patch_count = lines( it_diff ) ).
-    rv_are_all_lines_patched = temp1.
+    rv_are_all_lines_patched = xsdbool( lv_patch_count = lines( it_diff ) ).
 
   ENDMETHOD.
 
@@ -358,10 +358,11 @@ CLASS zcl_abapgit_gui_page_patch IMPLEMENTATION.
     DATA ls_file LIKE LINE OF mt_files.
 
     super->constructor(
-      iv_key    = iv_key
-      is_file   = is_file
-      is_object = is_object
-      it_files  = it_files ).
+      iv_key        = iv_key
+      is_file       = is_file
+      is_object     = is_object
+      it_files      = it_files
+      iv_changed_by = iv_changed_by ).
 
     IF mi_repo->is_offline( ) = abap_true.
       zcx_abapgit_exception=>raise( |Patching is only possible for online repositories.| ).
@@ -382,7 +383,7 @@ CLASS zcl_abapgit_gui_page_patch IMPLEMENTATION.
 
     " While patching we always want to be in split mode
     CLEAR mv_unified.
-    CREATE OBJECT mo_stage.
+    mo_stage = NEW #( ).
 
   ENDMETHOD.
 
@@ -394,16 +395,14 @@ CLASS zcl_abapgit_gui_page_patch IMPLEMENTATION.
     DATA lt_results TYPE zif_abapgit_code_inspector=>ty_results.
 
     " Rebuild against the pushed HEAD; old line numbers and selections are no longer valid
-    CREATE OBJECT mo_stage.
+    mo_stage = NEW #( ).
     ms_commit = is_commit.
     CLEAR: ms_commit-comment, ms_commit-body.
     refresh_full( ).
     calculate_diff(
       is_object = ms_object
       it_files  = mt_files ).
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( mt_diff_files IS NOT INITIAL ).
-    rv_has_changes = temp2.
+    rv_has_changes = xsdbool( mt_diff_files IS NOT INITIAL ).
 
     " The refreshed SAP objects need a fresh inspection before the next commit
     mv_sci_result = zif_abapgit_definitions=>c_sci_result-no_run.
@@ -431,11 +430,12 @@ CLASS zcl_abapgit_gui_page_patch IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_patch.
 
-    CREATE OBJECT lo_component EXPORTING iv_key = iv_key
-                                         is_file = is_file
-                                         is_object = is_object
-                                         it_files = it_files
-                                         iv_sci_result = iv_sci_result.
+    lo_component = NEW #( iv_key = iv_key
+                          is_file = is_file
+                          is_object = is_object
+                          it_files = it_files
+                          iv_changed_by = iv_changed_by
+                          iv_sci_result = iv_sci_result ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title         = 'Patch'
@@ -579,7 +579,7 @@ CLASS zcl_abapgit_gui_page_patch IMPLEMENTATION.
 
   METHOD render_scripts.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
     ri_html->add( 'preparePatch();' ).

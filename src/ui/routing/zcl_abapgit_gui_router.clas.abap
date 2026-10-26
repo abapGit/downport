@@ -86,16 +86,18 @@ CLASS zcl_abapgit_gui_router DEFINITION
         zcx_abapgit_exception .
     METHODS get_page_diff
       IMPORTING
-        !ii_event      TYPE REF TO zif_abapgit_gui_event
+        !ii_event         TYPE REF TO zif_abapgit_gui_event
+        !iv_changed_by_me TYPE abap_bool DEFAULT abap_false
       RETURNING
-        VALUE(ri_page) TYPE REF TO zif_abapgit_gui_renderable
+        VALUE(ri_page)    TYPE REF TO zif_abapgit_gui_renderable
       RAISING
         zcx_abapgit_exception .
     METHODS get_page_patch
       IMPORTING
-        !ii_event      TYPE REF TO zif_abapgit_gui_event
+        !ii_event         TYPE REF TO zif_abapgit_gui_event
+        !iv_changed_by_me TYPE abap_bool DEFAULT abap_false
       RETURNING
-        VALUE(ri_page) TYPE REF TO zif_abapgit_gui_renderable
+        VALUE(ri_page)    TYPE REF TO zif_abapgit_gui_renderable
       RAISING
         zcx_abapgit_exception .
     METHODS get_page_stage
@@ -288,8 +290,16 @@ CLASS zcl_abapgit_gui_router IMPLEMENTATION.
         OR zif_abapgit_definitions=>c_action-go_file_diff.
         rs_handled-page  = get_page_diff( ii_event ).
         rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page_w_bookmark.
+      WHEN zif_abapgit_definitions=>c_action-go_repo_diff_me.                " Go Diff page, own changes only
+        rs_handled-page  = get_page_diff( ii_event         = ii_event
+                                          iv_changed_by_me = abap_true ).
+        rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page_w_bookmark.
       WHEN zif_abapgit_definitions=>c_action-go_patch.                       " Go Patch page
         rs_handled-page  = get_page_patch( ii_event ).
+        rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page_w_bookmark.
+      WHEN zif_abapgit_definitions=>c_action-go_patch_me.                    " Go Patch page, own changes only
+        rs_handled-page  = get_page_patch( ii_event         = ii_event
+                                           iv_changed_by_me = abap_true ).
         rs_handled-state = zcl_abapgit_gui=>c_event_state-new_page_w_bookmark.
       WHEN zif_abapgit_definitions=>c_action-go_stage.                        " Go Staging page
         rs_handled-page  = get_page_stage( ii_event ).
@@ -330,7 +340,8 @@ CLASS zcl_abapgit_gui_router IMPLEMENTATION.
 
     DATA: ls_file   TYPE zif_abapgit_git_definitions=>ty_file,
           ls_object TYPE zif_abapgit_definitions=>ty_item,
-          lv_key    TYPE zif_abapgit_persistence=>ty_repo-key.
+          lv_key    TYPE zif_abapgit_persistence=>ty_repo-key,
+          lv_user   TYPE syuname.
 
     lv_key             = ii_event->query( )->get( 'KEY' ).
     ls_file-path       = ii_event->query( )->get( 'PATH' ).
@@ -338,12 +349,18 @@ CLASS zcl_abapgit_gui_router IMPLEMENTATION.
     ls_object-obj_type = ii_event->query( )->get( 'OBJ_TYPE' ).
     ls_object-obj_name = ii_event->query( )->get( 'OBJ_NAME' ). " unescape ?
 
+    IF iv_changed_by_me = abap_true.
+      lv_user = sy-uname.
+    ENDIF.
+
     ri_page = zcl_abapgit_gui_page_diff=>create(
-      iv_key    = lv_key
-      is_file   = ls_file
-      is_object = ls_object ).
+      iv_key        = lv_key
+      is_file       = ls_file
+      is_object     = ls_object
+      iv_changed_by = lv_user ).
 
   ENDMETHOD.
+
 
 
   METHOD get_page_patch.
@@ -352,6 +369,7 @@ CLASS zcl_abapgit_gui_router IMPLEMENTATION.
           ls_object     TYPE zif_abapgit_definitions=>ty_item,
           lv_key        TYPE zif_abapgit_persistence=>ty_repo-key,
           li_repo       TYPE REF TO zif_abapgit_repo,
+          lv_user       TYPE syuname,
           lv_sci_result TYPE zif_abapgit_definitions=>ty_sci_result.
 
     lv_key             = ii_event->query( )->get( 'KEY' ).
@@ -364,13 +382,21 @@ CLASS zcl_abapgit_gui_router IMPLEMENTATION.
 
     li_repo = zcl_abapgit_repo_srv=>get_instance( )->get( lv_key ).
 
+    IF iv_changed_by_me = abap_true.
+      IF li_repo->is_offline( ) = abap_true.
+        zcx_abapgit_exception=>raise( |Patching is only possible for online repositories.| ).
+      ENDIF.
+      lv_user = sy-uname.
+    ENDIF.
+
     IF li_repo->get_local_settings( )-code_inspector_check_variant IS NOT INITIAL.
 
       TRY.
           ri_page = zcl_abapgit_gui_page_code_insp=>create(
             ii_repo                  = li_repo
             iv_raise_when_no_results = abap_true
-            iv_followup_action       = zcl_abapgit_gui_page_codi_base=>c_actions-patch ).
+            iv_followup_action       = zcl_abapgit_gui_page_codi_base=>c_actions-patch
+            iv_changed_by            = lv_user ).
 
         CATCH zcx_abapgit_exception.
           lv_sci_result = zif_abapgit_definitions=>c_sci_result-passed.
@@ -383,6 +409,7 @@ CLASS zcl_abapgit_gui_router IMPLEMENTATION.
         iv_key        = lv_key
         is_file       = ls_file
         is_object     = ls_object
+        iv_changed_by = lv_user
         iv_sci_result = lv_sci_result ).
     ENDIF.
 
@@ -515,7 +542,7 @@ CLASS zcl_abapgit_gui_router IMPLEMENTATION.
 
     li_repo = zcl_abapgit_repo_srv=>get_instance( )->get( iv_key ).
 
-    CREATE OBJECT ro_filter.
+    ro_filter = NEW #( ).
     ro_filter->set_filter_values( iv_package  = li_repo->get_package( )
                                   it_r_trkorr = lt_r_trkorr ).
 
@@ -595,9 +622,7 @@ CLASS zcl_abapgit_gui_router IMPLEMENTATION.
     IF iv_line CO '0123456789'.
       lv_line_number = iv_line.
     ENDIF.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( iv_new_window IS NOT INITIAL ).
-    lv_new_window = temp1.
+    lv_new_window = xsdbool( iv_new_window IS NOT INITIAL ).
 
     TRY.
         li_html_viewer = zcl_abapgit_ui_core_factory=>get_html_viewer( ).
@@ -649,8 +674,7 @@ CLASS zcl_abapgit_gui_router IMPLEMENTATION.
   METHOD other_utilities.
     TYPES ty_char600 TYPE c LENGTH 600.
     DATA lv_clip_content TYPE string.
-    TYPES temp1 TYPE STANDARD TABLE OF ty_char600.
-DATA lt_clipboard TYPE temp1.
+    DATA lt_clipboard TYPE STANDARD TABLE OF ty_char600.
 
     CASE ii_event->mv_action.
       WHEN zif_abapgit_definitions=>c_action-ie_devtools.
@@ -843,7 +867,7 @@ DATA lt_clipboard TYPE temp1.
     lt_r_trkorr = zcl_abapgit_ui_factory=>get_popups( )->popup_select_wb_tc_tr_and_tsk( ).
     li_repo = zcl_abapgit_repo_srv=>get_instance( )->get( iv_key ).
     li_repo->refresh( ).
-    CREATE OBJECT lo_obj_filter_trans.
+    lo_obj_filter_trans = NEW #( ).
     lo_obj_filter_trans->set_filter_values( iv_package  = li_repo->get_package( )
                                             it_r_trkorr = lt_r_trkorr ).
 
