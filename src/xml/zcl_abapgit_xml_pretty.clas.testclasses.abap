@@ -22,7 +22,7 @@ ENDCLASS.
 CLASS ltcl_test IMPLEMENTATION.
 
   METHOD setup.
-    CREATE OBJECT mo_cut.
+    mo_cut = NEW #( ).
   ENDMETHOD.
 
   METHOD pretty1.
