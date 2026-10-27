@@ -28,7 +28,7 @@ CLASS ltcl_test IMPLEMENTATION.
           lv_bytes     TYPE xstring.
 
 
-    lo_stream = NEW #( iv_data = '112233445566' ).
+    CREATE OBJECT lo_stream EXPORTING iv_data = '112233445566'.
 
     lv_bits = lo_stream->take_bits( 8 ).
 
@@ -61,7 +61,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lo_stream TYPE REF TO zcl_abapgit_zlib_stream.
     DATA lv_xstr TYPE xstring.
 
-    lo_stream = NEW #( iv_data = lv_xstr ).
+    CREATE OBJECT lo_stream EXPORTING iv_data = lv_xstr.
 
     cl_abap_unit_assert=>assert_equals(
       act = lo_stream->remaining( )
@@ -73,19 +73,19 @@ CLASS ltcl_test IMPLEMENTATION.
 
     DATA lo_stream TYPE REF TO zcl_abapgit_zlib_stream.
 
-    lo_stream = NEW #( iv_data = '00' ).
+    CREATE OBJECT lo_stream EXPORTING iv_data = '00'.
 
     cl_abap_unit_assert=>assert_equals(
       act = lo_stream->take_bits( 8 )
       exp = '00000000' ).
 
-    lo_stream = NEW #( iv_data = '00' ).
+    CREATE OBJECT lo_stream EXPORTING iv_data = '00'.
 
     cl_abap_unit_assert=>assert_equals(
       act = lo_stream->take_int( 8 )
       exp = 0 ).
 
-    lo_stream = NEW #( iv_data = '00' ).
+    CREATE OBJECT lo_stream EXPORTING iv_data = '00'.
 
     cl_abap_unit_assert=>assert_equals(
       act = lo_stream->take_bytes( 1 )
@@ -97,19 +97,19 @@ CLASS ltcl_test IMPLEMENTATION.
 
     DATA lo_stream TYPE REF TO zcl_abapgit_zlib_stream.
 
-    lo_stream = NEW #( iv_data = 'FF' ).
+    CREATE OBJECT lo_stream EXPORTING iv_data = 'FF'.
 
     cl_abap_unit_assert=>assert_equals(
       act = lo_stream->take_bits( 8 )
       exp = '11111111' ).
 
-    lo_stream = NEW #( iv_data = 'FF' ).
+    CREATE OBJECT lo_stream EXPORTING iv_data = 'FF'.
 
     cl_abap_unit_assert=>assert_equals(
       act = lo_stream->take_int( 8 )
       exp = 255 ).
 
-    lo_stream = NEW #( iv_data = 'FF' ).
+    CREATE OBJECT lo_stream EXPORTING iv_data = 'FF'.
 
     cl_abap_unit_assert=>assert_equals(
       act = lo_stream->take_bytes( 1 )
@@ -125,8 +125,8 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lv_bits    TYPE string.
 
     " A5 = 10100101, mix of 0s and 1s across a full byte
-    lo_stream1 = NEW #( iv_data = 'A5' ).
-    lo_stream2 = NEW #( iv_data = 'A5' ).
+    CREATE OBJECT lo_stream1 EXPORTING iv_data = 'A5'.
+    CREATE OBJECT lo_stream2 EXPORTING iv_data = 'A5'.
 
     DO 8 TIMES.
       lv_bit  = lo_stream1->take_bit( ).
@@ -163,8 +163,8 @@ CLASS ltcl_test IMPLEMENTATION.
 
     " Two bytes: A5 3C = 10100101 00111100
     " Reading 16 bits one at a time must cross the byte boundary
-    lo_stream1 = NEW #( iv_data = 'A53C' ).
-    lo_stream2 = NEW #( iv_data = 'A53C' ).
+    CREATE OBJECT lo_stream1 EXPORTING iv_data = 'A53C'.
+    CREATE OBJECT lo_stream2 EXPORTING iv_data = 'A53C'.
 
     DO 16 TIMES.
       cl_abap_unit_assert=>assert_equals(
@@ -203,7 +203,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
     DATA lo_stream TYPE REF TO zcl_abapgit_zlib_stream.
 
-    lo_stream = NEW #( iv_data = 'A53C' ).
+    CREATE OBJECT lo_stream EXPORTING iv_data = 'A53C'.
 
     " Consume all 8 bits of the first byte
     DO 8 TIMES.
