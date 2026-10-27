@@ -19,7 +19,9 @@ CLASS ltd_persist_repo IMPLEMENTATION.
 
   METHOD zif_abapgit_persist_repo~exists.
     READ TABLE mt_repos TRANSPORTING NO FIELDS WITH KEY key = iv_key.
-    rv_yes = xsdbool( sy-subrc = 0 ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( sy-subrc = 0 ).
+    rv_yes = temp1.
   ENDMETHOD.
 
   METHOD zif_abapgit_persist_repo~list.
@@ -80,7 +82,7 @@ CLASS ltcl_reload IMPLEMENTATION.
     ls_repo-branch_name = 'refs/heads/main'.
     ls_repo-package     = '$ABAPGIT_TEST'.
 
-    mo_persist = NEW #( ).
+    CREATE OBJECT mo_persist.
     APPEND ls_repo TO mo_persist->mt_repos.
     zcl_abapgit_persist_injector=>set_repo( mo_persist ).
 
@@ -133,13 +135,17 @@ CLASS ltcl_reload IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
       act = li_after->ms_data-branch_name
       exp = 'refs/heads/feature' ).
-    lv_same = xsdbool( li_after = li_before ).
+    DATA temp2 TYPE xsdboolean.
+    temp2 = boolc( li_after = li_before ).
+    lv_same = temp2.
     cl_abap_unit_assert=>assert_equals(
       act = lv_same
       exp = abap_false ).
 
     li_cached = mi_srv->get( c_key ).
-    lv_same = xsdbool( li_cached = li_after ).
+    DATA temp3 TYPE xsdboolean.
+    temp3 = boolc( li_cached = li_after ).
+    lv_same = temp3.
     cl_abap_unit_assert=>assert_equals(
       act = lv_same
       exp = abap_true ).
@@ -155,7 +161,9 @@ CLASS ltcl_reload IMPLEMENTATION.
     li_before = mi_srv->get( c_key ).
     li_after = mi_srv->reload( c_key ).
 
-    lv_same = xsdbool( li_after = li_before ).
+    DATA temp4 TYPE xsdboolean.
+    temp4 = boolc( li_after = li_before ).
+    lv_same = temp4.
     cl_abap_unit_assert=>assert_equals(
       act = lv_same
       exp = abap_true ).
@@ -204,7 +212,9 @@ CLASS ltcl_reload IMPLEMENTATION.
 
     li_after = mi_srv->reload( c_key ).
 
-    lv_same = xsdbool( li_after = li_before ).
+    DATA temp5 TYPE xsdboolean.
+    temp5 = boolc( li_after = li_before ).
+    lv_same = temp5.
     cl_abap_unit_assert=>assert_equals(
       act = lv_same
       exp = abap_false ).
