@@ -72,9 +72,9 @@ CLASS zcl_abapgit_object_stcs IMPLEMENTATION.
 
 
   METHOD get_generic.
-    ro_generic = NEW #( is_item = ms_item
-                        iv_language = mv_language
-                        io_field_rules = get_field_rules( ) ).
+    CREATE OBJECT ro_generic EXPORTING is_item = ms_item
+                                       iv_language = mv_language
+                                       io_field_rules = get_field_rules( ).
   ENDMETHOD.
 
 
