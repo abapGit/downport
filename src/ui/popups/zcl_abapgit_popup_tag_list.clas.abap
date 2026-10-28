@@ -11,17 +11,23 @@ CLASS zcl_abapgit_popup_tag_list DEFINITION
     CLASS-METHODS create
       IMPORTING
         iv_url          TYPE string
+        iv_description  TYPE string OPTIONAL
+        iv_button_label TYPE string OPTIONAL
       RETURNING
         VALUE(ri_popup) TYPE REF TO zif_abapgit_html_popup.
 
     METHODS constructor
       IMPORTING
-        iv_url TYPE string.
+        iv_url          TYPE string
+        iv_description  TYPE string OPTIONAL
+        iv_button_label TYPE string OPTIONAL.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
 
     DATA mv_repo_url TYPE string.
+    DATA mv_description TYPE string.
+    DATA mv_button_label TYPE string.
 
     METHODS fetch_tag_list
       RETURNING
@@ -36,12 +42,16 @@ CLASS zcl_abapgit_popup_tag_list IMPLEMENTATION.
 
 
   METHOD constructor.
-    mv_repo_url = iv_url.
+    mv_repo_url     = iv_url.
+    mv_description  = iv_description.
+    mv_button_label = iv_button_label.
   ENDMETHOD.
 
 
   METHOD create.
-    CREATE OBJECT ri_popup TYPE zcl_abapgit_popup_tag_list EXPORTING iv_url = iv_url.
+    ri_popup = NEW zcl_abapgit_popup_tag_list( iv_url = iv_url
+                                               iv_description = iv_description
+                                               iv_button_label = iv_button_label ).
   ENDMETHOD.
 
 
@@ -76,9 +86,11 @@ CLASS zcl_abapgit_popup_tag_list IMPLEMENTATION.
 
   METHOD zif_abapgit_html_popup~create_picklist.
 
-    CREATE OBJECT ro_picklist EXPORTING iv_title = 'Choose Tag'
-                                        it_list = fetch_tag_list( )
-                                        ii_item_renderer = me.
+    ro_picklist = NEW #( iv_title = 'Choose Tag'
+                         it_list = fetch_tag_list( )
+                         ii_item_renderer = me
+                         iv_description = mv_description
+                         iv_button_label = mv_button_label ).
 
   ENDMETHOD.
 ENDCLASS.
