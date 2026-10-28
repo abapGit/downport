@@ -30,11 +30,11 @@ CLASS zcl_abapgit_gui_page_diff IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_diff.
 
-    CREATE OBJECT lo_component EXPORTING iv_key = iv_key
-                                         is_file = is_file
-                                         is_object = is_object
-                                         it_files = it_files
-                                         iv_changed_by = iv_changed_by.
+    lo_component = NEW #( iv_key = iv_key
+                          is_file = is_file
+                          is_object = is_object
+                          it_files = it_files
+                          iv_changed_by = iv_changed_by ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title         = 'Diff'
