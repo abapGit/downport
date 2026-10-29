@@ -9,7 +9,7 @@ CLASS ltd_memory_settings IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD zif_abapgit_persist_settings~read.
-    ro_settings = NEW #( ).
+    CREATE OBJECT ro_settings.
   ENDMETHOD.
 ENDCLASS.
 
@@ -175,11 +175,11 @@ CLASS ltcl_changed_by IMPLEMENTATION.
     mo_dot = zcl_abapgit_dot_abapgit=>build_default( ).
 
     mi_previous_settings = zcl_abapgit_persist_factory=>get_settings( ).
-    li_memory = NEW #( ).
+    CREATE OBJECT li_memory.
     zcl_abapgit_persist_injector=>set_settings( li_memory ).
 
     mi_previous_cts_api = zcl_abapgit_factory=>get_cts_api( ).
-    mo_cts_api = NEW #( ).
+    CREATE OBJECT mo_cts_api.
     zcl_abapgit_injector=>set_cts_api( mo_cts_api ).
 
   ENDMETHOD.
