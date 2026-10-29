@@ -120,8 +120,8 @@ CLASS zcl_abapgit_gui_picklist IMPLEMENTATION.
       zcx_abapgit_exception=>raise( 'Renderer or attr name required' ).
     ENDIF.
 
-    CREATE OBJECT mo_form_data.
-    CREATE OBJECT mo_validation_log.
+    mo_form_data = NEW #( ).
+    mo_validation_log = NEW #( ).
     mo_form = get_form_schema( ).
     mo_form_util = zcl_abapgit_html_form_utils=>create( mo_form ).
 
@@ -151,13 +151,11 @@ CLASS zcl_abapgit_gui_picklist IMPLEMENTATION.
       lv_title = mv_title.
     ENDIF.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( lines( <lt_list> ) <= 15 ).
     ro_form->radio(
       iv_name          = c_radio_name
       iv_label         = lv_title
       iv_default_value = '1'
-      iv_condense      = temp1 ).
+      iv_condense      = xsdbool( lines( <lt_list> ) <= 15 ) ).
 
     LOOP AT <lt_list> ASSIGNING <ls_row>.
       lv_index = sy-tabix.
