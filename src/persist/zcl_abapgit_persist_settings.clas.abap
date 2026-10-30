@@ -52,7 +52,7 @@ CLASS zcl_abapgit_persist_settings IMPLEMENTATION.
     ENDIF.
 
     " Settings have changed or have not yet been loaded
-    ro_settings = NEW #( ).
+    CREATE OBJECT ro_settings.
 
     TRY.
 
