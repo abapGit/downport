@@ -40,8 +40,10 @@ CLASS zcl_abapgit_object_vcls IMPLEMENTATION.
 
   METHOD deserialize_texts.
 
-    DATA lt_vcldirt   TYPE STANDARD TABLE OF vcldirt WITH DEFAULT KEY.
-    DATA lt_vclstruct TYPE STANDARD TABLE OF vclstruct WITH DEFAULT KEY.
+    TYPES temp1 TYPE STANDARD TABLE OF vcldirt WITH DEFAULT KEY.
+DATA lt_vcldirt   TYPE temp1.
+    TYPES temp2 TYPE STANDARD TABLE OF vclstruct WITH DEFAULT KEY.
+DATA lt_vclstruct TYPE temp2.
     DATA lv_index     TYPE i.
 
     FIELD-SYMBOLS <ls_vcldirt>   LIKE LINE OF lt_vcldirt.
@@ -114,8 +116,10 @@ CLASS zcl_abapgit_object_vcls IMPLEMENTATION.
 
   METHOD serialize_texts.
 
-    DATA lt_vcldirt   TYPE STANDARD TABLE OF vcldirt WITH DEFAULT KEY.
-    DATA lt_vclstruct TYPE STANDARD TABLE OF vclstruct WITH DEFAULT KEY.
+    TYPES temp3 TYPE STANDARD TABLE OF vcldirt WITH DEFAULT KEY.
+DATA lt_vcldirt   TYPE temp3.
+    TYPES temp4 TYPE STANDARD TABLE OF vclstruct WITH DEFAULT KEY.
+DATA lt_vclstruct TYPE temp4.
 
     IF mo_i18n_params->ms_params-main_language_only = abap_true.
       RETURN.
@@ -189,10 +193,12 @@ CLASS zcl_abapgit_object_vcls IMPLEMENTATION.
 
   METHOD zif_abapgit_object~deserialize.
 
-    DATA: ls_vcldir_entry TYPE v_vcldir,
+    TYPES temp5 TYPE TABLE OF v_vclstdep.
+TYPES temp1 TYPE TABLE OF v_vclmf.
+DATA: ls_vcldir_entry TYPE v_vcldir,
           lt_vclstruc     TYPE ty_vclstruc_tt,
-          lt_vclstrudep   TYPE TABLE OF v_vclstdep,
-          lt_vclmf        TYPE TABLE OF v_vclmf,
+          lt_vclstrudep   TYPE temp5,
+          lt_vclmf        TYPE temp1,
           lv_objectname   TYPE ob_object.
 
 
@@ -254,7 +260,9 @@ CLASS zcl_abapgit_object_vcls IMPLEMENTATION.
     SELECT SINGLE changedate INTO lv_changedate FROM vcldir
       WHERE vclname = ms_item-obj_name.
 
-    rv_bool = xsdbool( sy-subrc = 0 ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( sy-subrc = 0 ).
+    rv_bool = temp1.
 
   ENDMETHOD.
 
@@ -288,7 +296,9 @@ CLASS zcl_abapgit_object_vcls IMPLEMENTATION.
       WHERE vclname = ms_item-obj_name.
 
 * see logic in function module VIEWCLUSTER_GET_DEFINITION
-    rv_active = xsdbool( lv_changedate IS NOT INITIAL ).
+    DATA temp2 TYPE xsdboolean.
+    temp2 = boolc( lv_changedate IS NOT INITIAL ).
+    rv_active = temp2.
 
   ENDMETHOD.
 
@@ -322,8 +332,9 @@ CLASS zcl_abapgit_object_vcls IMPLEMENTATION.
 
   METHOD zif_abapgit_object~jump.
 
-    DATA: ls_bcdata TYPE bdcdata,
-          lt_bcdata TYPE STANDARD TABLE OF bdcdata.
+    TYPES temp7 TYPE STANDARD TABLE OF bdcdata.
+DATA: ls_bcdata TYPE bdcdata,
+          lt_bcdata TYPE temp7.
 
     ls_bcdata-program  = 'SAPMSVIM'.
     ls_bcdata-dynpro   = '0050'.
@@ -382,11 +393,14 @@ CLASS zcl_abapgit_object_vcls IMPLEMENTATION.
 
   METHOD zif_abapgit_object~serialize.
 
-    DATA: lv_vclname      TYPE vcl_name,
+    TYPES temp8 TYPE TABLE OF v_vclstruc.
+TYPES temp2 TYPE TABLE OF v_vclstdep.
+TYPES temp1 TYPE TABLE OF v_vclmf.
+DATA: lv_vclname      TYPE vcl_name,
           ls_vcldir_entry TYPE v_vcldir,
-          lt_vclstruc     TYPE TABLE OF v_vclstruc,
-          lt_vclstrudep   TYPE TABLE OF v_vclstdep,
-          lt_vclmf        TYPE TABLE OF v_vclmf.
+          lt_vclstruc     TYPE temp8,
+          lt_vclstrudep   TYPE temp2,
+          lt_vclmf        TYPE temp1.
 
 
     IF zif_abapgit_object~exists( ) = abap_false.
