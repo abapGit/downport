@@ -83,7 +83,9 @@ CLASS lcl_aff_type_mapping IMPLEMENTATION.
       iv_ext  = 'xml' ).
     READ TABLE mt_files TRANSPORTING NO FIELDS
       WITH KEY file COMPONENTS filename = lv_filename.
-    rv_exists = xsdbool( sy-subrc = 0 ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( sy-subrc = 0 ).
+    rv_exists = temp1.
   ENDMETHOD.
 
   METHOD resolve_dictionary_reference.
@@ -475,12 +477,12 @@ CLASS lcl_aff_metadata_handler IMPLEMENTATION.
     ls_dtel_data-dd04v = is_dd04v.
     ls_dtel_data-abap_language_version = iv_abap_language_version.
 
-    lo_mapper = NEW lcl_aff_type_mapping( ).
+    CREATE OBJECT lo_mapper TYPE lcl_aff_type_mapping.
     lo_mapper->to_aff( EXPORTING iv_data = ls_dtel_data IMPORTING es_data = ls_data_aff ).
     validate( is_data_aff    = ls_data_aff
               iv_object_name = is_dd04v-rollname ).
 
-    lo_json_handler = NEW #( ).
+    CREATE OBJECT lo_json_handler.
     TRY.
         rv_json = lo_json_handler->serialize(
           iv_data          = ls_data_aff
@@ -500,7 +502,7 @@ CLASS lcl_aff_metadata_handler IMPLEMENTATION.
     DATA lx_exception TYPE REF TO cx_root.
 
     lv_json = zcl_abapgit_convert=>xstring_to_string_utf8( iv_json ).
-    lo_json_handler = NEW #( ).
+    CREATE OBJECT lo_json_handler.
     TRY.
         lo_json_handler->deserialize(
           EXPORTING
@@ -514,7 +516,7 @@ CLASS lcl_aff_metadata_handler IMPLEMENTATION.
     validate( is_data_aff    = ls_data_aff
               iv_object_name = iv_object_name ).
 
-    lo_mapper = NEW lcl_aff_type_mapping( it_files = it_files ).
+    CREATE OBJECT lo_mapper TYPE lcl_aff_type_mapping EXPORTING it_files = it_files.
     lo_mapper->to_abapgit(
       EXPORTING
         iv_data        = ls_data_aff

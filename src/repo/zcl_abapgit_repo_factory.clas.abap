@@ -31,7 +31,7 @@ CLASS zcl_abapgit_repo_factory IMPLEMENTATION.
     IF gi_repo_pull IS BOUND.
       ri_repo_pull = gi_repo_pull.
     ELSE.
-      ri_repo_pull = NEW zcl_abapgit_repo_pull( ii_repo = ii_repo ).
+      CREATE OBJECT ri_repo_pull TYPE zcl_abapgit_repo_pull EXPORTING ii_repo = ii_repo.
     ENDIF.
 
   ENDMETHOD.
@@ -43,7 +43,7 @@ CLASS zcl_abapgit_repo_factory IMPLEMENTATION.
     IF gi_repo_push IS BOUND.
       ri_repo_push = gi_repo_push.
     ELSE.
-      ri_repo_push = NEW zcl_abapgit_repo_push( ii_repo_online = ii_repo_online ).
+      CREATE OBJECT ri_repo_push TYPE zcl_abapgit_repo_push EXPORTING ii_repo_online = ii_repo_online.
     ENDIF.
 
   ENDMETHOD.
