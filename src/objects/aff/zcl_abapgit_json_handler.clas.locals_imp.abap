@@ -24,13 +24,17 @@ CLASS lcl_aff_filter IMPLEMENTATION.
     lv_path = is_node-path && is_node-name.
 
     READ TABLE mt_skip_paths WITH KEY path = lv_path value = is_node-value TRANSPORTING NO FIELDS.
-    IF xsdbool( sy-subrc = 0 ) = abap_true
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( sy-subrc = 0 ).
+    IF temp1 = abap_true
       AND iv_visit = zif_abapgit_ajson_filter=>visit_type-value.
       rv_keep = abap_false.
       RETURN.
     ELSE.
       READ TABLE mt_skip_paths WITH KEY path = lv_path TRANSPORTING NO FIELDS.
-      IF xsdbool( sy-subrc = 0 ) = abap_true
+      DATA temp2 TYPE xsdboolean.
+      temp2 = boolc( sy-subrc = 0 ).
+      IF temp2 = abap_true
         AND iv_visit = zif_abapgit_ajson_filter=>visit_type-value.
         rv_keep = abap_true.
         RETURN.
