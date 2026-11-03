@@ -139,9 +139,9 @@ CLASS ltcl_general IMPLEMENTATION.
   METHOD text_from_exception.
     DATA: lx_previous TYPE REF TO cx_sy_dyn_call_illegal_method.
 
-    CREATE OBJECT lx_previous TYPE cx_sy_dyn_call_illegal_method EXPORTING textid = cx_sy_dyn_call_illegal_method=>private_method
-                                                                           classname = 'CLASS'
-                                                                           methodname = 'METHOD'.
+    lx_previous = NEW cx_sy_dyn_call_illegal_method( textid = cx_sy_dyn_call_illegal_method=>private_method
+                                                     classname = 'CLASS'
+                                                     methodname = 'METHOD' ).
 
     given_the_previous_exception( lx_previous ).
 
@@ -481,7 +481,7 @@ CLASS ltcl_longtext IMPLEMENTATION.
   METHOD text_from_previous_exception.
     DATA: lx_previous TYPE REF TO cx_sy_dyn_call_illegal_method.
 
-    CREATE OBJECT lx_previous.
+    lx_previous = NEW #( ).
 
     given_the_previous_exception( lx_previous ).
     given_the_longtext( gs_longtext_test_data-longtext_500 ).
