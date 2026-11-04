@@ -75,9 +75,8 @@ CLASS ZCL_ABAPGIT_SYNTAX_ABAP IMPLEMENTATION.
 
   METHOD init_keywords.
 
-    TYPES temp1 TYPE STANDARD TABLE OF string.
-DATA: lv_keywords TYPE string,
-          lt_keywords TYPE temp1.
+    DATA: lv_keywords TYPE string,
+          lt_keywords TYPE STANDARD TABLE OF string.
 
     lv_keywords =
      '&&|?TO|ABAP-SOURCE|ABBREVIATED|ABS|ABSTRACT|ACCEPT|ACCEPTING' &&
@@ -207,9 +206,7 @@ DATA: lv_keywords TYPE string,
 
     lv_str = to_upper( iv_chunk ).
     READ TABLE gt_keywords WITH KEY table_line = lv_str TRANSPORTING NO FIELDS.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_yes = temp1.
+    rv_yes = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
