@@ -148,13 +148,13 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     mo_files = zcl_abapgit_objects_files=>new( ms_item ).
 
-    lo_cut = NEW #( is_item = ms_item
-                    iv_language = 'E'
-                    io_files = mo_files ).
+    CREATE OBJECT lo_cut EXPORTING is_item = ms_item
+                                   iv_language = 'E'
+                                   io_files = mo_files.
 
-    mo_log = NEW #( ).
+    CREATE OBJECT mo_log.
 
-    mo_object_fnc = NEW #( ).
+    CREATE OBJECT mo_object_fnc.
     lo_cut->mi_object_oriented_object_fct  = mo_object_fnc.
 
     mo_cut = lo_cut.
@@ -170,7 +170,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA ls_expected_docu_line TYPE tline.
     DATA lt_expected_docu_lines TYPE tlinetab.
 
-    lo_xmlin = NEW zcl_abapgit_xml_input( iv_xml = get_xml( ) ).
+    CREATE OBJECT lo_xmlin TYPE zcl_abapgit_xml_input EXPORTING iv_xml = get_xml( ).
 
     mo_files->add_abap( get_source( ) ).
 
