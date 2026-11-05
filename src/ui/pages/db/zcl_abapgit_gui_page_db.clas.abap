@@ -122,7 +122,7 @@ CLASS zcl_abapgit_gui_page_db IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_db.
 
-    lo_component = NEW #( ).
+    CREATE OBJECT lo_component.
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title         = 'Database Utility'
@@ -156,7 +156,7 @@ CLASS zcl_abapgit_gui_page_db IMPLEMENTATION.
     lv_text = |\n|.
     INSERT lv_text INTO TABLE lt_toc.
 
-    lo_zip = NEW #( ).
+    CREATE OBJECT lo_zip.
 
     LOOP AT lt_data ASSIGNING <ls_data>.
       IF <ls_data>-type = zcl_abapgit_persistence_db=>c_type_repo_csum.
@@ -256,7 +256,7 @@ CLASS zcl_abapgit_gui_page_db IMPLEMENTATION.
 
     lv_zip = li_fe_serv->file_upload( lv_path ).
 
-    lo_zip = NEW #( ).
+    CREATE OBJECT lo_zip.
 
     lo_zip->load(
       EXPORTING
