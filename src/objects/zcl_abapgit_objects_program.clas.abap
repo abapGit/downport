@@ -169,6 +169,9 @@ CLASS zcl_abapgit_objects_program DEFINITION
         VALUE(rt_tpool) TYPE textpool_table.
   PRIVATE SECTION.
 
+    TYPES:
+      ty_d021s_tt TYPE STANDARD TABLE OF d021s WITH DEFAULT KEY.
+
     CONSTANTS:
       BEGIN OF c_state,
         active   TYPE r3state VALUE 'A',
@@ -193,6 +196,12 @@ CLASS zcl_abapgit_objects_program DEFINITION
         is_cua TYPE ty_cua
       CHANGING
         cs_adm TYPE rsmpe_adm.
+
+    CLASS-METHODS fix_button_right_vislength
+      IMPORTING
+        it_fieldlist_int TYPE ty_d021s_tt
+      CHANGING
+        ct_fields        TYPE dyfatc_tab.
 
     METHODS get_program_title
       IMPORTING
@@ -479,12 +488,10 @@ CLASS zcl_abapgit_objects_program IMPLEMENTATION.
 
     CONSTANTS lc_rpyty_force_off TYPE c LENGTH 1 VALUE '/'.
 
-    TYPES temp1 TYPE TABLE OF d020s.
-TYPES temp2 TYPE TABLE OF d023s.
-DATA: lv_name            TYPE dwinactiv-obj_name,
-          lt_d020s_to_delete TYPE temp1,
+    DATA: lv_name            TYPE dwinactiv-obj_name,
+          lt_d020s_to_delete TYPE TABLE OF d020s,
           ls_d020s           LIKE LINE OF lt_d020s_to_delete,
-          lt_params          TYPE temp2,
+          lt_params          TYPE TABLE OF d023s,
           ls_dynpro          LIKE LINE OF it_dynpros.
 
     FIELD-SYMBOLS: <ls_field> TYPE rpy_dyfatc.
@@ -772,10 +779,9 @@ DATA: lv_name            TYPE dwinactiv-obj_name,
 
   METHOD deserialize_varis.
 
-    TYPES temp3 TYPE STANDARD TABLE OF varit WITH DEFAULT KEY.
-DATA: lt_local_varis      TYPE ty_varikey_tt,
+    DATA: lt_local_varis      TYPE ty_varikey_tt,
           ls_varikey          LIKE LINE OF lt_local_varis,
-          lt_vari_text        TYPE temp3,
+          lt_vari_text        TYPE STANDARD TABLE OF varit WITH DEFAULT KEY,
           ls_vari_text_create LIKE LINE OF lt_vari_text,
           ls_varid            TYPE varid,
           lv_recreate         TYPE abap_bool,
@@ -803,9 +809,7 @@ DATA: lt_local_varis      TYPE ty_varikey_tt,
       ls_varikey-variant = <ls_vari>-variant.
 
       DELETE lt_local_varis WHERE variant = <ls_vari>-variant.
-      DATA temp1 TYPE xsdboolean.
-      temp1 = boolc( sy-subrc = 0 ).
-      lv_exists_locally = temp1.
+      lv_exists_locally = xsdbool( sy-subrc = 0 ).
 
       lv_was_protected = set_vari_protection( is_vari    = ls_varikey
                                               iv_protect = abap_false ).
@@ -858,6 +862,44 @@ DATA: lt_local_varis      TYPE ty_varikey_tt,
           set_vari_protection( is_vari    = ls_varikey
                                iv_protect = lv_was_protected ).
       ENDTRY.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD fix_button_right_vislength.
+    " RPY_DYNPRO_READ returns box column - text column + text length as VISLENGTH of
+    " check and radio buttons with the box on the right, but RPY_DYNPRO_INSERT expects
+    " the width from text to box, so each import would move the box further right
+
+    DATA: lv_box_coln  TYPE i,
+          lv_text_coln TYPE i.
+
+    FIELD-SYMBOLS: <ls_field>     LIKE LINE OF ct_fields,
+                   <ls_field_int> LIKE LINE OF it_fieldlist_int.
+
+    "relevant flag value (taken from include MSEUSBIT)
+    CONSTANTS lc_flg1edt TYPE x VALUE '80'.
+
+
+    LOOP AT ct_fields ASSIGNING <ls_field>
+        WHERE butt_right = abap_true AND ( type = 'CHECK' OR type = 'RADIO' ).
+
+      CLEAR: lv_box_coln, lv_text_coln.
+
+      LOOP AT it_fieldlist_int ASSIGNING <ls_field_int>
+          WHERE fnam = <ls_field>-name AND ( fill = 'A' OR fill = 'C' ).
+        IF <ls_field_int>-flg1 O lc_flg1edt.
+          lv_box_coln = <ls_field_int>-coln.
+        ELSE.
+          lv_text_coln = <ls_field_int>-coln.
+        ENDIF.
+      ENDLOOP.
+
+      IF lv_text_coln > 0 AND lv_box_coln > lv_text_coln.
+        <ls_field>-vislength = lv_box_coln - lv_text_coln + 1.
+      ENDIF.
+
     ENDLOOP.
 
   ENDMETHOD.
@@ -1111,9 +1153,9 @@ DATA: lt_local_varis      TYPE ty_varikey_tt,
 
 
   METHOD is_exit_include.
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( iv_program CP 'LX*' OR iv_program CP 'SAPLX*' OR iv_program+1 CP '/LX*' OR iv_program+1 CP '/SAPLX*' ).
-    rv_is_exit_include = temp2.
+    rv_is_exit_include = xsdbool(
+      iv_program CP 'LX*' OR iv_program CP 'SAPLX*' OR
+      iv_program+1 CP '/LX*' OR iv_program+1 CP '/SAPLX*' ).
   ENDMETHOD.
 
 
@@ -1181,16 +1223,13 @@ DATA: lt_local_varis      TYPE ty_varikey_tt,
 
 
   METHOD serialize_dynpros.
-    TYPES temp4 TYPE TABLE OF d020s.
-TYPES temp3 TYPE TABLE OF d021t.
-TYPES temp1 TYPE TABLE OF d021s.
-DATA: ls_header               TYPE rpy_dyhead,
+    DATA: ls_header               TYPE rpy_dyhead,
           lt_containers           TYPE dycatt_tab,
           lt_fields_to_containers TYPE dyfatc_tab,
           lt_flow_logic           TYPE swydyflow,
-          lt_d020s                TYPE temp4,
-          lt_texts                TYPE temp3,
-          lt_fieldlist_int        TYPE temp1. "internal format
+          lt_d020s                TYPE TABLE OF d020s,
+          lt_texts                TYPE TABLE OF d021t,
+          lt_fieldlist_int        TYPE TABLE OF d021s. "internal format
 
     FIELD-SYMBOLS: <ls_d020s>       LIKE LINE OF lt_d020s,
                    <lv_outputstyle> TYPE scrpostyle,
@@ -1286,6 +1325,12 @@ DATA: ls_header               TYPE rpy_dyhead,
         ENDIF.
       ENDLOOP.
 
+      fix_button_right_vislength(
+        EXPORTING
+          it_fieldlist_int = lt_fieldlist_int
+        CHANGING
+          ct_fields        = lt_fields_to_containers ).
+
       LOOP AT lt_containers ASSIGNING <ls_container>.
         IF <ls_container>-c_resize_v = abap_false.
           CLEAR <ls_container>-c_line_min.
@@ -1322,14 +1367,13 @@ DATA: ls_header               TYPE rpy_dyhead,
 
   METHOD serialize_program.
 
-    TYPES temp7 TYPE TABLE OF abaptxt255.
-DATA: ls_progdir      TYPE zif_abapgit_sap_report=>ty_progdir,
+    DATA: ls_progdir      TYPE zif_abapgit_sap_report=>ty_progdir,
           lv_program_name TYPE syrepid,
           lt_dynpros      TYPE ty_dynpro_tt,
           ls_cua          TYPE ty_cua,
           lt_varis        TYPE ty_vari_tt,
           li_report       TYPE REF TO zif_abapgit_sap_report,
-          lt_source       TYPE temp7,
+          lt_source       TYPE TABLE OF abaptxt255,
           lt_tpool        TYPE textpool_table,
           ls_tpool        LIKE LINE OF lt_tpool,
           li_xml          TYPE REF TO zif_abapgit_xml_output.
@@ -1391,7 +1435,7 @@ DATA: ls_progdir      TYPE zif_abapgit_sap_report=>ty_progdir,
     IF io_xml IS BOUND.
       li_xml = io_xml.
     ELSE.
-      CREATE OBJECT li_xml TYPE zcl_abapgit_xml_output.
+      li_xml = NEW zcl_abapgit_xml_output( ).
     ENDIF.
 
     li_xml->add( iv_name = 'PROGDIR'
