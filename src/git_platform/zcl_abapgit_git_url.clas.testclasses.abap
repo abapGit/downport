@@ -27,7 +27,7 @@ CLASS ltcl_repo_online IMPLEMENTATION.
 
     FIELD-SYMBOLS <ls_provider_urls> TYPE ty_show_url_test.
 
-    lo_cut = NEW #( ).
+    CREATE OBJECT lo_cut.
 
     ls_provider_urls-repo_url = |https://github.com/abapGit/abapGit.git|.
     ls_provider_urls-show_url = |https://github.com/abapGit/abapGit/commit/{ lv_testhash }|.
