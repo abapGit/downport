@@ -19,7 +19,7 @@ CLASS ltcl_abapgit_syntax_json IMPLEMENTATION.
 
   METHOD setup.
 
-    CREATE OBJECT mo_cut.
+    mo_cut = NEW #( ).
 
   ENDMETHOD.
 

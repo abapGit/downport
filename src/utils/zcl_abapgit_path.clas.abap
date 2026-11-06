@@ -71,10 +71,9 @@ CLASS ZCL_ABAPGIT_PATH IMPLEMENTATION.
 
   METHOD get_filename_from_syspath.
 
-    TYPES temp1 TYPE TABLE OF string.
-DATA: lv_split TYPE c LENGTH 1,
+    DATA: lv_split TYPE c LENGTH 1,
           lv_index TYPE i,
-          lt_split TYPE temp1.
+          lt_split TYPE TABLE OF string.
 
     " filename | c:\filename | /dir/filename | \\server\filename
     IF iv_path CA '/'.
@@ -93,9 +92,7 @@ DATA: lv_split TYPE c LENGTH 1,
 
 
   METHOD is_root.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( iv_path = '/' ).
-    rv_yes = temp1.
+    rv_yes = xsdbool( iv_path = '/' ).
   ENDMETHOD.
 
 
@@ -106,9 +103,9 @@ DATA: lv_split TYPE c LENGTH 1,
 
     lv_len  = strlen( iv_parent ).
     lv_last = lv_len - 1.
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( strlen( iv_path ) > lv_len AND iv_path+0(lv_len) = iv_parent AND ( iv_parent+lv_last(1) = '/' OR iv_path+lv_len(1) = '/' ) ).
-    rv_yes  = temp2.
+    rv_yes  = xsdbool( strlen( iv_path ) > lv_len
+                 AND iv_path+0(lv_len) = iv_parent
+                 AND ( iv_parent+lv_last(1) = '/' OR iv_path+lv_len(1) = '/' ) ).
 
   ENDMETHOD.
 
