@@ -141,9 +141,7 @@ CLASS zcl_abapgit_object_devc IMPLEMENTATION.
            WHERE pgmid = 'R3TR'
            AND NOT ( ( object = 'DEVC' OR object = 'SOTR' ) AND obj_name = iv_package_name )
            AND devclass = iv_package_name.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc <> 0 ).
-    rv_is_empty = temp1.
+    rv_is_empty = xsdbool( sy-subrc <> 0 ).
 
   ENDMETHOD.
 
@@ -158,9 +156,7 @@ CLASS zcl_abapgit_object_devc IMPLEMENTATION.
     IF sy-subrc = 0.
       " Look up type of software component (typically LOCAL or ZLOCAL but others are possible)
       SELECT SINGLE comp_type FROM cvers INTO lv_comp_type WHERE component = lv_dlvunit.
-      DATA temp2 TYPE xsdboolean.
-      temp2 = boolc( sy-subrc = 0 AND lv_comp_type CA 'LJZ' ).
-      rv_is_local = temp2.
+      rv_is_local = xsdbool( sy-subrc = 0 AND lv_comp_type CA 'LJZ' ).
     ENDIF.
 
   ENDMETHOD.
@@ -192,10 +188,9 @@ CLASS zcl_abapgit_object_devc IMPLEMENTATION.
 
   METHOD remove_obsolete_tadir.
 
-    TYPES temp1 TYPE STANDARD TABLE OF devclass.
-DATA:
+    DATA:
       lv_pack  TYPE devclass,
-      lt_pack  TYPE temp1,
+      lt_pack  TYPE STANDARD TABLE OF devclass,
       ls_tadir TYPE zif_abapgit_definitions=>ty_tadir,
       lt_tadir TYPE zif_abapgit_definitions=>ty_tadir_tt,
       ls_item  TYPE zif_abapgit_definitions=>ty_item.
@@ -343,12 +338,11 @@ DATA:
 
 
   METHOD update_pinf_usages.
-    TYPES temp2 TYPE SORTED TABLE OF i WITH UNIQUE KEY table_line.
-DATA: lt_current_permissions TYPE tpak_permission_to_use_list,
+    DATA: lt_current_permissions TYPE tpak_permission_to_use_list,
           li_usage               TYPE REF TO if_package_permission_to_use,
           ls_data_sign           TYPE scomppsign,
           ls_add_permission_data TYPE pkgpermdat,
-          lt_handled             TYPE temp2.
+          lt_handled             TYPE SORTED TABLE OF i WITH UNIQUE KEY table_line.
     FIELD-SYMBOLS: <ls_usage_data> LIKE LINE OF it_usage_data.
 
     " Get the current permissions
