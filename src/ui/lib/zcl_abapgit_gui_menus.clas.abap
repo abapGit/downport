@@ -153,46 +153,36 @@ CLASS zcl_abapgit_gui_menus IMPLEMENTATION.
 
     ro_menu = zcl_abapgit_html_toolbar=>create( 'toolbar-repo-settings' ).
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( iv_act = zif_abapgit_definitions=>c_action-repo_settings ).
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( iv_act = zif_abapgit_definitions=>c_action-repo_local_settings ).
-    DATA temp3 TYPE xsdboolean.
-    temp3 = boolc( iv_act = zif_abapgit_definitions=>c_action-repo_remote_settings ).
-    DATA temp4 TYPE xsdboolean.
-    temp4 = boolc( iv_act = zif_abapgit_definitions=>c_action-repo_background ).
-    DATA temp5 TYPE xsdboolean.
-    temp5 = boolc( iv_act = zif_abapgit_definitions=>c_action-repo_infos ).
     ro_menu->add(
       iv_txt   = 'Repository'
       iv_title = `Repository Settings`
       iv_class = iv_class
       iv_act   = |{ zif_abapgit_definitions=>c_action-repo_settings }?key={ iv_key }|
-      iv_cur   = temp1
+      iv_cur   = xsdbool( iv_act = zif_abapgit_definitions=>c_action-repo_settings )
     )->add(
       iv_txt   = 'Local'
       iv_title = `Local Settings`
       iv_class = iv_class
       iv_act   = |{ zif_abapgit_definitions=>c_action-repo_local_settings }?key={ iv_key }|
-      iv_cur   = temp2
+      iv_cur   = xsdbool( iv_act = zif_abapgit_definitions=>c_action-repo_local_settings )
     )->add(
       iv_txt   = 'Remote'
       iv_title = `Remote Settings`
       iv_class = iv_class
       iv_act   = |{ zif_abapgit_definitions=>c_action-repo_remote_settings }?key={ iv_key }|
-      iv_cur   = temp3
+      iv_cur   = xsdbool( iv_act = zif_abapgit_definitions=>c_action-repo_remote_settings )
     )->add(
       iv_txt   = 'Background'
       iv_title = `Background Settings`
       iv_class = iv_class
       iv_act   = |{ zif_abapgit_definitions=>c_action-repo_background }?key={ iv_key }|
-      iv_cur   = temp4
+      iv_cur   = xsdbool( iv_act = zif_abapgit_definitions=>c_action-repo_background )
     )->add(
       iv_txt   = 'Stats'
       iv_title = `Statistics`
       iv_class = iv_class
       iv_act   = |{ zif_abapgit_definitions=>c_action-repo_infos }?key={ iv_key }|
-      iv_cur   = temp5 ).
+      iv_cur   = xsdbool( iv_act = zif_abapgit_definitions=>c_action-repo_infos ) ).
 
     IF iv_act IS NOT INITIAL.
       zcl_abapgit_exit=>get_instance( )->enhance_repo_toolbar(
@@ -213,18 +203,14 @@ CLASS zcl_abapgit_gui_menus IMPLEMENTATION.
 
     ro_menu = zcl_abapgit_html_toolbar=>create( 'toolbar-abapgit-settings' ).
 
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( iv_act = zif_abapgit_definitions=>c_action-go_settings ).
-    DATA temp3 TYPE xsdboolean.
-    temp3 = boolc( iv_act = zif_abapgit_definitions=>c_action-go_settings_personal ).
     ro_menu->add(
       iv_txt = 'Global'
       iv_act = zif_abapgit_definitions=>c_action-go_settings
-      iv_cur = temp2
+      iv_cur = xsdbool( iv_act = zif_abapgit_definitions=>c_action-go_settings )
     )->add(
       iv_txt = 'Personal'
       iv_act = zif_abapgit_definitions=>c_action-go_settings_personal
-      iv_cur = temp3 ).
+      iv_cur = xsdbool( iv_act = zif_abapgit_definitions=>c_action-go_settings_personal ) ).
 
     add_back(
       io_menu      = ro_menu
