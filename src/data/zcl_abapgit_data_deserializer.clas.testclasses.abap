@@ -21,8 +21,8 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lt_files TYPE zif_abapgit_git_definitions=>ty_files_tt.
     DATA ls_config TYPE zif_abapgit_data_config=>ty_config.
 
-    CREATE OBJECT li_cut TYPE zcl_abapgit_data_deserializer.
-    CREATE OBJECT li_config TYPE zcl_abapgit_data_config.
+    li_cut = NEW zcl_abapgit_data_deserializer( ).
+    li_config = NEW zcl_abapgit_data_config( ).
 
     ls_config-type = zif_abapgit_data_config=>c_data_type-tabu.
     ls_config-name = 'T100'.
@@ -71,7 +71,7 @@ CLASS ltcl_test IMPLEMENTATION.
     ls_t100-text  = |abapGit aunit test|.
     INSERT ls_t100 INTO TABLE <lt_lc_data>.
 
-    CREATE OBJECT li_cut TYPE zcl_abapgit_data_deserializer.
+    li_cut = NEW zcl_abapgit_data_deserializer( ).
     ls_result = li_cut->preview_database_changes(
       iv_name    = ls_config-name
       ir_db_data = lr_db_data
@@ -139,7 +139,7 @@ CLASS ltcl_test IMPLEMENTATION.
     ls_t100-text  = |abapGit aunit test UPDATE|.
     INSERT ls_t100 INTO TABLE <lt_lc_data>.
 
-    CREATE OBJECT li_cut TYPE zcl_abapgit_data_deserializer.
+    li_cut = NEW zcl_abapgit_data_deserializer( ).
     ls_result = li_cut->preview_database_changes(
       iv_name    = ls_config-name
       ir_db_data = lr_db_data
@@ -201,7 +201,7 @@ CLASS ltcl_test IMPLEMENTATION.
     ls_t100-text  = |abapGit aunit test DELETE|.
     INSERT ls_t100 INTO TABLE <lt_db_data>.
 
-    CREATE OBJECT li_cut TYPE zcl_abapgit_data_deserializer.
+    li_cut = NEW zcl_abapgit_data_deserializer( ).
     ls_result = li_cut->preview_database_changes(
       iv_name    = ls_config-name
       ir_db_data = lr_db_data
