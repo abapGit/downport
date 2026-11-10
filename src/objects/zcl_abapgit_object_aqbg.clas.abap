@@ -57,9 +57,9 @@ CLASS zcl_abapgit_object_aqbg IMPLEMENTATION.
 
   METHOD get_generic.
     " transaction SQ03
-    ro_generic = NEW #( is_item = ms_item
-                        io_field_rules = get_field_rules( )
-                        iv_language = mv_language ).
+    CREATE OBJECT ro_generic EXPORTING is_item = ms_item
+                                       io_field_rules = get_field_rules( )
+                                       iv_language = mv_language.
 
   ENDMETHOD.
 

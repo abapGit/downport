@@ -117,11 +117,9 @@ CLASS zcl_abapgit_abap_language_vers IMPLEMENTATION.
   METHOD compare_language_versions.
 
     " For "standard" the values differ between regular and source objects but logically they are the same
-    rv_compare = xsdbool( iv_abap_language_version_1 = iv_abap_language_version_2 OR
-      ( iv_abap_language_version_1 = zif_abapgit_aff_types_v1=>co_abap_language_version-standard AND
-        iv_abap_language_version_2 = zif_abapgit_aff_types_v1=>co_abap_language_version_src-standard ) OR
-      ( iv_abap_language_version_1 = zif_abapgit_aff_types_v1=>co_abap_language_version_src-standard AND
-        iv_abap_language_version_2 = zif_abapgit_aff_types_v1=>co_abap_language_version-standard ) ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( iv_abap_language_version_1 = iv_abap_language_version_2 OR ( iv_abap_language_version_1 = zif_abapgit_aff_types_v1=>co_abap_language_version-standard AND iv_abap_language_version_2 = zif_abapgit_aff_types_v1=>co_abap_language_version_src-standard ) OR ( iv_abap_language_version_1 = zif_abapgit_aff_types_v1=>co_abap_language_version_src-standard AND iv_abap_language_version_2 = zif_abapgit_aff_types_v1=>co_abap_language_version-standard ) ).
+    rv_compare = temp1.
 
   ENDMETHOD.
 
@@ -143,7 +141,7 @@ CLASS zcl_abapgit_abap_language_vers IMPLEMENTATION.
 
   METHOD create.
 
-    ro_result = NEW #( io_dot_abapgit = io_dot_abapgit ).
+    CREATE OBJECT ro_result EXPORTING io_dot_abapgit = io_dot_abapgit.
 
   ENDMETHOD.
 
