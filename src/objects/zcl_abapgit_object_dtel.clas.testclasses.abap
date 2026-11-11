@@ -44,7 +44,7 @@ ENDCLASS.
 
 CLASS ltcl_delete_longtexts IMPLEMENTATION.
   METHOD setup.
-    CREATE OBJECT mo_longtexts.
+    mo_longtexts = NEW #( ).
     zcl_abapgit_injector=>set_longtexts( mo_longtexts ).
   ENDMETHOD.
 
@@ -61,8 +61,8 @@ CLASS ltcl_delete_longtexts IMPLEMENTATION.
 
     ls_item-obj_type = 'DTEL'.
     ls_item-obj_name = 'Z_TEST_DTEL'.
-    CREATE OBJECT lo_dtel EXPORTING is_item = ls_item
-                                    iv_language = sy-langu.
+    lo_dtel = NEW #( is_item = ls_item
+                     iv_language = sy-langu ).
 
     lo_dtel->delete_documentation( ).
 
