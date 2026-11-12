@@ -124,10 +124,9 @@ CLASS zcl_abapgit_apack_migration IMPLEMENTATION.
 
   METHOD add_intf_source_and_activate.
 
-    TYPES temp1 TYPE TABLE OF dwinactiv.
-DATA: ls_clskey           TYPE seoclskey,
+    DATA: ls_clskey           TYPE seoclskey,
           ls_inactive_object  TYPE dwinactiv,
-          lt_inactive_objects TYPE temp1.
+          lt_inactive_objects TYPE TABLE OF dwinactiv.
 
     ls_clskey-clsname = zif_abapgit_apack_definitions=>c_apack_interface_cust.
 
@@ -245,9 +244,7 @@ DATA: ls_clskey           TYPE seoclskey,
 
     SELECT SINGLE clsname FROM seoclass INTO lv_interface_name
       WHERE clsname = zif_abapgit_apack_definitions=>c_apack_interface_cust.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_interface_exists = temp1.
+    rv_interface_exists = xsdbool( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -257,9 +254,8 @@ DATA: ls_clskey           TYPE seoclskey,
     FIELD-SYMBOLS: <lv_interface_vers> TYPE i.
 
     ASSIGN (zif_abapgit_apack_definitions=>c_apack_interface_cust)=>('CO_INTERFACE_VERSION') TO <lv_interface_vers>.
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( <lv_interface_vers> IS ASSIGNED AND <lv_interface_vers> >= c_apack_interface_version ).
-    rv_interface_valid = temp2.
+    rv_interface_valid = xsdbool( <lv_interface_vers> IS ASSIGNED
+      AND <lv_interface_vers> >= c_apack_interface_version ).
 
   ENDMETHOD.
 
@@ -279,7 +275,7 @@ DATA: ls_clskey           TYPE seoclskey,
 
     DATA: lo_apack_migration TYPE REF TO zcl_abapgit_apack_migration.
 
-    CREATE OBJECT lo_apack_migration.
+    lo_apack_migration = NEW #( ).
     lo_apack_migration->perform_migration( ).
 
   ENDMETHOD.
