@@ -24,7 +24,7 @@ CLASS ltcl_abapgit_syntax_xml IMPLEMENTATION.
 
   METHOD setup.
 
-    CREATE OBJECT mo_cut.
+    mo_cut = NEW #( ).
 
   ENDMETHOD.
 
@@ -121,7 +121,7 @@ CLASS ltcl_abapgit_syntax_xml IMPLEMENTATION.
       act = mo_cut->process_line( |<!-- comment| ) ).
 
     " New instance (i.e. different file)
-    CREATE OBJECT mo_cut.
+    mo_cut = NEW #( ).
 
     cl_abap_unit_assert=>assert_equals(
       exp = |<span class="xml_tag">&lt;tag&gt;</span>|
@@ -184,7 +184,7 @@ CLASS ltcl_syntax_cases IMPLEMENTATION.
           lo_syntax      TYPE REF TO zcl_abapgit_syntax_xml.
 
 
-    CREATE OBJECT lo_syntax.
+    lo_syntax = NEW #( ).
     lt_matches_act = lo_syntax->parse_line( iv_line ).
 
     SORT lt_matches_act BY offset.
@@ -819,7 +819,7 @@ ENDCLASS.
 
 CLASS ltcl_xml_regressions IMPLEMENTATION.
   METHOD setup.
-    CREATE OBJECT mo_cut.
+    mo_cut = NEW #( ).
   ENDMETHOD.
 
   METHOD separate_comments.
@@ -871,7 +871,7 @@ CLASS ltcl_xml_regressions IMPLEMENTATION.
   METHOD instance_isolation.
     DATA lo_other TYPE REF TO zcl_abapgit_syntax_xml.
     mo_cut->process_line( '<!-- open' ).
-    CREATE OBJECT lo_other.
+    lo_other = NEW #( ).
     cl_abap_unit_assert=>assert_equals(
       act = lo_other->process_line( '<tag/>' )
       exp = |<span class="xml_tag">&lt;tag/&gt;</span>| ).

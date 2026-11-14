@@ -92,7 +92,7 @@ method raise.
 
   data lx type ref to zcx_abapgit_ajson_error.
 
-  CREATE OBJECT lx EXPORTING message = iv_msg.
+  lx = NEW #( message = iv_msg ).
   lx->set_location(
     iv_location = iv_location
     is_node     = is_node ).
