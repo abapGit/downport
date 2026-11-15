@@ -8,7 +8,7 @@ ENDCLASS.
 CLASS zcl_abapgit_diff_factory IMPLEMENTATION.
 
   METHOD get.
-    ri_diff = NEW zcl_abapgit_diff( ).
+    CREATE OBJECT ri_diff TYPE zcl_abapgit_diff.
   ENDMETHOD.
 
 ENDCLASS.
