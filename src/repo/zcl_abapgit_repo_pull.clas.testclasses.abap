@@ -33,7 +33,7 @@ CLASS ltd_repo IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD zif_abapgit_repo~create_new_log.
-    mi_new_log = NEW zcl_abapgit_log( ).
+    CREATE OBJECT mi_new_log TYPE zcl_abapgit_log.
     ri_log = mi_new_log.
   ENDMETHOD.
 
@@ -142,8 +142,8 @@ ENDCLASS.
 CLASS ltcl_pull IMPLEMENTATION.
 
   METHOD setup.
-    mo_repo = NEW #( ).
-    mi_cut = NEW zcl_abapgit_repo_pull( ii_repo = mo_repo ).
+    CREATE OBJECT mo_repo.
+    CREATE OBJECT mi_cut TYPE zcl_abapgit_repo_pull EXPORTING ii_repo = mo_repo.
   ENDMETHOD.
 
   METHOD checks_from_repo.
@@ -169,11 +169,15 @@ CLASS ltcl_pull IMPLEMENTATION.
     li_log = mi_cut->pull( ls_checks ).
 
     cl_abap_unit_assert=>assert_bound( li_log ).
-    lv_same = xsdbool( li_log = mo_repo->mi_new_log ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( li_log = mo_repo->mi_new_log ).
+    lv_same = temp1.
     cl_abap_unit_assert=>assert_equals(
       act = lv_same
       exp = abap_true ).
-    lv_same = xsdbool( li_log = mo_repo->mi_deserialize_log ).
+    DATA temp2 TYPE xsdboolean.
+    temp2 = boolc( li_log = mo_repo->mi_deserialize_log ).
+    lv_same = temp2.
     cl_abap_unit_assert=>assert_equals(
       act = lv_same
       exp = abap_true ).
@@ -187,16 +191,20 @@ CLASS ltcl_pull IMPLEMENTATION.
     DATA li_log TYPE REF TO zif_abapgit_log.
     DATA ls_checks TYPE zif_abapgit_definitions=>ty_deserialize_checks.
 
-    li_given = NEW zcl_abapgit_log( ).
+    CREATE OBJECT li_given TYPE zcl_abapgit_log.
 
     li_log = mi_cut->pull( is_checks = ls_checks
                            ii_log    = li_given ).
 
-    lv_same = xsdbool( li_log = li_given ).
+    DATA temp3 TYPE xsdboolean.
+    temp3 = boolc( li_log = li_given ).
+    lv_same = temp3.
     cl_abap_unit_assert=>assert_equals(
       act = lv_same
       exp = abap_true ).
-    lv_same = xsdbool( li_given = mo_repo->mi_deserialize_log ).
+    DATA temp4 TYPE xsdboolean.
+    temp4 = boolc( li_given = mo_repo->mi_deserialize_log ).
+    lv_same = temp4.
     cl_abap_unit_assert=>assert_equals(
       act = lv_same
       exp = abap_true ).
@@ -241,7 +249,7 @@ CLASS ltcl_pull IMPLEMENTATION.
     DATA lt_expected TYPE zif_abapgit_definitions=>ty_tadir_tt.
     DATA lv_same TYPE abap_bool.
 
-    lo_pull = NEW #( ii_repo = mo_repo ).
+    CREATE OBJECT lo_pull EXPORTING ii_repo = mo_repo.
     lo_pull->mo_repo = mo_repo.
     ls_overwrite-obj_type = 'PROG'.
     ls_overwrite-obj_name = 'ZTEST'.
@@ -274,11 +282,15 @@ CLASS ltcl_pull IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
       act = mo_repo->ms_deserialize_checks
       exp = ls_checks ).
-    lv_same = xsdbool( lo_pull->mi_delete_log = li_log ).
+    DATA temp5 TYPE xsdboolean.
+    temp5 = boolc( lo_pull->mi_delete_log = li_log ).
+    lv_same = temp5.
     cl_abap_unit_assert=>assert_equals(
       act = lv_same
       exp = abap_true ).
-    lv_same = xsdbool( mo_repo->mi_deserialize_log = li_log ).
+    DATA temp6 TYPE xsdboolean.
+    temp6 = boolc( mo_repo->mi_deserialize_log = li_log ).
+    lv_same = temp6.
     cl_abap_unit_assert=>assert_equals(
       act = lv_same
       exp = abap_true ).
@@ -300,7 +312,7 @@ CLASS ltcl_pull IMPLEMENTATION.
     DATA li_second TYPE REF TO zif_abapgit_repo_pull.
     DATA ls_checks TYPE zif_abapgit_definitions=>ty_deserialize_checks.
 
-    lo_other = NEW #( ).
+    CREATE OBJECT lo_other.
     mo_repo->ms_checks-transport-transport = 'A4HK900001'.
     lo_other->ms_checks-transport-transport = 'A4HK900002'.
     li_first = zcl_abapgit_repo_factory=>get_repo_pull( mo_repo ).
@@ -336,10 +348,12 @@ CLASS ltcl_pull IMPLEMENTATION.
     DATA ls_checks TYPE zif_abapgit_definitions=>ty_deserialize_checks.
     DATA lv_same TYPE abap_bool.
 
-    lo_other = NEW #( ).
+    CREATE OBJECT lo_other.
     zcl_abapgit_repo_injector=>set_repo_pull( mi_cut ).
     li_pull = zcl_abapgit_repo_factory=>get_repo_pull( lo_other ).
-    lv_same = xsdbool( li_pull = mi_cut ).
+    DATA temp7 TYPE xsdboolean.
+    temp7 = boolc( li_pull = mi_cut ).
+    lv_same = temp7.
     cl_abap_unit_assert=>assert_equals(
       act = lv_same
       exp = abap_true ).
