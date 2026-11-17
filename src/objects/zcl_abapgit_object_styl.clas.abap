@@ -100,9 +100,7 @@ CLASS zcl_abapgit_object_styl IMPLEMENTATION.
         strings    = ls_style-strings
         tabs       = ls_style-tabs.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( lv_found = abap_true ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( lv_found = abap_true ).
 
   ENDMETHOD.
 
