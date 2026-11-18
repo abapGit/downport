@@ -32,7 +32,7 @@ CLASS zcl_abapgit_json_path IMPLEMENTATION.
           lx_parse_error  TYPE REF TO cx_sxml_parse_error.
 
     lv_json_xstring = zcl_abapgit_convert=>string_to_xstring_utf8( iv_json ).
-    lo_reader = cl_sxml_string_reader=>create( input = lv_json_xstring ).
+    lo_reader = cl_sxml_string_reader=>create( lv_json_xstring ).
 
     TRY.
         IF lo_reader->read_next_node( ) IS INITIAL.
@@ -44,7 +44,7 @@ CLASS zcl_abapgit_json_path IMPLEMENTATION.
 
     APPEND `$` TO lt_root_path.
 
-    CREATE OBJECT lo_json_path.
+    lo_json_path = NEW #( ).
     lo_json_path->serialize_rec( EXPORTING io_reader     = lo_reader
                                            it_path       = lt_root_path
                                  CHANGING  ct_json_paths = rt_result ).

@@ -91,9 +91,9 @@ CLASS ltcl_html_processor_test IMPLEMENTATION.
                                   iv_type = 'text/css'
                                   iv_inline = 'dummy3' ).
 
-    CREATE OBJECT mo_cut EXPORTING ii_asset_man = li_asset_man.
+    mo_cut = NEW #( ii_asset_man = li_asset_man ).
 
-    CREATE OBJECT mo_gui_mock.
+    mo_gui_mock = NEW #( ).
 
     mv_source = render_html(
       `<html>\n` &&
@@ -217,7 +217,7 @@ CLASS ltcl_html_processor_test IMPLEMENTATION.
     TRY.
         lv_head_end = mo_cut->find_head_offset( lv_html ).
       CATCH zcx_abapgit_exception.
-        cl_abap_unit_assert=>fail( msg = 'HEAD closing tag could not be found' ).
+        cl_abap_unit_assert=>fail( 'HEAD closing tag could not be found' ).
     ENDTRY.
 
     "then
