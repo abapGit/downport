@@ -52,7 +52,7 @@ CLASS zcl_abapgit_gui_page_tutorial IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_tutorial.
 
-    lo_component = NEW #( ).
+    CREATE OBJECT lo_component.
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title      = 'Tutorial'
@@ -64,7 +64,7 @@ CLASS zcl_abapgit_gui_page_tutorial IMPLEMENTATION.
 
   METHOD zif_abapgit_gui_renderable~render.
 
-    ri_html = NEW zcl_abapgit_html( ).
+    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
 
     ri_html->add( '<div class="tutorial">' ).
 
