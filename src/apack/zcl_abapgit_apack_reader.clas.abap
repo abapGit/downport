@@ -145,7 +145,7 @@ CLASS zcl_abapgit_apack_reader IMPLEMENTATION.
     IF sy-subrc <> 0.
       ls_instance-package = iv_package_name.
 
-      CREATE OBJECT ls_instance-instance EXPORTING iv_package_name = iv_package_name.
+      ls_instance-instance = NEW #( iv_package_name = iv_package_name ).
 
       INSERT ls_instance INTO TABLE gt_instances.
     ENDIF.
@@ -174,11 +174,11 @@ CLASS zcl_abapgit_apack_reader IMPLEMENTATION.
 
     FIELD-SYMBOLS: <ls_dependency> TYPE zif_abapgit_apack_definitions=>ty_dependency.
 
-    TRANSLATE ms_cached_descriptor-version TO LOWER CASE.
+    ms_cached_descriptor-version = to_lower( ms_cached_descriptor-version ).
     ms_cached_descriptor-sem_version = zcl_abapgit_version=>conv_str_to_version( ms_cached_descriptor-version ).
 
     LOOP AT ms_cached_descriptor-dependencies ASSIGNING <ls_dependency>.
-      TRANSLATE <ls_dependency>-version TO LOWER CASE.
+      <ls_dependency>-version = to_lower( <ls_dependency>-version ).
       <ls_dependency>-sem_version = zcl_abapgit_version=>conv_str_to_version( <ls_dependency>-version ).
     ENDLOOP.
 
@@ -245,9 +245,7 @@ CLASS zcl_abapgit_apack_reader IMPLEMENTATION.
 
     ls_returned_manifest = get_manifest_descriptor( ).
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( ls_returned_manifest IS NOT INITIAL ).
-    rv_has_manifest = temp1.
+    rv_has_manifest = xsdbool( ls_returned_manifest IS NOT INITIAL ).
 
   ENDMETHOD.
 

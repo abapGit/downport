@@ -92,7 +92,7 @@ CLASS zcl_abapgit_convert_language IMPLEMENTATION.
             re_lang_sap1 = lcl_bcp47_language_table=>bcp47_to_sap1( im_lang_bcp47 ).
           CATCH zcx_abapgit_exception.
 
-            CREATE OBJECT lv_regex EXPORTING pattern = `[A-Z0-9]{2}`.
+            lv_regex = NEW #( pattern = `[A-Z0-9]{2}` ).
             lv_abap_matcher = lv_regex->create_matcher( text = im_lang_bcp47 ).
 
             IF abap_true = lv_abap_matcher->match( ).
@@ -130,7 +130,7 @@ CLASS zcl_abapgit_convert_language IMPLEMENTATION.
         no_assignment = 1
         OTHERS        = 2 ).                              "#EC CI_SUBRC
 
-    TRANSLATE rv_spras TO UPPER CASE.
+    rv_spras = to_upper( rv_spras ).
 
   ENDMETHOD.
 

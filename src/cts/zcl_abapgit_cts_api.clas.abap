@@ -11,7 +11,35 @@ CLASS zcl_abapgit_cts_api DEFINITION
   PROTECTED SECTION.
   PRIVATE SECTION.
 
+    TYPES ty_e071k_tt TYPE STANDARD TABLE OF e071k WITH DEFAULT KEY.
+
     DATA mv_confirm_transp_msgs_called TYPE abap_bool.
+
+    "! Add transport keys for table entries. The key is exact, unless it contains a
+    "! non-character field or exceeds the key length: then the character-like key
+    "! prefix is followed by '*', as the view maintenance does
+    "! @parameter it_table | Table entries
+    "! @parameter iv_tabname | Table name
+    "! @parameter it_key_fields | Key fields
+    "! @parameter ct_e071k | Transport keys
+    METHODS add_table_keys
+      IMPORTING
+        !it_table      TYPE ANY TABLE
+        !iv_tabname    TYPE tabname
+        !it_key_fields TYPE ddfields
+      CHANGING
+        !ct_e071k      TYPE ty_e071k_tt.
+    "! Returns the key fields of a table
+    "! @parameter iv_tabname | Table name
+    "! @parameter rt_key_fields | Key fields
+    "! @raising zcx_abapgit_exception | Table not found
+    METHODS get_key_fields
+      IMPORTING
+        !iv_tabname          TYPE tabname
+      RETURNING
+        VALUE(rt_key_fields) TYPE ddfields
+      RAISING
+        zcx_abapgit_exception.
 
     "! Returns the transport request / task the object is currently locked in
     "! @parameter iv_program_id | Program ID
@@ -97,15 +125,85 @@ ENDCLASS.
 CLASS zcl_abapgit_cts_api IMPLEMENTATION.
 
 
+  METHOD add_table_keys.
+
+    DATA ls_e071k   TYPE e071k.
+    DATA lv_key     TYPE c LENGTH 255.
+    DATA lv_offset  TYPE i.
+    DATA lv_generic TYPE abap_bool.
+
+    FIELD-SYMBOLS <lg_line> TYPE any.
+    FIELD-SYMBOLS <lg_field> TYPE any.
+    FIELD-SYMBOLS <ls_key_field> LIKE LINE OF it_key_fields.
+
+    ls_e071k-pgmid      = 'R3TR'.
+    ls_e071k-object     = 'TABU'.
+    ls_e071k-objname    = iv_tabname.
+    ls_e071k-mastertype = 'TABU'.
+    ls_e071k-mastername = iv_tabname.
+
+    LOOP AT it_table ASSIGNING <lg_line>.
+      CLEAR: lv_key, lv_offset, lv_generic.
+      LOOP AT it_key_fields ASSIGNING <ls_key_field>.
+        IF <ls_key_field>-inttype NA 'CNDT' OR lv_offset >= 120.
+          lv_generic = abap_true.
+          EXIT.
+        ENDIF.
+        IF <ls_key_field>-datatype = 'CLNT'.
+          lv_key+lv_offset = sy-mandt.
+        ELSE.
+          ASSIGN COMPONENT <ls_key_field>-fieldname OF STRUCTURE <lg_line> TO <lg_field>.
+          ASSERT sy-subrc = 0.
+          lv_key+lv_offset = <lg_field>.
+        ENDIF.
+        lv_offset = lv_offset + <ls_key_field>-leng.
+      ENDLOOP.
+      IF lv_offset > 120.
+        lv_generic = abap_true.
+      ENDIF.
+      ls_e071k-tabkey = lv_key.
+      IF lv_generic = abap_true.
+        IF lv_offset > 119.
+          lv_offset = 119.
+        ENDIF.
+        ls_e071k-tabkey+lv_offset(1) = '*'.
+      ENDIF.
+      INSERT ls_e071k INTO TABLE ct_e071k.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD get_key_fields.
+
+    DATA lo_structdescr TYPE REF TO cl_abap_structdescr.
+    DATA lt_fields      TYPE ddfields.
+
+    lo_structdescr ?= cl_abap_typedescr=>describe_by_name( iv_tabname ).
+    lo_structdescr->get_ddic_field_list(
+      RECEIVING
+        p_field_list = lt_fields
+      EXCEPTIONS
+        not_found    = 1
+        no_ddic_type = 2
+        OTHERS       = 3 ).
+    IF sy-subrc <> 0.
+      zcx_abapgit_exception=>raise( |Table { iv_tabname } not found| ).
+    ENDIF.
+
+    rt_key_fields = lt_fields.
+    DELETE rt_key_fields WHERE keyflag <> abap_true.
+
+  ENDMETHOD.
+
+
   METHOD get_current_transport_for_obj.
-    TYPES temp1 TYPE STANDARD TABLE OF tlock WITH DEFAULT KEY.
-TYPES temp2 TYPE STANDARD TABLE OF trkorr WITH DEFAULT KEY.
-DATA: lv_object_lockable   TYPE abap_bool,
+    DATA: lv_object_lockable   TYPE abap_bool,
           lv_locked            TYPE abap_bool,
           lv_transport_request TYPE trkorr,
           ls_tlock             TYPE tlock,
-          lt_tlock             TYPE temp1,
-          lt_transports        TYPE temp2,
+          lt_tlock             TYPE STANDARD TABLE OF tlock WITH DEFAULT KEY,
+          lt_transports        TYPE STANDARD TABLE OF trkorr WITH DEFAULT KEY,
           lv_task              TYPE trkorr,
           lv_tr_object_name    TYPE trobj_name.
 
@@ -253,9 +351,7 @@ DATA: lv_object_lockable   TYPE abap_bool,
       zcx_abapgit_exception=>raise_t100( ).
     ENDIF.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( lv_lock_flag <> space ).
-    rv_locked = temp1.
+    rv_locked = xsdbool( lv_lock_flag <> space ).
   ENDMETHOD.
 
 
@@ -273,9 +369,7 @@ DATA: lv_object_lockable   TYPE abap_bool,
       IMPORTING
         pe_result = lv_type_check_result.
 
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( lv_type_check_result = 'L' ).
-    rv_lockable = temp2.
+    rv_lockable = xsdbool( lv_type_check_result = 'L' ).
   ENDMETHOD.
 
 
@@ -293,9 +387,7 @@ DATA: lv_object_lockable   TYPE abap_bool,
       IMPORTING
         pe_result = lv_type_check_result.
 
-    DATA temp3 TYPE xsdboolean.
-    temp3 = boolc( lv_type_check_result CA 'RTL' OR iv_object_type = 'TABU' ).
-    rv_transportable = temp3.
+    rv_transportable = xsdbool( lv_type_check_result CA 'RTL' OR iv_object_type = 'TABU' ).
   ENDMETHOD.
 
 
@@ -428,22 +520,45 @@ DATA: lv_object_lockable   TYPE abap_bool,
   METHOD zif_abapgit_cts_api~create_transport_entries.
 
     DATA lt_tables      TYPE tredt_objects.
-    TYPES temp3 TYPE STANDARD TABLE OF e071k.
-DATA lt_table_keys  TYPE temp3.
+    DATA lt_table_keys  TYPE ty_e071k_tt.
     DATA lv_with_dialog TYPE abap_bool.
+    DATA lt_key_fields  TYPE ddfields.
 
     FIELD-SYMBOLS <ls_table> LIKE LINE OF lt_tables.
     FIELD-SYMBOLS <ls_table_key> LIKE LINE OF lt_table_keys.
 
-    cl_table_utilities_brf=>create_transport_entries(
+    lt_key_fields = get_key_fields( iv_tabname ).
+
+    add_table_keys(
       EXPORTING
-        it_table_ins = it_table_ins
-        it_table_upd = it_table_upd
-        it_table_del = it_table_del
-        iv_tabname   = iv_tabname
+        it_table      = it_table_ins
+        iv_tabname    = iv_tabname
+        it_key_fields = lt_key_fields
       CHANGING
-        ct_e071      = lt_tables
-        ct_e071k     = lt_table_keys ).
+        ct_e071k      = lt_table_keys ).
+    add_table_keys(
+      EXPORTING
+        it_table      = it_table_upd
+        iv_tabname    = iv_tabname
+        it_key_fields = lt_key_fields
+      CHANGING
+        ct_e071k      = lt_table_keys ).
+    add_table_keys(
+      EXPORTING
+        it_table      = it_table_del
+        iv_tabname    = iv_tabname
+        it_key_fields = lt_key_fields
+      CHANGING
+        ct_e071k      = lt_table_keys ).
+    SORT lt_table_keys BY tabkey.
+    DELETE ADJACENT DUPLICATES FROM lt_table_keys COMPARING tabkey.
+    IF lt_table_keys IS NOT INITIAL.
+      APPEND INITIAL LINE TO lt_tables ASSIGNING <ls_table>.
+      <ls_table>-pgmid    = 'R3TR'.
+      <ls_table>-object   = 'TABU'.
+      <ls_table>-obj_name = iv_tabname.
+      <ls_table>-objfunc  = 'K'.
+    ENDIF.
 
     " cl_table_utilities_brf=>write_transport_entries does not allow passing a request
 
@@ -532,8 +647,7 @@ DATA lt_table_keys  TYPE temp3.
   METHOD zif_abapgit_cts_api~get_transports_for_list.
 
     DATA lv_request TYPE trkorr.
-    TYPES temp4 TYPE SORTED TABLE OF tlock WITH NON-UNIQUE KEY object hikey.
-DATA lt_tlock TYPE temp4.
+    DATA lt_tlock TYPE SORTED TABLE OF tlock WITH NON-UNIQUE KEY object hikey.
     DATA ls_object_key TYPE e071.
     DATA lv_type_check_result TYPE c LENGTH 1.
     DATA ls_lock_key TYPE tlock_int.
@@ -683,9 +797,8 @@ DATA lt_tlock TYPE temp4.
         we_category = lv_category
         ev_logo_obj = lv_is_logical_object.
 
-    DATA temp4 TYPE xsdboolean.
-    temp4 = boolc( lv_category = zif_abapgit_cts_api~c_transport_category-customizing AND lv_is_logical_object = abap_true ).
-    rv_is_customizing_object = temp4.
+    rv_is_customizing_object = xsdbool(
+      lv_category = zif_abapgit_cts_api~c_transport_category-customizing AND lv_is_logical_object = abap_true ).
 
   ENDMETHOD.
 
@@ -712,10 +825,8 @@ DATA lt_tlock TYPE temp4.
              obj_name TYPE e071-obj_name,
            END OF ty_contents.
 
-    TYPES temp5 TYPE STANDARD TABLE OF trkorr WITH DEFAULT KEY.
-DATA lt_tasks    TYPE temp5.
-    TYPES temp6 TYPE STANDARD TABLE OF ty_contents WITH DEFAULT KEY.
-DATA lt_contents TYPE temp6.
+    DATA lt_tasks    TYPE STANDARD TABLE OF trkorr WITH DEFAULT KEY.
+    DATA lt_contents TYPE STANDARD TABLE OF ty_contents WITH DEFAULT KEY.
     DATA ls_contents LIKE LINE OF lt_contents.
     DATA ls_list     LIKE LINE OF rt_list.
 
@@ -831,8 +942,7 @@ DATA lt_contents TYPE temp6.
            END OF ty_e070create.
 
     DATA lt_trkorr     LIKE it_trkorr.
-    TYPES temp7 TYPE STANDARD TABLE OF ty_e070create WITH DEFAULT KEY.
-DATA lt_e070create TYPE temp7.
+    DATA lt_e070create TYPE STANDARD TABLE OF ty_e070create WITH DEFAULT KEY.
     DATA ls_e070create LIKE LINE OF lt_e070create.
     DATA ls_created_on LIKE LINE OF rt_created_on.
 
