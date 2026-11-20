@@ -203,7 +203,7 @@ CLASS ltcl_status_helper IMPLEMENTATION.
       it_remote    = mt_remote
       it_cur_state = mt_state ).
 
-    ro_result = NEW #( it_results = lt_results ).
+    CREATE OBJECT ro_result EXPORTING it_results = lt_results.
 
   ENDMETHOD.
 
@@ -244,7 +244,7 @@ CLASS ltcl_calculate_status IMPLEMENTATION.
 
   METHOD setup.
 
-    mo_helper = NEW #( ).
+    CREATE OBJECT mo_helper.
     zcl_abapgit_injector=>set_tadir( mo_helper ).
 
   ENDMETHOD.
@@ -344,7 +344,7 @@ CLASS ltcl_calculate_status IMPLEMENTATION.
   METHOD diff.
 
     " Modified both
-    mo_helper = NEW #( ).
+    CREATE OBJECT mo_helper.
     mo_helper->add_local(
       iv_obj_type = 'DOMA'
       iv_obj_name = '$$ZDOMA1'
@@ -372,7 +372,7 @@ CLASS ltcl_calculate_status IMPLEMENTATION.
       exp = zif_abapgit_definitions=>c_state-modified ).
 
     " Modified local only
-    mo_helper = NEW #( ).
+    CREATE OBJECT mo_helper.
     mo_helper->add_local(
       iv_obj_type = 'DOMA'
       iv_obj_name = '$$ZDOMA1'
@@ -400,7 +400,7 @@ CLASS ltcl_calculate_status IMPLEMENTATION.
       exp = zif_abapgit_definitions=>c_state-unchanged ).
 
     " Modified remote only
-    mo_helper = NEW #( ).
+    CREATE OBJECT mo_helper.
     mo_helper->add_local(
       iv_obj_type = 'DOMA'
       iv_obj_name = '$$ZDOMA1'
