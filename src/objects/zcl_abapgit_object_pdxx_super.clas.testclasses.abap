@@ -46,8 +46,8 @@ CLASS ltc_lock IMPLEMENTATION.
     ls_item-obj_type = 'PDXX'.
     ls_item-obj_name = 'XX' && lc_dummy.
 
-    CREATE OBJECT lo_cut TYPE lth_object_pdxx EXPORTING is_item = ls_item
-                                                        iv_language = sy-langu.
+    lo_cut = NEW lth_object_pdxx( is_item = ls_item
+                                  iv_language = sy-langu ).
 
     cl_abap_unit_assert=>assert_equals( act = lo_cut->is_locked( )
                                         exp = abap_true ).
@@ -75,7 +75,8 @@ CLASS ltc_lock IMPLEMENTATION.
         _wait          = ' '
       EXCEPTIONS
         foreign_lock   = 1
-        system_failure = 2.
+        system_failure = 2
+        OTHERS         = 3.
 
     cl_abap_unit_assert=>assert_subrc( exp = 0
                                        act = sy-subrc ).
@@ -103,8 +104,8 @@ CLASS ltc_general_tests IMPLEMENTATION.
     ls_item-obj_type = 'PDZZ'.
     ls_item-obj_name = 'ZZ99999999'.
 
-    CREATE OBJECT lo_cut TYPE lth_object_pdxx EXPORTING is_item = ls_item
-                                                        iv_language = sy-langu.
+    lo_cut = NEW lth_object_pdxx( is_item = ls_item
+                                  iv_language = sy-langu ).
 
     cl_abap_unit_assert=>assert_equals( act = lo_cut->get_objkey( )-otype
                                         exp = 'ZZ' ).

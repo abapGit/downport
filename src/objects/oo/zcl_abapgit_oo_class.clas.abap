@@ -162,7 +162,8 @@ CLASS zcl_abapgit_oo_class IMPLEMENTATION.
       RECEIVING
         result              = rv_program
       EXCEPTIONS
-        method_not_existing = 1 ).
+        method_not_existing = 1
+        OTHERS              = 2 ).
     IF sy-subrc = 0.
       RETURN.
     ENDIF.
@@ -808,9 +809,7 @@ CLASS zcl_abapgit_oo_class IMPLEMENTATION.
         no_text       = 4
         inconsistent  = 5
         OTHERS        = 6.
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 OR sy-subrc = 4 ).
-    rv_exists = temp1.
+    rv_exists = xsdbool( sy-subrc = 0 OR sy-subrc = 4 ).
   ENDMETHOD.
 
 
@@ -922,7 +921,8 @@ CLASS zcl_abapgit_oo_class IMPLEMENTATION.
       RECEIVING
         result             = lt_methods
       EXCEPTIONS
-        class_not_existing = 1 ).
+        class_not_existing = 1
+        OTHERS             = 2 ).
 
     IF sy-subrc <> 0.
       zcx_abapgit_exception=>raise( |Class { lv_class_name } not existing| ).

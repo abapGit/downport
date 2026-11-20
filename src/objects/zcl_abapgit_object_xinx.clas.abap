@@ -171,7 +171,8 @@ CLASS zcl_abapgit_object_xinx IMPLEMENTATION.
       IMPORTING
         protname    = lv_protname
       EXCEPTIONS
-        input_error = 0.
+        input_error = 0
+        OTHERS      = 1.
 
     PERFORM logdelete IN PROGRAM rddu0001 USING lv_protname.
 
@@ -328,9 +329,7 @@ CLASS zcl_abapgit_object_xinx IMPLEMENTATION.
       zcx_abapgit_exception=>raise( 'Error reading index' ).
     ENDIF.
 
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( ls_dd12v IS NOT INITIAL ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( ls_dd12v IS NOT INITIAL ).
 
   ENDMETHOD.
 
