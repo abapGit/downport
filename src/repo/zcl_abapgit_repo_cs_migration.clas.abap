@@ -74,7 +74,7 @@ CLASS zcl_abapgit_repo_cs_migration IMPLEMENTATION.
 
     li_repo = zcl_abapgit_repo_srv=>get_instance( )->get( iv_repo_key ).
 
-    lo_cs = NEW #( ii_repo = li_repo ).
+    CREATE OBJECT lo_cs EXPORTING ii_repo = li_repo.
     lo_cs->force_write( ls_repo_extract-local_checksums ).
 
   ENDMETHOD.
