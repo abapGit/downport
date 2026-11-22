@@ -42,9 +42,9 @@ CLASS zcl_abapgit_object_sldd IMPLEMENTATION.
                          iv_field     = 'MODTIME'
                          iv_fill_rule = zif_abapgit_field_rules=>c_fill_rule-time ).
 
-    CREATE OBJECT ro_generic EXPORTING is_item = ms_item
-                                       iv_language = mv_language
-                                       io_field_rules = lo_field_rules.
+    ro_generic = NEW #( is_item = ms_item
+                        iv_language = mv_language
+                        io_field_rules = lo_field_rules ).
   ENDMETHOD.
 
 
