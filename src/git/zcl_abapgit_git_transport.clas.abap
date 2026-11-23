@@ -150,7 +150,7 @@ CLASS zcl_abapgit_git_transport IMPLEMENTATION.
 
     lv_data = eo_client->get_cdata( ).
 
-    CREATE OBJECT ei_branch_list TYPE zcl_abapgit_git_branch_list EXPORTING iv_data = lv_data.
+    ei_branch_list = NEW zcl_abapgit_git_branch_list( iv_data = lv_data ).
 
   ENDMETHOD.
 
