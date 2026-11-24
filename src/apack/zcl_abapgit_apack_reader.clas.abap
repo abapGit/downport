@@ -145,7 +145,7 @@ CLASS zcl_abapgit_apack_reader IMPLEMENTATION.
     IF sy-subrc <> 0.
       ls_instance-package = iv_package_name.
 
-      ls_instance-instance = NEW #( iv_package_name = iv_package_name ).
+      CREATE OBJECT ls_instance-instance EXPORTING iv_package_name = iv_package_name.
 
       INSERT ls_instance INTO TABLE gt_instances.
     ENDIF.
@@ -245,7 +245,9 @@ CLASS zcl_abapgit_apack_reader IMPLEMENTATION.
 
     ls_returned_manifest = get_manifest_descriptor( ).
 
-    rv_has_manifest = xsdbool( ls_returned_manifest IS NOT INITIAL ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( ls_returned_manifest IS NOT INITIAL ).
+    rv_has_manifest = temp1.
 
   ENDMETHOD.
 
