@@ -68,8 +68,8 @@ CLASS zcl_abapgit_object_wdca IMPLEMENTATION.
     ls_key = ms_item-obj_name.
 
     TRY.
-        CREATE OBJECT lo_cfg EXPORTING config_key = ls_key
-                                       object_name = lv_name.
+        lo_cfg = NEW #( config_key = ls_key
+                        object_name = lv_name ).
 
         MOVE-CORRESPONDING ls_key TO ls_outline.
 
@@ -128,8 +128,8 @@ CLASS zcl_abapgit_object_wdca IMPLEMENTATION.
     ls_key = ms_item-obj_name.
 
     TRY.
-        CREATE OBJECT lo_cfg EXPORTING config_key = ls_key
-                                       object_name = lv_name.
+        lo_cfg = NEW #( config_key = ls_key
+                        object_name = lv_name ).
 
         MOVE-CORRESPONDING ls_key TO es_outline.
 
@@ -184,8 +184,8 @@ CLASS zcl_abapgit_object_wdca IMPLEMENTATION.
     MOVE-CORRESPONDING is_outline TO ls_key.
 
     TRY.
-        CREATE OBJECT lo_cfg EXPORTING config_key = ls_key
-                                       object_name = lv_name.
+        lo_cfg = NEW #( config_key = ls_key
+                        object_name = lv_name ).
 
         READ TABLE it_data INDEX 1 INTO ls_data.
         ASSERT sy-subrc = 0.
@@ -256,10 +256,9 @@ CLASS zcl_abapgit_object_wdca IMPLEMENTATION.
 
   METHOD zif_abapgit_object~deserialize.
 
-    TYPES temp1 TYPE TABLE OF wdy_config_appt.
-DATA: ls_outline     TYPE wdy_cfg_outline_data,
+    DATA: ls_outline     TYPE wdy_cfg_outline_data,
           lt_data        TYPE wdy_cfg_persist_data_appl_tab,
-          lt_config_appt TYPE temp1,
+          lt_config_appt TYPE TABLE OF wdy_config_appt,
           lv_xml_string  TYPE string,
           lv_xml_xstring TYPE xstring.
 
@@ -330,9 +329,7 @@ DATA: ls_outline     TYPE wdy_cfg_outline_data,
       WHERE config_id = ls_wdy_config_key-config_id
         AND config_type = ls_wdy_config_key-config_type
         AND config_var = ls_wdy_config_key-config_var.  "#EC CI_GENBUFF
-    DATA temp1 TYPE xsdboolean.
-    temp1 = boolc( sy-subrc = 0 ).
-    rv_bool = temp1.
+    rv_bool = xsdbool( sy-subrc = 0 ).
   ENDMETHOD.
 
 
@@ -383,10 +380,9 @@ DATA: ls_outline     TYPE wdy_cfg_outline_data,
 
   METHOD zif_abapgit_object~serialize.
 
-    TYPES temp2 TYPE TABLE OF wdy_config_appt.
-DATA: ls_outline     TYPE wdy_cfg_outline_data,
+    DATA: ls_outline     TYPE wdy_cfg_outline_data,
           lt_data        TYPE wdy_cfg_persist_data_appl_tab,
-          lt_cc_text     TYPE temp2,
+          lt_cc_text     TYPE TABLE OF wdy_config_appt,
           lv_xml_xstring TYPE xstring,
           lv_xml_string  TYPE string.
 

@@ -265,7 +265,7 @@ CLASS zcl_abapgit_gitv2_porcelain IMPLEMENTATION.
     " add dummy packet so the v1 branch parsing can be reused
     lv_data = |0004\n{ zcl_abapgit_convert=>xstring_to_string_utf8_raw( lv_xstring ) }|.
 
-    CREATE OBJECT ro_list TYPE zcl_abapgit_git_branch_list EXPORTING iv_data = lv_data.
+    ro_list = NEW zcl_abapgit_git_branch_list( iv_data = lv_data ).
 
   ENDMETHOD.
 
@@ -282,7 +282,7 @@ CLASS zcl_abapgit_gitv2_porcelain IMPLEMENTATION.
       iv_url  = iv_url
       it_sha1 = lt_sha1 ).
 
-    rt_expanded = zcl_abapgit_git_porcelain=>full_tree(
+    rt_expanded = zcl_abapgit_git_objects=>full_tree(
       it_objects = lt_objects
       iv_parent  = iv_sha1 ).
 
