@@ -69,15 +69,11 @@ CLASS lcl_rename IMPLEMENTATION.
     CASE mv_rename_by.
       WHEN zcl_abapgit_ajson_mapping=>rename_by-attr_name.
         READ TABLE mt_rename_map ASSIGNING <r> WITH TABLE KEY by_name COMPONENTS from = cv_name.
-        DATA temp1 TYPE xsdboolean.
-        temp1 = boolc( sy-subrc = 0 ).
-        lv_pair_found = temp1.
+        lv_pair_found = xsdbool( sy-subrc = 0 ).
       WHEN zcl_abapgit_ajson_mapping=>rename_by-full_path.
         lv_full_path = is_node-path && cv_name.
         READ TABLE mt_rename_map ASSIGNING <r> WITH TABLE KEY by_name COMPONENTS from = lv_full_path.
-        DATA temp2 TYPE xsdboolean.
-        temp2 = boolc( sy-subrc = 0 ).
-        lv_pair_found = temp2.
+        lv_pair_found = xsdbool( sy-subrc = 0 ).
       WHEN zcl_abapgit_ajson_mapping=>rename_by-pattern.
         lv_full_path = is_node-path && cv_name.
         LOOP AT mt_rename_map ASSIGNING <r>.
@@ -208,8 +204,7 @@ CLASS lcl_mapping_camel IMPLEMENTATION. "DEPRECATED
   METHOD zif_abapgit_ajson_mapping~to_json.
 
     TYPES ty_token TYPE c LENGTH 255.
-    TYPES temp1 TYPE STANDARD TABLE OF ty_token.
-DATA lt_tokens TYPE temp1.
+    DATA lt_tokens TYPE STANDARD TABLE OF ty_token.
     DATA lv_from TYPE i.
     FIELD-SYMBOLS <token> LIKE LINE OF lt_tokens.
 
@@ -224,10 +219,8 @@ DATA lt_tokens TYPE temp1.
 
     REPLACE ALL OCCURRENCES OF `__` IN rv_result WITH `*`.
 
-    rv_result = to_lower( rv_result ).
-    rv_result = translate( val  = rv_result
-                           from = `/:~`
-                           to   = `___` ).
+    TRANSLATE rv_result TO LOWER CASE.
+    TRANSLATE rv_result USING `/_:_~_`.
 
     IF mv_first_json_upper = abap_true.
       lv_from = 1.
@@ -237,7 +230,7 @@ DATA lt_tokens TYPE temp1.
 
     SPLIT rv_result AT `_` INTO TABLE lt_tokens.
     LOOP AT lt_tokens ASSIGNING <token> FROM lv_from.
-      <token>(1) = to_upper( <token>(1) ).
+      TRANSLATE <token>(1) TO UPPER CASE.
     ENDLOOP.
 
     CONCATENATE LINES OF lt_tokens INTO rv_result.
@@ -315,8 +308,7 @@ CLASS lcl_to_camel IMPLEMENTATION.
     TYPES lty_token TYPE c LENGTH 255.
     CONSTANTS lc_forced_underscore_marker TYPE c LENGTH 1 VALUE cl_abap_char_utilities=>horizontal_tab.
 
-    TYPES temp2 TYPE STANDARD TABLE OF lty_token.
-DATA lt_tokens TYPE temp2.
+    DATA lt_tokens TYPE STANDARD TABLE OF lty_token.
     DATA lv_from TYPE i.
     FIELD-SYMBOLS <token> LIKE LINE OF lt_tokens.
 
@@ -330,7 +322,7 @@ DATA lt_tokens TYPE temp2.
     SPLIT cv_name AT `_` INTO TABLE lt_tokens.
     DELETE lt_tokens WHERE table_line IS INITIAL.
     LOOP AT lt_tokens ASSIGNING <token> FROM lv_from.
-      <token>+0(1) = to_upper( <token>+0(1) ).
+      TRANSLATE <token>+0(1) TO UPPER CASE.
     ENDLOOP.
 
     CONCATENATE LINES OF lt_tokens INTO cv_name.
