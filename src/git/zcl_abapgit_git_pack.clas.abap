@@ -792,7 +792,9 @@ CLASS zcl_abapgit_git_pack IMPLEMENTATION.
             gzip_in = lv_prefix
           IMPORTING
             raw_out = lv_raw ).
-        rv_equal = xsdbool( lv_raw = iv_decompressed ).
+        DATA temp1 TYPE xsdboolean.
+        temp1 = boolc( lv_raw = iv_decompressed ).
+        rv_equal = temp1.
       CATCH cx_sy_compression_error cx_sy_buffer_overflow.
         rv_equal = abap_false.
     ENDTRY.
