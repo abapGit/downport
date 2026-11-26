@@ -10,7 +10,7 @@ CLASS zcl_abapgit_transport DEFINITION
         !iv_logic          TYPE string OPTIONAL
         !is_trkorr         TYPE trwbo_request_header OPTIONAL
       RETURNING
-        VALUE(rv_xstr)     TYPE xstring
+        VALUE(rs_zip)      TYPE zif_abapgit_definitions=>ty_zip_result
       RAISING
         zcx_abapgit_exception .
 
@@ -305,7 +305,7 @@ CLASS zcl_abapgit_transport IMPLEMENTATION.
           lv_message TYPE string.
     FIELD-SYMBOLS: <ls_log> TYPE sprot_u.
 
-    CREATE OBJECT li_log TYPE zcl_abapgit_log EXPORTING iv_title = iv_title.
+    li_log = NEW zcl_abapgit_log( iv_title = iv_title ).
 
     LOOP AT it_log ASSIGNING <ls_log>.
 
@@ -385,7 +385,7 @@ CLASS zcl_abapgit_transport IMPLEMENTATION.
       lo_dot_abapgit->set_folder_logic( zcl_abapgit_ui_factory=>get_popups( )->popup_folder_logic( ) ).
     ENDIF.
 
-    rv_xstr = zcl_abapgit_zip=>export(
+    rs_zip = zcl_abapgit_zip=>export(
       iv_package        = lv_package
       io_dot_abapgit    = lo_dot_abapgit
       is_local_settings = ls_local_settings

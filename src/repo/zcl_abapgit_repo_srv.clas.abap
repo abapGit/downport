@@ -141,7 +141,7 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
 
   METHOD get_instance.
     IF gi_ref IS INITIAL.
-      CREATE OBJECT gi_ref TYPE zcl_abapgit_repo_srv.
+      gi_ref = NEW zcl_abapgit_repo_srv( ).
     ENDIF.
     ri_srv = gi_ref.
   ENDMETHOD.
@@ -155,9 +155,9 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
   METHOD instantiate_and_add.
 
     IF is_repo_meta-offline = abap_false.
-      CREATE OBJECT ri_repo TYPE zcl_abapgit_repo_online EXPORTING is_data = is_repo_meta.
+      ri_repo = NEW zcl_abapgit_repo_online( is_data = is_repo_meta ).
     ELSE.
-      CREATE OBJECT ri_repo TYPE zcl_abapgit_repo_offline EXPORTING is_data = is_repo_meta.
+      ri_repo = NEW zcl_abapgit_repo_offline( is_data = is_repo_meta ).
     ENDIF.
     add( ri_repo ).
 
@@ -625,7 +625,8 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
           lv_branch_name LIKE iv_branch_name,
           lv_key         TYPE zif_abapgit_persistence=>ty_repo-key,
           lo_dot_abapgit TYPE REF TO zcl_abapgit_dot_abapgit,
-          lv_url         TYPE string.
+          lv_url         TYPE string,
+          lx_error       TYPE REF TO zcx_abapgit_exception.
 
 
     ASSERT NOT iv_url IS INITIAL
@@ -687,8 +688,17 @@ CLASS zcl_abapgit_repo_srv IMPLEMENTATION.
 
     ri_repo->set_local_settings( ls_repo-local_settings ).
 
-    ri_repo->refresh( ).
-    ri_repo->find_remote_dot_abapgit( ).
+    " First access to the remote (e.g. login) happens here. If it fails,
+    " remove the repo again so no orphaned entry is left behind. The HTTP call
+    " already committed the insert, so the delete must be committed as well
+    TRY.
+        ri_repo->refresh( ).
+        ri_repo->find_remote_dot_abapgit( ).
+      CATCH zcx_abapgit_exception INTO lx_error.
+        zif_abapgit_repo_srv~delete( ri_repo ).
+        COMMIT WORK.
+        RAISE EXCEPTION lx_error.
+    ENDTRY.
 
   ENDMETHOD.
 
