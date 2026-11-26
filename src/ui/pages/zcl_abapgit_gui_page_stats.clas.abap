@@ -45,7 +45,7 @@ CLASS zcl_abapgit_gui_page_stats IMPLEMENTATION.
 
   METHOD create.
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_stats.
-    lo_component = NEW #( ).
+    CREATE OBJECT lo_component.
     ri_page = zcl_abapgit_gui_page_hoc=>create( lo_component ).
   ENDMETHOD.
 

@@ -204,12 +204,14 @@ CLASS zcl_abapgit_cts_api IMPLEMENTATION.
 
 
   METHOD get_current_transport_for_obj.
-    DATA: lv_object_lockable   TYPE abap_bool,
+    TYPES temp1 TYPE STANDARD TABLE OF tlock WITH DEFAULT KEY.
+TYPES temp2 TYPE STANDARD TABLE OF trkorr WITH DEFAULT KEY.
+DATA: lv_object_lockable   TYPE abap_bool,
           lv_locked            TYPE abap_bool,
           lv_transport_request TYPE trkorr,
           ls_tlock             TYPE tlock,
-          lt_tlock             TYPE STANDARD TABLE OF tlock WITH DEFAULT KEY,
-          lt_transports        TYPE STANDARD TABLE OF trkorr WITH DEFAULT KEY,
+          lt_tlock             TYPE temp1,
+          lt_transports        TYPE temp2,
           lv_task              TYPE trkorr,
           lv_tr_object_name    TYPE trobj_name.
 
@@ -357,7 +359,9 @@ CLASS zcl_abapgit_cts_api IMPLEMENTATION.
       zcx_abapgit_exception=>raise_t100( ).
     ENDIF.
 
-    rv_locked = xsdbool( lv_lock_flag <> space ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( lv_lock_flag <> space ).
+    rv_locked = temp1.
   ENDMETHOD.
 
 
@@ -375,7 +379,9 @@ CLASS zcl_abapgit_cts_api IMPLEMENTATION.
       IMPORTING
         pe_result = lv_type_check_result.
 
-    rv_lockable = xsdbool( lv_type_check_result = 'L' ).
+    DATA temp2 TYPE xsdboolean.
+    temp2 = boolc( lv_type_check_result = 'L' ).
+    rv_lockable = temp2.
   ENDMETHOD.
 
 
@@ -393,7 +399,9 @@ CLASS zcl_abapgit_cts_api IMPLEMENTATION.
       IMPORTING
         pe_result = lv_type_check_result.
 
-    rv_transportable = xsdbool( lv_type_check_result CA 'RTL' OR iv_object_type = 'TABU' ).
+    DATA temp3 TYPE xsdboolean.
+    temp3 = boolc( lv_type_check_result CA 'RTL' OR iv_object_type = 'TABU' ).
+    rv_transportable = temp3.
   ENDMETHOD.
 
 
@@ -405,8 +413,10 @@ CLASS zcl_abapgit_cts_api IMPLEMENTATION.
         strkorr TYPE e070-strkorr,
       END OF ty_parent.
 
-    DATA lt_trkorr TYPE SORTED TABLE OF trkorr WITH UNIQUE KEY table_line.
-    DATA lt_parents TYPE HASHED TABLE OF ty_parent WITH UNIQUE KEY trkorr.
+    TYPES temp3 TYPE SORTED TABLE OF trkorr WITH UNIQUE KEY table_line.
+DATA lt_trkorr TYPE temp3.
+    TYPES temp4 TYPE HASHED TABLE OF ty_parent WITH UNIQUE KEY trkorr.
+DATA lt_parents TYPE temp4.
     DATA ls_parent LIKE LINE OF lt_parents.
 
     FIELD-SYMBOLS <ls_transport> LIKE LINE OF ct_transports.
@@ -692,7 +702,8 @@ CLASS zcl_abapgit_cts_api IMPLEMENTATION.
   METHOD zif_abapgit_cts_api~get_transports_for_list.
 
     DATA lv_request TYPE trkorr.
-    DATA lt_tlock TYPE SORTED TABLE OF tlock WITH NON-UNIQUE KEY object hikey.
+    TYPES temp5 TYPE SORTED TABLE OF tlock WITH NON-UNIQUE KEY object hikey.
+DATA lt_tlock TYPE temp5.
     DATA ls_object_key TYPE e071.
     DATA lv_type_check_result TYPE c LENGTH 1.
     DATA ls_lock_key TYPE tlock_int.
@@ -843,8 +854,9 @@ CLASS zcl_abapgit_cts_api IMPLEMENTATION.
         we_category = lv_category
         ev_logo_obj = lv_is_logical_object.
 
-    rv_is_customizing_object = xsdbool(
-      lv_category = zif_abapgit_cts_api~c_transport_category-customizing AND lv_is_logical_object = abap_true ).
+    DATA temp4 TYPE xsdboolean.
+    temp4 = boolc( lv_category = zif_abapgit_cts_api~c_transport_category-customizing AND lv_is_logical_object = abap_true ).
+    rv_is_customizing_object = temp4.
 
   ENDMETHOD.
 
@@ -871,8 +883,10 @@ CLASS zcl_abapgit_cts_api IMPLEMENTATION.
              obj_name TYPE e071-obj_name,
            END OF ty_contents.
 
-    DATA lt_tasks    TYPE STANDARD TABLE OF trkorr WITH DEFAULT KEY.
-    DATA lt_contents TYPE STANDARD TABLE OF ty_contents WITH DEFAULT KEY.
+    TYPES temp6 TYPE STANDARD TABLE OF trkorr WITH DEFAULT KEY.
+DATA lt_tasks    TYPE temp6.
+    TYPES temp7 TYPE STANDARD TABLE OF ty_contents WITH DEFAULT KEY.
+DATA lt_contents TYPE temp7.
     DATA ls_contents LIKE LINE OF lt_contents.
     DATA ls_list     LIKE LINE OF rt_list.
 
@@ -988,7 +1002,8 @@ CLASS zcl_abapgit_cts_api IMPLEMENTATION.
            END OF ty_e070create.
 
     DATA lt_trkorr     LIKE it_trkorr.
-    DATA lt_e070create TYPE STANDARD TABLE OF ty_e070create WITH DEFAULT KEY.
+    TYPES temp8 TYPE STANDARD TABLE OF ty_e070create WITH DEFAULT KEY.
+DATA lt_e070create TYPE temp8.
     DATA ls_e070create LIKE LINE OF lt_e070create.
     DATA ls_created_on LIKE LINE OF rt_created_on.
 
