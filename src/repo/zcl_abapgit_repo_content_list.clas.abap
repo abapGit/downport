@@ -92,7 +92,7 @@ CLASS zcl_abapgit_repo_content_list IMPLEMENTATION.
         ls_folder-path    = <ls_item>-path.
         ls_folder-sortkey = c_sortkey-dir. " Directory
         ls_folder-is_dir  = abap_true.
-        CREATE OBJECT lo_state.
+        lo_state = NEW #( ).
       ENDAT.
 
       ls_folder-changes = ls_folder-changes + <ls_item>-changes.
@@ -137,14 +137,12 @@ CLASS zcl_abapgit_repo_content_list IMPLEMENTATION.
         <ls_repo_item>-path      = <ls_status>-path.
         <ls_repo_item>-srcsystem = <ls_status>-srcsystem.
         <ls_repo_item>-origlang  = <ls_status>-origlang.
-        CREATE OBJECT lo_state.
+        lo_state = NEW #( ).
       ENDAT.
 
       IF <ls_status>-filename IS NOT INITIAL.
         MOVE-CORRESPONDING <ls_status> TO ls_file.
-        DATA temp1 TYPE xsdboolean.
-        temp1 = boolc( <ls_status>-match = abap_false ).
-        ls_file-is_changed = temp1. " TODO refactor
+        ls_file-is_changed = xsdbool( <ls_status>-match = abap_false ). " TODO refactor
         APPEND ls_file TO <ls_repo_item>-files.
 
         IF <ls_status>-inactive = abap_true AND <ls_repo_item>-sortkey > c_sortkey-changed.
@@ -207,24 +205,46 @@ CLASS zcl_abapgit_repo_content_list IMPLEMENTATION.
 
   METHOD constructor.
     mi_repo = ii_repo.
-    CREATE OBJECT mi_log TYPE zcl_abapgit_log.
+    mi_log = NEW zcl_abapgit_log( ).
   ENDMETHOD.
 
 
   METHOD determine_transports.
 
-    DATA ls_item TYPE zif_abapgit_definitions=>ty_item.
+    DATA lt_items TYPE zif_abapgit_definitions=>ty_items_tt.
+    DATA ls_item LIKE LINE OF lt_items.
+    DATA lt_transports TYPE zif_abapgit_cts_api=>ty_transport_list.
+    DATA ls_transport LIKE LINE OF lt_transports.
 
     FIELD-SYMBOLS <ls_item> LIKE LINE OF ct_repo_items.
 
-    LOOP AT ct_repo_items ASSIGNING <ls_item>.
+    LOOP AT ct_repo_items ASSIGNING <ls_item> WHERE obj_type IS NOT INITIAL AND obj_name IS NOT INITIAL.
       ls_item-obj_type = <ls_item>-obj_type.
       ls_item-obj_name = <ls_item>-obj_name.
-      TRY.
-          <ls_item>-transport = zcl_abapgit_factory=>get_cts_api( )->get_transport_for_object( ls_item ).
-        CATCH zcx_abapgit_exception ##NO_HANDLER.
-          " Ignore errors related to object check when trying to get transport
-      ENDTRY.
+      APPEND ls_item TO lt_items.
+    ENDLOOP.
+
+    IF lt_items IS INITIAL.
+      RETURN.
+    ENDIF.
+
+    " One read of all locks instead of a lock check per object
+    TRY.
+        lt_transports = zcl_abapgit_factory=>get_cts_api( )->get_transports_for_list(
+          it_items    = lt_items
+          iv_requests = abap_true ).
+      CATCH zcx_abapgit_exception.
+        " Ignore errors related to object check when trying to get transports
+        RETURN.
+    ENDTRY.
+
+    LOOP AT ct_repo_items ASSIGNING <ls_item> WHERE obj_type IS NOT INITIAL AND obj_name IS NOT INITIAL.
+      READ TABLE lt_transports INTO ls_transport WITH TABLE KEY
+        obj_type = <ls_item>-obj_type
+        obj_name = <ls_item>-obj_name.
+      IF sy-subrc = 0.
+        <ls_item>-transport = ls_transport-trkorr.
+      ENDIF.
     ENDLOOP.
 
   ENDMETHOD.
