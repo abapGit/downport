@@ -81,7 +81,7 @@ CLASS zcl_abapgit_statistics IMPLEMENTATION.
     ENDTRY.
 
     TRY.
-        CREATE OBJECT li_log TYPE zcl_abapgit_log.
+        li_log = NEW zcl_abapgit_log( ).
         " Force serialization while preserving the remote cache.
         lt_files = ii_repo->get_files_local( ii_log = li_log
                                             iv_force = abap_true ).
@@ -144,7 +144,7 @@ CLASS zcl_abapgit_statistics IMPLEMENTATION.
       CATCH zcx_abapgit_not_found.
         RETURN.
     ENDTRY.
-    CREATE OBJECT li_input TYPE zcl_abapgit_xml_input EXPORTING iv_xml = lv_xml.
+    li_input = NEW zcl_abapgit_xml_input( iv_xml = lv_xml ).
     li_input->read( EXPORTING iv_name = 'STATISTICS' CHANGING cg_data = rs_snapshot ).
 
     " Complete navigation metadata in older snapshots without serializing.
@@ -184,9 +184,7 @@ CLASS zcl_abapgit_statistics IMPLEMENTATION.
       li_progress->show( iv_current = lv_current
                          iv_text = |Statistics: { li_repo->get_package( ) }| ).
       READ TABLE lt_favorites WITH KEY table_line = li_repo->get_key( ) TRANSPORTING NO FIELDS.
-      DATA temp1 TYPE xsdboolean.
-      temp1 = boolc( sy-subrc = 0 ).
-      lv_favorite = temp1.
+      lv_favorite = xsdbool( sy-subrc = 0 ).
       ls_repo = collect( ii_repo = li_repo
                          iv_favorite = lv_favorite ).
       APPEND ls_repo TO rs_snapshot-repos.
@@ -195,7 +193,7 @@ CLASS zcl_abapgit_statistics IMPLEMENTATION.
     SORT rs_snapshot-repos BY name package.
     GET TIME STAMP FIELD rs_snapshot-refreshed_at.
 
-    CREATE OBJECT li_output TYPE zcl_abapgit_xml_output.
+    li_output = NEW zcl_abapgit_xml_output( ).
     li_output->add( iv_name = 'STATISTICS'
                     ig_data = rs_snapshot ).
     zcl_abapgit_persistence_db=>get_instance( )->modify(

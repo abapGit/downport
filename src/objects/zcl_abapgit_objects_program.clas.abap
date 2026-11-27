@@ -489,12 +489,10 @@ CLASS zcl_abapgit_objects_program IMPLEMENTATION.
 
     CONSTANTS lc_rpyty_force_off TYPE c LENGTH 1 VALUE '/'.
 
-    TYPES temp1 TYPE TABLE OF d020s.
-TYPES temp2 TYPE TABLE OF d023s.
-DATA: lv_name            TYPE dwinactiv-obj_name,
-          lt_d020s_to_delete TYPE temp1,
+    DATA: lv_name            TYPE dwinactiv-obj_name,
+          lt_d020s_to_delete TYPE TABLE OF d020s,
           ls_d020s           LIKE LINE OF lt_d020s_to_delete,
-          lt_params          TYPE temp2,
+          lt_params          TYPE TABLE OF d023s,
           ls_dynpro          LIKE LINE OF it_dynpros.
 
     FIELD-SYMBOLS: <ls_field> TYPE rpy_dyfatc.
@@ -785,10 +783,9 @@ DATA: lv_name            TYPE dwinactiv-obj_name,
 
   METHOD deserialize_varis.
 
-    TYPES temp3 TYPE STANDARD TABLE OF varit WITH DEFAULT KEY.
-DATA: lt_local_varis      TYPE ty_varikey_tt,
+    DATA: lt_local_varis      TYPE ty_varikey_tt,
           ls_varikey          LIKE LINE OF lt_local_varis,
-          lt_vari_text        TYPE temp3,
+          lt_vari_text        TYPE STANDARD TABLE OF varit WITH DEFAULT KEY,
           ls_vari_text_create LIKE LINE OF lt_vari_text,
           ls_varid            TYPE varid,
           lv_recreate         TYPE abap_bool,
@@ -816,9 +813,7 @@ DATA: lt_local_varis      TYPE ty_varikey_tt,
       ls_varikey-variant = <ls_vari>-variant.
 
       DELETE lt_local_varis WHERE variant = <ls_vari>-variant.
-      DATA temp1 TYPE xsdboolean.
-      temp1 = boolc( sy-subrc = 0 ).
-      lv_exists_locally = temp1.
+      lv_exists_locally = xsdbool( sy-subrc = 0 ).
 
       lv_was_protected = set_vari_protection( is_vari    = ls_varikey
                                               iv_protect = abap_false ).
@@ -1162,9 +1157,9 @@ DATA: lt_local_varis      TYPE ty_varikey_tt,
 
 
   METHOD is_exit_include.
-    DATA temp2 TYPE xsdboolean.
-    temp2 = boolc( iv_program CP 'LX*' OR iv_program CP 'SAPLX*' OR iv_program+1 CP '/LX*' OR iv_program+1 CP '/SAPLX*' ).
-    rv_is_exit_include = temp2.
+    rv_is_exit_include = xsdbool(
+      iv_program CP 'LX*' OR iv_program CP 'SAPLX*' OR
+      iv_program+1 CP '/LX*' OR iv_program+1 CP '/SAPLX*' ).
   ENDMETHOD.
 
 
@@ -1232,16 +1227,13 @@ DATA: lt_local_varis      TYPE ty_varikey_tt,
 
 
   METHOD serialize_dynpros.
-    TYPES temp4 TYPE TABLE OF d020s.
-TYPES temp3 TYPE TABLE OF d021t.
-TYPES temp1 TYPE TABLE OF d021s.
-DATA: ls_header               TYPE rpy_dyhead,
+    DATA: ls_header               TYPE rpy_dyhead,
           lt_containers           TYPE dycatt_tab,
           lt_fields_to_containers TYPE dyfatc_tab,
           lt_flow_logic           TYPE swydyflow,
-          lt_d020s                TYPE temp4,
-          lt_texts                TYPE temp3,
-          lt_fieldlist_int        TYPE temp1. "internal format
+          lt_d020s                TYPE TABLE OF d020s,
+          lt_texts                TYPE TABLE OF d021t,
+          lt_fieldlist_int        TYPE TABLE OF d021s. "internal format
 
     FIELD-SYMBOLS: <ls_d020s>       LIKE LINE OF lt_d020s,
                    <lv_outputstyle> TYPE scrpostyle,
@@ -1379,14 +1371,13 @@ DATA: ls_header               TYPE rpy_dyhead,
 
   METHOD serialize_program.
 
-    TYPES temp7 TYPE TABLE OF abaptxt255.
-DATA: ls_progdir      TYPE zif_abapgit_sap_report=>ty_progdir,
+    DATA: ls_progdir      TYPE zif_abapgit_sap_report=>ty_progdir,
           lv_program_name TYPE syrepid,
           lt_dynpros      TYPE ty_dynpro_tt,
           ls_cua          TYPE ty_cua,
           lt_varis        TYPE ty_vari_tt,
           li_report       TYPE REF TO zif_abapgit_sap_report,
-          lt_source       TYPE temp7,
+          lt_source       TYPE TABLE OF abaptxt255,
           lt_tpool        TYPE textpool_table,
           ls_tpool        LIKE LINE OF lt_tpool,
           li_xml          TYPE REF TO zif_abapgit_xml_output.
@@ -1417,7 +1408,7 @@ DATA: ls_progdir      TYPE zif_abapgit_sap_report=>ty_progdir,
     IF io_xml IS BOUND.
       li_xml = io_xml.
     ELSE.
-      CREATE OBJECT li_xml TYPE zcl_abapgit_xml_output.
+      li_xml = NEW zcl_abapgit_xml_output( ).
     ENDIF.
 
     li_xml->add( iv_name = 'PROGDIR'
@@ -1461,12 +1452,37 @@ DATA: ls_progdir      TYPE zif_abapgit_sap_report=>ty_progdir,
 
     DATA: ls_vari  TYPE ty_vari,
           ls_varid TYPE varid,
-          lt_varis TYPE ty_varikey_tt.
+          lt_varis TYPE ty_varikey_tt,
+          lt_dynnr TYPE ty_vari_dynnr_tt.
 
     FIELD-SYMBOLS: <ls_varikey> LIKE LINE OF lt_varis,
                    <ls_object>  LIKE LINE OF ls_vari-objects.
 
     lt_varis = get_varis_for_report( iv_program_name ).
+
+    IF lt_varis IS NOT INITIAL.
+      " RS_VARIANT_CONTENTS_255 can trigger message A093 in RSDBRUNT
+      " when the selection screen cannot be loaded or generated.
+      CLEAR lt_dynnr.
+
+      CALL FUNCTION 'RS_ALL_SELECTIONSCREENS'
+        EXPORTING
+          program             = iv_program_name
+        TABLES
+          dynnr               = lt_dynnr
+        EXCEPTIONS
+          type_s              = 1
+          load_sscr_error     = 2
+          no_selectionscreens = 3
+          not_existent        = 4
+          read_header_error   = 5
+          OTHERS              = 6.
+      IF sy-subrc <> 0.
+        zcx_abapgit_exception=>raise(
+          |Cannot serialize variants for report { iv_program_name }: | &&
+          |selection screen check failed ({ sy-msgid } { sy-msgno }, RC { sy-subrc })| ).
+      ENDIF.
+    ENDIF.
 
     LOOP AT lt_varis ASSIGNING <ls_varikey>.
       CLEAR: ls_vari,
