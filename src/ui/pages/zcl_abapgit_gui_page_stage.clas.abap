@@ -95,9 +95,6 @@ CLASS zcl_abapgit_gui_page_stage DEFINITION
         VALUE(ri_page) TYPE REF TO zif_abapgit_gui_renderable
       RAISING
         zcx_abapgit_exception .
-    METHODS render_main_language_warning
-      RETURNING
-        VALUE(ri_html) TYPE REF TO zif_abapgit_html .
     METHODS count_default_files_to_commit
       RETURNING
         VALUE(rv_count) TYPE i .
@@ -180,12 +177,12 @@ CLASS zcl_abapgit_gui_page_stage IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO zcl_abapgit_gui_page_stage.
 
-    CREATE OBJECT lo_component EXPORTING ii_repo_online = ii_repo_online
-                                         iv_seed = iv_seed
-                                         iv_sci_result = iv_sci_result
-                                         ii_force_refresh = ii_force_refresh
-                                         ii_obj_filter = ii_obj_filter
-                                         iv_changed_by = iv_changed_by.
+    lo_component = NEW #( ii_repo_online = ii_repo_online
+                          iv_seed = iv_seed
+                          iv_sci_result = iv_sci_result
+                          ii_force_refresh = ii_force_refresh
+                          ii_obj_filter = ii_obj_filter
+                          iv_changed_by = iv_changed_by ).
 
     ri_page = zcl_abapgit_gui_page_hoc=>create(
       iv_page_title         = 'Stage'
@@ -259,7 +256,7 @@ CLASS zcl_abapgit_gui_page_stage IMPLEMENTATION.
 
   METHOD render_actions.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     " Commit and Patch actions live in the page toolbar (commitBtn / patchBtn,
     " labels managed by StageHelper.updateMenu)
@@ -284,7 +281,7 @@ CLASS zcl_abapgit_gui_page_stage IMPLEMENTATION.
     DATA: lv_param    TYPE string,
           lv_filename TYPE string.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     lv_filename = is_file-path && is_file-filename.
     " make sure whitespace is preserved in the DOM
@@ -346,7 +343,7 @@ CLASS zcl_abapgit_gui_page_stage IMPLEMENTATION.
                    <ls_status> LIKE LINE OF ms_files-status,
                    <ls_local>  LIKE LINE OF ms_files-local.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<table id="stageTab" class="stage_tab w100">' ).
 
@@ -472,26 +469,9 @@ CLASS zcl_abapgit_gui_page_stage IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD render_main_language_warning.
-
-    DATA lv_main_language TYPE spras.
-
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
-
-    lv_main_language = mi_repo->get_dot_abapgit( )->get_main_language( ).
-
-    IF lv_main_language <> sy-langu.
-      ri_html->add( zcl_abapgit_gui_chunk_lib=>render_warning_banner(
-                        |Caution: Main language of the repo is '{ lv_main_language }', |
-                     && |but you're logged on in '{ sy-langu }'| ) ).
-    ENDIF.
-
-  ENDMETHOD.
-
-
   METHOD render_scripts.
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
 
@@ -522,7 +502,7 @@ CLASS zcl_abapgit_gui_page_stage IMPLEMENTATION.
     FIELD-SYMBOLS <ls_remote> LIKE LINE OF ms_files-remote.
     FIELD-SYMBOLS <ls_status> LIKE LINE OF ms_files-status.
 
-    CREATE OBJECT ro_stage.
+    ro_stage = NEW #( ).
 
     LOOP AT ms_files-local ASSIGNING <ls_local>.
       READ TABLE ms_files-status ASSIGNING <ls_status>
@@ -756,7 +736,7 @@ CLASS zcl_abapgit_gui_page_stage IMPLEMENTATION.
 
     handle_picklist_state( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div class="repo">' ).
     ri_html->add( zcl_abapgit_gui_chunk_lib=>render_repo_top(
@@ -764,7 +744,8 @@ CLASS zcl_abapgit_gui_page_stage IMPLEMENTATION.
       iv_show_commit        = abap_false
       iv_interactive_branch = abap_true
       iv_sci_result         = mv_sci_result ) ).
-    ri_html->add( render_main_language_warning( ) ).
+    ri_html->add( zcl_abapgit_gui_chunk_lib=>render_main_language_warning(
+      mi_repo->get_dot_abapgit( )->get_main_language( ) ) ).
 
     ri_html->add( '<div class="stage-container">' ).
     ri_html->add( render_actions( ) ).

@@ -64,8 +64,8 @@ CLASS zcl_abapgit_gui_page_runit IMPLEMENTATION.
     TRY.
         li_runner = zcl_abapgit_aunit_factory=>get_runner( ii_repo ).
 
-        CREATE OBJECT lo_component EXPORTING ii_repo = ii_repo
-                                             ii_runner = li_runner.
+        lo_component = NEW #( ii_repo = ii_repo
+                              ii_runner = li_runner ).
 
         ri_page = zcl_abapgit_gui_page_hoc=>create(
           iv_page_title         = |Unit Tests|
@@ -150,7 +150,7 @@ CLASS zcl_abapgit_gui_page_runit IMPLEMENTATION.
 
     register_handlers( ).
 
-    CREATE OBJECT ri_html TYPE zcl_abapgit_html.
+    ri_html = NEW zcl_abapgit_html( ).
 
     ri_html->add( '<div class="repo">' ).
     ri_html->add( zcl_abapgit_gui_chunk_lib=>render_repo_top( ii_repo        = mi_repo

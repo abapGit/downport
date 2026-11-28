@@ -15,9 +15,9 @@ CLASS zcl_abapgit_aunit_factory IMPLEMENTATION.
 
   METHOD get_runner.
     TRY.
-        CREATE OBJECT ri_runner TYPE zcl_abapgit_aunit_classic EXPORTING ii_repo = ii_repo.
+        ri_runner = NEW zcl_abapgit_aunit_classic( ii_repo = ii_repo ).
       CATCH zcx_abapgit_exception.
-        CREATE OBJECT ri_runner TYPE zcl_abapgit_aunit_modern EXPORTING ii_repo = ii_repo.
+        ri_runner = NEW zcl_abapgit_aunit_modern( ii_repo = ii_repo ).
     ENDTRY.
   ENDMETHOD.
 
